@@ -11,29 +11,16 @@ const CUSTOM_PROTOCOL = 'https';
  * Get the current domain - uses custom domain if available, fallback to current origin
  */
 export function getCurrentDomain(): string {
-  // Check if we're on the custom domain already
   if (typeof window !== 'undefined') {
-    const currentHost = window.location.hostname;
-    
-    // If already on custom domain, use it
-    if (currentHost === CUSTOM_DOMAIN) {
-      return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}`;
+    const { pathname, search } = window.location;
+    // if we're already on the custom domain, use the existing origin
+    if (window.location.hostname === CUSTOM_DOMAIN) {
+      return window.location.origin;
     }
-    
-    // Check if we're in production by looking at the hostname
-    const isProduction = !currentHost.includes('localhost') && 
-                        !currentHost.includes('127.0.0.1') && 
-                        !currentHost.includes('dev');
-    
-    // Use custom domain for production, current origin for development
-    if (isProduction) {
-      return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}`;
-    }
-    
-    return window.location.origin;
+    // otherwise force the custom domain
+    return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}${pathname}${search}`;
   }
-  
-  // Fallback for SSR or when window is not available
+  // server-side fallback
   return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}`;
 }
 
