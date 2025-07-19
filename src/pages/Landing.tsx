@@ -10,6 +10,7 @@ import { FeatureShowcase } from "@/components/FeatureShowcase";
 import { StatsSection } from "@/components/StatsSection";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { CookieConsent } from "@/components/CookieConsent";
+import { DemoInteractiveDashboard } from "@/components/DemoInteractiveDashboard";
 import { useState } from "react";
 
 const Landing = () => {
@@ -48,31 +49,23 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto text-center max-w-4xl">
+      <section className="py-12 px-4">
+        <div className="container mx-auto text-center max-w-6xl">
           <Badge variant="secondary" className="mb-4">
             <Zap className="h-3 w-3 mr-1" />
             AI-Powered Regulatory Intelligence
           </Badge>
-          <h1 className="text-5xl font-bold tracking-tight mb-6">
+          <h1 className="text-4xl font-bold tracking-tight mb-4">
             Transform Regulatory 
             <span className="text-primary"> Complexity</span> into 
             <span className="text-primary"> Clarity</span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            RegIQ aggregates regulatory updates from FDA, USDA, EPA and more, delivering AI-enhanced intelligence that keeps your compliance team ahead of critical changes.
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Explore our live regulatory intelligence platform. Search, filter, and analyze real FDA, USDA, and EPA alerts below.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" asChild>
-              <Link to={user ? "/dashboard" : "/auth"}>
-                Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg">Watch Demo</Button>
-          </div>
           
           {/* Agency Badges */}
-          <div className="flex flex-wrap justify-center gap-4 opacity-60">
+          <div className="flex flex-wrap justify-center gap-4 opacity-60 mb-8">
             <Badge variant="outline" className="text-agency-fda border-agency-fda">FDA</Badge>
             <Badge variant="outline" className="text-agency-usda border-agency-usda">USDA</Badge>
             <Badge variant="outline" className="text-agency-epa border-agency-epa">EPA</Badge>
@@ -80,6 +73,19 @@ const Landing = () => {
             <Badge variant="outline">FSIS</Badge>
             <Badge variant="outline">EFSA</Badge>
           </div>
+        </div>
+      </section>
+
+      {/* Interactive Demo Dashboard */}
+      <section className="py-8 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">Try RegIQ Now - Live Demo</h2>
+            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+              This is a fully functional demo with real regulatory data. Click, search, and explore to experience RegIQ's powerful capabilities firsthand.
+            </p>
+          </div>
+          <DemoInteractiveDashboard />
         </div>
       </section>
 
