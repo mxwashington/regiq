@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,9 +22,14 @@ import {
   User,
   Pill,
   Utensils,
-  Activity
+  Activity,
+  CheckCircle,
+  XCircle,
+  TrendingUp,
+  Lightbulb
 } from 'lucide-react';
 import { fdaApi, FDAResponse, FDAEnforcementResult, FDAEventResult, FDAShortageResult } from '@/lib/fda-api';
+import { fdaQueryHelper, QuerySuggestion, QueryValidation } from '@/lib/fda-query-helper';
 
 interface FDASearchFilters {
   endpoint: string;
@@ -56,6 +61,14 @@ export function FDASearch() {
     productType: ''
   });
   const [selectedEndpoints, setSelectedEndpoints] = useState<string[]>(['foodEnforcement', 'drugEnforcement']);
+  
+  // Smart Query Features
+  const [suggestions, setSuggestions] = useState<QuerySuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [queryValidation, setQueryValidation] = useState<QueryValidation | null>(null);
+  const [expandedQuery, setExpandedQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
 
@@ -255,6 +268,65 @@ export function FDASearch() {
     );
   };
 
+  // Smart Query Features
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    
+    // Get suggestions
+    if (value.length >= 2) {
+      const newSuggestions = fdaQueryHelper.getSuggestions(value);
+      setSuggestions(newSuggestions);
+      setShowSuggestions(newSuggestions.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+
+    // Validate query
+    if (value.length > 0) {
+      const validation = fdaQueryHelper.validateQuery(value);
+      setQueryValidation(validation);
+      
+      // Set expanded query
+      const expanded = fdaQueryHelper.expandQuery(value);
+      setExpandedQuery(expanded !== value ? expanded : '');
+    } else {
+      setQueryValidation(null);
+      setExpandedQuery('');
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: QuerySuggestion) => {
+    setQuery(suggestion.term);
+    setShowSuggestions(false);
+    inputRef.current?.focus();
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'pathogen': return AlertTriangle;
+      case 'allergen': return Shield;
+      case 'company': return Building;
+      case 'product': return Pill;
+      case 'classification': return FileText;
+      case 'drug': return Pill;
+      case 'device': return Activity;
+      default: return Search;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Quick Search Buttons */}
@@ -336,15 +408,99 @@ export function FDASearch() {
             </TabsList>
 
             <TabsContent value="single" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="single-query">Search Query</Label>
-                <Input
-                  id="single-query"
-                  placeholder="e.g., salmonella, heart valve recall, contamination"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
+              <div className="space-y-2 relative">
+                <Label htmlFor="single-query">Smart Search Query</Label>
+                <div className="relative">
+                  <Input
+                    ref={inputRef}
+                    id="single-query"
+                    placeholder="Start typing... e.g., list, salm, peanut"
+                    value={query}
+                    onChange={(e) => handleQueryChange(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    onFocus={() => {
+                      if (suggestions.length > 0) setShowSuggestions(true);
+                    }}
+                    className={queryValidation && !queryValidation.isValid ? 'border-red-300' : ''}
+                  />
+                  {loading && (
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Auto-suggest dropdown */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div 
+                    ref={suggestionsRef}
+                    className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
+                  >
+                    {suggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {React.createElement(getCategoryIcon(suggestion.category), { 
+                              className: "w-4 h-4 text-gray-400" 
+                            })}
+                            <span className="font-medium">{suggestion.term}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {suggestion.category}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <div className="text-xs text-gray-500">
+                              {Math.round(suggestion.confidence * 100)}%
+                            </div>
+                          </div>
+                        </div>
+                        {suggestion.expandedTerms && suggestion.expandedTerms.length > 0 && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Also searches: {suggestion.expandedTerms.slice(0, 3).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Query validation feedback */}
+                {queryValidation && (
+                  <div className="space-y-2">
+                    {!queryValidation.isValid && (
+                      <div className="flex items-center space-x-2 text-red-600 text-sm">
+                        <XCircle className="w-4 h-4" />
+                        <span>Query has syntax issues</span>
+                      </div>
+                    )}
+                    {queryValidation.isValid && query.length > 0 && (
+                      <div className="flex items-center space-x-2 text-green-600 text-sm">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Query syntax is valid</span>
+                      </div>
+                    )}
+                    {queryValidation.errors.map((error, index) => (
+                      <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                        {error}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Smart expansion preview */}
+                {expandedQuery && (
+                  <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                    <div className="flex items-center space-x-2 text-blue-700 text-sm mb-2">
+                      <Lightbulb className="w-4 h-4" />
+                      <span>Smart expansion will also search:</span>
+                    </div>
+                    <div className="text-xs text-blue-600 font-mono bg-white p-2 rounded border">
+                      {expandedQuery}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -365,15 +521,67 @@ export function FDASearch() {
             </TabsContent>
 
             <TabsContent value="multiple" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="multiple-query">Search Query</Label>
-                <Input
-                  id="multiple-query"
-                  placeholder="e.g., E. coli outbreak, drug shortage, medical device recall"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
+              <div className="space-y-2 relative">
+                <Label htmlFor="multiple-query">Smart Search Query</Label>
+                <div className="relative">
+                  <Input
+                    id="multiple-query"
+                    placeholder="Start typing... e.g., E. coli outbreak, drug shortage"
+                    value={query}
+                    onChange={(e) => handleQueryChange(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    onFocus={() => {
+                      if (suggestions.length > 0) setShowSuggestions(true);
+                    }}
+                    className={queryValidation && !queryValidation.isValid ? 'border-red-300' : ''}
+                  />
+                  {loading && (
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Auto-suggest dropdown for multiple search */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div 
+                    ref={suggestionsRef}
+                    className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
+                  >
+                    {suggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {React.createElement(getCategoryIcon(suggestion.category), { 
+                              className: "w-4 h-4 text-gray-400" 
+                            })}
+                            <span className="font-medium">{suggestion.term}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {suggestion.category}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Query validation for multiple search */}
+                {queryValidation && !queryValidation.isValid && (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-red-600 text-sm">
+                      <XCircle className="w-4 h-4" />
+                      <span>Query has syntax issues</span>
+                    </div>
+                    {queryValidation.errors.map((error, index) => (
+                      <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                        {error}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
