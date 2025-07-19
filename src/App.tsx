@@ -14,6 +14,7 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import AuthCallback from "./pages/AuthCallback";
 import Subscription from "./pages/Subscription";
 import { AdminDashboard } from "./pages/AdminDashboard";
@@ -72,6 +73,7 @@ const App = () => (
                   <Route path="/" element={<Landing />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/dashboard" element={
                     <AuthGuard>
