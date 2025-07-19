@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,12 +16,21 @@ import {
   TrendingUp,
   AlertTriangle,
   Info,
-  Zap
+  Zap,
+  LogOut,
+  CreditCard
 } from "lucide-react";
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { RegulatoryFeed } from "@/components/RegulatoryFeed";
+import { SubscriptionStatus } from "@/components/SubscriptionStatus";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const Dashboard = () => {
+  const { user, loading, signOut, subscribed, subscriptionTier } = useAuth();
+  const navigate = useNavigate();
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilters, setSelectedFilters] = useState({
     agencies: [] as string[],
@@ -30,6 +39,12 @@ const Dashboard = () => {
     signalTypes: [] as string[],
     dateRange: "7days" as string
   });
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
 
   const handleFilterChange = (filterType: string, value: string) => {
     setSelectedFilters(prev => ({
@@ -79,12 +94,32 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <Badge variant={subscribed ? "default" : "secondary"}>
+              {subscriptionTier ? subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1) : "Free"}
+            </Badge>
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
-              <User className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <User className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/subscription" className="flex items-center">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Subscription
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>

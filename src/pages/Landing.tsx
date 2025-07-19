@@ -3,8 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Shield, Zap, Bell, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Landing = () => {
+  const { user } = useAuth();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5">
       {/* Header */}
@@ -16,9 +19,21 @@ const Landing = () => {
           </div>
           <nav className="hidden md:flex items-center space-x-6">
             <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
-            <Button variant="outline" size="sm">Sign In</Button>
-            <Button size="sm">Start Free Trial</Button>
+            <Link to="/subscription" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
+            {user ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/auth">Start Free Trial</Link>
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -40,7 +55,7 @@ const Landing = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button size="lg" asChild>
-              <Link to="/dashboard">
+              <Link to={user ? "/dashboard" : "/auth"}>
                 Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -129,7 +144,7 @@ const Landing = () => {
             Join thousands of compliance professionals who trust RegIQ to keep them informed and compliant.
           </p>
           <Button size="lg" asChild>
-            <Link to="/dashboard">
+            <Link to={user ? "/dashboard" : "/auth"}>
               Start Your Free Trial <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
