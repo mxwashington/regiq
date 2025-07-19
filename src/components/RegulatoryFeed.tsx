@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -355,52 +355,55 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
     ]
   })) : sampleData;
 
-  // Filter the data based on selected filters and search query
-  const filteredData = convertedData.filter(item => {
-    // Search query filter
-    if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !item.aiSummary.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
+  // Memoize filtered data for better performance
+  const filteredData = useMemo(() => {
+    return convertedData.filter(item => {
+      // Search query filter
+      if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
+          !item.aiSummary.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
 
-    // Agency filter
-    if (selectedFilters.agencies.length > 0 && 
-        !selectedFilters.agencies.some(agency => 
-          item.sourceAgency.toLowerCase().includes(agency.toLowerCase())
-        )) {
-      return false;
-    }
+      // Agency filter
+      if (selectedFilters.agencies.length > 0 && 
+          !selectedFilters.agencies.some(agency => 
+            item.sourceAgency.toLowerCase().includes(agency.toLowerCase())
+          )) {
+        return false;
+      }
 
-    // Industry filter - using category as industry
-    if (selectedFilters.industries.length > 0 && 
-        !item.industryTags.some(tag => 
-          selectedFilters.industries.some(industry => 
-            tag.toLowerCase().includes(industry.toLowerCase())
-          )
-        )) {
-      return false;
-    }
+      // Industry filter - using category as industry
+      if (selectedFilters.industries.length > 0 && 
+          !item.industryTags.some(tag => 
+            selectedFilters.industries.some(industry => 
+              tag.toLowerCase().includes(industry.toLowerCase())
+            )
+          )) {
+        return false;
+      }
 
-    // Urgency filter
-    if (selectedFilters.urgency.length > 0) {
-      const urgencyMap: { [key: string]: number[] } = {
-        "high": [8, 9, 10],
-        "medium": [6, 7],
-        "low": [4, 5],
-        "info": [1, 2, 3]
-      };
-      
-      const matchesUrgency = selectedFilters.urgency.some(urgency =>
-        urgencyMap[urgency]?.includes(item.urgencyLevel)
-      );
-      
-      if (!matchesUrgency) return false;
-    }
+      // Urgency filter
+      if (selectedFilters.urgency.length > 0) {
+        const urgencyMap: { [key: string]: number[] } = {
+          "high": [8, 9, 10],
+          "medium": [6, 7],
+          "low": [4, 5],
+          "info": [1, 2, 3]
+        };
+        
+        const matchesUrgency = selectedFilters.urgency.some(urgency =>
+          urgencyMap[urgency]?.includes(item.urgencyLevel)
+        );
+        
+        if (!matchesUrgency) return false;
+      }
 
-    return true;
-  });
+      return true;
+    });
+  }, [convertedData, searchQuery, selectedFilters]);
 
-  const formatDate = (dateString: string) => {
+  // Memoize format date function
+  const formatDate = useMemo(() => (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
@@ -408,7 +411,7 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       hour: '2-digit', 
       minute: '2-digit' 
     });
-  };
+  }, []);
 
   if (loading) {
     return (

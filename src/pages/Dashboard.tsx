@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,16 +69,16 @@ const Dashboard = () => {
     return null; // Will redirect in useEffect
   }
 
-  const handleFilterChange = (filterType: string, value: string) => {
+  const handleFilterChange = useCallback((filterType: string, value: string) => {
     setSelectedFilters(prev => ({
       ...prev,
       [filterType]: prev[filterType as keyof typeof prev].includes(value)
         ? (prev[filterType as keyof typeof prev] as string[]).filter(item => item !== value)
         : [...(prev[filterType as keyof typeof prev] as string[]), value]
     }));
-  };
+  }, []);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setSelectedFilters({
       agencies: [],
       industries: [],
@@ -87,16 +87,16 @@ const Dashboard = () => {
       dateRange: "7days"
     });
     setSearchQuery("");
-  };
+  }, []);
 
-  const getActiveFilterCount = () => {
+  const getActiveFilterCount = useCallback(() => {
     return Object.values(selectedFilters).reduce((count, filters) => {
       if (Array.isArray(filters)) {
         return count + filters.length;
       }
       return filters !== "7days" ? count + 1 : count;
     }, 0);
-  };
+  }, [selectedFilters]);
 
   return (
     <div className="min-h-screen bg-background">

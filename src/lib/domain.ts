@@ -60,12 +60,6 @@ export function buildMagicLinkRedirectUrl(): string {
   return buildAbsoluteUrl('/auth?type=magiclink');
 }
 
-/**
- * Build password reset redirect URL
- */
-export function buildPasswordResetRedirectUrl(): string {
-  return buildAbsoluteUrl('/auth?type=recovery');
-}
 
 /**
  * Check if URL is internal to our domain

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { buildAuthRedirectUrl, buildMagicLinkRedirectUrl, buildPasswordResetRedirectUrl } from '@/lib/domain';
+import { buildAuthRedirectUrl, buildMagicLinkRedirectUrl } from '@/lib/domain';
 
 interface AuthContextType {
   user: User | null;
@@ -14,10 +14,7 @@ interface AuthContextType {
   adminRole: string | null;
   adminPermissions: string[];
   loading: boolean;
-  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: any }>;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, rememberMe?: boolean) => Promise<{ error: any }>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
   checkAdminStatus: () => Promise<void>;
@@ -119,45 +116,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) {
-      // Enhanced error handling with specific messages
-      let errorMessage = error.message;
-      if (error.message.includes('Invalid credentials')) {
-        errorMessage = 'Invalid email or password. Please try again.';
-      } else if (error.message.includes('email not confirmed')) {
-        errorMessage = 'Please check your email and click the confirmation link.';
-      } else if (error.message.includes('too many requests')) {
-        errorMessage = 'Too many login attempts. Please wait a moment and try again.';
-      }
-      
-      toast({
-        title: "Sign in failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } else {
-      // Store remember me preference
-      if (rememberMe) {
-        localStorage.setItem('regiq_remember_me', 'true');
-      } else {
-        localStorage.removeItem('regiq_remember_me');
-      }
-      
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
-    }
-    
-    return { error };
-  };
-
   const signInWithMagicLink = async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -185,82 +143,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, rememberMe: boolean = false) => {
-    const redirectUrl = buildAuthRedirectUrl('/dashboard');
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          remember_me: rememberMe
-        },
-      },
-    });
-    
-    if (error) {
-      // Enhanced error handling with specific messages
-      let errorMessage = error.message;
-      if (error.message.includes('already registered')) {
-        errorMessage = 'An account with this email already exists. Please sign in instead.';
-      } else if (error.message.includes('invalid email')) {
-        errorMessage = 'Please enter a valid email address.';
-      } else if (error.message.includes('password')) {
-        errorMessage = 'Password must be at least 6 characters long.';
-      }
-      
-      toast({
-        title: "Sign up failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Account created successfully!",
-        description: "You can now sign in to your account.",
-      });
-    }
-    
-    return { error };
-  };
-
-  const resetPassword = async (email: string) => {
-    // Check if this is a password update (when user has clicked reset link)
-    const urlParams = new URLSearchParams(window.location.search);
-    const isRecovery = urlParams.get('type') === 'recovery';
-    
-    if (isRecovery) {
-      // This should not happen in normal flow, but just in case
-      toast({
-        title: "Already in recovery mode",
-        description: "Please set your new password using the form above.",
-        variant: "destructive",
-      });
-      return { error: new Error("Already in recovery mode") };
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: buildPasswordResetRedirectUrl(),
-    });
-    
-    if (error) {
-      toast({
-        title: "Password reset failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Check your email",
-        description: "We've sent you a link to reset your password.",
-      });
-    }
-    
-    return { error };
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
     setSubscribed(false);
@@ -282,10 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     adminRole,
     adminPermissions,
     loading,
-    signIn,
     signInWithMagicLink,
-    signUp,
-    resetPassword,
     signOut,
     refreshSubscription,
     checkAdminStatus,
