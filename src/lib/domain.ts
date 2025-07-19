@@ -7,6 +7,25 @@
 const CUSTOM_DOMAIN = 'regiq.org';
 const CUSTOM_PROTOCOL = 'https';
 
+export function getRedirectUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  const { hostname, pathname, search, href } = window.location;
+  console.log('current host:', hostname);
+  
+  // whitelist local dev & already-correct host
+  if (
+    hostname === CUSTOM_DOMAIN ||
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1'
+  ) {
+    return null;
+  }
+  
+  const target = `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}${pathname}${search}`;
+  return href !== target ? target : null;
+}
+
 /**
  * Get the current domain - uses custom domain if available, fallback to current origin
  */

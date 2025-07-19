@@ -1,12 +1,13 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { getCurrentDomain } from '@/lib/domain'
+import { getRedirectUrl } from '@/lib/domain'
 
-if (typeof window !== 'undefined') {
-  const target = getCurrentDomain();
-  if (window.location.href !== target) {
-    window.location.replace(target);
+if (import.meta.env.PROD) {
+  const redirectUrl = getRedirectUrl();
+  if (redirectUrl) {
+    console.log('redirecting to', redirectUrl);
+    window.location.replace(redirectUrl);
   }
 }
 
