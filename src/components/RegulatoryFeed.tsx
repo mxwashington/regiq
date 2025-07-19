@@ -18,7 +18,7 @@ import {
   RefreshCw,
   Loader2
 } from "lucide-react";
-import { fetchAllRSSFeeds, type RSSFeedItem } from "@/lib/rss-config";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface RegulatoryItem {
@@ -192,6 +192,20 @@ const getAgencyColor = (agency: string) => {
   return colors[agency] || "muted";
 };
 
+interface RSSFeedItem {
+  id: string;
+  title: string;
+  description: string;
+  link: string;
+  pubDate: Date;
+  agency: string;
+  category: string;
+  urgencyScore: number;
+  color: string;
+  icon: string;
+  guid: string;
+}
+
 export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [savedItems, setSavedItems] = useState<Set<string>>(new Set());
@@ -202,26 +216,32 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
   const loadRSSFeeds = async () => {
     setLoading(true);
     try {
-      const items = await fetchAllRSSFeeds();
+      // Call our Supabase edge function to fetch RSS feeds
+      const { data, error } = await supabase.functions.invoke('fetch-rss-feeds');
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const items = data?.items || [];
       setRssItems(items);
-      // Only show success if we actually got items
+      
       if (items.length > 0) {
         toast({
-          title: "Feed updated",
-          description: `Loaded ${items.length} regulatory updates`,
+          title: "Live feeds loaded",
+          description: `${items.length} real regulatory updates from ${data.cached ? 'cache' : 'live sources'}`,
         });
       } else {
-        // Fallback to sample data when RSS feeds fail
         toast({
-          title: "Using demo data",
-          description: "Live feeds unavailable, showing sample regulatory data",
+          title: "No live data available",
+          description: "Showing sample data. RSS feeds may be temporarily unavailable.",
           variant: "default",
         });
       }
     } catch (error) {
       console.error('Error loading RSS feeds:', error);
       toast({
-        title: "Using demo data",
+        title: "Using sample data",
         description: "Live feeds unavailable, showing sample regulatory data",
         variant: "default",
       });
