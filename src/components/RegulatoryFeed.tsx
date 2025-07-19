@@ -204,16 +204,26 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
     try {
       const items = await fetchAllRSSFeeds();
       setRssItems(items);
-      toast({
-        title: "Feed updated",
-        description: `Loaded ${items.length} regulatory updates`,
-      });
+      // Only show success if we actually got items
+      if (items.length > 0) {
+        toast({
+          title: "Feed updated",
+          description: `Loaded ${items.length} regulatory updates`,
+        });
+      } else {
+        // Fallback to sample data when RSS feeds fail
+        toast({
+          title: "Using demo data",
+          description: "Live feeds unavailable, showing sample regulatory data",
+          variant: "default",
+        });
+      }
     } catch (error) {
       console.error('Error loading RSS feeds:', error);
       toast({
-        title: "Failed to load feeds",
-        description: "Using cached data. Check your connection.",
-        variant: "destructive",
+        title: "Using demo data",
+        description: "Live feeds unavailable, showing sample regulatory data",
+        variant: "default",
       });
     } finally {
       setLoading(false);
@@ -244,8 +254,9 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
     setSavedItems(newSaved);
   };
 
-  // Convert RSS items to the format expected by the UI
-  const convertedData = rssItems.map(item => ({
+  // Convert RSS items to the format expected by the UI, fallback to sample data if no RSS items
+  const allItems = rssItems.length > 0 ? rssItems : [];
+  const convertedData = allItems.length > 0 ? allItems.map(item => ({
     id: item.id,
     title: item.title,
     sourceAgency: item.agency,
@@ -263,7 +274,7 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       "Assess impact on current procedures",
       "Consult with compliance team if needed"
     ]
-  }));
+  })) : sampleData;
 
   // Filter the data based on selected filters and search query
   const filteredData = convertedData.filter(item => {

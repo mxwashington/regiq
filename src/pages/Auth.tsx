@@ -162,11 +162,11 @@ export default function Auth() {
           </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              <TabsTrigger value="magic">Magic Link</TabsTrigger>
-              <TabsTrigger value="reset">Reset Password</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+              <TabsTrigger value="signin" className="text-xs md:text-sm">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" className="text-xs md:text-sm">Sign Up</TabsTrigger>
+              <TabsTrigger value="magic" className="text-xs md:text-sm">Magic Link</TabsTrigger>
+              <TabsTrigger value="reset" className="text-xs md:text-sm">Reset</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
