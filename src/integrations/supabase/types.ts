@@ -50,6 +50,117 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_content: {
+        Row: {
+          content: Json
+          content_type: string | null
+          created_at: string | null
+          demo_scenario: string | null
+          display_order: number | null
+          id: string
+          industry_focus: string | null
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: Json
+          content_type?: string | null
+          created_at?: string | null
+          demo_scenario?: string | null
+          display_order?: number | null
+          id?: string
+          industry_focus?: string | null
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: Json
+          content_type?: string | null
+          created_at?: string | null
+          demo_scenario?: string | null
+          display_order?: number | null
+          id?: string
+          industry_focus?: string | null
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      demo_sessions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          demo_scenario: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          session_data: Json | null
+          session_key: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          demo_scenario?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          session_data?: Json | null
+          session_key: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          demo_scenario?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          session_data?: Json | null
+          session_key?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      enterprise_features: {
+        Row: {
+          created_at: string | null
+          current_usage: number | null
+          feature_name: string
+          id: string
+          is_enabled: boolean | null
+          reset_period: string | null
+          updated_at: string | null
+          usage_limit: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_usage?: number | null
+          feature_name: string
+          id?: string
+          is_enabled?: boolean | null
+          reset_period?: string | null
+          updated_at?: string | null
+          usage_limit?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_usage?: number | null
+          feature_name?: string
+          id?: string
+          is_enabled?: boolean | null
+          reset_period?: string | null
+          updated_at?: string | null
+          usage_limit?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       perplexity_searches: {
         Row: {
           agencies: string[] | null
@@ -256,6 +367,18 @@ export type Database = {
       clean_expired_cache: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      get_feature_usage: {
+        Args: { user_id_param: string; feature_name_param: string }
+        Returns: {
+          current_usage: number
+          usage_limit: number
+          is_unlimited: boolean
+        }[]
+      }
+      has_enterprise_feature: {
+        Args: { user_id_param: string; feature_name_param: string }
+        Returns: boolean
       }
       is_admin: {
         Args: { user_id: string }

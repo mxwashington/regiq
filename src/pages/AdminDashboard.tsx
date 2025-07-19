@@ -3,7 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminNavigation } from '@/components/AdminNavigation';
+import { EnterpriseAdminDashboard } from '@/components/EnterpriseAdminDashboard';
+import { DemoContentDisplay } from '@/components/DemoContentDisplay';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useDemoMode } from '@/contexts/DemoContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, 
@@ -26,7 +29,8 @@ interface AdminStats {
 }
 
 export function AdminDashboard() {
-  const { user } = useAdminAuth();
+  const { user, adminRole } = useAdminAuth();
+  const { isDemoMode } = useDemoMode();
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -98,6 +102,9 @@ export function AdminDashboard() {
     }
   ];
 
+  // Check if this is an enterprise admin
+  const isEnterpriseAdmin = adminRole === 'enterprise_admin';
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminNavigation />
@@ -106,146 +113,173 @@ export function AdminDashboard() {
         <div className="p-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-1">
-              Welcome back, {user?.email}. Here's what's happening with RegIQ.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {isEnterpriseAdmin ? 'Enterprise Admin Dashboard' : 'Admin Dashboard'}
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Welcome back, {user?.email}. {isEnterpriseAdmin ? 'Full enterprise access enabled.' : "Here's what's happening with RegIQ."}
+                </p>
+              </div>
+              {isEnterpriseAdmin && (
+                <Badge variant="outline" className="text-orange-600 border-orange-600">
+                  Enterprise Admin
+                </Badge>
+              )}
+            </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                <p className="text-xs text-muted-foreground">
-                  +12% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-                <TrendingUp className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.activeUsers}</div>
-                <p className="text-xs text-muted-foreground">
-                  {Math.round((stats.activeUsers / stats.totalUsers) * 100)}% active rate
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Subscribers</CardTitle>
-                <BarChart3 className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalSubscribers}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.totalUsers > 0 ? Math.round((stats.totalSubscribers / stats.totalUsers) * 100) : 0}% conversion rate
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">RSS Feeds</CardTitle>
-                <Radio className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-2">
-                  <Badge 
-                    variant={stats.feedsStatus === 'healthy' ? 'default' : 'destructive'}
-                  >
-                    {stats.feedsStatus}
-                  </Badge>
+          {/* Enterprise Admin Dashboard or Standard Dashboard */}
+          {isEnterpriseAdmin ? (
+            <div className="space-y-8">
+              <EnterpriseAdminDashboard />
+              {isDemoMode && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">Demo Content Preview</h2>
+                  <DemoContentDisplay />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Last updated: {new Date(stats.lastFeedUpdate).toLocaleTimeString()}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              {/* Standard Admin Dashboard Content */}
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                    <p className="text-xs text-muted-foreground">
+                      +12% from last month
+                    </p>
+                  </CardContent>
+                </Card>
 
-          {/* Quick Actions */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>
-                Perform common administrative tasks
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {quickActions.map((action, index) => {
-                  const Icon = action.icon;
-                  return (
-                    <Button
-                      key={index}
-                      variant={action.variant}
-                      onClick={action.action}
-                      className="h-auto flex flex-col items-center space-y-2 p-4"
-                    >
-                      <Icon className="h-6 w-6" />
-                      <span className="text-sm text-center">{action.label}</span>
-                    </Button>
-                  );
-                })}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stats.activeUsers}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {Math.round((stats.activeUsers / stats.totalUsers) * 100)}% active rate
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Subscribers</CardTitle>
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stats.totalSubscribers}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {stats.totalUsers > 0 ? Math.round((stats.totalSubscribers / stats.totalUsers) * 100) : 0}% conversion rate
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">RSS Feeds</CardTitle>
+                    <Radio className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center space-x-2">
+                      <Badge 
+                        variant={stats.feedsStatus === 'healthy' ? 'default' : 'destructive'}
+                      >
+                        {stats.feedsStatus}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Last updated: {new Date(stats.lastFeedUpdate).toLocaleTimeString()}
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent System Activity</CardTitle>
-              <CardDescription>
-                Latest admin actions and system events
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                  <Clock className="h-5 w-5 text-gray-400" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Admin access granted</p>
-                    <p className="text-xs text-gray-500">
-                      {user?.email} was granted admin privileges
-                    </p>
+              {/* Quick Actions */}
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                  <CardDescription>
+                    Perform common administrative tasks
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {quickActions.map((action, index) => {
+                      const Icon = action.icon;
+                      return (
+                        <Button
+                          key={index}
+                          variant={action.variant}
+                          onClick={action.action}
+                          className="h-auto flex flex-col items-center space-y-2 p-4"
+                        >
+                          <Icon className="h-6 w-6" />
+                          <span className="text-sm text-center">{action.label}</span>
+                        </Button>
+                      );
+                    })}
                   </div>
-                  <span className="text-xs text-gray-400">Just now</span>
-                </div>
-                
-                <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                  <Radio className="h-5 w-5 text-green-500" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">RSS feeds refreshed</p>
-                    <p className="text-xs text-gray-500">
-                      All regulatory feeds updated successfully
-                    </p>
+                </CardContent>
+              </Card>
+
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent System Activity</CardTitle>
+                  <CardDescription>
+                    Latest admin actions and system events
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                      <Clock className="h-5 w-5 text-gray-400" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Admin access granted</p>
+                        <p className="text-xs text-gray-500">
+                          {user?.email} was granted admin privileges
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400">Just now</span>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                      <Radio className="h-5 w-5 text-green-500" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">RSS feeds refreshed</p>
+                        <p className="text-xs text-gray-500">
+                          All regulatory feeds updated successfully
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400">2 min ago</span>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                      <Users className="h-5 w-5 text-blue-500" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">New user registration</p>
+                        <p className="text-xs text-gray-500">
+                          User registered with Starter plan
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400">5 min ago</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-400">2 min ago</span>
-                </div>
-                
-                <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-500" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">New user registration</p>
-                    <p className="text-xs text-gray-500">
-                      User registered with Starter plan
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-400">5 min ago</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>
