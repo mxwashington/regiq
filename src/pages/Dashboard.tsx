@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Bell, 
   Filter, 
@@ -23,6 +24,7 @@ import {
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { RegulatoryFeed } from "@/components/RegulatoryFeed";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
+import PerplexitySearch from "@/components/PerplexitySearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -192,87 +194,130 @@ const Dashboard = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Search and Mobile Filter */}
-            <div className="flex gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search regulatory updates..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+            <Tabs defaultValue="feed" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="feed" className="flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  Feed
+                </TabsTrigger>
+                <TabsTrigger value="search" className="flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  AI Search
+                </TabsTrigger>
+                <TabsTrigger value="trends" className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Trends
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Calendar
+                </TabsTrigger>
+              </TabsList>
               
-              {/* Mobile Filter Button */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden">
-                    <Filter className="h-4 w-4" />
-                    {getActiveFilterCount() > 0 && (
-                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 text-xs">
-                        {getActiveFilterCount()}
+              <TabsContent value="feed" className="mt-6">
+                {/* Search and Mobile Filter */}
+                <div className="flex gap-4 mb-6">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search regulatory updates..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  
+                  {/* Mobile Filter Button */}
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="icon" className="lg:hidden">
+                        <Filter className="h-4 w-4" />
+                        {getActiveFilterCount() > 0 && (
+                          <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 text-xs">
+                            {getActiveFilterCount()}
+                          </Badge>
+                        )}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80">
+                      <FilterSidebar 
+                        selectedFilters={selectedFilters}
+                        onFilterChange={handleFilterChange}
+                        onClearAll={clearAllFilters}
+                      />
+                    </SheetContent>
+                  </Sheet>
+                </div>
+
+                {/* Active Filters */}
+                {getActiveFilterCount() > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedFilters.agencies.map(agency => (
+                      <Badge key={agency} variant="secondary">
+                        {agency}
+                        <button 
+                          onClick={() => handleFilterChange('agencies', agency)}
+                          className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full"
+                        >
+                          ×
+                        </button>
                       </Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-80">
-                  <FilterSidebar 
-                    selectedFilters={selectedFilters}
-                    onFilterChange={handleFilterChange}
-                    onClearAll={clearAllFilters}
-                  />
-                </SheetContent>
-              </Sheet>
-            </div>
+                    ))}
+                    {selectedFilters.industries.map(industry => (
+                      <Badge key={industry} variant="secondary">
+                        {industry}
+                        <button 
+                          onClick={() => handleFilterChange('industries', industry)}
+                          className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                    {selectedFilters.urgency.map(urgency => (
+                      <Badge key={urgency} variant="secondary">
+                        {urgency}
+                        <button 
+                          onClick={() => handleFilterChange('urgency', urgency)}
+                          className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                    <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                      Clear all
+                    </Button>
+                  </div>
+                )}
 
-            {/* Active Filters */}
-            {getActiveFilterCount() > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {selectedFilters.agencies.map(agency => (
-                  <Badge key={agency} variant="secondary">
-                    {agency}
-                    <button 
-                      onClick={() => handleFilterChange('agencies', agency)}
-                      className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full"
-                    >
-                      ×
-                    </button>
-                  </Badge>
-                ))}
-                {selectedFilters.industries.map(industry => (
-                  <Badge key={industry} variant="secondary">
-                    {industry}
-                    <button 
-                      onClick={() => handleFilterChange('industries', industry)}
-                      className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full"
-                    >
-                      ×
-                    </button>
-                  </Badge>
-                ))}
-                {selectedFilters.urgency.map(urgency => (
-                  <Badge key={urgency} variant="secondary">
-                    {urgency}
-                    <button 
-                      onClick={() => handleFilterChange('urgency', urgency)}
-                      className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full"
-                    >
-                      ×
-                    </button>
-                  </Badge>
-                ))}
-                <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-                  Clear all
-                </Button>
-              </div>
-            )}
-
-            {/* Regulatory Feed */}
-            <RegulatoryFeed 
-              searchQuery={searchQuery}
-              selectedFilters={selectedFilters}
-            />
+                {/* Regulatory Feed */}
+                <RegulatoryFeed 
+                  searchQuery={searchQuery}
+                  selectedFilters={selectedFilters}
+                />
+              </TabsContent>
+              
+              <TabsContent value="search" className="mt-6">
+                <PerplexitySearch />
+              </TabsContent>
+              
+              <TabsContent value="trends" className="mt-6">
+                <div className="text-center py-8">
+                  <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Trends Analysis</h3>
+                  <p className="text-muted-foreground">Regulatory trends and analytics coming soon...</p>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="calendar" className="mt-6">
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Compliance Calendar</h3>
+                  <p className="text-muted-foreground">Important deadlines and events coming soon...</p>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
