@@ -2,16 +2,22 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { RegulatorySearch } from '@/components/RegulatorySearch';
+import { FDASearch } from '@/components/FDASearch';
+import { CombinedSearch } from '@/components/CombinedSearch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
   Zap, 
   Target, 
   Clock,
   Shield,
-  ArrowLeft
+  ArrowLeft,
+  Globe,
+  Database,
+  Activity
 } from 'lucide-react';
 
 export default function SearchPage() {
@@ -142,8 +148,35 @@ export default function SearchPage() {
           </Card>
         </div>
 
-        {/* Search Component */}
-        <RegulatorySearch />
+        {/* Three-Tab Search System */}
+        <Tabs defaultValue="web-intelligence" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="web-intelligence" className="flex items-center space-x-2">
+              <Globe className="h-4 w-4" />
+              <span>Web Intelligence</span>
+            </TabsTrigger>
+            <TabsTrigger value="fda-database" className="flex items-center space-x-2">
+              <Database className="h-4 w-4" />
+              <span>FDA Database</span>
+            </TabsTrigger>
+            <TabsTrigger value="combined-search" className="flex items-center space-x-2">
+              <Activity className="h-4 w-4" />
+              <span>Combined Search</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="web-intelligence">
+            <RegulatorySearch />
+          </TabsContent>
+
+          <TabsContent value="fda-database">
+            <FDASearch />
+          </TabsContent>
+
+          <TabsContent value="combined-search">
+            <CombinedSearch />
+          </TabsContent>
+        </Tabs>
 
         {/* Upgrade Prompt for Free Users */}
         {!subscribed && (
