@@ -58,8 +58,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!loading && !user) {
-      console.log('Dashboard: Redirecting to auth - user not authenticated');
-      navigateTo('/auth');
+      console.log('Dashboard: Redirecting to login - user not authenticated');
+      navigateTo('/login');
     }
   }, [user, loading, navigate, navigateTo]);
 
