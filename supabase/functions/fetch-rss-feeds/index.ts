@@ -30,43 +30,63 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Verified working RSS feeds for 2025
+// Updated RSS feeds - removed problematic ones, kept only reliable sources
 const RSS_FEEDS: RSSFeedConfig[] = [
   {
-    id: "cdc-mmwr",
-    url: "https://www.cdc.gov/mmwr/rss/rss.html",
-    agency: "CDC",
-    category: "Public Health Reports",
-    title: "CDC MMWR Weekly Reports",
-    urgencyDefault: 7,
-    color: "#dc2626",
-    icon: "🏥"
-  },
-  {
-    id: "food-safety-news",
-    url: "https://feeds.feedburner.com/foodsafetynews/",
-    agency: "Industry",
-    category: "Food Safety News",
-    title: "Food Safety News",
-    urgencyDefault: 6,
-    color: "#ea580c",
-    icon: "📰"
-  },
-  {
-    id: "fda-legacy-medwatch",
-    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medwatch/rss.xml",
+    id: "fda-recalls",
+    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls/rss.xml",
     agency: "FDA",
-    category: "Safety Alerts",
-    title: "FDA MedWatch (Legacy - May Be Inactive)",
+    category: "Recalls",
+    title: "FDA Recalls",
     urgencyDefault: 8,
-    color: "#7c3aed",
-    icon: "⚠️"
+    color: "#dc2626",
+    icon: "🚨"
+  },
+  {
+    id: "usda-news",
+    url: "https://www.usda.gov/rss/latest-releases.xml",
+    agency: "USDA",
+    category: "News Releases",
+    title: "USDA Latest Releases",
+    urgencyDefault: 6,
+    color: "#059669",
+    icon: "🌾"
   }
 ];
 
 const logStep = (message: string, data?: any) => {
   console.log(`RSS Feed Log: ${message}`, data ? JSON.stringify(data) : '');
 };
+
+// Simple XML parser for RSS feeds using regex (more reliable than DOMParser in Deno)
+function parseRSSXML(xmlContent: string): { title: string; description: string; link: string; pubDate: string; guid: string; }[] {
+  const items: { title: string; description: string; link: string; pubDate: string; guid: string; }[] = [];
+  
+  // Extract items using regex
+  const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+  let itemMatch;
+  
+  while ((itemMatch = itemRegex.exec(xmlContent)) !== null) {
+    const itemContent = itemMatch[1];
+    
+    // Extract individual fields
+    const titleMatch = itemContent.match(/<title[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/i);
+    const descMatch = itemContent.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+    const linkMatch = itemContent.match(/<link[^>]*>(.*?)<\/link>/i);
+    const pubDateMatch = itemContent.match(/<pubDate[^>]*>(.*?)<\/pubDate>/i);
+    const guidMatch = itemContent.match(/<guid[^>]*>(.*?)<\/guid>/i);
+    
+    items.push({
+      title: titleMatch ? titleMatch[1].trim() : 'No title',
+      description: descMatch ? descMatch[1].trim() : '',
+      link: linkMatch ? linkMatch[1].trim() : '',
+      pubDate: pubDateMatch ? pubDateMatch[1].trim() : '',
+      guid: guidMatch ? guidMatch[1].trim() : ''
+    });
+  }
+  
+  return items;
+}
 
 // Fetch and parse a single RSS feed with improved error handling
 async function fetchRSSFeed(feedConfig: RSSFeedConfig): Promise<RSSFeedItem[]> {
@@ -77,57 +97,49 @@ async function fetchRSSFeed(feedConfig: RSSFeedConfig): Promise<RSSFeedItem[]> {
   });
   
   try {
-    // Use more reliable CORS proxy - allorigins
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedConfig.url)}`;
+    // Direct fetch with timeout - some feeds work better without CORS proxy
+    logStep("Fetching RSS feed directly", { url: feedConfig.url });
     
-    logStep("Fetching through CORS proxy", { proxyUrl });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
     
-    const response = await fetch(proxyUrl, {
+    const response = await fetch(feedConfig.url, {
       method: 'GET',
       headers: {
-        'User-Agent': 'RegIQ-RSS-Bot/1.0'
+        'User-Agent': 'RegIQ-RSS-Bot/1.0',
+        'Accept': 'application/rss+xml, application/xml, text/xml'
       },
-      signal: AbortSignal.timeout(15000) // 15 second timeout
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const xmlContent = await response.text();
     
-    if (!data.contents) {
-      throw new Error('No content received from CORS proxy');
+    if (!xmlContent || xmlContent.length < 100) {
+      throw new Error('Empty or invalid XML content');
     }
 
-    logStep("Parsing XML content", { contentLength: data.contents.length });
+    logStep("Parsing XML content", { contentLength: xmlContent.length });
     
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(data.contents, 'application/xml');
+    // Use our custom XML parser instead of DOMParser
+    const parsedItems = parseRSSXML(xmlContent);
     
-    // Check for XML parsing errors
-    const parseError = doc.querySelector('parsererror');
-    if (parseError) {
-      throw new Error(`XML parsing failed: ${parseError.textContent}`);
-    }
+    logStep("Found RSS items", { count: parsedItems.length });
 
-    const items = Array.from(doc.querySelectorAll('item'));
-    logStep("Found RSS items", { count: items.length });
-
-    if (items.length === 0) {
-      logStep("No items found in feed", { xmlPreview: data.contents.substring(0, 500) });
+    if (parsedItems.length === 0) {
+      logStep("No items found in feed", { xmlPreview: xmlContent.substring(0, 500) });
       return [];
     }
 
-    const parsedItems = items.slice(0, 20).map((item, index) => {
-      const title = item.querySelector("title")?.textContent || "No title";
-      const description = item.querySelector("description")?.textContent || "";
-      const link = item.querySelector("link")?.textContent || item.querySelector("guid")?.textContent || "";
-      const pubDateText = item.querySelector("pubDate")?.textContent || item.querySelector("dc\\:date, date")?.textContent;
-      
+    const rssItems = parsedItems.slice(0, 20).map((item, index) => {
       let pubDate = new Date();
-      if (pubDateText) {
-        const parsedDate = new Date(pubDateText);
+      if (item.pubDate) {
+        const parsedDate = new Date(item.pubDate);
         if (!isNaN(parsedDate.getTime())) {
           pubDate = parsedDate;
         }
@@ -135,21 +147,21 @@ async function fetchRSSFeed(feedConfig: RSSFeedConfig): Promise<RSSFeedItem[]> {
       
       return {
         id: `${feedConfig.id}-${index}`,
-        title: title.trim(),
-        description: description.trim().substring(0, 500),
-        link: link.trim(),
+        title: item.title.substring(0, 200),
+        description: item.description.replace(/<[^>]*>/g, '').substring(0, 500), // Strip HTML
+        link: item.link,
         pubDate,
         agency: feedConfig.agency,
         category: feedConfig.category,
         urgencyScore: feedConfig.urgencyDefault,
         color: feedConfig.color,
         icon: feedConfig.icon,
-        guid: item.querySelector("guid, id")?.textContent || `${feedConfig.id}-${index}-${Date.now()}`
+        guid: item.guid || `${feedConfig.id}-${index}-${Date.now()}`
       };
     });
     
-    logStep("Successfully parsed items", { count: parsedItems.length, agency: feedConfig.agency });
-    return parsedItems;
+    logStep("Successfully parsed items", { count: rssItems.length, agency: feedConfig.agency });
+    return rssItems;
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -159,13 +171,40 @@ async function fetchRSSFeed(feedConfig: RSSFeedConfig): Promise<RSSFeedItem[]> {
       url: feedConfig.url
     });
     
-    // Log specific error types for debugging
-    if (errorMessage.includes('timeout')) {
-      logStep("Timeout error - feed may be slow", { agency: feedConfig.agency });
-    } else if (errorMessage.includes('CORS')) {
-      logStep("CORS error - proxy may be down", { agency: feedConfig.agency });
-    } else if (errorMessage.includes('404')) {
-      logStep("Feed URL not found - URL may have changed", { agency: feedConfig.agency });
+    // Try CORS proxy as fallback
+    try {
+      logStep("Trying CORS proxy fallback", { agency: feedConfig.agency });
+      
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedConfig.url)}`;
+      const proxyResponse = await fetch(proxyUrl, {
+        method: 'GET',
+        signal: AbortSignal.timeout(8000)
+      });
+
+      if (proxyResponse.ok) {
+        const data = await proxyResponse.json();
+        if (data.contents) {
+          const parsedItems = parseRSSXML(data.contents);
+          const rssItems = parsedItems.slice(0, 20).map((item, index) => ({
+            id: `${feedConfig.id}-${index}`,
+            title: item.title.substring(0, 200),
+            description: item.description.replace(/<[^>]*>/g, '').substring(0, 500),
+            link: item.link,
+            pubDate: item.pubDate ? new Date(item.pubDate) : new Date(),
+            agency: feedConfig.agency,
+            category: feedConfig.category,
+            urgencyScore: feedConfig.urgencyDefault,
+            color: feedConfig.color,
+            icon: feedConfig.icon,
+            guid: item.guid || `${feedConfig.id}-${index}-${Date.now()}`
+          }));
+          
+          logStep("CORS proxy fallback successful", { count: rssItems.length, agency: feedConfig.agency });
+          return rssItems;
+        }
+      }
+    } catch (fallbackError) {
+      logStep("CORS proxy fallback also failed", { agency: feedConfig.agency, error: String(fallbackError) });
     }
     
     return [];
@@ -194,7 +233,7 @@ Deno.serve(async (req) => {
   try {
     logStep("Starting RSS feed aggregation");
 
-    // Check for cached results (30 minute cache)
+    // Check for cached results (15 minute cache - reduced for fresher data)
     const { data: cachedData } = await supabaseClient
       .from("search_cache")
       .select("*")
@@ -214,9 +253,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch all RSS feeds in parallel
+    // Fetch all RSS feeds in parallel with timeout
     logStep("Fetching fresh RSS data from all sources");
-    const feedPromises = RSS_FEEDS.map(feed => fetchRSSFeed(feed));
+    const startTime = Date.now();
+    
+    const feedPromises = RSS_FEEDS.map(feed => 
+      Promise.race([
+        fetchRSSFeed(feed),
+        new Promise<RSSFeedItem[]>((_, reject) => 
+          setTimeout(() => reject(new Error('Feed timeout')), 10000)
+        )
+      ])
+    );
+    
     const feedResults = await Promise.allSettled(feedPromises);
     
     // Combine all successful results
@@ -238,7 +287,7 @@ Deno.serve(async (req) => {
         errorCount++;
         logStep("Feed fetch failed", { 
           agency: RSS_FEEDS[index].agency, 
-          error: result.reason 
+          error: String(result.reason)
         });
       }
     });
@@ -246,30 +295,35 @@ Deno.serve(async (req) => {
     // Sort by publication date (newest first)
     allItems.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
     
+    const executionTime = Date.now() - startTime;
+    
     logStep("RSS feeds aggregation complete", { 
       totalItems: allItems.length,
       successfulFeeds: successCount,
-      failedFeeds: errorCount
+      failedFeeds: errorCount,
+      executionTimeMs: executionTime
     });
 
-    // Cache the results for 30 minutes
-    await supabaseClient
-      .from("search_cache")
-      .upsert({
-        cache_key: "rss_feeds_all",
-        query: "rss_feeds",
-        result_data: allItems,
-        expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString()
-      });
+    // Cache the results for 15 minutes
+    if (allItems.length > 0) {
+      await supabaseClient
+        .from("search_cache")
+        .upsert({
+          cache_key: "rss_feeds_all",
+          query: "rss_feeds",
+          result_data: allItems,
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        });
+    }
 
     // Log successful fetch
     await supabaseClient
       .from("rss_feed_logs")
       .insert({
         feed_id: "all_feeds",
-        fetch_status: "success",
+        fetch_status: allItems.length > 0 ? "success" : "partial",
         items_fetched: allItems.length,
-        fetch_duration: Date.now(),
+        fetch_duration: executionTime,
         error_message: errorCount > 0 ? `${errorCount} feeds failed` : null
       });
 
@@ -280,7 +334,8 @@ Deno.serve(async (req) => {
       stats: {
         total_items: allItems.length,
         successful_feeds: successCount,
-        failed_feeds: errorCount
+        failed_feeds: errorCount,
+        execution_time_ms: executionTime
       }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -292,14 +347,18 @@ Deno.serve(async (req) => {
     logStep("CRITICAL ERROR in RSS fetch", { message: errorMessage });
     
     // Log failed fetch
-    await supabaseClient
-      .from("rss_feed_logs")
-      .insert({
-        feed_id: "all_feeds",
-        fetch_status: "error",
-        error_message: errorMessage,
-        items_fetched: 0
-      });
+    try {
+      await supabaseClient
+        .from("rss_feed_logs")
+        .insert({
+          feed_id: "all_feeds",
+          fetch_status: "error",
+          error_message: errorMessage,
+          items_fetched: 0
+        });
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
     
     return new Response(JSON.stringify({ 
       error: errorMessage,
