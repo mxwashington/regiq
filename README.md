@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# RegIQ - Regulatory Intelligence Platform
+
+RegIQ is a comprehensive regulatory intelligence platform that helps organizations stay informed about regulatory changes and compliance requirements.
 
 ## Project info
 
@@ -36,6 +38,16 @@ npm i
 npm run dev
 ```
 
+## Environment Variables for Local Development
+
+Create a `.env.local` file in the project root with:
+
+```env
+VITE_SUPABASE_URL=https://piyikxxgoekawboitrzz.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeWlreHhnb2VrYXdib2l0cnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MDM2MjUsImV4cCI6MjA2ODQ3OTYyNX0.YfgCG-BorBSfyXk4MdIxko9AHT4-ef0MfO24rCpjy94
+VITE_SUPABASE_REDIRECT_URL=http://localhost:5173/auth/callback
+```
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).
@@ -59,6 +71,18 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Authentication, Database, Edge Functions)
+- React Router v6
+- TanStack Query
+
+## Authentication Features
+
+RegIQ includes a complete authentication system accessible at `/login`:
+
+- **Email/Password Sign-in**: Traditional authentication
+- **Magic Link**: Passwordless login via email  
+- **Password Reset**: Secure password recovery
+- **Route Protection**: Automatic redirection for unauthenticated users
 
 ## How can I deploy this project?
 
