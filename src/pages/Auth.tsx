@@ -14,7 +14,9 @@ export default function Auth() {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
-  const { signIn, signUp, signInWithMagicLink, user } = useAuth();
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [activeTab, setActiveTab] = useState('signin');
+  const { signIn, signUp, signInWithMagicLink, resetPassword, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,7 +49,54 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await resetPassword(email);
+    if (!error) {
+      setResetEmailSent(true);
+    }
+    setLoading(false);
+  };
+
   const isAdminEmail = email === 'marcus@fsqahelp.org';
+
+  if (resetEmailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+        <div className="w-full max-w-md space-y-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/')}
+            className="self-start"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+              <CardDescription>
+                We've sent a password reset link to {email}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-muted-foreground">
+                Click the link in your email to reset your password
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => setResetEmailSent(false)}
+                className="w-full"
+              >
+                Back to Sign In
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (magicLinkSent) {
     return (
@@ -112,11 +161,12 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
               <TabsTrigger value="magic">Magic Link</TabsTrigger>
+              <TabsTrigger value="reset">Reset Password</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -147,6 +197,17 @@ export default function Auth() {
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Sign In
                 </Button>
+                
+                <div className="text-center">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    onClick={() => setActiveTab('reset')}
+                    className="text-sm text-muted-foreground hover:text-primary"
+                  >
+                    Forgot your password?
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
@@ -222,6 +283,31 @@ export default function Auth() {
                 
                 <p className="text-xs text-muted-foreground text-center">
                   We'll send you a secure link to sign in without a password
+                </p>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="reset">
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email Address</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Send Reset Link
+                </Button>
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  We'll send you a link to reset your password
                 </p>
               </form>
             </TabsContent>

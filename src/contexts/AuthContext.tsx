@@ -16,6 +16,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
   checkAdminStatus: () => Promise<void>;
@@ -191,6 +192,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    
+    if (error) {
+      toast({
+        title: "Password reset failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a link to reset your password.",
+      });
+    }
+    
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setSubscribed(false);
@@ -215,6 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signInWithMagicLink,
     signUp,
+    resetPassword,
     signOut,
     refreshSubscription,
     checkAdminStatus,
