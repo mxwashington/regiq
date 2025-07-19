@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Shield, Zap, Bell, Brain, Database, Cloud, Lock, Cpu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { MobileNavigation } from "@/components/MobileNavigation";
 
 import { FeatureShowcase } from "@/components/FeatureShowcase";
 import { StatsSection } from "@/components/StatsSection";
@@ -45,6 +46,7 @@ const Landing = () => {
               </>
             )}
           </nav>
+          <MobileNavigation />
         </div>
       </header>
 

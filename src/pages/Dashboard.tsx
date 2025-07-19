@@ -28,6 +28,7 @@ import { RegulatorySearch } from "@/components/RegulatorySearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { MobileNavigation } from "@/components/MobileNavigation";
 
 const Dashboard = () => {
   const { user, loading, signOut, subscribed, subscriptionTier } = useAuth();
@@ -99,6 +100,8 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <MobileNavigation />
+            <div className="hidden md:flex items-center space-x-4">
             <Badge variant={subscribed ? "default" : "secondary"}>
               {subscriptionTier ? subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1) : "Free"}
             </Badge>
@@ -125,6 +128,7 @@ const Dashboard = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
         </div>
       </header>
