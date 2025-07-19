@@ -24,7 +24,7 @@ import {
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { RegulatoryFeed } from "@/components/RegulatoryFeed";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
-import { RegulatorySearch } from "@/components/RegulatorySearch";
+import PerplexitySearch from "@/components/PerplexitySearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -306,7 +306,7 @@ const Dashboard = () => {
               </TabsContent>
               
               <TabsContent value="search" className="mt-6">
-                <RegulatorySearch />
+                <PerplexitySearch />
               </TabsContent>
               
               <TabsContent value="trends" className="mt-6">

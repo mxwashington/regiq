@@ -53,7 +53,7 @@ const sampleData: RegulatoryItem[] = [
     id: "1",
     title: "FDA Issues Warning Letter to ABC Food Processing for HACCP Violations",
     sourceAgency: "FDA",
-    publishedDate: "2024-01-15T10:30:00Z",
+    publishedDate: new Date().toISOString(), // Current date
     aiSummary: "FDA cited ABC Food Processing for inadequate HACCP plans and temperature control failures. Company has 15 days to respond with corrective actions. Enforcement action may follow if violations persist.",
     urgencyLevel: 7,
     industryTags: ["Food Safety"],
@@ -76,7 +76,7 @@ const sampleData: RegulatoryItem[] = [
     id: "2",
     title: "USDA FSIS Recalls 12,000 Pounds of Ground Beef for E. coli Contamination",
     sourceAgency: "USDA",
-    publishedDate: "2024-01-14T14:20:00Z",
+    publishedDate: new Date(Date.now() - 86400000).toISOString(), // Yesterday
     aiSummary: "Class I recall affects ground beef products distributed to retail locations in Texas and Oklahoma. No illnesses reported. Consumers advised to discard product immediately.",
     urgencyLevel: 9,
     industryTags: ["Food Safety"],
@@ -99,7 +99,7 @@ const sampleData: RegulatoryItem[] = [
     id: "3",
     title: "EPA Finalizes New Pesticide Residue Limits for Leafy Greens",
     sourceAgency: "EPA",
-    publishedDate: "2024-01-13T09:00:00Z",
+    publishedDate: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
     aiSummary: "New maximum residue limits take effect March 1, 2024. Affects spinach, lettuce, and kale production. Compliance required for all domestic and imported products.",
     urgencyLevel: 6,
     industryTags: ["Agriculture"],
@@ -122,7 +122,7 @@ const sampleData: RegulatoryItem[] = [
     id: "4",
     title: "EMA Approves New Veterinary Antibiotic for Swine Respiratory Disease",
     sourceAgency: "EMA",
-    publishedDate: "2024-01-12T11:45:00Z",
+    publishedDate: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
     aiSummary: "Tulathromycin injection approved for treatment of swine respiratory disease complex. Available in EU markets Q2 2024. Withdrawal periods: 13 days for meat.",
     urgencyLevel: 4,
     industryTags: ["Animal Health"],
@@ -145,7 +145,7 @@ const sampleData: RegulatoryItem[] = [
     id: "5",
     title: "FDA Guidance: Updated Good Manufacturing Practices for Dietary Supplements",
     sourceAgency: "FDA",
-    publishedDate: "2024-01-11T08:15:00Z",
+    publishedDate: new Date(Date.now() - 345600000).toISOString(), // 4 days ago
     aiSummary: "Draft guidance clarifies cGMP requirements for dietary supplement manufacturers. 60-day comment period begins January 15. Final guidance expected by year-end.",
     urgencyLevel: 5,
     industryTags: ["Pharmaceuticals"],
