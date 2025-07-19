@@ -574,7 +574,7 @@ export function FDAProfessionalTools() {
                 <div className="space-y-2">
                   <Label>Search Query</Label>
                   <Input
-                    placeholder="e.g., classification:\"Class I\" OR product_description:listeria"
+                    placeholder='e.g., classification:"Class I" OR product_description:listeria'
                     value={newScheduledSearch.query || ''}
                     onChange={(e) => setNewScheduledSearch({...newScheduledSearch, query: e.target.value})}
                   />

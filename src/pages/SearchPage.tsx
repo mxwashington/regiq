@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { RegulatorySearch } from '@/components/RegulatorySearch';
 import { FDASearch } from '@/components/FDASearch';
 import { CombinedSearch } from '@/components/CombinedSearch';
+import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
+import { FDAProfessionalTools } from '@/components/FDAProfessionalTools';
+import { IntegrationEnhancements } from '@/components/IntegrationEnhancements';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,7 +20,10 @@ import {
   ArrowLeft,
   Globe,
   Database,
-  Activity
+  Activity,
+  BarChart3,
+  Settings,
+  GitMerge
 } from 'lucide-react';
 
 export default function SearchPage() {
@@ -148,9 +154,9 @@ export default function SearchPage() {
           </Card>
         </div>
 
-        {/* Three-Tab Search System */}
+        {/* Comprehensive FDA Search System */}
         <Tabs defaultValue="web-intelligence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="web-intelligence" className="flex items-center space-x-2">
               <Globe className="h-4 w-4" />
               <span>Web Intelligence</span>
@@ -162,6 +168,18 @@ export default function SearchPage() {
             <TabsTrigger value="combined-search" className="flex items-center space-x-2">
               <Activity className="h-4 w-4" />
               <span>Combined Search</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center space-x-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="professional" className="flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span>Professional</span>
+            </TabsTrigger>
+            <TabsTrigger value="integration" className="flex items-center space-x-2">
+              <GitMerge className="h-4 w-4" />
+              <span>Integration</span>
             </TabsTrigger>
           </TabsList>
 
@@ -175,6 +193,18 @@ export default function SearchPage() {
 
           <TabsContent value="combined-search">
             <CombinedSearch />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <FDAAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="professional">
+            <FDAProfessionalTools />
+          </TabsContent>
+
+          <TabsContent value="integration">
+            <IntegrationEnhancements />
           </TabsContent>
         </Tabs>
 
