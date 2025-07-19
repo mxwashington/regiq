@@ -14,33 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activities: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          admin_permissions: string[] | null
           company: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
+          is_admin: boolean | null
+          role: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          admin_permissions?: string[] | null
           company?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id?: string
+          is_admin?: boolean | null
+          role?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          admin_permissions?: string[] | null
           company?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          is_admin?: boolean | null
+          role?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      rss_feed_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          feed_id: string
+          fetch_duration: number | null
+          fetch_status: string | null
+          id: string
+          items_fetched: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          feed_id: string
+          fetch_duration?: number | null
+          fetch_status?: string | null
+          id?: string
+          items_fetched?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          feed_id?: string
+          fetch_duration?: number | null
+          fetch_status?: string | null
+          id?: string
+          items_fetched?: number | null
         }
         Relationships: []
       }
@@ -80,12 +155,42 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

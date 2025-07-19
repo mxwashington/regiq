@@ -13,7 +13,8 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const { signIn, signUp, signInWithMagicLink, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +37,52 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await signInWithMagicLink(email);
+    if (!error) {
+      setMagicLinkSent(true);
+    }
+    setLoading(false);
+  };
+
+  const isAdminEmail = email === 'marcus@fsqahelp.org';
+
+  if (magicLinkSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+            <CardDescription>
+              We've sent a magic link to {email}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              Click the link in your email to sign in to RegIQ{isAdminEmail ? ' Admin' : ''}
+            </p>
+            {isAdminEmail && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700 font-medium">
+                  🔐 Admin access will be granted automatically
+                </p>
+              </div>
+            )}
+            <Button 
+              variant="outline" 
+              onClick={() => setMagicLinkSent(false)}
+              className="w-full"
+            >
+              Back to Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
@@ -47,9 +94,10 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="magic">Magic Link</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -123,6 +171,39 @@ export default function Auth() {
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Sign Up
                 </Button>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="magic">
+              <form onSubmit={handleMagicLink} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="magic-email">Email Address</Label>
+                  <Input
+                    id="magic-email"
+                    type="email"
+                    placeholder="marcus@fsqahelp.org"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                {isAdminEmail && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-700 font-medium">
+                      🔐 Admin access detected - you'll be granted admin privileges
+                    </p>
+                  </div>
+                )}
+                
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Send Magic Link
+                </Button>
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  We'll send you a secure link to sign in without a password
+                </p>
               </form>
             </TabsContent>
           </Tabs>

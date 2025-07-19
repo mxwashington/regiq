@@ -9,11 +9,16 @@ interface AuthContextType {
   subscribed: boolean;
   subscriptionTier: string | null;
   subscriptionEnd: string | null;
+  isAdmin: boolean;
+  adminRole: string | null;
+  adminPermissions: string[];
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
+  checkAdminStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,8 +29,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [subscribed, setSubscribed] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminRole, setAdminRole] = useState<string | null>(null);
+  const [adminPermissions, setAdminPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  const checkAdminStatus = async () => {
+    if (!session?.access_token) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('check-admin-status', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      
+      if (error) throw error;
+      
+      setIsAdmin(data.isAdmin || false);
+      setAdminRole(data.role || null);
+      setAdminPermissions(data.permissions || []);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
 
   const refreshSubscription = async () => {
     if (!session?.access_token) return;
@@ -55,14 +83,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer subscription check to avoid blocking auth state update
+          // Defer subscription and admin checks to avoid blocking auth state update
           setTimeout(() => {
             refreshSubscription();
+            checkAdminStatus();
           }, 0);
         } else {
           setSubscribed(false);
           setSubscriptionTier(null);
           setSubscriptionEnd(null);
+          setIsAdmin(false);
+          setAdminRole(null);
+          setAdminPermissions([]);
         }
         
         setLoading(false);
@@ -76,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         setTimeout(() => {
           refreshSubscription();
+          checkAdminStatus();
         }, 0);
       }
       setLoading(false);
@@ -95,6 +128,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Sign in failed",
         description: error.message,
         variant: "destructive",
+      });
+    }
+    
+    return { error };
+  };
+
+  const signInWithMagicLink = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: {
+          admin_request: email === 'marcus@fsqahelp.org'
+        }
+      }
+    });
+    
+    if (error) {
+      toast({
+        title: "Magic link failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a magic link to sign in.",
       });
     }
     
@@ -148,11 +208,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     subscribed,
     subscriptionTier,
     subscriptionEnd,
+    isAdmin,
+    adminRole,
+    adminPermissions,
     loading,
     signIn,
+    signInWithMagicLink,
     signUp,
     signOut,
     refreshSubscription,
+    checkAdminStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
