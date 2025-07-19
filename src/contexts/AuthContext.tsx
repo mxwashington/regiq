@@ -74,6 +74,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Enhanced session management with IP tracking
+  const extendSessionIfTrusted = async (userId: string) => {
+    try {
+      // Get current IP
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const { ip } = await ipResponse.json();
+      
+      // Check if session should be extended
+      const { data: shouldExtend } = await supabase.rpc('should_extend_session', {
+        user_id_param: userId,
+        current_ip: ip
+      });
+
+      if (shouldExtend) {
+        // Refresh session to extend it
+        await supabase.auth.refreshSession();
+        
+        // Update user activity
+        await supabase.rpc('update_user_activity', {
+          user_id_param: userId,
+          ip_address_param: ip
+        });
+      }
+    } catch (error) {
+      console.error('Error extending session:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -86,6 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTimeout(() => {
             refreshSubscription();
             checkAdminStatus();
+            // Extend session if from trusted IP
+            extendSessionIfTrusted(session.user.id);
           }, 0);
         } else {
           setSubscribed(false);
@@ -108,6 +138,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => {
           refreshSubscription();
           checkAdminStatus();
+          // Extend session if from trusted IP
+          extendSessionIfTrusted(session.user.id);
         }, 0);
       }
       setLoading(false);

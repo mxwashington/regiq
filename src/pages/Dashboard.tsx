@@ -30,6 +30,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { useNavigationHelper } from "@/components/NavigationHelper";
+import { SessionStatusIndicator } from "@/components/SessionStatusIndicator";
 
 const Dashboard = () => {
   const { user, loading, signOut, subscribed, subscriptionTier } = useAuth();
@@ -122,6 +123,7 @@ const Dashboard = () => {
           <div className="flex items-center space-x-4">
             <MobileNavigation />
             <div className="hidden md:flex items-center space-x-4">
+            <SessionStatusIndicator />
             <Badge variant={subscribed ? "default" : "secondary"}>
               {subscriptionTier ? subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1) : "Free"}
             </Badge>

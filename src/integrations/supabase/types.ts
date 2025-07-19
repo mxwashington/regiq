@@ -254,7 +254,11 @@ export type Database = {
           full_name: string | null
           id: string
           is_admin: boolean | null
+          last_ip_address: unknown | null
+          last_seen_at: string | null
           role: string | null
+          session_extended_until: string | null
+          trusted_ips: unknown[] | null
           updated_at: string
           user_id: string | null
         }
@@ -266,7 +270,11 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_admin?: boolean | null
+          last_ip_address?: unknown | null
+          last_seen_at?: string | null
           role?: string | null
+          session_extended_until?: string | null
+          trusted_ips?: unknown[] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -278,7 +286,11 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_admin?: boolean | null
+          last_ip_address?: unknown | null
+          last_seen_at?: string | null
           role?: string | null
+          session_extended_until?: string | null
+          trusted_ips?: unknown[] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -428,6 +440,14 @@ export type Database = {
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      should_extend_session: {
+        Args: { user_id_param: string; current_ip?: unknown }
+        Returns: boolean
+      }
+      update_user_activity: {
+        Args: { user_id_param: string; ip_address_param?: unknown }
+        Returns: undefined
       }
     }
     Enums: {
