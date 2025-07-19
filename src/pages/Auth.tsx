@@ -45,11 +45,10 @@ export default function Auth() {
     const authType = urlParams.get('type');
     
     if (authType === 'recovery') {
-      setActiveTab('reset');
-      // Show success message for password reset
-      setResetEmailSent(false); // Allow user to set new password
+      // Redirect to password reset component
+      navigate('/reset-password');
+      return;
     } else if (authType === 'magiclink') {
-      // Magic link was clicked, user should be automatically signed in
       setMagicLinkSent(false);
     }
   }, [user, navigate]);

@@ -15,6 +15,7 @@ import Subscription from "./pages/Subscription";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
+import PasswordReset from "@/components/PasswordReset";
 import { LegalFramework } from "./components/LegalFramework";
 
 const queryClient = new QueryClient({
@@ -52,6 +53,7 @@ const App = () => (
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/subscription" element={<Subscription />} />
+                  <Route path="/reset-password" element={<PasswordReset />} />
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/admin" element={
                     <AdminProtectedRoute>

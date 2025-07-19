@@ -226,6 +226,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
+    // Check if this is a password update (when user has clicked reset link)
+    const urlParams = new URLSearchParams(window.location.search);
+    const isRecovery = urlParams.get('type') === 'recovery';
+    
+    if (isRecovery) {
+      // This should not happen in normal flow, but just in case
+      toast({
+        title: "Already in recovery mode",
+        description: "Please set your new password using the form above.",
+        variant: "destructive",
+      });
+      return { error: new Error("Already in recovery mode") };
+    }
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth?type=recovery`,
     });
