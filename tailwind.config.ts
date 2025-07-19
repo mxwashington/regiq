@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					glow: 'hsl(var(--primary-glow))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -51,6 +52,18 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				urgency: {
+					high: 'hsl(var(--urgency-high))',
+					medium: 'hsl(var(--urgency-medium))',
+					low: 'hsl(var(--urgency-low))',
+					info: 'hsl(var(--urgency-info))'
+				},
+				agency: {
+					fda: 'hsl(var(--agency-fda))',
+					usda: 'hsl(var(--agency-usda))',
+					epa: 'hsl(var(--agency-epa))',
+					ema: 'hsl(var(--agency-ema))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
