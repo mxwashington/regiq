@@ -24,7 +24,7 @@ import {
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { RegulatoryFeed } from "@/components/RegulatoryFeed";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
-import PerplexitySearch from "@/components/PerplexitySearch";
+import { RegulatorySearch } from "@/components/RegulatorySearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -90,6 +90,9 @@ const Dashboard = () => {
             <Separator orientation="vertical" className="h-6" />
             <nav className="hidden md:flex items-center space-x-6">
               <Button variant="ghost" size="sm" className="font-medium">Dashboard</Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/search">Search</Link>
+              </Button>
               <Button variant="ghost" size="sm">Alerts</Button>
               <Button variant="ghost" size="sm">Saved Items</Button>
             </nav>
@@ -299,7 +302,7 @@ const Dashboard = () => {
               </TabsContent>
               
               <TabsContent value="search" className="mt-6">
-                <PerplexitySearch />
+                <RegulatorySearch />
               </TabsContent>
               
               <TabsContent value="trends" className="mt-6">

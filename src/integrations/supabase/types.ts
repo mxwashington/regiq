@@ -50,6 +50,45 @@ export type Database = {
         }
         Relationships: []
       }
+      perplexity_searches: {
+        Row: {
+          agencies: string[] | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          industry: string | null
+          query: string
+          search_type: string | null
+          success: boolean | null
+          tokens_used: number | null
+          user_id: string | null
+        }
+        Insert: {
+          agencies?: string[] | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          industry?: string | null
+          query: string
+          search_type?: string | null
+          success?: boolean | null
+          tokens_used?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          agencies?: string[] | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          industry?: string | null
+          query?: string
+          search_type?: string | null
+          success?: boolean | null
+          tokens_used?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           admin_permissions: string[] | null
@@ -116,6 +155,33 @@ export type Database = {
           fetch_status?: string | null
           id?: string
           items_fetched?: number | null
+        }
+        Relationships: []
+      }
+      search_cache: {
+        Row: {
+          cache_key: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          query: string
+          result_data: Json
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          query: string
+          result_data: Json
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          query?: string
+          result_data?: Json
         }
         Relationships: []
       }
@@ -187,6 +253,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clean_expired_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
