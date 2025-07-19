@@ -226,14 +226,15 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       });
       
       console.log('RSS feed response:', { data, error });
+      console.log('RegulatoryFeed data:', data);
       
       if (error) {
         console.error('Edge function error:', error);
         throw new Error(error.message || 'Failed to fetch feeds');
       }
 
-      const items = data?.items || [];
-      console.log('RSS items received:', items.length);
+      const items = Array.isArray(data?.items) ? data.items : [];
+      console.log('RSS items received:', items.length, items);
       
       if (items.length > 0) {
         setRssItems(items);
@@ -243,7 +244,8 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
         });
       } else {
         console.log('No RSS items received, using fallback data');
-        setRssItems(generateSampleRSSData());
+        const fallbackData = generateSampleRSSData();
+        setRssItems(fallbackData);
         toast({
           title: "⚡ Sample data loaded",
           description: "Live feeds currently unavailable, showing sample regulatory data",
@@ -252,7 +254,8 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       }
     } catch (error) {
       console.error('Error loading RSS feeds:', error);
-      setRssItems(generateSampleRSSData());
+      const fallbackData = generateSampleRSSData();
+      setRssItems(fallbackData);
       toast({
         title: "⚡ Sample data loaded", 
         description: "Live feeds currently unavailable, showing sample regulatory data",
@@ -333,28 +336,36 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
     setSavedItems(newSaved);
   };
 
-  // Convert RSS items to the format expected by the UI, fallback to sample data if no RSS items
+  // Convert RSS items to the format expected by the UI, with additional safety checks
   const safeRssItems = Array.isArray(rssItems) ? rssItems : [];
+  console.log('Safe RSS items:', safeRssItems.length, safeRssItems);
+  
   const allItems = safeRssItems.length > 0 ? safeRssItems : [];
   const convertedData = allItems.length > 0 ? allItems.map(item => ({
-    id: item.id,
-    title: item.title,
-    sourceAgency: item.agency,
-    publishedDate: item.pubDate.toISOString(),
-    aiSummary: item.description.substring(0, 300) + (item.description.length > 300 ? '...' : ''),
-    urgencyLevel: item.urgencyScore,
-    industryTags: [item.category],
-    signalType: item.category,
-    sourceUrl: item.link,
-    riskScore: item.urgencyScore,
-    keyPoints: item.description.split('.').slice(0, 3).filter(point => point.trim().length > 10),
-    complianceImpact: `Priority ${item.urgencyScore}/10 - Review this ${item.category.toLowerCase()} update for potential impact on your operations`,
+    id: item.id || `fallback-${Math.random()}`,
+    title: item.title || 'No title available',
+    sourceAgency: item.agency || 'Unknown Agency',
+    publishedDate: item.pubDate ? item.pubDate.toISOString() : new Date().toISOString(),
+    aiSummary: item.description ? 
+      (item.description.substring(0, 300) + (item.description.length > 300 ? '...' : '')) :
+      'No description available',
+    urgencyLevel: item.urgencyScore || 5,
+    industryTags: item.category ? [item.category] : ['General'],
+    signalType: item.category || 'Update',
+    sourceUrl: item.link || '#',
+    riskScore: item.urgencyScore || 5,
+    keyPoints: item.description ? 
+      item.description.split('.').slice(0, 3).filter(point => point.trim().length > 10) : 
+      ['No details available'],
+    complianceImpact: `Priority ${item.urgencyScore || 5}/10 - Review this ${(item.category || 'regulatory').toLowerCase()} update for potential impact on your operations`,
     recommendedActions: [
       "Review the full regulatory document",
-      "Assess impact on current procedures",
+      "Assess impact on current procedures", 
       "Consult with compliance team if needed"
     ]
   })) : sampleData;
+  
+  console.log('Converted data:', convertedData.length, convertedData);
 
   // Memoize filtered data for better performance
   const filteredData = useMemo(() => {
@@ -414,6 +425,7 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
     });
   }, []);
 
+  // Add error handling for loading state
   if (loading) {
     return (
       <div className="space-y-4">
@@ -424,6 +436,28 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
             <p className="text-muted-foreground">
               Fetching updates from FDA, USDA, and Federal Register...
             </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Add error handling for empty or invalid data
+  if (!convertedData || !Array.isArray(convertedData)) {
+    console.error('Invalid convertedData:', convertedData);
+    return (
+      <div className="space-y-4">
+        <Card className="text-center py-12">
+          <CardContent>
+            <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Error Loading Feed</h3>
+            <p className="text-muted-foreground">
+              Unable to load regulatory feed data. Please try refreshing the page.
+            </p>
+            <Button onClick={loadRSSFeeds} className="mt-4">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -466,7 +500,7 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
           </CardContent>
         </Card>
       ) : (
-        filteredData.map((item) => {
+        Array.isArray(filteredData) && filteredData.map((item) => {
           const UrgencyIcon = getUrgencyIcon(item.urgencyLevel);
           const isExpanded = expandedItems.has(item.id);
           const isSaved = savedItems.has(item.id);
