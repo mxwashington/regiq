@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { AdminProtectedRoute } from "@/hooks/useAdminAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -17,20 +18,35 @@ import Subscription from "./pages/Subscription";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
-
 import { LegalFramework } from "./components/LegalFramework";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 3,
+      retry: (failureCount, error: any) => {
+        // Don't retry on auth errors
+        if (error?.status === 401 || error?.status === 403) {
+          return false;
+        }
+        return failureCount < 3;
+      },
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
     },
+    mutations: {
+      retry: (failureCount, error: any) => {
+        // Don't retry mutations on client errors
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 2;
+      }
+    }
   },
 });
 
-// Fallback loading component
+// Enhanced loading component with error fallback
 const PageLoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
@@ -56,7 +72,6 @@ const App = () => (
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/subscription" element={<Subscription />} />
-                  
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/admin" element={
                     <AdminProtectedRoute>
@@ -64,7 +79,6 @@ const App = () => (
                     </AdminProtectedRoute>
                   } />
                   <Route path="/legal" element={<LegalFramework />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
