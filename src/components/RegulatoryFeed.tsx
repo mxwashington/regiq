@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -14,8 +14,12 @@ import {
   TrendingUp,
   AlertTriangle,
   Info,
-  Target
+  Target,
+  RefreshCw,
+  Loader2
 } from "lucide-react";
+import { fetchAllRSSFeeds, type RSSFeedItem } from "@/lib/rss-config";
+import { useToast } from "@/hooks/use-toast";
 
 interface RegulatoryItem {
   id: string;
@@ -191,6 +195,34 @@ const getAgencyColor = (agency: string) => {
 export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [savedItems, setSavedItems] = useState<Set<string>>(new Set());
+  const [rssItems, setRssItems] = useState<RSSFeedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const loadRSSFeeds = async () => {
+    setLoading(true);
+    try {
+      const items = await fetchAllRSSFeeds();
+      setRssItems(items);
+      toast({
+        title: "Feed updated",
+        description: `Loaded ${items.length} regulatory updates`,
+      });
+    } catch (error) {
+      console.error('Error loading RSS feeds:', error);
+      toast({
+        title: "Failed to load feeds",
+        description: "Using cached data. Check your connection.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRSSFeeds();
+  }, []);
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);
@@ -212,8 +244,29 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
     setSavedItems(newSaved);
   };
 
+  // Convert RSS items to the format expected by the UI
+  const convertedData = rssItems.map(item => ({
+    id: item.id,
+    title: item.title,
+    sourceAgency: item.agency,
+    publishedDate: item.pubDate.toISOString(),
+    aiSummary: item.description.substring(0, 300) + (item.description.length > 300 ? '...' : ''),
+    urgencyLevel: item.urgencyScore,
+    industryTags: [item.category],
+    signalType: item.category,
+    sourceUrl: item.link,
+    riskScore: item.urgencyScore,
+    keyPoints: item.description.split('.').slice(0, 3).filter(point => point.trim().length > 10),
+    complianceImpact: `Priority ${item.urgencyScore}/10 - Review this ${item.category.toLowerCase()} update for potential impact on your operations`,
+    recommendedActions: [
+      "Review the full regulatory document",
+      "Assess impact on current procedures",
+      "Consult with compliance team if needed"
+    ]
+  }));
+
   // Filter the data based on selected filters and search query
-  const filteredData = sampleData.filter(item => {
+  const filteredData = convertedData.filter(item => {
     // Search query filter
     if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
         !item.aiSummary.toLowerCase().includes(searchQuery.toLowerCase())) {
@@ -222,13 +275,19 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
 
     // Agency filter
     if (selectedFilters.agencies.length > 0 && 
-        !selectedFilters.agencies.includes(item.sourceAgency.toLowerCase())) {
+        !selectedFilters.agencies.some(agency => 
+          item.sourceAgency.toLowerCase().includes(agency.toLowerCase())
+        )) {
       return false;
     }
 
-    // Industry filter
+    // Industry filter - using category as industry
     if (selectedFilters.industries.length > 0 && 
-        !item.industryTags.some(tag => selectedFilters.industries.includes(tag))) {
+        !item.industryTags.some(tag => 
+          selectedFilters.industries.some(industry => 
+            tag.toLowerCase().includes(industry.toLowerCase())
+          )
+        )) {
       return false;
     }
 
@@ -248,12 +307,6 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       if (!matchesUrgency) return false;
     }
 
-    // Signal type filter
-    if (selectedFilters.signalTypes.length > 0 && 
-        !selectedFilters.signalTypes.includes(item.signalType)) {
-      return false;
-    }
-
     return true;
   });
 
@@ -267,15 +320,43 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
     });
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <Card className="text-center py-12">
+          <CardContent>
+            <Loader2 className="h-8 w-8 text-primary mx-auto mb-4 animate-spin" />
+            <h3 className="text-lg font-medium mb-2">Loading Live Regulatory Data</h3>
+            <p className="text-muted-foreground">
+              Fetching updates from FDA, USDA, and Federal Register...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Results Summary */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {filteredData.length} regulatory updates
+          Showing {filteredData.length} live regulatory updates
         </p>
-        <div className="text-xs text-muted-foreground">
-          Last updated: {new Date().toLocaleTimeString()}
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-muted-foreground">
+            Last updated: {new Date().toLocaleTimeString()}
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={loadRSSFeeds}
+            disabled={loading}
+            className="flex items-center gap-1"
+          >
+            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
       </div>
 
@@ -312,9 +393,12 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
                       <div className={`flex items-center gap-1 text-${getUrgencyColor(item.urgencyLevel)}`}>
                         <UrgencyIcon className="h-3 w-3" />
                         <span className="text-xs font-medium">
-                          Risk: {item.riskScore}/10
+                          Priority: {item.riskScore}/10
                         </span>
                       </div>
+                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                        🔴 LIVE
+                      </Badge>
                     </div>
                     
                     <h3 className="text-lg font-semibold leading-tight mb-2">
@@ -338,7 +422,7 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
                     <div className="flex items-start gap-2">
                       <Badge variant="secondary" className="flex items-center gap-1 mt-1">
                         <Brain className="h-3 w-3" />
-                        AI Summary
+                        Summary
                       </Badge>
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         {item.aiSummary}
@@ -366,14 +450,14 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
                 </div>
               </CardHeader>
 
-              {/* Expandable AI Analysis */}
+              {/* Expandable Analysis */}
               <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(item.id)}>
                 <CardContent className="pt-0">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" className="w-full justify-between p-2">
                       <span className="flex items-center gap-2">
                         <Brain className="h-4 w-4" />
-                        View AI Analysis & Recommendations
+                        View Analysis & Recommendations
                       </span>
                       {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </Button>
