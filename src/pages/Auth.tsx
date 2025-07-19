@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Home } from 'lucide-react';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -52,46 +52,65 @@ export default function Auth() {
   if (magicLinkSent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
-            <CardDescription>
-              We've sent a magic link to {email}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Click the link in your email to sign in to RegIQ{isAdminEmail ? ' Admin' : ''}
-            </p>
-            {isAdminEmail && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-700 font-medium">
-                  🔐 Admin access will be granted automatically
-                </p>
-              </div>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={() => setMagicLinkSent(false)}
-              className="w-full"
-            >
-              Back to Sign In
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="w-full max-w-md space-y-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/')}
+            className="self-start"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+              <CardDescription>
+                We've sent a magic link to {email}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-muted-foreground">
+                Click the link in your email to sign in to RegIQ{isAdminEmail ? ' Admin' : ''}
+              </p>
+              {isAdminEmail && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700 font-medium">
+                    🔐 Admin access will be granted automatically
+                  </p>
+                </div>
+              )}
+              <Button 
+                variant="outline" 
+                onClick={() => setMagicLinkSent(false)}
+                className="w-full"
+              >
+                Back to Sign In
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome to RegIQ</CardTitle>
-          <CardDescription>
-            Access your regulatory intelligence dashboard
-          </CardDescription>
-        </CardHeader>
+      <div className="w-full max-w-md space-y-4">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/')}
+          className="self-start"
+        >
+          <Home className="mr-2 h-4 w-4" />
+          Back to Home
+        </Button>
+        <Card className="w-full">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Welcome to RegIQ</CardTitle>
+            <CardDescription>
+              Access your regulatory intelligence dashboard
+            </CardDescription>
+          </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
@@ -208,7 +227,8 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }
