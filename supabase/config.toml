@@ -1,1 +1,142 @@
 project_id = "piyikxxgoekawboitrzz"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+enabled = true
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1:54321"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[realtime]
+enabled = true
+ip_version = "ipv4"
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+image_transformation = "enabled"
+
+[edge_runtime]
+enabled = true
+ip_version = "ipv4"
+
+[auth]
+enabled = true
+external_anonymous_users_enabled = true
+disable_signup = false
+auto_confirm_email = true
+
+[functions.data-gov-search]
+verify_jwt = false
+
+[functions.government-web-scraper]
+verify_jwt = false
+
+[auth.external.apple]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.azure]
+enabled = false
+client_id = ""
+secret = ""
+url = ""
+
+[auth.external.bitbucket]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.discord]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.facebook]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.figma]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.github]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.gitlab]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.google]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.keycloak]
+enabled = false
+client_id = ""
+secret = ""
+url = ""
+
+[auth.external.linkedin]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.notion]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.twitch]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.twitter]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.slack]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.spotify]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.workos]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.zoom]
+enabled = false
+client_id = ""
+secret = ""
