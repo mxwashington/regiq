@@ -36,14 +36,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   const checkAdminStatus = async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token) {
+      console.log('No session token for admin check');
+      return;
+    }
     
     try {
+      console.log('Checking admin status...');
       const { data, error } = await supabase.functions.invoke('check-admin-status', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
+      
+      console.log('Admin status response:', { data, error });
       
       if (error) throw error;
       
@@ -56,14 +62,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshSubscription = async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token) {
+      console.log('No session token for subscription check');
+      return;
+    }
     
     try {
+      console.log('Checking subscription status...');
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
+      
+      console.log('Subscription response:', { data, error });
       
       if (error) throw error;
       
@@ -78,9 +90,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Enhanced session management with IP tracking
   const extendSessionIfTrusted = async (userId: string) => {
     try {
+      console.log('Attempting to extend session for user:', userId);
+      
       // Get current IP
       const ipResponse = await fetch('https://api.ipify.org?format=json');
       const { ip } = await ipResponse.json();
+      
+      console.log('Current IP:', ip);
       
       // Check if session should be extended
       const { data: shouldExtend } = await supabase.rpc('should_extend_session', {
@@ -88,15 +104,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         current_ip: ip
       });
 
+      console.log('Should extend session:', shouldExtend);
+
       if (shouldExtend) {
         // Refresh session to extend it
-        await supabase.auth.refreshSession();
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        console.log('Session refresh result:', { refreshData, refreshError });
         
         // Update user activity
         await supabase.rpc('update_user_activity', {
           user_id_param: userId,
           ip_address_param: ip
         });
+        
+        console.log('Updated user activity');
       }
     } catch (error) {
       console.error('Error extending session:', error);
@@ -104,23 +125,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    console.log('=== AUTH CONTEXT INITIALIZATION ===');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
+        console.log('Auth state change event:', {
+          event,
+          hasSession: !!session,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email,
+          sessionExpires: session?.expires_at,
+          timestamp: new Date().toISOString()
+        });
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('User authenticated, deferring additional checks...');
           // Defer subscription and admin checks to avoid blocking auth state update
           setTimeout(() => {
+            console.log('Running deferred checks...');
             refreshSubscription();
             checkAdminStatus();
             // Extend session if from trusted IP
             extendSessionIfTrusted(session.user.id);
           }, 0);
         } else {
+          console.log('No user session, clearing state...');
           setSubscribed(false);
           setSubscriptionTier(null);
           setSubscriptionEnd(null);
@@ -136,10 +169,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error('Error getting session:', error);
+        console.error('Error getting initial session:', error);
       }
       
-      console.log('Initial session check:', session?.user?.email);
+      console.log('Initial session check:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email,
+        sessionExpires: session?.expires_at
+      });
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -159,24 +198,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithMagicLink = async (email: string) => {
     try {
-      console.log('Sending magic link to:', email);
-      console.log('Redirect URL:', buildMagicLinkRedirectUrl());
+      const redirectUrl = buildMagicLinkRedirectUrl();
+      
+      console.log('=== MAGIC LINK SIGN IN ===');
+      console.log('Email:', email);
+      console.log('Redirect URL:', redirectUrl);
+      console.log('User Agent:', navigator.userAgent);
+      console.log('Current URL:', window.location.href);
       
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: buildMagicLinkRedirectUrl(),
+          emailRedirectTo: redirectUrl,
           data: {
             admin_request: email === 'marcus@fsqahelp.org'
           }
         }
       });
       
+      console.log('Magic link request result:', { error });
+      
       if (error) {
-        console.error('Magic link error:', error);
+        console.error('=== MAGIC LINK ERROR ===');
+        console.error('Error message:', error.message);
+        console.error('Error code:', error.status);
+        console.error('Full error:', error);
         
-        // Handle rate limiting specifically
-        if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+        // Enhanced rate limiting detection
+        const isRateLimit = error.message?.includes('rate limit') || 
+                           error.message?.includes('429') ||
+                           error.status === 429;
+        
+        if (isRateLimit) {
+          console.error('Rate limit detected');
           toast({
             title: "Rate limit exceeded",
             description: "Please wait a moment before requesting another magic link.",
@@ -199,7 +253,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       return { error };
     } catch (error: any) {
-      console.error('Unexpected error:', error);
+      console.error('=== UNEXPECTED MAGIC LINK ERROR ===');
+      console.error('Error:', error);
+      console.error('Stack:', error instanceof Error ? error.stack : 'No stack');
+      
       toast({
         title: "Magic link failed",
         description: "An unexpected error occurred. Please try again.",
@@ -210,6 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    console.log('Signing out user...');
     await supabase.auth.signOut();
     setSubscribed(false);
     setSubscriptionTier(null);

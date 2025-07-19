@@ -1,121 +1,59 @@
-/**
- * Domain utility functions for RegIQ custom domain management
- * Ensures all URLs use the correct custom domain consistently
- */
 
-// Custom domain configuration
-const CUSTOM_DOMAIN = 'regiq.org';
-const CUSTOM_PROTOCOL = 'https';
-
-export function getRedirectUrl(): string | null {
-  if (typeof window === 'undefined') return null;
-  
-  const { hostname, pathname, search, href } = window.location;
-  console.log('current host:', hostname);
-  
-  // whitelist local dev & already-correct host
-  if (
-    hostname === CUSTOM_DOMAIN ||
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1'
-  ) {
-    return null;
+// Enhanced domain configuration with detailed logging
+const getBaseUrl = (): string => {
+  // Check if we're in development
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    const devUrl = `${window.location.protocol}//${window.location.host}`;
+    console.log('Development environment detected, using:', devUrl);
+    return devUrl;
   }
   
-  const target = `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}${pathname}${search}`;
-  return href !== target ? target : null;
-}
+  // Production URL
+  const prodUrl = 'https://regiq.org';
+  console.log('Production environment, using:', prodUrl);
+  return prodUrl;
+};
 
-/**
- * Get the current domain - uses custom domain if available, fallback to current origin
- */
-export function getCurrentDomain(): string {
-  if (typeof window !== 'undefined') {
-    // if we're already on the custom domain, use the existing origin
-    if (window.location.hostname === CUSTOM_DOMAIN) {
-      return window.location.origin;
-    }
-    // otherwise force the custom domain
-    return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}`;
-  }
-  // server-side fallback
-  return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}`;
-}
+export const buildMagicLinkRedirectUrl = (): string => {
+  const baseUrl = getBaseUrl();
+  const redirectPath = '/auth/callback';
+  const fullUrl = `${baseUrl}${redirectPath}`;
+  
+  console.log('Building magic link redirect URL:', {
+    baseUrl,
+    redirectPath,
+    fullUrl,
+    currentLocation: typeof window !== 'undefined' ? window.location.href : 'SSR'
+  });
+  
+  return fullUrl;
+};
 
-/**
- * Build absolute URL with the correct domain
- */
-export function buildAbsoluteUrl(path: string): string {
-  const domain = getCurrentDomain();
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${domain}${cleanPath}`;
-}
-
-/**
- * Build auth redirect URL for Supabase - now points to callback handler
- */
-export function buildAuthRedirectUrl(path: string = '/auth/callback'): string {
-  return buildAbsoluteUrl(path);
-}
-
-/**
- * Build magic link redirect URL - specifically for magic link auth
- */
-export function buildMagicLinkRedirectUrl(): string {
-  return buildAbsoluteUrl('/auth/callback');
-}
-
-/**
- * Check if URL is internal to our domain
- */
-export function isInternalUrl(url: string): boolean {
+// Enhanced domain validation with logging
+export const isValidDomain = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
-    const currentDomain = getCurrentDomain();
-    const currentUrlObj = new URL(currentDomain);
+    const validDomains = ['regiq.org', 'localhost'];
+    const isValid = validDomains.some(domain => 
+      urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+    );
     
-    return urlObj.hostname === currentUrlObj.hostname;
-  } catch {
-    // If URL parsing fails, assume it's a relative URL (internal)
-    return !url.startsWith('http');
-  }
-}
-
-/**
- * Get canonical URL for SEO purposes
- */
-export function getCanonicalUrl(path: string = ''): string {
-  return buildAbsoluteUrl(path);
-}
-
-/**
- * Open external URL safely
- */
-export function openExternalUrl(url: string): void {
-  if (typeof window !== 'undefined') {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
-}
-
-/**
- * Navigate to internal path using the router
- */
-export function navigateToPath(navigate: (path: string) => void, path: string): void {
-  // For internal navigation, always use relative paths to maintain domain
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  navigate(cleanPath);
-}
-
-/**
- * Debug function to log current domain configuration
- */
-export function logDomainInfo(): void {
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-    console.log('Domain Configuration:', {
-      customDomain: CUSTOM_DOMAIN,
-      currentOrigin: window.location.origin,
-      currentDomain: getCurrentDomain(),
-      hostname: window.location.hostname,
+    console.log('Domain validation:', {
+      url,
+      hostname: urlObj.hostname,
+      isValid,
+      validDomains
     });
+    
+    return isValid;
+  } catch (error) {
+    console.error('Invalid URL format:', url, error);
+    return false;
   }
-}
+};
+
+export const getDomainForEnvironment = (): string => {
+  const domain = getBaseUrl();
+  console.log('Current domain for environment:', domain);
+  return domain;
+};

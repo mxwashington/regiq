@@ -17,8 +17,23 @@ export const useRateLimitHandler = () => {
   const { toast } = useToast();
 
   const handleRateLimit = useCallback((error: any) => {
-    if (error?.message?.includes('rate limit') || error?.message?.includes('429')) {
+    console.log('=== RATE LIMIT HANDLER ===');
+    console.log('Error object:', error);
+    console.log('Error message:', error?.message);
+    console.log('Error status:', error?.status);
+    
+    // Enhanced rate limit detection
+    const isRateLimit = error?.message?.includes('rate limit') || 
+                       error?.message?.includes('429') ||
+                       error?.status === 429 ||
+                       error?.message?.includes('Too Many Requests');
+    
+    console.log('Is rate limit detected:', isRateLimit);
+    
+    if (isRateLimit) {
       const retryAfter = 60; // Default to 60 seconds
+      
+      console.log('Setting rate limit state:', { retryAfter });
       
       setRateLimitState(prev => ({
         isRateLimited: true,
@@ -37,6 +52,7 @@ export const useRateLimitHandler = () => {
         setRateLimitState(prev => {
           if (prev.retryAfter <= 1) {
             clearInterval(interval);
+            console.log('Rate limit countdown finished');
             return {
               ...prev,
               isRateLimited: false,
@@ -56,6 +72,7 @@ export const useRateLimitHandler = () => {
   }, [toast]);
 
   const resetRateLimit = useCallback(() => {
+    console.log('Resetting rate limit state');
     setRateLimitState({
       isRateLimited: false,
       retryAfter: 0,
