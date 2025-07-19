@@ -12,6 +12,12 @@ import {
 } from "@/components/ui/carousel";
 import { Monitor, Smartphone, Tablet, ChevronRight } from "lucide-react";
 
+// Import generated mockups
+import dashboardMockup from "@/assets/dashboard-mockup.jpg";
+import analyticsMockup from "@/assets/analytics-mockup.jpg";
+import alertsMockup from "@/assets/alerts-mockup.jpg";
+import searchMockup from "@/assets/search-mockup.jpg";
+
 interface Screenshot {
   id: string;
   title: string;
@@ -28,7 +34,7 @@ const screenshots: Screenshot[] = [
     title: "Regulatory Intelligence Dashboard",
     description: "Real-time monitoring of FDA, USDA, EPA, and other regulatory agencies with AI-powered insights",
     category: "Dashboard",
-    imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop",
+    imageUrl: dashboardMockup,
     features: ["Real-time Updates", "AI Summaries", "Risk Scoring", "Custom Alerts"],
     agencies: ["FDA", "USDA", "EPA", "EMA"]
   },
@@ -37,7 +43,7 @@ const screenshots: Screenshot[] = [
     title: "Advanced Analytics & Reporting",
     description: "Comprehensive analytics dashboard showing regulatory trends and compliance metrics",
     category: "Analytics",
-    imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop",
+    imageUrl: analyticsMockup,
     features: ["Trend Analysis", "Compliance Metrics", "Export Reports", "Custom Dashboards"],
     agencies: ["FDA", "USDA", "EPA"]
   },
@@ -46,7 +52,7 @@ const screenshots: Screenshot[] = [
     title: "Smart Alert Management",
     description: "Personalized notification system with intelligent filtering and priority scoring",
     category: "Alerts",
-    imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop",
+    imageUrl: alertsMockup,
     features: ["Smart Filtering", "Priority Scoring", "Custom Keywords", "Team Notifications"],
     agencies: ["FDA", "USDA", "EPA", "EMA", "FSIS"]
   },
@@ -55,7 +61,7 @@ const screenshots: Screenshot[] = [
     title: "Powerful Search & Discovery",
     description: "Advanced search capabilities with AI-enhanced filtering across all regulatory sources",
     category: "Search",
-    imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68e2c6b696?w=800&h=500&fit=crop",
+    imageUrl: searchMockup,
     features: ["AI Search", "Advanced Filters", "Saved Searches", "Bulk Export"],
     agencies: ["FDA", "USDA", "EPA", "EMA"]
   }
