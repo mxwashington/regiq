@@ -1,10 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Database } from '@/integrations/supabase/types';
+// Define direct interfaces to avoid dependency on potentially empty types file
+interface DemoContentRow {
+  id: string;
+  content_type: string | null;
+  title: string;
+  content: any;
+  industry_focus: string | null;
+  demo_scenario: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
-type DemoContentRow = Database['public']['Tables']['demo_content']['Row'];
-type DemoSessionRow = Database['public']['Tables']['demo_sessions']['Row'];
+interface DemoSessionRow {
+  id: string;
+  session_key: string;
+  demo_scenario: string | null;
+  session_data: any;
+  is_active: boolean;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+}
 
 interface DemoContent {
   id: string;
