@@ -1,8 +1,9 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { buildAuthRedirectUrl, buildMagicLinkRedirectUrl } from '@/lib/domain';
+import { buildMagicLinkRedirectUrl } from '@/lib/domain';
 
 interface AuthContextType {
   user: User | null;
@@ -106,6 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -131,9 +134,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+      }
+      
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
         setTimeout(() => {
           refreshSubscription();
@@ -149,30 +158,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithMagicLink = async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: buildMagicLinkRedirectUrl(),
-        data: {
-          admin_request: email === 'marcus@fsqahelp.org'
+    try {
+      console.log('Sending magic link to:', email);
+      console.log('Redirect URL:', buildMagicLinkRedirectUrl());
+      
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: buildMagicLinkRedirectUrl(),
+          data: {
+            admin_request: email === 'marcus@fsqahelp.org'
+          }
         }
+      });
+      
+      if (error) {
+        console.error('Magic link error:', error);
+        
+        // Handle rate limiting specifically
+        if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+          toast({
+            title: "Rate limit exceeded",
+            description: "Please wait a moment before requesting another magic link.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Magic link failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        console.log('Magic link sent successfully');
+        toast({
+          title: "Check your email",
+          description: "We've sent you a magic link to sign in.",
+        });
       }
-    });
-    
-    if (error) {
+      
+      return { error };
+    } catch (error: any) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Magic link failed",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Check your email",
-        description: "We've sent you a magic link to sign in.",
-      });
+      return { error };
     }
-    
-    return { error };
   };
 
   const signOut = async () => {

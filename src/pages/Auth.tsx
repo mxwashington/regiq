@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -5,33 +6,41 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Home, Shield, CheckCircle, AlertCircle, Mail } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Loader2, Home, Shield, CheckCircle, AlertCircle, Mail, Clock } from 'lucide-react';
 import { useNavigationHelper } from '@/components/NavigationHelper';
+import { useRateLimitHandler } from '@/hooks/useRateLimitHandler';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [formError, setFormError] = useState('');
+  const [searchParams] = useSearchParams();
   
-  const { signInWithMagicLink, user } = useAuth();
+  const { signInWithMagicLink, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { navigateTo } = useNavigationHelper();
+  const { rateLimitState, handleRateLimit, resetRateLimit } = useRateLimitHandler();
 
   useEffect(() => {
-    if (user) {
+    if (user && !authLoading) {
       navigateTo('/dashboard');
     }
 
     // Handle URL parameters for auth redirects
-    const urlParams = new URLSearchParams(window.location.search);
-    const authType = urlParams.get('type');
+    const authType = searchParams.get('type');
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+    
+    if (error) {
+      setFormError(errorDescription || error);
+    }
     
     if (authType === 'magiclink') {
       setMagicLinkSent(false);
     }
-  }, [user, navigate, navigateTo]);
+  }, [user, authLoading, navigate, navigateTo, searchParams]);
 
   const validateEmail = (email: string) => {
     if (!email) {
@@ -46,6 +55,10 @@ export default function Auth() {
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (rateLimitState.isRateLimited) {
+      return;
+    }
+    
     const emailError = validateEmail(email);
     if (emailError) {
       setFormError(emailError);
@@ -56,11 +69,17 @@ export default function Auth() {
     setLoading(true);
     
     const { error } = await signInWithMagicLink(email);
+    
     if (error) {
-      setFormError(error.message || 'Failed to send magic link');
+      const wasRateLimited = handleRateLimit(error);
+      if (!wasRateLimited) {
+        setFormError(error.message || 'Failed to send magic link');
+      }
     } else {
       setMagicLinkSent(true);
+      resetRateLimit();
     }
+    
     setLoading(false);
   };
 
@@ -100,6 +119,11 @@ export default function Auth() {
                   </AlertDescription>
                 </Alert>
               )}
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p>• The link will redirect you to regiq.org</p>
+                <p>• Link expires after 1 hour for security</p>
+                <p>• Check your spam folder if you don't see it</p>
+              </div>
               <Button 
                 variant="outline" 
                 onClick={() => setMagicLinkSent(false)}
@@ -159,9 +183,27 @@ export default function Auth() {
                 )}
               </div>
               
-              <Button type="submit" className="w-full" disabled={loading}>
+              {rateLimitState.isRateLimited && (
+                <Alert className="bg-yellow-50 border-yellow-200">
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                  <AlertDescription className="text-yellow-700">
+                    Rate limit exceeded. Please wait {rateLimitState.retryAfter} seconds before trying again.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loading || rateLimitState.isRateLimited}
+              >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {loading ? 'Sending Link...' : 'Send Magic Link'}
+                {rateLimitState.isRateLimited 
+                  ? `Wait ${rateLimitState.retryAfter}s` 
+                  : loading 
+                    ? 'Sending Link...' 
+                    : 'Send Magic Link'
+                }
               </Button>
             </form>
             
@@ -190,7 +232,7 @@ export default function Auth() {
                     ✓ Works for both new and existing accounts
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    ✓ Link expires automatically for security
+                    ✓ Redirects to regiq.org automatically
                   </p>
                 </div>
               </div>

@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +12,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Subscription from "./pages/Subscription";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import SearchPage from "./pages/SearchPage";
@@ -51,6 +53,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Landing />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/subscription" element={<Subscription />} />
                   

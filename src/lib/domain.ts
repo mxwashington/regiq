@@ -31,13 +31,12 @@ export function getRedirectUrl(): string | null {
  */
 export function getCurrentDomain(): string {
   if (typeof window !== 'undefined') {
-    const { pathname, search } = window.location;
     // if we're already on the custom domain, use the existing origin
     if (window.location.hostname === CUSTOM_DOMAIN) {
       return window.location.origin;
     }
     // otherwise force the custom domain
-    return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}${pathname}${search}`;
+    return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}`;
   }
   // server-side fallback
   return `${CUSTOM_PROTOCOL}://${CUSTOM_DOMAIN}`;
@@ -53,19 +52,18 @@ export function buildAbsoluteUrl(path: string): string {
 }
 
 /**
- * Build auth redirect URL for Supabase
+ * Build auth redirect URL for Supabase - now points to callback handler
  */
-export function buildAuthRedirectUrl(path: string = '/dashboard'): string {
+export function buildAuthRedirectUrl(path: string = '/auth/callback'): string {
   return buildAbsoluteUrl(path);
 }
 
 /**
- * Build magic link redirect URL
+ * Build magic link redirect URL - specifically for magic link auth
  */
 export function buildMagicLinkRedirectUrl(): string {
-  return buildAbsoluteUrl('/auth?type=magiclink');
+  return buildAbsoluteUrl('/auth/callback');
 }
-
 
 /**
  * Check if URL is internal to our domain
