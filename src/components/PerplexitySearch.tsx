@@ -83,11 +83,21 @@ export default function PerplexitySearch() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
-      toast({
-        title: "Search Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      
+      // Check if it's an API key configuration issue
+      if (errorMessage.includes('PERPLEXITY_API_KEY') || errorMessage.includes('not set')) {
+        toast({
+          title: "API Configuration Required",
+          description: "Perplexity API key needs to be configured in Supabase Edge Function secrets.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Search Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
