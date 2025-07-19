@@ -334,7 +334,8 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
   };
 
   // Convert RSS items to the format expected by the UI, fallback to sample data if no RSS items
-  const allItems = rssItems.length > 0 ? rssItems : [];
+  const safeRssItems = Array.isArray(rssItems) ? rssItems : [];
+  const allItems = safeRssItems.length > 0 ? safeRssItems : [];
   const convertedData = allItems.length > 0 ? allItems.map(item => ({
     id: item.id,
     title: item.title,
