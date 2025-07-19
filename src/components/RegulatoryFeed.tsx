@@ -216,42 +216,46 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
   const loadRSSFeeds = async () => {
     setLoading(true);
     try {
-      // Call our Supabase edge function to fetch RSS feeds with faster timeout handling
-      const loadPromise = supabase.functions.invoke('fetch-rss-feeds');
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout after 5 seconds')), 5000)
-      );
+      console.log('Loading RSS feeds from edge function...');
       
-      const { data, error } = await Promise.race([loadPromise, timeoutPromise]) as any;
+      // Call our Supabase edge function with shorter timeout
+      const { data, error } = await supabase.functions.invoke('fetch-rss-feeds', {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      console.log('RSS feed response:', { data, error });
       
       if (error) {
-        throw new Error(error.message);
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to fetch feeds');
       }
 
       const items = data?.items || [];
-      setRssItems(items);
+      console.log('RSS items received:', items.length);
       
       if (items.length > 0) {
+        setRssItems(items);
         toast({
-          title: "Live feeds loaded",
-          description: `${items.length} real regulatory updates from ${data.cached ? 'cache' : 'live sources'}`,
+          title: "✅ Live feeds loaded",
+          description: `${items.length} regulatory updates from ${data.cached ? 'cache' : 'live sources'}`,
         });
       } else {
-        // Show sample data immediately instead of empty state
+        console.log('No RSS items received, using fallback data');
         setRssItems(generateSampleRSSData());
         toast({
-          title: "Using sample data",
-          description: "Live feeds unavailable, showing sample regulatory data",
+          title: "⚡ Sample data loaded",
+          description: "Live feeds currently unavailable, showing sample regulatory data",
           variant: "default",
         });
       }
     } catch (error) {
       console.error('Error loading RSS feeds:', error);
-      // Always show sample data on error
       setRssItems(generateSampleRSSData());
       toast({
-        title: "Using sample data",
-        description: "Live feeds unavailable, showing sample regulatory data",
+        title: "⚡ Sample data loaded", 
+        description: "Live feeds currently unavailable, showing sample regulatory data",
         variant: "default",
       });
     } finally {

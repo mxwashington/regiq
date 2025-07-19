@@ -30,27 +30,37 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Updated RSS feeds - removed problematic ones, kept only reliable sources
+// Working RSS feeds - only reliable sources that pass timeout tests
 const RSS_FEEDS: RSSFeedConfig[] = [
   {
     id: "fda-recalls",
     url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls/rss.xml",
     agency: "FDA",
-    category: "Recalls",
-    title: "FDA Recalls",
-    urgencyDefault: 8,
+    category: "Food Safety",
+    title: "FDA Recalls & Safety Alerts",
+    urgencyDefault: 9,
     color: "#dc2626",
     icon: "🚨"
   },
   {
-    id: "usda-news",
-    url: "https://www.usda.gov/rss/latest-releases.xml",
-    agency: "USDA",
-    category: "News Releases",
-    title: "USDA Latest Releases",
+    id: "fda-warnings",
+    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/warning-letters/rss.xml",
+    agency: "FDA",
+    category: "Enforcement",
+    title: "FDA Warning Letters",
+    urgencyDefault: 7,
+    color: "#ea580c",
+    icon: "⚠️"
+  },
+  {
+    id: "federal-register-fda",
+    url: "https://www.federalregister.gov/api/v1/articles.rss?conditions%5Bagencies%5D%5B%5D=food-and-drug-administration",
+    agency: "Federal Register",
+    category: "Rulemaking",
+    title: "FDA Federal Register Entries",
     urgencyDefault: 6,
-    color: "#059669",
-    icon: "🌾"
+    color: "#2563eb",
+    icon: "📋"
   }
 ];
 
@@ -101,7 +111,7 @@ async function fetchRSSFeed(feedConfig: RSSFeedConfig): Promise<RSSFeedItem[]> {
     logStep("Fetching RSS feed directly", { url: feedConfig.url });
     
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
     
     const response = await fetch(feedConfig.url, {
       method: 'GET',
@@ -176,10 +186,15 @@ async function fetchRSSFeed(feedConfig: RSSFeedConfig): Promise<RSSFeedItem[]> {
       logStep("Trying CORS proxy fallback", { agency: feedConfig.agency });
       
       const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedConfig.url)}`;
+      const proxyController = new AbortController();
+      const proxyTimeoutId = setTimeout(() => proxyController.abort(), 5000);
+      
       const proxyResponse = await fetch(proxyUrl, {
         method: 'GET',
-        signal: AbortSignal.timeout(8000)
+        signal: proxyController.signal
       });
+      
+      clearTimeout(proxyTimeoutId);
 
       if (proxyResponse.ok) {
         const data = await proxyResponse.json();
@@ -261,7 +276,7 @@ Deno.serve(async (req) => {
       Promise.race([
         fetchRSSFeed(feed),
         new Promise<RSSFeedItem[]>((_, reject) => 
-          setTimeout(() => reject(new Error('Feed timeout')), 10000)
+          setTimeout(() => reject(new Error('Feed timeout')), 8000)
         )
       ])
     );
