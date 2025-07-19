@@ -30,47 +30,37 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Updated RSS feeds with working 2025 URLs
+// Verified working RSS feeds for 2025
 const RSS_FEEDS: RSSFeedConfig[] = [
   {
-    id: "fda-medwatch",
+    id: "cdc-mmwr",
+    url: "https://www.cdc.gov/mmwr/rss/rss.html",
+    agency: "CDC",
+    category: "Public Health Reports",
+    title: "CDC MMWR Weekly Reports",
+    urgencyDefault: 7,
+    color: "#dc2626",
+    icon: "🏥"
+  },
+  {
+    id: "food-safety-news",
+    url: "https://feeds.feedburner.com/foodsafetynews/",
+    agency: "Industry",
+    category: "Food Safety News",
+    title: "Food Safety News",
+    urgencyDefault: 6,
+    color: "#ea580c",
+    icon: "📰"
+  },
+  {
+    id: "fda-legacy-medwatch",
     url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medwatch/rss.xml",
     agency: "FDA",
     category: "Safety Alerts",
-    title: "FDA MedWatch Safety Alerts",
+    title: "FDA MedWatch (Legacy - May Be Inactive)",
     urgencyDefault: 8,
-    color: "#dc2626",
-    icon: "🚨"
-  },
-  {
-    id: "fda-insight",
-    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/fda-insight/rss.xml",
-    agency: "FDA",
-    category: "Updates",
-    title: "FDA Insight",
-    urgencyDefault: 6,
-    color: "#ea580c",
-    icon: "📋"
-  },
-  {
-    id: "usda-fsis",
-    url: "http://www.fsis.usda.gov/RSS/usdarss.xml",
-    agency: "USDA",
-    category: "Recalls",
-    title: "USDA FSIS Recalls & Alerts",
-    urgencyDefault: 8,
-    color: "#059669",
-    icon: "🥩"
-  },
-  {
-    id: "fda-disco",
-    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/disco/rss.xml",
-    agency: "FDA",
-    category: "Drug Information",
-    title: "FDA Drug Information (D.I.S.C.O.)",
-    urgencyDefault: 6,
     color: "#7c3aed",
-    icon: "💊"
+    icon: "⚠️"
   }
 ];
 
