@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useDemoMode } from '@/contexts/DemoContext';
 
-export const DemoContentDisplay: React.FC = () => {
+export const DemoContentDisplay = () => {
   const { isDemoMode, demoContent, demoScenario } = useDemoMode();
 
   if (!isDemoMode) {

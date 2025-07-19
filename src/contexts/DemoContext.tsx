@@ -48,7 +48,7 @@ export const useDemoMode = () => {
   return context;
 };
 
-export const DemoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DemoProvider = ({ children }: { children: React.ReactNode }) => {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [demoScenario, setDemoScenarioState] = useState('food_safety');
   const [demoContent, setDemoContent] = useState<DemoContent[]>([]);

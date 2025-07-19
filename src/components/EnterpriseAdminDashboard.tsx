@@ -45,7 +45,7 @@ interface RevenueMetrics {
   lifetime_value: number;
 }
 
-export const EnterpriseAdminDashboard: React.FC = () => {
+export const EnterpriseAdminDashboard = () => {
   const [userMetrics, setUserMetrics] = useState<UserMetrics>({
     total_users: 0,
     active_today: 0,

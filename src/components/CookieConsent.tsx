@@ -42,16 +42,17 @@ export function CookieConsent() {
     // Check database for logged-in users
     if (user) {
       try {
-        // Note: This will fail until types are updated, but the functionality is correct
-        const { data } = await (supabase as any)
+        const { data, error } = await supabase
           .from('cookie_consents')
-          .select('*')
+          .select('essential, analytics, marketing, functional')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .order('consent_date', { ascending: false })
           .limit(1);
 
+        if (error) throw error;
+
         if (data && data.length > 0) {
-          const consent = data[0].consent_details;
+          const consent = data[0];
           setPreferences(consent);
           localStorage.setItem('cookie-consent', JSON.stringify(consent));
           return;
@@ -63,6 +64,16 @@ export function CookieConsent() {
 
     // Show banner if no consent found
     setShowBanner(true);
+  };
+
+  // Generate a visitor ID for non-authenticated users
+  const generateVisitorId = () => {
+    let visitorId = localStorage.getItem('regiq-visitor-id');
+    if (!visitorId) {
+      visitorId = 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      localStorage.setItem('regiq-visitor-id', visitorId);
+    }
+    return visitorId;
   };
 
   const saveConsent = async (accepted: boolean, customPreferences?: CookiePreferences) => {
@@ -78,15 +89,19 @@ export function CookieConsent() {
 
     // Save to database
     try {
+      const visitorId = !user ? generateVisitorId() : null;
+      
       const consent = {
         user_id: user?.id || null,
-        ip_address: null, // Would be populated server-side in real implementation
-        consent_granted: accepted,
-        consent_details: finalPreferences,
+        visitor_id: visitorId,
+        essential: finalPreferences.essential,
+        analytics: finalPreferences.analytics,
+        marketing: finalPreferences.marketing,
+        functional: finalPreferences.functional,
+        user_agent: navigator.userAgent
       };
 
-      // Note: This will fail until types are updated, but the functionality is correct
-      await (supabase as any).from('cookie_consents').insert(consent);
+      const { error } = await supabase.from('cookie_consents').insert(consent);
     } catch (error) {
       console.error('Error saving cookie consent:', error);
     }

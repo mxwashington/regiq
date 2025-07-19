@@ -50,6 +50,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cookie_consents: {
+        Row: {
+          analytics: boolean
+          consent_date: string
+          essential: boolean
+          expires_at: string
+          functional: boolean
+          id: string
+          ip_address: unknown | null
+          marketing: boolean
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          analytics?: boolean
+          consent_date?: string
+          essential?: boolean
+          expires_at?: string
+          functional?: boolean
+          id?: string
+          ip_address?: unknown | null
+          marketing?: boolean
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          analytics?: boolean
+          consent_date?: string
+          essential?: boolean
+          expires_at?: string
+          functional?: boolean
+          id?: string
+          ip_address?: unknown | null
+          marketing?: boolean
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: []
+      }
       demo_content: {
         Row: {
           content: Json
