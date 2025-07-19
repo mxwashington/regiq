@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 interface RSSFeedConfig {
   id: string;
@@ -31,102 +25,123 @@ interface RSSFeedItem {
   guid: string;
 }
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Updated RSS feeds with working 2025 URLs
 const RSS_FEEDS: RSSFeedConfig[] = [
-  // FDA Recalls - High Priority
   {
-    id: "fda-recalls",
-    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls/rss.xml",
+    id: "fda-medwatch",
+    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medwatch/rss.xml",
     agency: "FDA",
-    category: "Food Safety", 
-    title: "FDA Recalls & Safety Alerts",
-    urgencyDefault: 9,
+    category: "Safety Alerts",
+    title: "FDA MedWatch Safety Alerts",
+    urgencyDefault: 8,
     color: "#dc2626",
     icon: "🚨"
   },
-  
-  // FDA Warning Letters
   {
-    id: "fda-warnings",
-    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/warning-letters/rss.xml",
-    agency: "FDA", 
-    category: "Enforcement",
-    title: "FDA Warning Letters",
-    urgencyDefault: 7,
+    id: "fda-insight",
+    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/fda-insight/rss.xml",
+    agency: "FDA",
+    category: "Updates",
+    title: "FDA Insight",
+    urgencyDefault: 6,
     color: "#ea580c",
-    icon: "⚠️"
+    icon: "📋"
   },
-  
-  // USDA FSIS Recalls
   {
-    id: "usda-recalls",
-    url: "https://www.fsis.usda.gov/recalls-alerts",
+    id: "usda-fsis",
+    url: "http://www.fsis.usda.gov/RSS/usdarss.xml",
     agency: "USDA",
-    category: "Food Safety",
-    title: "USDA FSIS Recalls",
+    category: "Recalls",
+    title: "USDA FSIS Recalls & Alerts",
     urgencyDefault: 8,
-    color: "#dc2626",
+    color: "#059669",
     icon: "🥩"
   },
-
-  // Federal Register - Recent Rules
   {
-    id: "federal-register",
-    url: "https://www.federalregister.gov/api/v1/articles.rss?conditions%5Btype%5D%5B%5D=RULE&conditions%5Bpublication_date%5D%5Bgte%5D=" + new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    agency: "Federal Register",
-    category: "Regulations",
-    title: "Recent Federal Rules",
+    id: "fda-disco",
+    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/disco/rss.xml",
+    agency: "FDA",
+    category: "Drug Information",
+    title: "FDA Drug Information (D.I.S.C.O.)",
     urgencyDefault: 6,
-    color: "#2563eb",
-    icon: "📋"
+    color: "#7c3aed",
+    icon: "💊"
   }
 ];
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[RSS-FETCH] ${step}${detailsStr}`);
+const logStep = (message: string, data?: any) => {
+  console.log(`RSS Feed Log: ${message}`, data ? JSON.stringify(data) : '');
 };
 
+// Fetch and parse a single RSS feed with improved error handling
 async function fetchRSSFeed(feedConfig: RSSFeedConfig): Promise<RSSFeedItem[]> {
+  logStep("Starting RSS fetch", { 
+    agency: feedConfig.agency, 
+    url: feedConfig.url,
+    title: feedConfig.title 
+  });
+  
   try {
-    logStep("Fetching RSS feed", { agency: feedConfig.agency, url: feedConfig.url });
+    // Use more reliable CORS proxy - allorigins
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedConfig.url)}`;
     
-    // Fetch RSS feed directly (server-side, no CORS issues)
-    const response = await fetch(feedConfig.url, {
+    logStep("Fetching through CORS proxy", { proxyUrl });
+    
+    const response = await fetch(proxyUrl, {
+      method: 'GET',
       headers: {
-        'User-Agent': 'RegIQ-RSS-Fetcher/1.0',
-        'Accept': 'application/rss+xml, application/xml, text/xml'
-      }
+        'User-Agent': 'RegIQ-RSS-Bot/1.0'
+      },
+      signal: AbortSignal.timeout(15000) // 15 second timeout
     });
-    
+
     if (!response.ok) {
-      logStep("RSS fetch failed", { status: response.status, statusText: response.statusText });
-      return [];
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
+
+    const data = await response.json();
     
-    const xmlText = await response.text();
-    logStep("RSS content received", { length: xmlText.length });
+    if (!data.contents) {
+      throw new Error('No content received from CORS proxy');
+    }
+
+    logStep("Parsing XML content", { contentLength: data.contents.length });
     
-    // Parse XML using DOMParser
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+    const doc = parser.parseFromString(data.contents, 'application/xml');
     
-    // Check for parsing errors
-    const parseError = xmlDoc.querySelector("parsererror");
+    // Check for XML parsing errors
+    const parseError = doc.querySelector('parsererror');
     if (parseError) {
-      logStep("XML parsing error", { error: parseError.textContent });
+      throw new Error(`XML parsing failed: ${parseError.textContent}`);
+    }
+
+    const items = Array.from(doc.querySelectorAll('item'));
+    logStep("Found RSS items", { count: items.length });
+
+    if (items.length === 0) {
+      logStep("No items found in feed", { xmlPreview: data.contents.substring(0, 500) });
       return [];
     }
-    
-    // Extract items from RSS feed
-    const items = Array.from(xmlDoc.querySelectorAll("item, entry")).slice(0, 20);
-    logStep("RSS items found", { count: items.length });
-    
-    return items.map((item, index) => {
-      const title = item.querySelector("title")?.textContent || "No Title";
-      const description = item.querySelector("description, summary")?.textContent?.replace(/<[^>]*>/g, '') || "No Description";
-      const link = item.querySelector("link")?.textContent || item.querySelector("link")?.getAttribute("href") || "#";
-      const pubDateText = item.querySelector("pubDate, published, updated")?.textContent || "";
-      const pubDate = pubDateText ? new Date(pubDateText) : new Date();
+
+    const parsedItems = items.slice(0, 20).map((item, index) => {
+      const title = item.querySelector("title")?.textContent || "No title";
+      const description = item.querySelector("description")?.textContent || "";
+      const link = item.querySelector("link")?.textContent || item.querySelector("guid")?.textContent || "";
+      const pubDateText = item.querySelector("pubDate")?.textContent || item.querySelector("dc\\:date, date")?.textContent;
+      
+      let pubDate = new Date();
+      if (pubDateText) {
+        const parsedDate = new Date(pubDateText);
+        if (!isNaN(parsedDate.getTime())) {
+          pubDate = parsedDate;
+        }
+      }
       
       return {
         id: `${feedConfig.id}-${index}`,
@@ -143,73 +158,118 @@ async function fetchRSSFeed(feedConfig: RSSFeedConfig): Promise<RSSFeedItem[]> {
       };
     });
     
+    logStep("Successfully parsed items", { count: parsedItems.length, agency: feedConfig.agency });
+    return parsedItems;
+    
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("Error fetching RSS feed", { 
       agency: feedConfig.agency, 
-      error: error instanceof Error ? error.message : String(error) 
+      error: errorMessage,
+      url: feedConfig.url
     });
+    
+    // Log specific error types for debugging
+    if (errorMessage.includes('timeout')) {
+      logStep("Timeout error - feed may be slow", { agency: feedConfig.agency });
+    } else if (errorMessage.includes('CORS')) {
+      logStep("CORS error - proxy may be down", { agency: feedConfig.agency });
+    } else if (errorMessage.includes('404')) {
+      logStep("Feed URL not found - URL may have changed", { agency: feedConfig.agency });
+    }
+    
     return [];
   }
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
+// Main Edge Function
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  
+  if (!supabaseUrl || !supabaseKey) {
+    return new Response(JSON.stringify({ error: 'Supabase configuration missing' }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
+  }
 
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+  
   try {
-    logStep("Starting RSS feed fetch");
+    logStep("Starting RSS feed aggregation");
 
-    // Check cache first (cache for 30 minutes)
-    const cacheExpiry = new Date();
-    cacheExpiry.setMinutes(cacheExpiry.getMinutes() - 30);
-
-    const { data: cachedFeeds } = await supabaseClient
+    // Check for cached results (30 minute cache)
+    const { data: cachedData } = await supabaseClient
       .from("search_cache")
-      .select("result_data, created_at")
+      .select("*")
       .eq("cache_key", "rss_feeds_all")
-      .gte("created_at", cacheExpiry.toISOString())
+      .gt("expires_at", new Date().toISOString())
       .single();
 
-    if (cachedFeeds) {
-      logStep("Returning cached RSS feeds");
+    if (cachedData && cachedData.result_data) {
+      logStep("Returning cached RSS data", { itemCount: cachedData.result_data.length });
       return new Response(JSON.stringify({
-        items: cachedFeeds.result_data,
+        items: cachedData.result_data,
         cached: true,
-        cached_at: cachedFeeds.created_at
+        fetched_at: cachedData.created_at
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    // Fetch all RSS feeds
+    // Fetch all RSS feeds in parallel
+    logStep("Fetching fresh RSS data from all sources");
+    const feedPromises = RSS_FEEDS.map(feed => fetchRSSFeed(feed));
+    const feedResults = await Promise.allSettled(feedPromises);
+    
+    // Combine all successful results
     const allItems: RSSFeedItem[] = [];
+    let successCount = 0;
+    let errorCount = 0;
     
-    for (const feed of RSS_FEEDS) {
-      const items = await fetchRSSFeed(feed);
-      allItems.push(...items);
-    }
-    
+    feedResults.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        allItems.push(...result.value);
+        if (result.value.length > 0) {
+          successCount++;
+        }
+        logStep("Feed fetch completed", { 
+          agency: RSS_FEEDS[index].agency, 
+          itemCount: result.value.length 
+        });
+      } else {
+        errorCount++;
+        logStep("Feed fetch failed", { 
+          agency: RSS_FEEDS[index].agency, 
+          error: result.reason 
+        });
+      }
+    });
+
     // Sort by publication date (newest first)
     allItems.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
     
-    logStep("RSS feeds fetched successfully", { totalItems: allItems.length });
+    logStep("RSS feeds aggregation complete", { 
+      totalItems: allItems.length,
+      successfulFeeds: successCount,
+      failedFeeds: errorCount
+    });
 
-    // Cache the results
+    // Cache the results for 30 minutes
     await supabaseClient
       .from("search_cache")
       .upsert({
         cache_key: "rss_feeds_all",
         query: "rss_feeds",
         result_data: allItems,
-        expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() // 30 minutes
+        expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString()
       });
 
     // Log successful fetch
@@ -219,13 +279,19 @@ serve(async (req) => {
         feed_id: "all_feeds",
         fetch_status: "success",
         items_fetched: allItems.length,
-        fetch_duration: Date.now() // This is just a timestamp for now
+        fetch_duration: Date.now(),
+        error_message: errorCount > 0 ? `${errorCount} feeds failed` : null
       });
 
     return new Response(JSON.stringify({
       items: allItems,
       cached: false,
-      fetched_at: new Date().toISOString()
+      fetched_at: new Date().toISOString(),
+      stats: {
+        total_items: allItems.length,
+        successful_feeds: successCount,
+        failed_feeds: errorCount
+      }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -233,7 +299,7 @@ serve(async (req) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in RSS fetch", { message: errorMessage });
+    logStep("CRITICAL ERROR in RSS fetch", { message: errorMessage });
     
     // Log failed fetch
     await supabaseClient
@@ -245,7 +311,10 @@ serve(async (req) => {
         items_fetched: 0
       });
     
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      items: [] // Return empty array instead of failing completely
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
