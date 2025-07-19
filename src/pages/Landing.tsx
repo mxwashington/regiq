@@ -8,9 +8,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { FeatureShowcase } from "@/components/FeatureShowcase";
 import { StatsSection } from "@/components/StatsSection";
+import { ConversationalChatbot } from "@/components/ConversationalChatbot";
+import { CookieConsent } from "@/components/CookieConsent";
+import { useState } from "react";
 
 const Landing = () => {
   const { user } = useAuth();
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5">
@@ -174,11 +178,25 @@ const Landing = () => {
             <Shield className="h-6 w-6 text-primary" />
             <span className="font-semibold">RegIQ</span>
           </div>
-          <p className="text-muted-foreground text-sm">
-            © 2024 RegIQ. Regulatory intelligence for the modern compliance team.
-          </p>
+          <div className="flex items-center gap-4">
+            <Link to="/legal" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+              Privacy & Legal
+            </Link>
+            <p className="text-muted-foreground text-sm">
+              © 2024 RegIQ. Regulatory intelligence for the modern compliance team.
+            </p>
+          </div>
         </div>
       </footer>
+
+      {/* Chatbot */}
+      <ConversationalChatbot 
+        isOpen={isChatOpen} 
+        onToggle={() => setIsChatOpen(!isChatOpen)} 
+      />
+
+      {/* Cookie Consent */}
+      <CookieConsent />
     </div>
   );
 };

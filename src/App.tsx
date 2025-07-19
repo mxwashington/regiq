@@ -13,6 +13,7 @@ import Subscription from "./pages/Subscription";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
+import { LegalFramework } from "./components/LegalFramework";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
                 <AdminDashboard />
               </AdminProtectedRoute>
             } />
+            <Route path="/legal" element={<LegalFramework />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
