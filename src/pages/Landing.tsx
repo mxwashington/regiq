@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Shield, Zap, Bell, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ScreenshotGallery } from "@/components/ScreenshotGallery";
+
 import { FeatureShowcase } from "@/components/FeatureShowcase";
 import { StatsSection } from "@/components/StatsSection";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
@@ -28,7 +28,7 @@ const Landing = () => {
           </div>
           <nav className="hidden md:flex items-center space-x-6">
             <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#screenshots" className="text-muted-foreground hover:text-foreground transition-colors">Platform</a>
+            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Platform</a>
             <Link to="/subscription" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
             {user ? (
               <Button variant="outline" size="sm" asChild>
@@ -92,10 +92,6 @@ const Landing = () => {
       {/* Stats Section */}
       <StatsSection />
 
-      {/* Screenshot Gallery */}
-      <div id="screenshots">
-        <ScreenshotGallery />
-      </div>
 
       {/* Feature Showcase */}
       <FeatureShowcase />
