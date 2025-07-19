@@ -7,6 +7,7 @@ import { CombinedSearch } from '@/components/CombinedSearch';
 import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { FDAProfessionalTools } from '@/components/FDAProfessionalTools';
 import { IntegrationEnhancements } from '@/components/IntegrationEnhancements';
+import { CFRSearch } from '@/components/CFRSearch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,8 @@ import {
   Activity,
   BarChart3,
   Settings,
-  GitMerge
+  GitMerge,
+  BookOpen
 } from 'lucide-react';
 
 export default function SearchPage() {
@@ -156,28 +158,32 @@ export default function SearchPage() {
 
         {/* Comprehensive FDA Search System */}
         <Tabs defaultValue="web-intelligence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="web-intelligence" className="flex items-center space-x-2">
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="web-intelligence" className="flex items-center space-x-1">
               <Globe className="h-4 w-4" />
-              <span>Web Intelligence</span>
+              <span>Web Intel</span>
             </TabsTrigger>
-            <TabsTrigger value="fda-database" className="flex items-center space-x-2">
+            <TabsTrigger value="fda-database" className="flex items-center space-x-1">
               <Database className="h-4 w-4" />
-              <span>FDA Database</span>
+              <span>FDA API</span>
             </TabsTrigger>
-            <TabsTrigger value="combined-search" className="flex items-center space-x-2">
+            <TabsTrigger value="cfr-regulations" className="flex items-center space-x-1">
+              <BookOpen className="h-4 w-4" />
+              <span>CFR</span>
+            </TabsTrigger>
+            <TabsTrigger value="combined-search" className="flex items-center space-x-1">
               <Activity className="h-4 w-4" />
-              <span>Combined Search</span>
+              <span>Combined</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center space-x-2">
+            <TabsTrigger value="analytics" className="flex items-center space-x-1">
               <BarChart3 className="h-4 w-4" />
               <span>Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="professional" className="flex items-center space-x-2">
+            <TabsTrigger value="professional" className="flex items-center space-x-1">
               <Settings className="h-4 w-4" />
-              <span>Professional</span>
+              <span>Pro Tools</span>
             </TabsTrigger>
-            <TabsTrigger value="integration" className="flex items-center space-x-2">
+            <TabsTrigger value="integration" className="flex items-center space-x-1">
               <GitMerge className="h-4 w-4" />
               <span>Integration</span>
             </TabsTrigger>
@@ -189,6 +195,10 @@ export default function SearchPage() {
 
           <TabsContent value="fda-database">
             <FDASearch />
+          </TabsContent>
+
+          <TabsContent value="cfr-regulations">
+            <CFRSearch />
           </TabsContent>
 
           <TabsContent value="combined-search">
