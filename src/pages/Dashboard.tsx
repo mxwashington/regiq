@@ -324,7 +324,18 @@ const Dashboard = () => {
               </TabsContent>
               
               <TabsContent value="search" className="mt-6">
-                <PerplexitySearch />
+                <div className="space-y-6">
+                  <div className="text-center py-8 border border-dashed border-border rounded-lg">
+                    <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Advanced AI Search</h3>
+                    <p className="text-muted-foreground mb-4">Access powerful regulatory intelligence search with advanced filters and analytics</p>
+                    <Button onClick={() => navigate('/search')} className="w-auto">
+                      <Search className="mr-2 h-4 w-4" />
+                      Go to Advanced Search
+                    </Button>
+                  </div>
+                  <PerplexitySearch />
+                </div>
               </TabsContent>
               
               <TabsContent value="trends" className="mt-6">

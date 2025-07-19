@@ -216,8 +216,13 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
   const loadRSSFeeds = async () => {
     setLoading(true);
     try {
-      // Call our Supabase edge function to fetch RSS feeds
-      const { data, error } = await supabase.functions.invoke('fetch-rss-feeds');
+      // Call our Supabase edge function to fetch RSS feeds with faster timeout handling
+      const loadPromise = supabase.functions.invoke('fetch-rss-feeds');
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout after 5 seconds')), 5000)
+      );
+      
+      const { data, error } = await Promise.race([loadPromise, timeoutPromise]) as any;
       
       if (error) {
         throw new Error(error.message);
@@ -232,14 +237,18 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
           description: `${items.length} real regulatory updates from ${data.cached ? 'cache' : 'live sources'}`,
         });
       } else {
+        // Show sample data immediately instead of empty state
+        setRssItems(generateSampleRSSData());
         toast({
-          title: "No live data available",
-          description: "Showing sample data. RSS feeds may be temporarily unavailable.",
+          title: "Using sample data",
+          description: "Live feeds unavailable, showing sample regulatory data",
           variant: "default",
         });
       }
     } catch (error) {
       console.error('Error loading RSS feeds:', error);
+      // Always show sample data on error
+      setRssItems(generateSampleRSSData());
       toast({
         title: "Using sample data",
         description: "Live feeds unavailable, showing sample regulatory data",
@@ -253,6 +262,52 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
   useEffect(() => {
     loadRSSFeeds();
   }, []);
+
+  // Generate sample data for fallback
+  const generateSampleRSSData = (): RSSFeedItem[] => {
+    const today = new Date();
+    return [
+      {
+        id: "sample-1",
+        title: "FDA Issues New Guidance on Food Safety Modernization Act Implementation",
+        description: "The FDA has released updated guidance for industry regarding implementation of preventive controls for human food under the Food Safety Modernization Act.",
+        link: "https://www.fda.gov/food/guidance-documents-regulatory-information-topic-food-and-dietary-supplements/draft-guidance-industry-hazard-analysis-and-risk-based-preventive-controls-human-food-chapter-1",
+        pubDate: new Date(today.getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
+        agency: "FDA",
+        category: "Food Safety",
+        urgencyScore: 7,
+        color: "#dc2626",
+        icon: "🏥",
+        guid: "sample-guid-1"
+      },
+      {
+        id: "sample-2", 
+        title: "USDA Announces Salmonella Outbreak Investigation",
+        description: "USDA-FSIS is investigating a multi-state outbreak of Salmonella infections potentially linked to poultry products from a specific facility.",
+        link: "https://www.fsis.usda.gov/news-events/news-press-releases",
+        pubDate: new Date(today.getTime() - 4 * 60 * 60 * 1000), // 4 hours ago
+        agency: "USDA",
+        category: "Outbreak Investigation", 
+        urgencyScore: 9,
+        color: "#dc2626",
+        icon: "🚨",
+        guid: "sample-guid-2"
+      },
+      {
+        id: "sample-3",
+        title: "EPA Releases Updated Pesticide Residue Tolerances",
+        description: "New tolerance levels established for several pesticide active ingredients on various food commodities.",
+        link: "https://www.epa.gov/pesticide-tolerances",
+        pubDate: new Date(today.getTime() - 6 * 60 * 60 * 1000), // 6 hours ago
+        agency: "EPA",
+        category: "Pesticide Regulation",
+        urgencyScore: 5,
+        color: "#059669", 
+        icon: "🌱",
+        guid: "sample-guid-3"
+      }
+    ];
+  };
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);
