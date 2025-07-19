@@ -432,12 +432,12 @@ export function FDASearch() {
                 {showSuggestions && suggestions.length > 0 && (
                   <div 
                     ref={suggestionsRef}
-                    className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
+                    className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-64 overflow-y-auto"
                   >
                     {suggestions.map((suggestion, index) => (
                       <div
                         key={index}
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        className="px-4 py-3 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
                         onClick={() => handleSuggestionClick(suggestion)}
                       >
                         <div className="flex items-center justify-between">
@@ -496,7 +496,7 @@ export function FDASearch() {
                       <Lightbulb className="w-4 h-4" />
                       <span>Smart expansion will also search:</span>
                     </div>
-                    <div className="text-xs text-blue-600 font-mono bg-white p-2 rounded border">
+                    <div className="text-xs text-blue-600 font-mono bg-background p-2 rounded border">
                       {expandedQuery}
                     </div>
                   </div>
@@ -544,12 +544,12 @@ export function FDASearch() {
                 {showSuggestions && suggestions.length > 0 && (
                   <div 
                     ref={suggestionsRef}
-                    className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
+                    className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-64 overflow-y-auto"
                   >
                     {suggestions.map((suggestion, index) => (
                       <div
                         key={index}
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        className="px-4 py-3 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
                         onClick={() => handleSuggestionClick(suggestion)}
                       >
                         <div className="flex items-center justify-between">

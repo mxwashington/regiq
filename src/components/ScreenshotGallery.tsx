@@ -156,7 +156,7 @@ export const ScreenshotGallery = () => {
                         className="w-full h-96 object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      <div className="absolute bottom-4 left-4 right-4 text-white">
+                      <div className="absolute bottom-4 left-4 right-4 text-primary-foreground">
                         <h3 className="text-xl font-semibold mb-2">{screenshot.title}</h3>
                         <p className="text-sm opacity-90 mb-3">{screenshot.description}</p>
                         <div className="flex flex-wrap gap-2">

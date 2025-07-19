@@ -31,12 +31,12 @@ export function AdminNavigation() {
   };
 
   return (
-    <div className="h-screen w-64 bg-white border-r border-gray-200 flex flex-col">
+    <div className="h-screen w-64 bg-card border-r border-border flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-primary rounded-lg">
-            <Shield className="h-6 w-6 text-white" />
+            <Shield className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
             <h2 className="text-lg font-semibold">RegIQ Admin</h2>
@@ -58,8 +58,8 @@ export function AdminNavigation() {
                   to={item.href}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive 
-                      ? 'bg-primary text-white' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-foreground hover:bg-muted'
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -72,11 +72,11 @@ export function AdminNavigation() {
       </nav>
 
       {/* User Info & Sign Out */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-border">
         <div className="space-y-3">
           <div className="text-sm">
-            <p className="font-medium text-gray-900">{user?.email}</p>
-            <p className="text-gray-500">Admin Access</p>
+            <p className="font-medium text-foreground">{user?.email}</p>
+            <p className="text-muted-foreground">Admin Access</p>
           </div>
           <Button 
             onClick={handleSignOut}

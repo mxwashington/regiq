@@ -46,7 +46,12 @@ export default function DataGovSearch() {
   const [results, setResults] = useState<DataGovResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [cached, setCached] = useState(false);
-  const [rateLimitInfo, setRateLimitInfo] = useState<any>(null);
+  const [rateLimitInfo, setRateLimitInfo] = useState<{
+    remaining: number;
+    limit: number;
+    reset: number;
+    total: number;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -97,7 +102,9 @@ export default function DataGovSearch() {
       setResults(response.results || []);
       setCached(response.cached || false);
       setRateLimitInfo({
-        remaining: response.rate_limit_remaining,
+        remaining: response.rate_limit_remaining || 0,
+        limit: 1000,
+        reset: Date.now() + 3600000, // 1 hour from now
         total: 1000 // Adjust based on your plan
       });
 
