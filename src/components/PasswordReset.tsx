@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigationHelper } from '@/components/NavigationHelper';
 
 export default function PasswordReset() {
   const [newPassword, setNewPassword] = useState('');
@@ -15,8 +16,8 @@ export default function PasswordReset() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const { navigateTo } = useNavigationHelper();
 
   useEffect(() => {
     // Check if we have the recovery session
@@ -25,9 +26,9 @@ export default function PasswordReset() {
     
     if (type !== 'recovery') {
       // Not a recovery session, redirect to auth
-      navigate('/auth');
+      navigateTo('/auth');
     }
-  }, [navigate]);
+  }, [navigateTo]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -72,7 +73,7 @@ export default function PasswordReset() {
         });
         
         // Clear the URL parameters and navigate to sign in
-        navigate('/auth');
+        navigateTo('/auth');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';

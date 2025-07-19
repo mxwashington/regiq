@@ -6,6 +6,7 @@ import { Check, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { openExternalUrl } from '@/lib/domain';
 
 interface SubscriptionCardProps {
   tier: 'starter' | 'professional' | 'enterprise';
@@ -46,7 +47,7 @@ export function SubscriptionCard({
       if (error) throw error;
 
       if (data.url) {
-        window.open(data.url, '_blank');
+        openExternalUrl(data.url);
       }
     } catch (error) {
       console.error('Error creating checkout:', error);

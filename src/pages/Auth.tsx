@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Home, Shield, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigationHelper } from '@/components/NavigationHelper';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -24,10 +25,11 @@ export default function Auth() {
   
   const { signIn, signUp, signInWithMagicLink, resetPassword, user } = useAuth();
   const navigate = useNavigate();
+  const { navigateTo } = useNavigationHelper();
 
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigateTo('/dashboard');
     }
     
     // Check if user was previously remembered
@@ -46,12 +48,12 @@ export default function Auth() {
     
     if (authType === 'recovery') {
       // Redirect to password reset component
-      navigate('/reset-password');
+      navigateTo('/reset-password');
       return;
     } else if (authType === 'magiclink') {
       setMagicLinkSent(false);
     }
-  }, [user, navigate]);
+  }, [user, navigate, navigateTo]);
 
   const validateForm = (type: 'signin' | 'signup' | 'magic' | 'reset') => {
     const errors: Record<string, string> = {};
@@ -153,7 +155,7 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-4">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/')}
+            onClick={() => navigateTo('/')}
             className="self-start"
           >
             <Home className="mr-2 h-4 w-4" />
@@ -193,7 +195,7 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-4">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/')}
+            onClick={() => navigateTo('/')}
             className="self-start"
           >
             <Home className="mr-2 h-4 w-4" />
@@ -240,7 +242,7 @@ export default function Auth() {
       <div className="w-full max-w-md space-y-4">
         <Button 
           variant="ghost" 
-          onClick={() => navigate('/')}
+          onClick={() => navigateTo('/')}
           className="self-start"
         >
           <Home className="mr-2 h-4 w-4" />

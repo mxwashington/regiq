@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, CreditCard, RefreshCw } from 'lucide-react';
+import { openExternalUrl } from '@/lib/domain';
 
 export function SubscriptionStatus() {
   const { 
@@ -30,7 +31,7 @@ export function SubscriptionStatus() {
       if (error) throw error;
 
       if (data.url) {
-        window.open(data.url, '_blank');
+        openExternalUrl(data.url);
       }
     } catch (error) {
       console.error('Error opening customer portal:', error);

@@ -315,7 +315,7 @@ export function RegulatorySearch() {
               You've used {usageInfo.current_usage}/{usageInfo.daily_limit} searches today on the {usageInfo.tier} plan.
             </p>
             <Button variant="outline" size="sm" className="mt-3" asChild>
-              <a href="/subscription">Upgrade Plan</a>
+              <a href="/subscription" className="text-primary hover:underline">Upgrade Plan</a>
             </Button>
           </CardContent>
         </Card>

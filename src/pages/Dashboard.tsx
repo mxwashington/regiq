@@ -29,10 +29,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MobileNavigation } from "@/components/MobileNavigation";
+import { useNavigationHelper } from "@/components/NavigationHelper";
 
 const Dashboard = () => {
   const { user, loading, signOut, subscribed, subscriptionTier } = useAuth();
   const navigate = useNavigate();
+  const { navigateTo } = useNavigationHelper();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilters, setSelectedFilters] = useState({
@@ -46,9 +48,9 @@ const Dashboard = () => {
   useEffect(() => {
     if (!loading && !user) {
       console.log('Dashboard: Redirecting to auth - user not authenticated');
-      navigate('/auth');
+      navigateTo('/auth');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, navigateTo]);
 
   // Show loading spinner while auth is being checked
   if (loading) {
@@ -329,7 +331,7 @@ const Dashboard = () => {
                     <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Advanced AI Search</h3>
                     <p className="text-muted-foreground mb-4">Access powerful regulatory intelligence search with advanced filters and analytics</p>
-                    <Button onClick={() => navigate('/search')} className="w-auto">
+                    <Button onClick={() => navigateTo('/search')} className="w-auto">
                       <Search className="mr-2 h-4 w-4" />
                       Go to Advanced Search
                     </Button>

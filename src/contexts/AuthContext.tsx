@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { buildAuthRedirectUrl, buildMagicLinkRedirectUrl, buildPasswordResetRedirectUrl } from '@/lib/domain';
 
 interface AuthContextType {
   user: User | null;
@@ -161,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth?type=magiclink`,
+        emailRedirectTo: buildMagicLinkRedirectUrl(),
         data: {
           admin_request: email === 'marcus@fsqahelp.org'
         }
@@ -185,7 +186,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string, rememberMe: boolean = false) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
+    const redirectUrl = buildAuthRedirectUrl('/dashboard');
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -241,7 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth?type=recovery`,
+      redirectTo: buildPasswordResetRedirectUrl(),
     });
     
     if (error) {
