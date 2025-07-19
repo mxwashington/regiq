@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/auth?type=magiclink`,
         data: {
           admin_request: email === 'marcus@fsqahelp.org'
         }
@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: `${window.location.origin}/auth?type=recovery`,
     });
     
     if (error) {

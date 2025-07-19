@@ -39,6 +39,19 @@ export default function Auth() {
     if (storedEmail) {
       setEmail(storedEmail);
     }
+
+    // Handle URL parameters for auth redirects
+    const urlParams = new URLSearchParams(window.location.search);
+    const authType = urlParams.get('type');
+    
+    if (authType === 'recovery') {
+      setActiveTab('reset');
+      // Show success message for password reset
+      setResetEmailSent(false); // Allow user to set new password
+    } else if (authType === 'magiclink') {
+      // Magic link was clicked, user should be automatically signed in
+      setMagicLinkSent(false);
+    }
   }, [user, navigate]);
 
   const validateForm = (type: 'signin' | 'signup' | 'magic' | 'reset') => {
