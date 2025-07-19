@@ -45,9 +45,27 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!loading && !user) {
+      console.log('Dashboard: Redirecting to auth - user not authenticated');
       navigate('/auth');
     }
   }, [user, loading, navigate]);
+
+  // Show loading spinner while auth is being checked
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!user) {
+    return null; // Will redirect in useEffect
+  }
 
   const handleFilterChange = (filterType: string, value: string) => {
     setSelectedFilters(prev => ({
