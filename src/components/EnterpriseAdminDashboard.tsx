@@ -4,6 +4,7 @@ import { AdminNavigation } from './AdminNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Users, Settings, Database, User, Search } from 'lucide-react';
 import { AlertsDashboard } from "./AlertsDashboard";
 import { FDAAnalyticsDashboard } from "./FDAAnalyticsDashboard";
@@ -16,6 +17,7 @@ import { DataPipelineManager } from "./DataPipelineManager";
 import { AdminAlertManager } from "./AdminAlertManager";
 import PerplexitySearch from "./PerplexitySearch";
 import { PWASettings } from "./PWASettings";
+import { ThirdShiftChatbot } from "./ThirdShiftChatbot";
 
 export const EnterpriseAdminDashboard = () => {
   const navigate = useNavigate();
@@ -31,9 +33,10 @@ export const EnterpriseAdminDashboard = () => {
         
         <Tabs defaultValue="alerts" className="w-full">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-10 min-w-max">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-11 min-w-max">
               <TabsTrigger value="alerts" className="text-xs md:text-sm">Alerts</TabsTrigger>
               <TabsTrigger value="search" className="text-xs md:text-sm">AI Search</TabsTrigger>
+              <TabsTrigger value="thirdshift" className="text-xs md:text-sm">ThirdShift.ai</TabsTrigger>
               <TabsTrigger value="manage" className="text-xs md:text-sm">Manage</TabsTrigger>
               <TabsTrigger value="analytics" className="text-xs md:text-sm">Analytics</TabsTrigger>
               <TabsTrigger value="integrations" className="text-xs md:text-sm">Integrations</TabsTrigger>
@@ -51,6 +54,19 @@ export const EnterpriseAdminDashboard = () => {
           
           <TabsContent value="search" className="mt-4">
             <PerplexitySearch />
+          </TabsContent>
+          
+          <TabsContent value="thirdshift" className="mt-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">ThirdShift.ai Regulatory Assistant</h3>
+                <Badge variant="secondary">AI Powered</Badge>
+              </div>
+              <p className="text-muted-foreground">
+                Interactive AI assistant for regulatory intelligence and compliance queries.
+              </p>
+              <ThirdShiftChatbot isOpen={true} onToggle={() => {}} />
+            </div>
           </TabsContent>
           
           <TabsContent value="manage" className="mt-4">

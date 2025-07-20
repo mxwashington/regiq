@@ -95,7 +95,7 @@ serve(async (req) => {
     const enhancedQuery = buildRegulatoryQuery(searchRequest);
     
     // Check cache first (1-hour cache)
-    const cacheKey = btoa(enhancedQuery).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+    const cacheKey = btoa(encodeURIComponent(enhancedQuery)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
     const cacheExpiry = new Date();
     cacheExpiry.setHours(cacheExpiry.getHours() - 1);
 
