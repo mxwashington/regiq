@@ -26,14 +26,6 @@ export const EnterpriseAdminDashboard = () => {
           <Database className="h-5 w-5 md:h-6 md:w-6" />
           Enterprise Admin Dashboard
         </h2>
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/admin/user-view')}
-          className="flex items-center space-x-2 w-full sm:w-auto"
-        >
-          <User className="h-4 w-4" />
-          <span>View as User</span>
-        </Button>
       </div>
         
         <Tabs defaultValue="alerts" className="w-full">
