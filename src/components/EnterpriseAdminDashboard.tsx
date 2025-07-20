@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminNavigation } from './AdminNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import { ThirdShiftChatbot } from "./ThirdShiftChatbot";
 
 export const EnterpriseAdminDashboard = () => {
   const navigate = useNavigate();
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -65,7 +66,10 @@ export const EnterpriseAdminDashboard = () => {
               <p className="text-muted-foreground">
                 Interactive AI assistant for regulatory intelligence and compliance queries.
               </p>
-              <ThirdShiftChatbot isOpen={true} onToggle={() => {}} />
+              <ThirdShiftChatbot 
+                isOpen={isChatbotOpen} 
+                onToggle={() => setIsChatbotOpen(!isChatbotOpen)} 
+              />
             </div>
           </TabsContent>
           
