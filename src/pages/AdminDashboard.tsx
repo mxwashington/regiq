@@ -4,6 +4,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { AdminNavigation } from '@/components/AdminNavigation';
 import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { EnterpriseAdminDashboard } from '@/components/EnterpriseAdminDashboard';
+import { DataFreshnessIndicator } from '@/components/DataFreshnessIndicator';
 
 const AdminDashboard = () => {
   const { loading: authLoading } = useAuthGuard(true);
@@ -21,7 +22,12 @@ const AdminDashboard = () => {
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <Routes>
-        <Route index element={<EnterpriseAdminDashboard />} />
+        <Route index element={
+          <div className="space-y-6">
+            <DataFreshnessIndicator />
+            <EnterpriseAdminDashboard />
+          </div>
+        } />
         <Route path="user-management" element={<AdminNavigation />} />
         <Route path="analytics" element={<FDAAnalyticsDashboard />} />
         <Route path="settings" element={<AdminNavigation />} />

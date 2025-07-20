@@ -203,6 +203,42 @@ export type Database = {
         }
         Relationships: []
       }
+      data_freshness: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          fetch_status: string
+          id: string
+          last_attempt: string
+          last_successful_fetch: string
+          records_fetched: number | null
+          source_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          fetch_status?: string
+          id?: string
+          last_attempt?: string
+          last_successful_fetch?: string
+          records_fetched?: number | null
+          source_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          fetch_status?: string
+          id?: string
+          last_attempt?: string
+          last_successful_fetch?: string
+          records_fetched?: number | null
+          source_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       data_sources: {
         Row: {
           agency: string
