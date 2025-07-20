@@ -57,11 +57,11 @@ const Landing = () => {
             AI-Powered Regulatory Intelligence
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight mb-4">
-            RegIQ - Regulatory news, 
-            <span className="text-primary">minus the noise</span>
+            RegIQ - Regulatory alerts 
+            <span className="text-primary">that actually matter</span>
           </h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Free regulatory alerts from FDA, USDA, and EPA for compliance teams. Get started in 30 seconds, no credit card required.
+            Get FDA, USDA, and EPA alerts summarized and delivered when they actually impact you. Free for compliance teams.
           </p>
           
           {/* Agency Badges */}
