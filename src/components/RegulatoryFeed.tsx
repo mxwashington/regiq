@@ -197,7 +197,7 @@ interface RSSFeedItem {
   title: string;
   description: string;
   link: string;
-  pubDate: Date;
+  pubDate: Date | string;
   agency: string;
   category: string;
   urgencyScore: number;
@@ -243,8 +243,14 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       const items = Array.isArray(data?.items) ? data.items : [];
       console.log('RSS items received:', items.length);
       
-      if (items.length > 0) {
-        setRssItems(items);
+      // Normalize the pubDate field to ensure consistency
+      const normalizedItems = items.map(item => ({
+        ...item,
+        pubDate: item.pubDate ? (typeof item.pubDate === 'string' ? item.pubDate : item.pubDate.toISOString()) : new Date().toISOString()
+      }));
+      
+      if (normalizedItems.length > 0) {
+        setRssItems(normalizedItems);
         toast({
           title: "✅ Live feeds loaded",
           description: `${items.length} regulatory updates from ${data.cached ? 'cache' : 'live sources'}`,
@@ -353,7 +359,7 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
     id: item.id || `fallback-${Math.random()}`,
     title: item.title || 'No title available',
     sourceAgency: item.agency || 'Unknown Agency',
-    publishedDate: item.pubDate ? item.pubDate.toISOString() : new Date().toISOString(),
+    publishedDate: item.pubDate ? (item.pubDate instanceof Date ? item.pubDate.toISOString() : new Date(item.pubDate).toISOString()) : new Date().toISOString(),
     aiSummary: item.description ? 
       (item.description.substring(0, 300) + (item.description.length > 300 ? '...' : '')) :
       'No description available',
