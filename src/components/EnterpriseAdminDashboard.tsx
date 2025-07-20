@@ -30,7 +30,7 @@ export const EnterpriseAdminDashboard = () => {
         
         <Tabs defaultValue="alerts" className="w-full">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-9 min-w-max">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-10 min-w-max">
               <TabsTrigger value="alerts" className="text-xs md:text-sm">Alerts</TabsTrigger>
               <TabsTrigger value="search" className="text-xs md:text-sm">AI Search</TabsTrigger>
               <TabsTrigger value="manage" className="text-xs md:text-sm">Manage</TabsTrigger>
@@ -38,6 +38,7 @@ export const EnterpriseAdminDashboard = () => {
               <TabsTrigger value="integrations" className="text-xs md:text-sm">Integrations</TabsTrigger>
               <TabsTrigger value="demo" className="text-xs md:text-sm">Demo</TabsTrigger>
               <TabsTrigger value="pipeline" className="text-xs md:text-sm">Pipeline</TabsTrigger>
+              <TabsTrigger value="api-monitor" className="text-xs md:text-sm">API Monitor</TabsTrigger>
               <TabsTrigger value="session" className="text-xs md:text-sm">Session</TabsTrigger>
               <TabsTrigger value="auth" className="text-xs md:text-sm">Auth</TabsTrigger>
             </TabsList>
@@ -68,6 +69,10 @@ export const EnterpriseAdminDashboard = () => {
           </TabsContent>
           
           <TabsContent value="pipeline" className="mt-4">
+            <DataPipelineManager />
+          </TabsContent>
+          
+          <TabsContent value="api-monitor" className="mt-4">
             <DataPipelineManager />
           </TabsContent>
           
