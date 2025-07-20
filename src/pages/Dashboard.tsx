@@ -1,4 +1,52 @@
 import { useState, useEffect, useCallback } from "react";
+
+// === PLACEHOLDER COMPONENTS BELOW ===
+// Remove these when you add your real components!
+const FilterSidebar = ({ selectedFilters, onFilterChange, onClearAll }: any) => (
+  <div className="bg-muted p-4 rounded-lg mb-4">
+    <h3 className="font-semibold mb-2">Filters</h3>
+    <p className="text-sm text-muted-foreground">FilterSidebar (placeholder)</p>
+    {onClearAll && (
+      <Button variant="outline" size="sm" className="mt-2" onClick={onClearAll}>
+        Clear All
+      </Button>
+    )}
+  </div>
+);
+
+const RegulatoryFeed = ({ searchQuery, selectedFilters }: any) => (
+  <div className="bg-muted p-4 rounded-lg mb-4">
+    <h3 className="font-semibold mb-2">Regulatory Feed</h3>
+    <p className="text-sm text-muted-foreground">RegulatoryFeed (placeholder)</p>
+    {searchQuery && <p className="text-xs mt-1">Search: {searchQuery}</p>}
+  </div>
+);
+
+const PerplexitySearch = () => (
+  <div className="bg-muted p-4 rounded-lg mb-4">
+    <h3 className="font-semibold mb-2">AI Search</h3>
+    <p className="text-sm text-muted-foreground">PerplexitySearch (placeholder)</p>
+  </div>
+);
+
+const SessionStatusIndicator = () => <span className="text-xs text-muted-foreground">Session OK</span>;
+
+const MobileNavigation = () => null;
+
+const DashboardErrorBoundary = ({ children }: any) => <>{children}</>;
+
+const useNavigationHelper = () => ({ 
+  navigateTo: (path: string) => { 
+    window.location.href = path; 
+  } 
+});
+
+const searchCacheUtils = { 
+  cleanExpiredCache: async () => {} 
+};
+
+// === END PLACEHOLDERS ===
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,17 +67,9 @@ import {
   CreditCard,
   RefreshCw
 } from "lucide-react";
-import { FilterSidebar } from "@/components/FilterSidebar";
-import { RegulatoryFeed } from "@/components/RegulatoryFeed";
-import PerplexitySearch from "@/components/PerplexitySearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { MobileNavigation } from "@/components/MobileNavigation";
-import { useNavigationHelper } from "@/components/NavigationHelper";
-import { SessionStatusIndicator } from "@/components/SessionStatusIndicator";
-import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
-import { searchCacheUtils } from "@/lib/search-cache";
 import { AlertsDashboard } from '@/components/AlertsDashboard';
 import { AdminNavigation } from '@/components/AdminNavigation';
 
@@ -264,7 +304,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">High Priority</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertTriangle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">8</div>
