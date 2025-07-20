@@ -1,7 +1,16 @@
 import React from 'react';
 import { AdminNavigation } from './AdminNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Settings } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, Settings, Database } from 'lucide-react';
+import { AlertsDashboard } from "./AlertsDashboard";
+import { FDAAnalyticsDashboard } from "./FDAAnalyticsDashboard";
+import { IntegrationEnhancements } from "./IntegrationEnhancements";
+import { SessionHealthMonitor } from "./SessionHealthMonitor";
+import AuthTestingPanel from "./AuthTestingPanel";
+import { BugTestSuite } from "./BugTestSuite";
+import { DemoInteractiveDashboard } from "./DemoInteractiveDashboard";
+import { DataPipelineManager } from "./DataPipelineManager";
 
 export const EnterpriseAdminDashboard = () => {
   return (
@@ -10,23 +19,49 @@ export const EnterpriseAdminDashboard = () => {
       
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
-          <Users className="h-6 w-6" />
-          User Management & Settings
+          <Database className="h-6 w-6" />
+          Enterprise Admin Dashboard
         </h2>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Coming Soon
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              User management and settings functionality will be implemented in the next phase.
-            </p>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="alerts" className="w-full">
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="alerts">Alerts</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            <TabsTrigger value="demo">Demo Dashboard</TabsTrigger>
+            <TabsTrigger value="pipeline">Data Pipeline</TabsTrigger>
+            <TabsTrigger value="session">Session Monitor</TabsTrigger>
+            <TabsTrigger value="auth">Auth Testing</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="alerts">
+            <AlertsDashboard />
+          </TabsContent>
+          
+          <TabsContent value="analytics">
+            <FDAAnalyticsDashboard />
+          </TabsContent>
+          
+          <TabsContent value="integrations">
+            <IntegrationEnhancements />
+          </TabsContent>
+          
+          <TabsContent value="demo">
+            <DemoInteractiveDashboard />
+          </TabsContent>
+          
+          <TabsContent value="pipeline">
+            <DataPipelineManager />
+          </TabsContent>
+          
+          <TabsContent value="session">
+            <SessionHealthMonitor />
+          </TabsContent>
+          
+          <TabsContent value="auth">
+            <AuthTestingPanel />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
