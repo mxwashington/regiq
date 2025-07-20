@@ -84,9 +84,9 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
 
         // Apply filters if any
         if (filters.length > 0) {
-          // For each filter, we need to ensure the alert has that specific tag
+          // Filter by tag IDs through the alert_tags relationship
           const tagIds = filters.map(f => f.tagId);
-          query = query.in('alert_tags.tag_id', tagIds);
+          query = query.in('alert_tags.taxonomy_tags.id', tagIds);
           console.log('Applied filters:', { tagIds });
         }
 
