@@ -23,13 +23,4 @@ export async function triggerDataPipelineNow() {
   }
 }
 
-// Immediately trigger the pipeline when this file loads
-triggerDataPipelineNow().then(result => {
-  if (result.success) {
-    console.log(`🎉 Fresh data loaded! Found ${result.totalAlertsProcessed} new alerts from:`, result.agencyResults);
-  } else {
-    console.error('⚠️ Failed to load fresh data:', result.error);
-  }
-}).catch(error => {
-  console.error('⚠️ Pipeline trigger error:', error);
-});
+// Note: Auto-trigger removed to prevent conflicts with centralized refresh system

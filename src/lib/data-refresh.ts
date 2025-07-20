@@ -13,14 +13,4 @@ export async function triggerDataRefresh(): Promise<TriggerDataRefreshResponse> 
   return await triggerDataPipelineNow();
 }
 
-// Auto-trigger data refresh when this module loads to get fresh data
-triggerDataRefresh().then(result => {
-  if (result.success) {
-    console.log(`✅ Data refresh completed: ${result.totalAlertsProcessed} new alerts processed`);
-    console.log('Agency results:', result.agencyResults);
-  } else {
-    console.error('❌ Data refresh failed:', result.error);
-  }
-}).catch(error => {
-  console.error('❌ Auto data refresh error:', error);
-});
+// Note: Auto-trigger removed to prevent conflicts. Use DataRefreshButton or cron job for refresh.

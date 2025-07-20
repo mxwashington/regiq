@@ -9,10 +9,7 @@ export function DataRefreshButton() {
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Auto-refresh on component mount to get latest data
-  useEffect(() => {
-    handleRefresh();
-  }, []);
+  // Remove auto-refresh on mount to prevent conflicts with cron job
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
