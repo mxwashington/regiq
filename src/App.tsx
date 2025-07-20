@@ -78,6 +78,7 @@ const App = () => (
                   <Route path="/auth/reset-password" element={<ResetPassword />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/admin/*" element={
                     <AuthGuard>

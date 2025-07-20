@@ -485,6 +485,63 @@ export type Database = {
         }
         Relationships: []
       }
+      regulatory_data_sources: {
+        Row: {
+          agency: string
+          base_url: string
+          created_at: string | null
+          data_gov_org: string | null
+          id: string
+          is_active: boolean | null
+          keywords: Json | null
+          last_error: string | null
+          last_successful_fetch: string | null
+          name: string
+          polling_interval_minutes: number | null
+          priority: number | null
+          region: string
+          rss_feeds: Json | null
+          source_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          agency: string
+          base_url: string
+          created_at?: string | null
+          data_gov_org?: string | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: Json | null
+          last_error?: string | null
+          last_successful_fetch?: string | null
+          name: string
+          polling_interval_minutes?: number | null
+          priority?: number | null
+          region?: string
+          rss_feeds?: Json | null
+          source_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          agency?: string
+          base_url?: string
+          created_at?: string | null
+          data_gov_org?: string | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: Json | null
+          last_error?: string | null
+          last_successful_fetch?: string | null
+          name?: string
+          polling_interval_minutes?: number | null
+          priority?: number | null
+          region?: string
+          rss_feeds?: Json | null
+          source_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       search_cache: {
         Row: {
           cache_key: string
@@ -778,6 +835,14 @@ export type Database = {
       }
       update_user_activity: {
         Args: { user_id_param: string; ip_address_param?: unknown }
+        Returns: undefined
+      }
+      upsert_system_setting: {
+        Args: {
+          key_param: string
+          value_param: Json
+          description_param?: string
+        }
         Returns: undefined
       }
     }

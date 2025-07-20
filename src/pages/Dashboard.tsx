@@ -23,7 +23,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { AlertsDashboard } from '@/components/AlertsDashboard';
+import { EnhancedAlertsDashboard } from '@/components/EnhancedAlertsDashboard';
 import { AdminNavigation } from '@/components/AdminNavigation';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { RegulatoryFeed } from '@/components/RegulatoryFeed';
@@ -240,7 +240,7 @@ const Dashboard = () => {
                 </p>
               </div>
               
-              <AlertsDashboard />
+              <EnhancedAlertsDashboard />
             </div>
           </main>
         </div>
