@@ -139,6 +139,18 @@ function parseRSSFeed(xmlText: string, source: DataSource): any[] {
   return items;
 }
 
+function detectSignalType(title: string, description: string): string {
+  const text = (title + ' ' + description).toLowerCase();
+  
+  if (text.includes('recall') || text.includes('withdrawn')) return 'Recall';
+  if (text.includes('warning letter') || text.includes('warning to')) return 'Warning Letter';
+  if (text.includes('guidance') || text.includes('draft guidance') || text.includes('final guidance')) return 'Guidance';
+  if (text.includes('rule') || text.includes('regulation') || text.includes('cfr') || text.includes('federal register')) return 'Rule Change';
+  if (text.includes('alert') || text.includes('safety communication') || text.includes('advisory')) return 'Market Signal';
+  
+  return 'Market Signal'; // default
+}
+
 function calculateUrgency(item: any, source: DataSource): string {
   let urgencyScore = 0;
   
@@ -226,6 +238,8 @@ function processRSSItem(item: any, source: DataSource): ProcessedAlert {
   } else {
     publishedDate = new Date();
   }
+
+  const signalType = detectSignalType(item.title || '', item.description || '');
   
   return {
     title: item.title || 'Untitled Regulatory Update',
@@ -234,7 +248,7 @@ function processRSSItem(item: any, source: DataSource): ProcessedAlert {
     summary: item.description || 'No description available.',
     published_date: publishedDate.toISOString(),
     external_url: item.link || '',
-    full_content: JSON.stringify(item),
+    full_content: JSON.stringify({ ...item, signal_type: signalType }),
     region: source.region,
     agency: source.agency
   };
