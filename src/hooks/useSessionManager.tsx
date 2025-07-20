@@ -89,7 +89,7 @@ export const useSessionManager = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [handleAuthStateChange, updateSessionState]);
+  }, []); // Remove dependencies to prevent infinite loop
 
   return {
     ...state,

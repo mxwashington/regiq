@@ -47,17 +47,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (sessionManager.session?.user) {
       console.log('Session established, updating profile data...');
-      
-      // Defer profile checks to avoid blocking auth state update
-      setTimeout(() => {
-        userProfile.checkAdminStatus(sessionManager.session);
-        userProfile.updateUserActivity(sessionManager.session!.user.id);
-      }, 100);
+      userProfile.checkAdminStatus(sessionManager.session);
+      userProfile.updateUserActivity(sessionManager.session.user.id);
     } else {
       console.log('No session, clearing profile data...');
       userProfile.clearProfile();
     }
-  }, [sessionManager.session, userProfile.checkAdminStatus, userProfile.updateUserActivity, userProfile.clearProfile]);
+  }, [sessionManager.session?.user?.id]); // Only depend on user ID to prevent multiple calls
 
   // Session health monitoring
   useEffect(() => {
