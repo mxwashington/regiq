@@ -7,7 +7,6 @@ import { EnterpriseAdminDashboard } from '@/components/EnterpriseAdminDashboard'
 import { DataRefreshButton } from '@/components/DataRefreshButton';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
-import Dashboard from './Dashboard';
 
 const AdminDashboard = () => {
   const { loading: authLoading } = useAuthGuard(true);
@@ -33,7 +32,7 @@ const AdminDashboard = () => {
               <div className="flex items-center gap-3">
                 <Button 
                   variant="outline" 
-                  onClick={() => navigate('/admin/user-view')}
+                  onClick={() => navigate('/dashboard')}
                   className="flex items-center gap-2"
                 >
                   <Eye className="h-4 w-4" />
@@ -46,22 +45,6 @@ const AdminDashboard = () => {
           </div>
         } />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="user-view" element={
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold">User Dashboard View</h1>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/admin/dashboard')}
-                className="flex items-center gap-2"
-              >
-                <Eye className="h-4 w-4" />
-                Back to Admin
-              </Button>
-            </div>
-            <Dashboard />
-          </div>
-        } />
         <Route path="user-management" element={<AdminNavigation />} />
         <Route path="analytics" element={<FDAAnalyticsDashboard />} />
         <Route path="settings" element={<AdminNavigation />} />
