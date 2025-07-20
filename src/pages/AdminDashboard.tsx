@@ -1,19 +1,13 @@
 import React from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { AdminNavigation } from '@/components/AdminNavigation';
 import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { EnterpriseAdminDashboard } from '@/components/EnterpriseAdminDashboard';
-import { DataFreshnessIndicator } from '@/components/DataFreshnessIndicator';
-import { AlertsCleanStatus } from '@/components/AlertsCleanStatus';
-import { Button } from '@/components/ui/button';
-import { Shield } from 'lucide-react';
 import { DataRefreshButton } from '@/components/DataRefreshButton';
-import Dashboard from './Dashboard';
 
 const AdminDashboard = () => {
   const { loading: authLoading } = useAuthGuard(true);
-  const navigate = useNavigate();
 
   if (authLoading) {
     return (
@@ -38,23 +32,6 @@ const AdminDashboard = () => {
           </div>
         } />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="user-view" element={
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold">User Dashboard View</h1>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/admin/dashboard')}
-                className="flex items-center space-x-2"
-              >
-                <Shield className="h-4 w-4" />
-                <span>Back to Admin</span>
-              </Button>
-            </div>
-            {/* Render the regular user dashboard here */}
-            <Dashboard />
-          </div>
-        } />
         <Route path="user-management" element={<AdminNavigation />} />
         <Route path="analytics" element={<FDAAnalyticsDashboard />} />
         <Route path="settings" element={<AdminNavigation />} />
