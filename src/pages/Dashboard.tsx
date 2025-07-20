@@ -1,52 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 
-// === PLACEHOLDER COMPONENTS BELOW ===
-// Remove these when you add your real components!
-const FilterSidebar = ({ selectedFilters, onFilterChange, onClearAll }: any) => (
-  <div className="bg-muted p-4 rounded-lg mb-4">
-    <h3 className="font-semibold mb-2">Filters</h3>
-    <p className="text-sm text-muted-foreground">FilterSidebar (placeholder)</p>
-    {onClearAll && (
-      <Button variant="outline" size="sm" className="mt-2" onClick={onClearAll}>
-        Clear All
-      </Button>
-    )}
-  </div>
-);
-
-const RegulatoryFeed = ({ searchQuery, selectedFilters }: any) => (
-  <div className="bg-muted p-4 rounded-lg mb-4">
-    <h3 className="font-semibold mb-2">Regulatory Feed</h3>
-    <p className="text-sm text-muted-foreground">RegulatoryFeed (placeholder)</p>
-    {searchQuery && <p className="text-xs mt-1">Search: {searchQuery}</p>}
-  </div>
-);
-
-const PerplexitySearch = () => (
-  <div className="bg-muted p-4 rounded-lg mb-4">
-    <h3 className="font-semibold mb-2">AI Search</h3>
-    <p className="text-sm text-muted-foreground">PerplexitySearch (placeholder)</p>
-  </div>
-);
-
-const SessionStatusIndicator = () => <span className="text-xs text-muted-foreground">Session OK</span>;
-
-const MobileNavigation = () => null;
-
-const DashboardErrorBoundary = ({ children }: any) => <>{children}</>;
-
-const useNavigationHelper = () => ({ 
-  navigateTo: (path: string) => { 
-    window.location.href = path; 
-  } 
-});
-
-const searchCacheUtils = { 
-  cleanExpiredCache: async () => {} 
-};
-
-// === END PLACEHOLDERS ===
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,6 +25,15 @@ import { useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AlertsDashboard } from '@/components/AlertsDashboard';
 import { AdminNavigation } from '@/components/AdminNavigation';
+import { FilterSidebar } from '@/components/FilterSidebar';
+import { RegulatoryFeed } from '@/components/RegulatoryFeed';
+import PerplexitySearch from '@/components/PerplexitySearch';
+import { MobileNavigation } from '@/components/MobileNavigation';
+import { useNavigationHelper } from '@/components/NavigationHelper';
+import { SessionStatusIndicator } from '@/components/SessionStatusIndicator';
+import { DashboardErrorBoundary } from '@/components/DashboardErrorBoundary';
+import { searchCacheUtils } from '@/lib/search-cache';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user, loading, signOut, isAdmin } = useAuth();
@@ -83,6 +45,12 @@ const Dashboard = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [stats, setStats] = useState({
+    newUpdates: 0,
+    highPriority: 0,
+    activeAlerts: 0,
+    sources: 0
+  });
   const [selectedFilters, setSelectedFilters] = useState({
     agencies: [] as string[],
     industries: [] as string[],
@@ -136,9 +104,54 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  // Fetch dashboard stats from database
+  const fetchStats = useCallback(async () => {
+    try {
+      const { data: alerts, error } = await supabase
+        .from('alerts')
+        .select('id, urgency, published_date, source, created_at');
+
+      if (error) {
+        console.error('Error fetching alerts:', error);
+        return;
+      }
+
+      if (!alerts) return;
+
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Calculate stats
+      const newUpdates = alerts.filter(alert => 
+        new Date(alert.published_date) >= yesterday
+      ).length;
+
+      const highPriority = alerts.filter(alert => 
+        alert.urgency?.toLowerCase() === 'high'
+      ).length;
+
+      const activeAlerts = alerts.filter(alert => 
+        new Date(alert.published_date) >= thisMonth
+      ).length;
+
+      const sources = new Set(alerts.map(alert => alert.source)).size;
+
+      setStats({
+        newUpdates,
+        highPriority,
+        activeAlerts,
+        sources
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    }
+  }, []);
+
   useEffect(() => {
     searchCacheUtils.cleanExpiredCache();
-  }, []);
+    fetchStats(); // Fetch real stats on component mount
+  }, [fetchStats]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -325,7 +338,7 @@ const Dashboard = () => {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">47</div>
+                <div className="text-2xl font-bold">{stats.newUpdates}</div>
                 <p className="text-xs text-muted-foreground">Last 24 hours</p>
               </CardContent>
             </Card>
@@ -336,7 +349,7 @@ const Dashboard = () => {
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">8</div>
+                <div className="text-2xl font-bold">{stats.highPriority}</div>
                 <p className="text-xs text-muted-foreground">Require attention</p>
               </CardContent>
             </Card>
@@ -347,7 +360,7 @@ const Dashboard = () => {
                 <Bell className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">156</div>
+                <div className="text-2xl font-bold">{stats.activeAlerts}</div>
                 <p className="text-xs text-muted-foreground">This month</p>
               </CardContent>
             </Card>
@@ -358,7 +371,7 @@ const Dashboard = () => {
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">6</div>
+                <div className="text-2xl font-bold">{stats.sources}</div>
                 <p className="text-xs text-muted-foreground">Agencies monitored</p>
               </CardContent>
             </Card>
