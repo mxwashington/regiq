@@ -131,9 +131,20 @@ export default function AuthCallback() {
             message: 'Successfully authenticated! Redirecting...'
           }));
           
-          setTimeout(() => {
+          setTimeout(async () => {
             console.log('Redirecting to dashboard...');
-            navigateTo('/dashboard');
+            // Check if user is admin
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('is_admin')
+              .eq('user_id', data.user.id)
+              .single();
+            
+            if (profile?.is_admin) {
+              navigateTo('/admin/dashboard');
+            } else {
+              navigateTo('/dashboard');
+            }
           }, 2000);
         } else {
           console.error('No user data received from setSession');
@@ -183,8 +194,19 @@ export default function AuthCallback() {
             status: 'success',
             message: 'Already authenticated! Redirecting...'
           }));
-          setTimeout(() => {
-            navigateTo('/dashboard');
+          setTimeout(async () => {
+            // Check if user is admin
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('is_admin')
+              .eq('user_id', user.id)
+              .single();
+            
+            if (profile?.is_admin) {
+              navigateTo('/admin/dashboard');
+            } else {
+              navigateTo('/dashboard');
+            }
           }, 1000);
         } else {
           console.error('Invalid authentication parameters:', {

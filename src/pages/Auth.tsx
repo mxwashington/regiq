@@ -10,6 +10,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, Home, Shield, CheckCircle, AlertCircle, Mail, Clock } from 'lucide-react';
 import { useNavigationHelper } from '@/components/NavigationHelper';
 import { useRateLimitHandler } from '@/hooks/useRateLimitHandler';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -24,9 +25,24 @@ export default function Auth() {
   const { rateLimitState, handleRateLimit, resetRateLimit } = useRateLimitHandler();
 
   useEffect(() => {
-    if (user && !authLoading) {
-      navigateTo('/dashboard');
-    }
+    const checkUserAndRedirect = async () => {
+      if (user && !authLoading) {
+        // Check if user is admin
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile?.is_admin) {
+          navigateTo('/admin/dashboard');
+        } else {
+          navigateTo('/dashboard');
+        }
+      }
+    };
+    
+    checkUserAndRedirect();
 
     // Handle URL parameters for auth redirects
     const authType = searchParams.get('type');
