@@ -84,20 +84,37 @@ export function IntegrationEnhancements({ searchQuery = "listeria" }: Integratio
 
     // Add FDA recall events
     fdaResults.forEach((recall, index) => {
-      // Safely parse the date
+      // Safely parse the FDA date format (YYYYMMDD)
       let timestamp: Date;
       try {
         if (recall.recall_initiation_date && recall.recall_initiation_date !== '') {
-          timestamp = new Date(recall.recall_initiation_date);
-          // Check if date is valid
-          if (isNaN(timestamp.getTime())) {
-            timestamp = new Date(); // Fallback to current date
+          const dateStr = recall.recall_initiation_date;
+          
+          // FDA dates are in YYYYMMDD format, convert to proper date
+          if (dateStr.length === 8 && /^\d{8}$/.test(dateStr)) {
+            const year = parseInt(dateStr.substring(0, 4));
+            const month = parseInt(dateStr.substring(4, 6)) - 1; // JS months are 0-indexed
+            const day = parseInt(dateStr.substring(6, 8));
+            timestamp = new Date(year, month, day);
+          } else {
+            // Try parsing as-is if not in YYYYMMDD format
+            timestamp = new Date(dateStr);
+          }
+          
+          // Check if date is valid and not in the future
+          if (isNaN(timestamp.getTime()) || timestamp > new Date()) {
+            // Skip this event if date is invalid or in the future
+            console.warn(`Invalid or future date for recall ${recall.recall_number}: ${dateStr}`);
+            return;
           }
         } else {
-          timestamp = new Date(); // Fallback to current date
+          // Skip events without dates
+          console.warn(`No date available for recall ${recall.recall_number}`);
+          return;
         }
       } catch (error) {
-        timestamp = new Date(); // Fallback to current date
+        console.warn(`Error parsing date for recall ${recall.recall_number}:`, error);
+        return; // Skip this event
       }
 
       events.push({
