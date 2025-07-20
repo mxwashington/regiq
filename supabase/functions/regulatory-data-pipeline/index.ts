@@ -288,9 +288,11 @@ async function saveAlert(supabase: any, alert: ProcessedAlert, openaiKey?: strin
     alert.summary = await generateAISummary(alert.title, alert.summary, openaiKey);
 
     // Save to database
-    const { error } = await supabase
+    const { data: insertedAlert, error } = await supabase
       .from('alerts')
-      .insert(alert);
+      .insert(alert)
+      .select('id')
+      .single();
 
     if (error) {
       logStep('Error saving alert:', error);
@@ -298,10 +300,48 @@ async function saveAlert(supabase: any, alert: ProcessedAlert, openaiKey?: strin
     }
 
     logStep(`Saved new alert: ${alert.title}`);
+
+    // Classify and tag the alert
+    if (insertedAlert?.id) {
+      await classifyAndTagAlert(supabase, insertedAlert.id, alert);
+    }
+
     return true;
   } catch (error) {
     logStep('Error in saveAlert:', error);
     return false;
+  }
+}
+
+async function classifyAndTagAlert(supabase: any, alertId: string, alert: ProcessedAlert): Promise<void> {
+  try {
+    logStep(`Starting classification for alert: ${alertId}`);
+    
+    // Call the AI content classifier edge function
+    const classificationPayload = {
+      title: alert.title,
+      content: alert.summary || alert.full_content || '',
+      source: alert.source,
+      alert_id: alertId
+    };
+
+    const { error: classificationError } = await supabase.functions.invoke(
+      'ai-content-classifier',
+      {
+        body: classificationPayload
+      }
+    );
+
+    if (classificationError) {
+      logStep('Classification service error', classificationError);
+      // Continue without failing the alert save
+    } else {
+      logStep(`Successfully classified alert: ${alertId}`);
+    }
+
+  } catch (error) {
+    logStep('Error in classifyAndTagAlert', error);
+    // Don't let classification errors block alert saving
   }
 }
 

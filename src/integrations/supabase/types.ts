@@ -50,6 +50,48 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_tags: {
+        Row: {
+          alert_id: string
+          confidence_score: number | null
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          tag_id: string
+        }
+        Insert: {
+          alert_id: string
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          tag_id: string
+        }
+        Update: {
+          alert_id?: string
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_tags_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alerts: {
         Row: {
           created_at: string
@@ -451,6 +493,106 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      tag_classifications: {
+        Row: {
+          ai_model: string | null
+          alert_id: string
+          classification_data: Json | null
+          classification_method: string
+          confidence_scores: Json | null
+          created_at: string
+          id: string
+        }
+        Insert: {
+          ai_model?: string | null
+          alert_id: string
+          classification_data?: Json | null
+          classification_method: string
+          confidence_scores?: Json | null
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          ai_model?: string | null
+          alert_id?: string
+          classification_data?: Json | null
+          classification_method?: string
+          confidence_scores?: Json | null
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tag_classifications_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      taxonomy_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      taxonomy_tags: {
+        Row: {
+          category_id: string
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          category_id: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          category_id?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "taxonomy_tags_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "taxonomy_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_analytics: {
         Row: {
