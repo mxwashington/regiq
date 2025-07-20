@@ -334,6 +334,134 @@ async function classifyAndTagAlert(supabase: any, alertId: string, alert: Proces
   }
 }
 
+async function fetchOpenFDAData(endpoint: string, source: DataSource): Promise<any[]> {
+  try {
+    logStep(`Fetching openFDA data from: ${endpoint}`);
+    
+    // Calculate date range (last 30 days)
+    const endDate = new Date();
+    const startDate = new Date(endDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    // Format dates for FDA API (YYYYMMDD format)
+    const startDateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
+    const endDateStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
+    
+    // Build query parameters
+    const searchParam = `report_date:[${startDateStr}+TO+${endDateStr}]`;
+    const url = `${source.base_url}/${endpoint}?search=${encodeURIComponent(searchParam)}&limit=100`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      logStep(`Failed to fetch openFDA data: ${response.status} - ${response.statusText}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.results || [];
+  } catch (error) {
+    logStep(`Error fetching openFDA data from ${endpoint}:`, error);
+    return [];
+  }
+}
+
+async function fetchFSISData(endpoint: string, source: DataSource): Promise<any[]> {
+  try {
+    logStep(`Fetching FSIS data from: ${endpoint}`);
+    
+    const url = `${source.base_url}/${endpoint}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      logStep(`Failed to fetch FSIS data: ${response.status} - ${response.statusText}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [data];
+  } catch (error) {
+    logStep(`Error fetching FSIS data from ${endpoint}:`, error);
+    return [];
+  }
+}
+
+function processOpenFDAItem(item: any, source: DataSource, endpoint: string): ProcessedAlert {
+  let title = '';
+  let description = '';
+  let publishedDate = new Date();
+  let externalUrl = '';
+
+  // Process different types of openFDA data
+  if (endpoint.includes('enforcement')) {
+    // Enforcement/Recall data
+    title = `${item.product_description || 'Product'} Recall - ${item.classification || 'Class Unknown'}`;
+    description = `${item.reason_for_recall || 'Recall reason not specified'}. Status: ${item.status || 'Unknown'}. Recall Number: ${item.recall_number || 'N/A'}`;
+    publishedDate = new Date(item.report_date || item.recall_initiation_date || Date.now());
+    externalUrl = `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts`;
+  } else if (endpoint.includes('event')) {
+    // Adverse Event data
+    title = `Adverse Event Report - ${item.patient?.drug?.[0]?.medicinalproduct || item.primarysource?.qualification || 'Unknown Product'}`;
+    description = `Serious: ${item.serious || 'Unknown'}. ${item.patient?.reaction?.[0]?.reactionmeddrapt || 'Adverse reaction reported'}`;
+    publishedDate = new Date(item.receiptdate || item.transmissiondate || Date.now());
+    externalUrl = `https://www.fda.gov/drugs/surveillance/questions-and-answers-fdas-adverse-event-reporting-system-faers`;
+  } else if (endpoint.includes('drugsfda')) {
+    // Drug approval data
+    title = `Drug Approval: ${item.openfda?.brand_name?.[0] || item.openfda?.generic_name?.[0] || 'Unknown Drug'}`;
+    description = `Application Number: ${item.application_number}. Marketing Status: ${item.products?.[0]?.marketing_status || 'Unknown'}`;
+    publishedDate = new Date(item.submissions?.[0]?.submission_status_date || Date.now());
+    externalUrl = item.openfda?.route?.[0] ? `https://www.accessdata.fda.gov/scripts/cder/daf/` : '';
+  } else if (endpoint.includes('label')) {
+    // Drug label data
+    title = `Drug Label Update: ${item.openfda?.brand_name?.[0] || item.openfda?.generic_name?.[0] || 'Unknown Drug'}`;
+    description = `${item.indications_and_usage?.[0]?.substring(0, 200) || 'Drug labeling information updated'}...`;
+    publishedDate = new Date(item.effective_time || Date.now());
+    externalUrl = `https://dailymed.nlm.nih.gov/dailymed/`;
+  }
+
+  return {
+    title: title || 'FDA Regulatory Update',
+    source: source.agency,
+    urgency: calculateUrgency({ title, description }, source),
+    summary: description || 'No description available.',
+    published_date: publishedDate.toISOString(),
+    external_url: externalUrl,
+    full_content: JSON.stringify({ ...item, endpoint, source_type: 'openFDA' }),
+    region: source.region,
+    agency: source.agency
+  };
+}
+
+function processFSISItem(item: any, source: DataSource): ProcessedAlert {
+  const title = `FSIS Recall: ${item.product_name || item.productName || 'Meat/Poultry Product'}`;
+  const description = `${item.problem || item.reason || 'Food safety concern'}. Establishment: ${item.establishment_name || item.establishmentName || 'Unknown'}`;
+  const publishedDate = new Date(item.recall_date || item.recallDate || item.date_recalled || Date.now());
+  
+  return {
+    title,
+    source: source.agency,
+    urgency: calculateUrgency({ title, description }, source),
+    summary: description,
+    published_date: publishedDate.toISOString(),
+    external_url: item.press_release_url || item.pressReleaseUrl || 'https://www.fsis.usda.gov/recalls',
+    full_content: JSON.stringify({ ...item, source_type: 'FSIS' }),
+    region: source.region,
+    agency: source.agency
+  };
+}
+
 async function processDataSource(supabase: any, source: DataSource, openaiKey?: string): Promise<number> {
   try {
     logStep(`Processing data source: ${source.name} (${source.region})`);
@@ -345,14 +473,47 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
 
     let allItems: any[] = [];
 
-    // Process RSS feeds
-    if (source.rss_feeds && source.rss_feeds.length > 0) {
-      for (const feedUrl of source.rss_feeds) {
-        const items = await fetchRSSFeed(feedUrl, source);
-        allItems.push(...items);
+    // Process based on source type
+    if (source.source_type === 'api') {
+      // Handle API data sources
+      for (const endpoint of source.rss_feeds) {
+        let apiItems: any[] = [];
+        
+        if (source.agency === 'FDA' && source.base_url.includes('api.fda.gov')) {
+          // openFDA API
+          apiItems = await fetchOpenFDAData(endpoint, source);
+          // Convert API items to alert format
+          for (const item of apiItems) {
+            const alert = processOpenFDAItem(item, source, endpoint);
+            allItems.push(alert);
+          }
+        } else if (source.agency === 'FSIS') {
+          // FSIS API
+          apiItems = await fetchFSISData(endpoint, source);
+          // Convert API items to alert format
+          for (const item of apiItems) {
+            const alert = processFSISItem(item, source);
+            allItems.push(alert);
+          }
+        }
         
         // Small delay to avoid hitting rate limits
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    } else {
+      // Process RSS feeds (existing functionality)
+      if (source.rss_feeds && source.rss_feeds.length > 0) {
+        for (const feedUrl of source.rss_feeds) {
+          const items = await fetchRSSFeed(feedUrl, source);
+          // Convert RSS items to alert format
+          for (const item of items) {
+            const alert = processRSSItem(item, source);
+            allItems.push(alert);
+          }
+          
+          // Small delay to avoid hitting rate limits
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
     }
 
@@ -360,9 +521,17 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
 
     let savedCount = 0;
     for (const item of allItems) {
-      const alert = processRSSItem(item, source);
-      if (await saveAlert(supabase, alert, openaiKey)) {
-        savedCount++;
+      // For API sources, items are already ProcessedAlert objects
+      if (source.source_type === 'api') {
+        if (await saveAlert(supabase, item as ProcessedAlert, openaiKey)) {
+          savedCount++;
+        }
+      } else {
+        // For RSS sources, convert to ProcessedAlert first
+        const alert = processRSSItem(item, source);
+        if (await saveAlert(supabase, alert, openaiKey)) {
+          savedCount++;
+        }
       }
     }
 
