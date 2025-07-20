@@ -74,6 +74,22 @@ const AGENCY_CONFIGS: AgencyConfig[] = [
     datasets: ['enforcement-actions', 'consumer-alerts'],
     keywords: ['enforcement', 'settlement', 'complaint', 'action', 'order'],
     priority: 6
+  },
+  {
+    name: 'EFSA',
+    datagovOrg: 'efsa-eu',
+    pollingInterval: 60, // hourly
+    datasets: ['food-safety', 'nutrition', 'animal-health'],
+    keywords: ['food safety', 'nutrition', 'animal health', 'scientific opinion'],
+    priority: 7
+  },
+  {
+    name: 'Canada_Health',
+    datagovOrg: 'health-canada',
+    pollingInterval: 60, // hourly  
+    datasets: ['recalls', 'advisories', 'health-alerts'],
+    keywords: ['recall', 'advisory', 'health alert', 'consumer alert'],
+    priority: 8
   }
 ];
 
@@ -144,25 +160,27 @@ async function updateRateLimit(supabase: any) {
 async function fetchAgencyRSSData(agency: AgencyConfig): Promise<any[]> {
   const results: any[] = [];
   
-  // Define RSS feeds for each agency - updated with validated working URLs
+  // Define RSS feeds for each agency - updated with working RSS feed URLs
   const rssFeeds: { [key: string]: string[] } = {
     'FDA': [
-      'https://www.fda.gov/about-fda/contact-fda/subscribe-podcasts-and-news-feeds'
+      'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/food-updates/rss.xml',
+      'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/drug-updates/rss.xml',
+      'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-device-updates/rss.xml'
     ],
     'USDA': [
-      'https://www.fsis.usda.gov/recalls-alerts'
+      'https://www.fsis.usda.gov/wps/wcm/connect/fsis-content/internet/main/topics/recalls-and-public-health-alerts/current-recalls-and-alerts'
     ],
     'CDC': [
-      'https://beta.cdc.gov/mmwr/rss/rss.html'
+      'https://tools.cdc.gov/api/v2/resources/media/316422.rss'
     ],
     'FTC': [
-      'https://www.ftc.gov/news-events/news/press-releases'
+      'https://www.ftc.gov/news-events/news/press-releases.rss'
     ],
     'EFSA': [
-      'https://www.efsa.europa.eu/en/rss'
+      'https://www.efsa.europa.eu/en/rss/rss.xml'
     ],
     'Canada_Health': [
-      'https://healthycanadians.gc.ca/recall-alert-rappel-avis/api'
+      'https://healthycanadians.gc.ca/recall-alert-rappel-avis/api/recent/en'
     ]
   };
 
