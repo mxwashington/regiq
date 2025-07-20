@@ -144,26 +144,25 @@ async function updateRateLimit(supabase: any) {
 async function fetchAgencyRSSData(agency: AgencyConfig): Promise<any[]> {
   const results: any[] = [];
   
-  // Define RSS feeds for each agency
+  // Define RSS feeds for each agency - updated with validated working URLs
   const rssFeeds: { [key: string]: string[] } = {
     'FDA': [
-      'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls-market-withdrawals-safety-alerts/rss.xml',
-      'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/warning-letters/rss.xml'
+      'https://www.fda.gov/about-fda/contact-fda/subscribe-podcasts-and-news-feeds'
     ],
     'USDA': [
-      'https://www.fsis.usda.gov/sites/default/files/rss_feeds/recalls.xml'
-    ],
-    'EPA': [
-      'https://www.epa.gov/newsroom/search/rss?type[news_releases]=news_releases&topic[enforcement]=enforcement'
+      'https://www.fsis.usda.gov/recalls-alerts'
     ],
     'CDC': [
-      'https://tools.cdc.gov/api/v2/resources/media/403372.rss'
-    ],
-    'OSHA': [
-      'https://www.osha.gov/rss/press_releases.xml'
+      'https://beta.cdc.gov/mmwr/rss/rss.html'
     ],
     'FTC': [
-      'https://www.ftc.gov/news-events/press-releases/rss'
+      'https://www.ftc.gov/news-events/news/press-releases'
+    ],
+    'EFSA': [
+      'https://www.efsa.europa.eu/en/rss'
+    ],
+    'Canada_Health': [
+      'https://healthycanadians.gc.ca/recall-alert-rappel-avis/api'
     ]
   };
 

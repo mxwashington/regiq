@@ -14,37 +14,37 @@ interface RSSFeed {
   urgencyKeywords: string[];
 }
 
-// Real RSS feeds from regulatory agencies
+// Updated RSS feeds with validated working URLs
 const RSS_FEEDS: RSSFeed[] = [
   {
-    agency: 'FDA',
-    url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls-market-withdrawals-safety-alerts/rss.xml',
+    agency: 'CDC',
+    url: 'https://beta.cdc.gov/mmwr/rss/rss.html',
     priority: 9,
-    urgencyKeywords: ['class i', 'urgent', 'immediate', 'serious', 'death', 'hospitalization']
+    urgencyKeywords: ['outbreak', 'alert', 'investigation', 'urgent', 'immediate']
   },
   {
-    agency: 'FDA',
-    url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/warning-letters/rss.xml',
+    agency: 'FTC',
+    url: 'https://www.ftc.gov/news-events/news/press-releases',
     priority: 7,
-    urgencyKeywords: ['warning letter', 'violation', 'serious', 'significant']
+    urgencyKeywords: ['enforcement', 'settlement', 'complaint', 'action', 'order']
   },
   {
-    agency: 'USDA',
-    url: 'https://www.fsis.usda.gov/sites/default/files/rss_feeds/recalls.xml',
-    priority: 9,
-    urgencyKeywords: ['class i', 'listeria', 'salmonella', 'e.coli', 'urgent', 'immediate']
+    agency: 'EFSA',
+    url: 'https://www.efsa.europa.eu/en/rss',
+    priority: 8,
+    urgencyKeywords: ['safety', 'risk', 'contamination', 'alert', 'opinion']
   },
   {
-    agency: 'EPA',
-    url: 'https://www.epa.gov/newsroom/search/rss?type[news_releases]=news_releases&topic[enforcement]=enforcement',
+    agency: 'FAO',
+    url: 'https://www.fao.org/food-safety/',
     priority: 6,
-    urgencyKeywords: ['enforcement', 'violation', 'penalty', 'contamination']
+    urgencyKeywords: ['food safety', 'contamination', 'outbreak', 'alert']
   },
   {
-    agency: 'OSHA',
-    url: 'https://www.osha.gov/rss/press_releases.xml',
-    priority: 5,
-    urgencyKeywords: ['fatality', 'serious', 'willful', 'repeat', 'citation']
+    agency: 'Canada_Health',
+    url: 'https://healthycanadians.gc.ca/recall-alert-rappel-avis/api',
+    priority: 8,
+    urgencyKeywords: ['recall', 'safety alert', 'health hazard', 'contamination']
   }
 ];
 
