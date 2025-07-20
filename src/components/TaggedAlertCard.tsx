@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Clock, AlertTriangle } from 'lucide-react';
+import { ExternalLink, Clock, AlertTriangle, X } from 'lucide-react';
 
 interface AlertTag {
   id: string;
@@ -28,14 +28,16 @@ interface Alert {
   published_date: string;
   external_url?: string;
   alert_tags?: AlertTag[];
+  dismissed_by?: string[];
 }
 
 interface TaggedAlertCardProps {
   alert: Alert;
   onTagClick?: (categoryName: string, tagId: string, tagName: string) => void;
+  onDismissAlert?: (alertId: string) => void;
 }
 
-const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick }) => {
+const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, onDismissAlert }) => {
   const getUrgencyColor = (urgency: string) => {
     switch (urgency.toLowerCase()) {
       case 'high': return 'text-red-600 bg-red-50 border-red-200';
@@ -144,17 +146,30 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick }) 
           <div className="text-xs text-muted-foreground">
             {alert.alert_tags?.length || 0} tags
           </div>
-          {alert.external_url && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => window.open(alert.external_url, '_blank')}
-            >
-              <ExternalLink className="h-3 w-3 mr-1" />
-              View Source
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {onDismissAlert && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => onDismissAlert(alert.id)}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Dismiss
+              </Button>
+            )}
+            {alert.external_url && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => window.open(alert.external_url, '_blank')}
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                View Source
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

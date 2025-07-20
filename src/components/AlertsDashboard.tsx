@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Filter, Tags, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
+import { Search, Filter, Tags, TrendingUp, AlertTriangle, Clock, X, Trash2, RefreshCw } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +15,7 @@ import SimpleAlertCard from './SimpleAlertCard';
 import { useTaxonomy } from '@/hooks/useTaxonomy';
 import { useTaggedAlerts } from '@/hooks/useTaggedAlerts';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ActiveFilter {
   categoryId: string;
@@ -28,7 +29,10 @@ export function AlertsDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [showDismissed, setShowDismissed] = useState(false);
+  const [updatingFDA, setUpdatingFDA] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Load taxonomy data
   const { categories: taxonomyCategories, loading: taxonomyLoading } = useTaxonomy();
@@ -57,16 +61,30 @@ export function AlertsDashboard() {
     });
   }, [taggedAlertsError, taggedAlerts?.length, simpleAlerts?.length, activeFilters.length]);
 
-  // Filter alerts by search term
+  // Filter alerts by search term and dismissed status
   const filteredAlerts = React.useMemo(() => {
-    if (!searchTerm) return alerts;
+    let filtered = alerts;
     
-    return alerts.filter(alert =>
-      alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      alert.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      alert.source.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [alerts, searchTerm]);
+    // Filter by dismissed status
+    if (!showDismissed && user) {
+      filtered = filtered.filter(alert => {
+        // Handle both tagged and simple alerts
+        const dismissedBy = (alert as any).dismissed_by;
+        return !dismissedBy || !dismissedBy.includes(user.id);
+      });
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(alert =>
+        alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alert.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alert.source.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  }, [alerts, searchTerm, showDismissed, user]);
 
   const handleTagClick = (categoryName: string, tagId: string, tagName: string) => {
     const category = taxonomyCategories.find(c => c.name === categoryName);
@@ -91,6 +109,81 @@ export function AlertsDashboard() {
 
   const handleFilterChange = (filters: ActiveFilter[]) => {
     setActiveFilters(filters);
+  };
+
+  // Alert clearing functions
+  const dismissAlert = async (alertId: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase.rpc('dismiss_alert_for_user', {
+        alert_id: alertId,
+        user_id: user.id
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Alert dismissed",
+        description: "The alert has been removed from your view."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to dismiss alert.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const clearAllAlerts = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase.rpc('clear_all_alerts_for_user', {
+        user_id: user.id
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "All alerts cleared",
+        description: "All recent alerts have been dismissed."
+      });
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to clear alerts.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // FDA data refresh function
+  const refreshFDAData = async () => {
+    if (!user) return;
+    
+    setUpdatingFDA(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fda-data-feed', {
+        body: { action: 'fetch_recent_recalls', days: 7 }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "FDA data updated",
+        description: `${data.processed || 0} new FDA alerts added to feed.`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update FDA data.",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingFDA(false);
+    }
   };
 
   // Calculate stats
@@ -137,14 +230,44 @@ export function AlertsDashboard() {
             AI-powered classification and filtering of regulatory content
           </p>
         </div>
-        <Button
-          variant={showFilters ? "secondary" : "outline"}
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2"
-        >
-          <Tags className="h-4 w-4" />
-          {showFilters ? 'Hide Filters' : 'Show Filters'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={refreshFDAData}
+            disabled={updatingFDA}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <RefreshCw className={`h-4 w-4 ${updatingFDA ? 'animate-spin' : ''}`} />
+            Update FDA Data
+          </Button>
+          <Button
+            variant={showDismissed ? "secondary" : "outline"}
+            onClick={() => setShowDismissed(!showDismissed)}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <X className="h-4 w-4" />
+            {showDismissed ? 'Hide Dismissed' : 'Show Dismissed'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={clearAllAlerts}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear All
+          </Button>
+          <Button
+            variant={showFilters ? "secondary" : "outline"}
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2"
+          >
+            <Tags className="h-4 w-4" />
+            {showFilters ? 'Hide Filters' : 'Show Filters'}
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -229,16 +352,16 @@ export function AlertsDashboard() {
             </TabsList>
 
             <TabsContent value="all" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.all} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} />
+              <AlertsList alerts={alertsByUrgency.all} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} onDismissAlert={dismissAlert} />
             </TabsContent>
             <TabsContent value="high" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.high} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} />
+              <AlertsList alerts={alertsByUrgency.high} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} onDismissAlert={dismissAlert} />
             </TabsContent>
             <TabsContent value="medium" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.medium} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} />
+              <AlertsList alerts={alertsByUrgency.medium} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} onDismissAlert={dismissAlert} />
             </TabsContent>
             <TabsContent value="low" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.low} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} />
+              <AlertsList alerts={alertsByUrgency.low} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} onDismissAlert={dismissAlert} />
             </TabsContent>
           </Tabs>
         </div>
@@ -272,9 +395,10 @@ interface AlertsListProps {
   alerts: any[];
   onTagClick: (categoryName: string, tagId: string, tagName: string) => void;
   hasTaggedAlertsError: boolean;
+  onDismissAlert: (alertId: string) => void;
 }
 
-function AlertsList({ alerts, onTagClick, hasTaggedAlertsError }: AlertsListProps) {
+function AlertsList({ alerts, onTagClick, hasTaggedAlertsError, onDismissAlert }: AlertsListProps) {
   if (alerts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -299,6 +423,7 @@ function AlertsList({ alerts, onTagClick, hasTaggedAlertsError }: AlertsListProp
               key={alert.id}
               alert={alert}
               onTagClick={onTagClick}
+              onDismissAlert={onDismissAlert}
             />
           );
         } else {
@@ -306,6 +431,7 @@ function AlertsList({ alerts, onTagClick, hasTaggedAlertsError }: AlertsListProp
             <SimpleAlertCard
               key={alert.id}
               alert={alert}
+              onDismissAlert={onDismissAlert}
             />
           );
         }

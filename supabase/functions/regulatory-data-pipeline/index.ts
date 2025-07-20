@@ -129,13 +129,16 @@ async function updateRateLimit(supabase: any) {
     rateLimit.requests_made = (rateLimit.requests_made || 0) + 1;
   }
 
-  await supabase
-    .from('system_settings')
-    .upsert({
-      setting_key: 'data_gov_rate_limit',
-      setting_value: rateLimit,
-      description: 'Data.gov API rate limit tracking'
-    });
+  // Use proper upsert to avoid duplicate key constraint errors
+  const { error } = await supabase.rpc('upsert_system_setting', {
+    key_param: 'data_gov_rate_limit',
+    value_param: rateLimit,
+    description_param: 'Data.gov API rate limit tracking'
+  });
+
+  if (error) {
+    logStep('Error upserting system setting:', error);
+  }
 }
 
 async function fetchAgencyRSSData(agency: AgencyConfig): Promise<any[]> {
@@ -447,14 +450,12 @@ async function processAgency(supabase: any, agency: AgencyConfig, openaiKey?: st
       }
     }
 
-    // Update last run timestamp
-    await supabase
-      .from('system_settings')
-      .upsert({
-        setting_key: `last_run_${agency.name.toLowerCase()}`,
-        setting_value: { timestamp: now },
-        description: `Last data pipeline run for ${agency.name}`
-      });
+    // Update last run timestamp using proper upsert function
+    await supabase.rpc('upsert_system_setting', {
+      key_param: `last_run_${agency.name.toLowerCase()}`,
+      value_param: { timestamp: now },
+      description_param: `Last data pipeline run for ${agency.name}`
+    });
 
     logStep(`Processed ${agency.name}: ${savedCount} new alerts saved`);
     return savedCount;

@@ -95,6 +95,7 @@ export type Database = {
       alerts: {
         Row: {
           created_at: string
+          dismissed_by: string[] | null
           external_url: string | null
           full_content: string | null
           id: string
@@ -107,6 +108,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dismissed_by?: string[] | null
           external_url?: string | null
           full_content?: string | null
           id?: string
@@ -119,6 +121,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dismissed_by?: string[] | null
           external_url?: string | null
           full_content?: string | null
           id?: string
@@ -739,6 +742,14 @@ export type Database = {
     Functions: {
       clean_expired_cache: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      clear_all_alerts_for_user: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
+      dismiss_alert_for_user: {
+        Args: { alert_id: string; user_id: string }
         Returns: undefined
       }
       get_feature_usage: {
