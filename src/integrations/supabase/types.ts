@@ -50,6 +50,45 @@ export type Database = {
         }
         Relationships: []
       }
+      alerts: {
+        Row: {
+          created_at: string
+          external_url: string | null
+          full_content: string | null
+          id: string
+          published_date: string
+          source: string
+          summary: string
+          title: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          created_at?: string
+          external_url?: string | null
+          full_content?: string | null
+          id?: string
+          published_date: string
+          source: string
+          summary: string
+          title: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          created_at?: string
+          external_url?: string | null
+          full_content?: string | null
+          id?: string
+          published_date?: string
+          source?: string
+          summary?: string
+          title?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: []
+      }
       cookie_consents: {
         Row: {
           analytics: boolean
@@ -383,6 +422,36 @@ export type Database = {
           setting_value?: Json
           updated_at?: string | null
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          email_notifications: boolean
+          id: string
+          preferred_sources: string[] | null
+          updated_at: string
+          urgency_threshold: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          preferred_sources?: string[] | null
+          updated_at?: string
+          urgency_threshold?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          preferred_sources?: string[] | null
+          updated_at?: string
+          urgency_threshold?: string
+          user_id?: string
         }
         Relationships: []
       }
