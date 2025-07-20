@@ -67,6 +67,8 @@ export function MobileNavigation() {
   const filteredItems = navigationItems.filter(item => {
     if (item.requiresAuth && !user) return false;
     if (item.adminOnly && !isAdmin) return false;
+    // Hide regular dashboard for admins - they should use admin dashboard
+    if (item.href === '/dashboard' && isAdmin) return false;
     return true;
   });
 

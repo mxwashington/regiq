@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { triggerDataRefresh } from '@/lib/data-refresh';
 import { useToast } from '@/hooks/use-toast';
 
 export function DataRefreshButton() {
@@ -9,24 +9,28 @@ export function DataRefreshButton() {
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Auto-refresh on component mount to get latest data
+  useEffect(() => {
+    handleRefresh();
+  }, []);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     
     try {
-      // Call the regulatory data pipeline
-      const { data, error } = await supabase.functions.invoke('regulatory-data-pipeline');
+      const result = await triggerDataRefresh();
       
-      if (error) {
-        throw new Error(error.message);
+      if (result.success) {
+        setLastRefresh(new Date().toLocaleTimeString());
+        
+        toast({
+          title: "Data Refresh Complete",
+          description: `Updated data from all regulatory sources. Found ${result.totalAlertsProcessed || 0} new alerts.`,
+          variant: "default",
+        });
+      } else {
+        throw new Error(result.error || 'Unknown error');
       }
-
-      setLastRefresh(new Date().toLocaleTimeString());
-      
-      toast({
-        title: "Data Refresh Complete",
-        description: `Updated data from all regulatory sources. Found ${data.totalAlertsProcessed} new alerts.`,
-        variant: "default",
-      });
 
     } catch (error) {
       console.error('Error refreshing data:', error);
