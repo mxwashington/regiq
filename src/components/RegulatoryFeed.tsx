@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
 import { 
   Calendar, 
   ExternalLink, 
@@ -68,38 +68,16 @@ const getAgencyColor = (agency: string) => {
 export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [bookmarkedItems, setBookmarkedItems] = useState<Set<string>>(new Set());
-  const [alerts, setAlerts] = useState<RegulatoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Fetch alerts from database
-  useEffect(() => {
-    fetchAlerts();
-  }, []);
+  // Use the same data source as AlertsDashboard for consistency
+  const { alerts: fetchedAlerts, loading } = useSimpleAlerts(50);
 
-  const fetchAlerts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('alerts')
-        .select('*')
-        .order('published_date', { ascending: false })
-        .limit(50); // Limit to recent alerts
+  // Convert to RegulatoryItem format
+  const alerts = useMemo(() => {
+    return (fetchedAlerts || []).map(convertAlertToRegulatoryItem);
+  }, [fetchedAlerts]);
 
-      if (error) throw error;
-
-      const convertedAlerts = (data || []).map(convertAlertToRegulatoryItem);
-      setAlerts(convertedAlerts);
-    } catch (error) {
-      console.error('Error fetching alerts:', error);
-      toast({
-        title: "Error loading regulatory feed",
-        description: "Failed to load regulatory updates. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredData = useMemo(() => {
     let filtered = alerts;
