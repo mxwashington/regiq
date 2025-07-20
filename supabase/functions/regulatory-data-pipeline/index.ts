@@ -25,7 +25,7 @@ interface ProcessedAlert {
   full_content?: string;
 }
 
-// Agency configurations for data.gov
+// Agency configurations for regulatory announcements
 const AGENCY_CONFIGS: AgencyConfig[] = [
   {
     name: 'FDA',
@@ -40,7 +40,7 @@ const AGENCY_CONFIGS: AgencyConfig[] = [
     datagovOrg: 'usda-gov',
     pollingInterval: 15, // 15 minutes for high priority
     datasets: ['food-recalls', 'inspection-reports', 'fsis-recalls'],
-    keywords: ['recall', 'outbreak', 'contamination', 'salmonella', 'listeria', 'e.coli'],
+    keywords: ['recall', 'outbreak', 'contamination', 'food safety', 'FSIS'],
     priority: 9
   },
   {
@@ -48,7 +48,7 @@ const AGENCY_CONFIGS: AgencyConfig[] = [
     datagovOrg: 'epa-gov',
     pollingInterval: 15, // 15 minutes for high priority
     datasets: ['enforcement-actions', 'violations', 'pesticide-registrations'],
-    keywords: ['violation', 'enforcement', 'pesticide', 'toxic', 'environmental'],
+    keywords: ['enforcement', 'violation', 'penalty', 'settlement', 'compliance'],
     priority: 8
   },
   {
@@ -56,7 +56,7 @@ const AGENCY_CONFIGS: AgencyConfig[] = [
     datagovOrg: 'cdc-gov',
     pollingInterval: 60, // hourly
     datasets: ['disease-outbreaks', 'health-alerts', 'mmwr'],
-    keywords: ['outbreak', 'disease', 'health alert', 'warning', 'surveillance'],
+    keywords: ['outbreak', 'alert', 'investigation', 'surveillance', 'health advisory'],
     priority: 8
   },
   {
@@ -64,7 +64,7 @@ const AGENCY_CONFIGS: AgencyConfig[] = [
     datagovOrg: 'osha-gov',
     pollingInterval: 60, // hourly
     datasets: ['enforcement', 'fatalities', 'inspections'],
-    keywords: ['workplace safety', 'violation', 'fatality', 'injury', 'inspection'],
+    keywords: ['citation', 'penalty', 'fatality', 'inspection', 'violation'],
     priority: 7
   },
   {
@@ -72,7 +72,7 @@ const AGENCY_CONFIGS: AgencyConfig[] = [
     datagovOrg: 'ftc-gov',
     pollingInterval: 60, // hourly
     datasets: ['enforcement-actions', 'consumer-alerts'],
-    keywords: ['enforcement', 'consumer protection', 'fraud', 'deceptive practices'],
+    keywords: ['enforcement', 'settlement', 'complaint', 'action', 'order'],
     priority: 6
   }
 ];
@@ -87,7 +87,7 @@ async function checkRateLimit(supabase: any): Promise<boolean> {
     .from('system_settings')
     .select('setting_value')
     .eq('setting_key', 'data_gov_rate_limit')
-    .single();
+    .maybeSingle();
 
   if (!data?.setting_value) return true;
 
@@ -108,7 +108,7 @@ async function updateRateLimit(supabase: any) {
     .from('system_settings')
     .select('setting_value')
     .eq('setting_key', 'data_gov_rate_limit')
-    .single();
+    .maybeSingle();
 
   const now = Date.now();
   const today = new Date().toDateString();
@@ -138,43 +138,109 @@ async function updateRateLimit(supabase: any) {
     });
 }
 
-async function fetchDataGovData(agency: AgencyConfig, apiKey: string): Promise<any[]> {
+async function fetchAgencyRSSData(agency: AgencyConfig): Promise<any[]> {
   const results: any[] = [];
   
-  for (const keyword of agency.keywords.slice(0, 3)) { // Limit to 3 keywords per agency
+  // Define RSS feeds for each agency
+  const rssFeeds: { [key: string]: string[] } = {
+    'FDA': [
+      'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls-market-withdrawals-safety-alerts/rss.xml',
+      'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/warning-letters/rss.xml'
+    ],
+    'USDA': [
+      'https://www.fsis.usda.gov/sites/default/files/rss_feeds/recalls.xml'
+    ],
+    'EPA': [
+      'https://www.epa.gov/newsroom/search/rss?type[news_releases]=news_releases&topic[enforcement]=enforcement'
+    ],
+    'CDC': [
+      'https://tools.cdc.gov/api/v2/resources/media/403372.rss'
+    ],
+    'OSHA': [
+      'https://www.osha.gov/rss/press_releases.xml'
+    ],
+    'FTC': [
+      'https://www.ftc.gov/news-events/press-releases/rss'
+    ]
+  };
+
+  const feeds = rssFeeds[agency.name] || [];
+  
+  for (const feedUrl of feeds) {
     try {
-      // Use the correct CKAN API endpoint
-      const url = `https://catalog.data.gov/api/3/action/package_search?q=${encodeURIComponent(keyword + ' AND organization:' + agency.datagovOrg)}&rows=10&sort=metadata_modified desc`;
+      logStep(`Fetching RSS feed for ${agency.name}: ${feedUrl}`);
       
-      logStep(`Fetching data for ${agency.name} with keyword: ${keyword}`);
-      
-      const response = await fetch(url, {
+      const response = await fetch(feedUrl, {
         method: 'GET',
         headers: {
           'User-Agent': 'RegIQ-DataPipeline/1.0',
-          'Accept': 'application/json'
+          'Accept': 'application/rss+xml, application/xml, text/xml'
         }
       });
 
       if (response.ok) {
-        const data = await response.json();
-        // CKAN API returns results in data.result.results
-        if (data.result?.results) {
-          results.push(...data.result.results);
-        }
+        const xmlText = await response.text();
+        const items = parseRSSFeed(xmlText, agency.name);
+        results.push(...items);
+        logStep(`Parsed ${items.length} items from ${agency.name} RSS feed`);
       } else {
-        logStep(`Error fetching data for ${agency.name}: ${response.status}`);
+        logStep(`Failed to fetch ${agency.name} RSS: ${response.status}`);
       }
 
       // Small delay to avoid hitting rate limits
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
     } catch (error) {
-      logStep(`Error processing keyword ${keyword} for ${agency.name}:`, error);
+      logStep(`Error fetching RSS for ${agency.name}:`, error);
     }
   }
   
   return results;
+}
+
+function parseRSSFeed(xmlText: string, source: string): any[] {
+  const items: any[] = [];
+  
+  try {
+    // Simple regex-based RSS parsing for basic item extraction
+    const itemPattern = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+    const titlePattern = /<title[^>]*>([\s\S]*?)<\/title>/i;
+    const linkPattern = /<link[^>]*>([\s\S]*?)<\/link>/i;
+    const descPattern = /<description[^>]*>([\s\S]*?)<\/description>/i;
+    const pubDatePattern = /<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i;
+    const guidPattern = /<guid[^>]*>([\s\S]*?)<\/guid>/i;
+    
+    let match;
+    while ((match = itemPattern.exec(xmlText)) !== null) {
+      const itemXml = match[1];
+      
+      const titleMatch = titlePattern.exec(itemXml);
+      const linkMatch = linkPattern.exec(itemXml);
+      const descMatch = descPattern.exec(itemXml);
+      const pubDateMatch = pubDatePattern.exec(itemXml);
+      const guidMatch = guidPattern.exec(itemXml);
+      
+      const title = titleMatch ? titleMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim() : '';
+      const link = linkMatch ? linkMatch[1].trim() : '';
+      const description = descMatch ? descMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').replace(/<[^>]*>/g, '').trim() : '';
+      const pubDate = pubDateMatch ? pubDateMatch[1].trim() : '';
+      const guid = guidMatch ? guidMatch[1].trim() : '';
+      
+      if (title && (link || guid)) {
+        items.push({
+          title,
+          link: link || guid,
+          description,
+          pubDate,
+          source
+        });
+      }
+    }
+  } catch (error) {
+    logStep(`Error parsing RSS feed for ${source}:`, error);
+  }
+  
+  return items;
 }
 
 function calculateUrgency(item: any, agency: AgencyConfig): string {
@@ -184,14 +250,14 @@ function calculateUrgency(item: any, agency: AgencyConfig): string {
   urgencyScore += agency.priority;
   
   // Check for urgent keywords in title and description
-  const text = (item.title + ' ' + (item.notes || '')).toLowerCase();
+  const text = (item.title + ' ' + (item.description || '')).toLowerCase();
   const urgentKeywords = ['recall', 'outbreak', 'warning', 'alert', 'urgent', 'immediate', 'critical'];
   const foundUrgentKeywords = urgentKeywords.filter(keyword => text.includes(keyword));
   
   urgencyScore += foundUrgentKeywords.length * 2;
   
-  // Recency boost
-  const publishedDate = new Date(item.metadata_created || item.metadata_modified);
+  // Recency boost - use proper published date from RSS
+  const publishedDate = new Date(item.pubDate || Date.now());
   const hoursOld = (Date.now() - publishedDate.getTime()) / (1000 * 60 * 60);
   
   if (hoursOld < 24) urgencyScore += 3;
@@ -244,16 +310,26 @@ async function generateAISummary(title: string, description: string, openaiKey?:
   return description ? description.substring(0, 200) + '...' : 'No summary available.';
 }
 
-function processDataGovItem(item: any, agency: AgencyConfig): ProcessedAlert {
-  const publishedDate = new Date(item.metadata_created || item.metadata_modified || Date.now());
+function processRSSItem(item: any, agency: AgencyConfig): ProcessedAlert {
+  // Parse the RSS published date correctly
+  let publishedDate: Date;
+  if (item.pubDate) {
+    publishedDate = new Date(item.pubDate);
+    // If date parsing fails or produces invalid date, use current time
+    if (isNaN(publishedDate.getTime())) {
+      publishedDate = new Date();
+    }
+  } else {
+    publishedDate = new Date();
+  }
   
   return {
     title: item.title || 'Untitled Regulatory Update',
     source: agency.name,
     urgency: calculateUrgency(item, agency),
-    summary: item.notes || item.description || 'No description available.',
+    summary: item.description || 'No description available.',
     published_date: publishedDate.toISOString(),
-    external_url: item.landing_page || `https://catalog.data.gov/dataset/${item.id}`,
+    external_url: item.link || '',
     full_content: JSON.stringify(item)
   };
 }
@@ -265,7 +341,7 @@ async function isDuplicate(supabase: any, alert: ProcessedAlert): Promise<boolea
     .eq('title', alert.title)
     .eq('source', alert.source)
     .gte('published_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // Last 7 days
-    .single();
+    .maybeSingle();
 
   return !!data;
 }
@@ -339,7 +415,7 @@ async function classifyAndTagAlert(supabase: any, alertId: string, alert: Proces
   }
 }
 
-async function processAgency(supabase: any, agency: AgencyConfig, apiKey: string, openaiKey?: string): Promise<number> {
+async function processAgency(supabase: any, agency: AgencyConfig, openaiKey?: string): Promise<number> {
   try {
     logStep(`Processing agency: ${agency.name}`);
     
@@ -348,7 +424,7 @@ async function processAgency(supabase: any, agency: AgencyConfig, apiKey: string
       .from('system_settings')
       .select('setting_value')
       .eq('setting_key', `last_run_${agency.name.toLowerCase()}`)
-      .single();
+      .maybeSingle();
 
     const now = Date.now();
     const lastRunTime = lastRun?.setting_value?.timestamp || 0;
@@ -359,22 +435,15 @@ async function processAgency(supabase: any, agency: AgencyConfig, apiKey: string
       return 0;
     }
 
-    // Fetch data from data.gov
-    const rawData = await fetchDataGovData(agency, apiKey);
+    // Fetch data from RSS feeds instead of data.gov
+    const rawData = await fetchAgencyRSSData(agency);
     logStep(`Fetched ${rawData.length} items for ${agency.name}`);
 
     let savedCount = 0;
     for (const item of rawData) {
-      if (await checkRateLimit(supabase)) {
-        await updateRateLimit(supabase);
-        
-        const alert = processDataGovItem(item, agency);
-        if (await saveAlert(supabase, alert, openaiKey)) {
-          savedCount++;
-        }
-      } else {
-        logStep('Rate limit reached, stopping processing');
-        break;
+      const alert = processRSSItem(item, agency);
+      if (await saveAlert(supabase, alert, openaiKey)) {
+        savedCount++;
       }
     }
 
@@ -411,36 +480,18 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get API keys
-    const dataGovApiKey = Deno.env.get('DATA_GOV_API_KEY');
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
-    if (!dataGovApiKey) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Data.gov API key not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    // RSS feeds don't require API keys, so we can proceed without data.gov API key
 
-    // Check overall rate limit
-    if (!(await checkRateLimit(supabase))) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Daily rate limit exceeded' }),
-        { 
-          status: 429, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    // RSS feeds have their own rate limits, so we can remove the data.gov rate limit check
 
     // Process each agency
     let totalAlertsProcessed = 0;
     const results: { [agency: string]: number } = {};
 
     for (const agency of AGENCY_CONFIGS) {
-      const savedCount = await processAgency(supabase, agency, dataGovApiKey, openaiApiKey);
+      const savedCount = await processAgency(supabase, agency, openaiApiKey);
       results[agency.name] = savedCount;
       totalAlertsProcessed += savedCount;
 
