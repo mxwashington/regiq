@@ -143,15 +143,8 @@ async function fetchDataGovData(agency: AgencyConfig, apiKey: string): Promise<a
   
   for (const keyword of agency.keywords.slice(0, 3)) { // Limit to 3 keywords per agency
     try {
-      const searchParams = new URLSearchParams({
-        api_key: apiKey,
-        q: keyword,
-        organization: agency.datagovOrg,
-        limit: '10',
-        sort: 'metadata_created desc' // Get newest data first
-      });
-
-      const url = `https://api.data.gov/api/v1/datasets?${searchParams.toString()}`;
+      // Use the correct CKAN API endpoint
+      const url = `https://catalog.data.gov/api/3/action/package_search?q=${encodeURIComponent(keyword + ' AND organization:' + agency.datagovOrg)}&rows=10&sort=metadata_modified desc`;
       
       logStep(`Fetching data for ${agency.name} with keyword: ${keyword}`);
       
@@ -165,8 +158,9 @@ async function fetchDataGovData(agency: AgencyConfig, apiKey: string): Promise<a
 
       if (response.ok) {
         const data = await response.json();
-        if (data.results) {
-          results.push(...data.results);
+        // CKAN API returns results in data.result.results
+        if (data.result?.results) {
+          results.push(...data.result.results);
         }
       } else {
         logStep(`Error fetching data for ${agency.name}: ${response.status}`);
