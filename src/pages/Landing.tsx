@@ -3,13 +3,12 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Shield, Zap, Bell, Brain, Database, Cloud, Lock, Cpu } from "lucide-react";
+import { ArrowRight, Shield, Zap, Bell, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { MobileNavigation } from "@/components/MobileNavigation";
 
 import { FeatureShowcase } from "@/components/FeatureShowcase";
-import { StatsSection } from "@/components/StatsSection";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { CookieConsent } from "@/components/CookieConsent";
 import { DemoInteractiveDashboard } from "@/components/DemoInteractiveDashboard";
@@ -90,96 +89,56 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Platform Section */}
+      {/* Simple Value Proposition Section */}
       <section id="platform" className="py-20 px-4 bg-muted/20">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Built for Enterprise Scale</h2>
+            <h2 className="text-3xl font-bold mb-4">Free Regulatory Alerts</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Our robust platform architecture delivers reliable, secure, and scalable regulatory intelligence
+              A simple, useful tool to help compliance teams stay informed
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <Card className="text-center border-2">
               <CardHeader>
-                <Cloud className="h-12 w-12 text-primary mx-auto mb-4" />
-                <CardTitle className="text-xl">Cloud-Native Architecture</CardTitle>
+                <Bell className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle className="text-xl">FDA/USDA/EPA Alerts</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Built on AWS with 99.9% uptime SLA, automatic scaling, and global CDN for lightning-fast access worldwide
+                  Get notified when new regulatory documents are published by key agencies
                 </CardDescription>
               </CardContent>
             </Card>
 
             <Card className="text-center border-2">
               <CardHeader>
-                <Lock className="h-12 w-12 text-primary mx-auto mb-4" />
-                <CardTitle className="text-xl">Enterprise Security</CardTitle>
+                <Brain className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle className="text-xl">AI Summaries</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  SOC 2 Type II certified with end-to-end encryption, SSO integration, and role-based access controls
+                  Complex documents summarized into clear, readable highlights
                 </CardDescription>
               </CardContent>
             </Card>
 
             <Card className="text-center border-2">
               <CardHeader>
-                <Database className="h-12 w-12 text-primary mx-auto mb-4" />
-                <CardTitle className="text-xl">Real-Time Data Pipeline</CardTitle>
+                <Zap className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle className="text-xl">Email Notifications</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Advanced ETL processes monitor 50+ regulatory sources with sub-minute latency and 99.99% accuracy
+                  Choose what matters to you and get updates delivered to your inbox
                 </CardDescription>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Integration & API Section */}
-          <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-8">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold mb-4">Seamless Integrations</h3>
-              <p className="text-muted-foreground">
-                Connect RegIQ with your existing compliance and business systems
-              </p>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h4 className="font-semibold text-lg flex items-center gap-2">
-                  <Cpu className="h-5 w-5 text-primary" />
-                  REST API & Webhooks
-                </h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li>• Comprehensive REST API for all platform features</li>
-                  <li>• Real-time webhooks for instant notifications</li>
-                  <li>• Rate limiting and authentication included</li>
-                  <li>• SDKs available for popular languages</li>
-                </ul>
-              </div>
-              
-              <div className="space-y-4">
-                <h4 className="font-semibold text-lg flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  Enterprise Connectors
-                </h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li>• Salesforce, ServiceNow, Jira integration</li>
-                  <li>• Slack, Teams, and email notifications</li>
-                  <li>• Custom SAML/OIDC authentication</li>
-                  <li>• On-premise deployment options</li>
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <StatsSection />
 
       {/* Feature Showcase */}
       <FeatureShowcase />
@@ -251,7 +210,7 @@ const Landing = () => {
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to simplify regulatory monitoring?</h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            Join thousands of compliance professionals who trust RegIQ to keep them informed and compliant.
+            Start getting free regulatory alerts today. No credit card required.
           </p>
           <Button size="lg" asChild>
             <Link to={user ? "/dashboard" : "/auth"}>

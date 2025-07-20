@@ -1,16 +1,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { 
   Brain, 
   Zap, 
-  Shield, 
   Bell, 
-  Search, 
-  BarChart3,
-  Clock,
-  Filter
+  Search
 } from "lucide-react";
 
 interface Feature {
@@ -25,30 +20,30 @@ const features: Feature[] = [
   {
     icon: Brain,
     title: "AI-Powered Summarization",
-    description: "Transform complex regulatory documents into clear, actionable summaries with risk scoring",
-    metrics: "90% time saved on document review",
-    highlight: "Reduces review time from hours to minutes"
+    description: "Transform complex regulatory documents into clear, actionable summaries",
+    metrics: "Save time on document review",
+    highlight: "Get the key points without reading everything"
   },
   {
     icon: Zap,
     title: "Real-Time Monitoring",
-    description: "Continuous monitoring of FDA, USDA, EPA, and other key agencies with instant updates",
-    metrics: "24/7 monitoring of 50+ sources",
-    highlight: "Never miss a critical regulatory change"
+    description: "Continuous monitoring of FDA, USDA, EPA, and other key agencies",
+    metrics: "Monitor key regulatory sources",
+    highlight: "Stay informed as changes happen"
   },
   {
     icon: Bell,
     title: "Smart Alert System",
-    description: "Personalized notifications based on your industry, keywords, and compliance priorities",
-    metrics: "95% accuracy in relevant alerts",
-    highlight: "Only get alerts that matter to your business"
+    description: "Get notifications for regulations that matter to your work",
+    metrics: "Personalized notifications",
+    highlight: "Focus on what's relevant to you"
   },
   {
     icon: Search,
-    title: "Advanced Search & Filtering",
-    description: "Powerful search tools to focus on regulations that matter to your business",
-    metrics: "Search across 10M+ documents",
-    highlight: "Find what you need in seconds, not hours"
+    title: "Easy Search & Filtering",
+    description: "Simple tools to find regulations that matter to your business",
+    metrics: "Quick search capabilities",
+    highlight: "Find what you need quickly"
   }
 ];
 
@@ -58,10 +53,10 @@ export const FeatureShowcase = () => {
       <div className="container mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold mb-4">
-            Powerful Features for Modern Compliance Teams
+            Simple Tools for Compliance Teams
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            See how RegIQ transforms regulatory monitoring with cutting-edge technology
+            Basic features to help you stay informed about regulatory changes
           </p>
         </div>
 
@@ -87,9 +82,6 @@ export const FeatureShowcase = () => {
                   <p className="text-sm font-medium text-primary">
                     {feature.highlight}
                   </p>
-                  <Button variant="outline" size="sm" className="mt-4">
-                    Learn More
-                  </Button>
                 </div>
               </CardContent>
             </Card>
