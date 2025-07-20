@@ -1,0 +1,61 @@
+{
+  "name": "RegIQ - Regulatory Intelligence Platform",
+  "short_name": "RegIQ",
+  "description": "Real-time regulatory alerts and compliance monitoring for enterprise teams",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "news"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/lovable-uploads/869131e3-58af-4f2a-8695-33e9e20d5b45.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/lovable-uploads/869131e3-58af-4f2a-8695-33e9e20d5b45.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Latest Alerts",
+      "short_name": "Alerts",
+      "description": "View the latest regulatory alerts",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/lovable-uploads/869131e3-58af-4f2a-8695-33e9e20d5b45.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Search Regulations",
+      "short_name": "Search",
+      "description": "Search regulatory database",
+      "url": "/search",
+      "icons": [
+        {
+          "src": "/lovable-uploads/869131e3-58af-4f2a-8695-33e9e20d5b45.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}

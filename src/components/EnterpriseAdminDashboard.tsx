@@ -15,6 +15,7 @@ import { DemoInteractiveDashboard } from "./DemoInteractiveDashboard";
 import { DataPipelineManager } from "./DataPipelineManager";
 import { AdminAlertManager } from "./AdminAlertManager";
 import PerplexitySearch from "./PerplexitySearch";
+import { PWASettings } from "./PWASettings";
 
 export const EnterpriseAdminDashboard = () => {
   const navigate = useNavigate();
@@ -37,8 +38,8 @@ export const EnterpriseAdminDashboard = () => {
               <TabsTrigger value="analytics" className="text-xs md:text-sm">Analytics</TabsTrigger>
               <TabsTrigger value="integrations" className="text-xs md:text-sm">Integrations</TabsTrigger>
               <TabsTrigger value="demo" className="text-xs md:text-sm">Demo</TabsTrigger>
-              <TabsTrigger value="pipeline" className="text-xs md:text-sm">Pipeline</TabsTrigger>
-              <TabsTrigger value="api-monitor" className="text-xs md:text-sm">API Monitor</TabsTrigger>
+              <TabsTrigger value="pipeline" className="text-xs md:text-sm">API Pipeline</TabsTrigger>
+              <TabsTrigger value="pwa" className="text-xs md:text-sm">PWA</TabsTrigger>
               <TabsTrigger value="session" className="text-xs md:text-sm">Session</TabsTrigger>
               <TabsTrigger value="auth" className="text-xs md:text-sm">Auth</TabsTrigger>
             </TabsList>
@@ -72,8 +73,8 @@ export const EnterpriseAdminDashboard = () => {
             <DataPipelineManager />
           </TabsContent>
           
-          <TabsContent value="api-monitor" className="mt-4">
-            <DataPipelineManager />
+          <TabsContent value="pwa" className="mt-4">
+            <PWASettings />
           </TabsContent>
           
           <TabsContent value="session" className="mt-4">

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RegIQ - Offline</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 500px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .offline-features {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+        .offline-features h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+        .offline-features ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .offline-features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .offline-features li:last-child {
+            border-bottom: none;
+        }
+        .offline-features li::before {
+            content: '✓';
+            color: #4ade80;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        .status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">R</div>
+        <h1>You're Offline</h1>
+        <p>RegIQ is currently offline, but you can still access recently viewed regulatory alerts and use cached features.</p>
+        
+        <div class="offline-features">
+            <h3>Available Offline:</h3>
+            <ul>
+                <li>Recently viewed alerts</li>
+                <li>Cached search results</li>
+                <li>Alert filtering and sorting</li>
+                <li>Bookmark management</li>
+                <li>Settings and preferences</li>
+            </ul>
+        </div>
+        
+        <button class="retry-btn" onclick="checkConnection()">
+            Check Connection
+        </button>
+        
+        <div class="status" id="status">
+            Checking network status...
+        </div>
+    </div>
+
+    <script>
+        function checkConnection() {
+            const status = document.getElementById('status');
+            status.textContent = 'Checking connection...';
+            
+            // Try to reload the page
+            window.location.reload();
+        }
+
+        function updateNetworkStatus() {
+            const status = document.getElementById('status');
+            if (navigator.onLine) {
+                status.textContent = 'Connection restored! Click "Check Connection" to continue.';
+                status.style.color = '#4ade80';
+            } else {
+                status.textContent = 'Still offline. Regulatory data will sync when connection is restored.';
+                status.style.color = '#fbbf24';
+            }
+        }
+
+        // Check network status on load
+        updateNetworkStatus();
+
+        // Listen for network status changes
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
+        // Auto-reload when back online
+        window.addEventListener('online', () => {
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
