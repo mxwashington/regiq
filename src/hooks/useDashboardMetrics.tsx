@@ -2,20 +2,20 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardMetrics {
-  totalUsers: number;
-  recentAdminActivities: number;
-  recentSearches: number;
-  activeSubscribers: number;
+  myRecentSearches: number;
+  newUpdatesThisWeek: number;
+  activeMonitoring: number;
+  myAccountStatus: string;
   loading: boolean;
   error: string | null;
 }
 
 export const useDashboardMetrics = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
-    totalUsers: 0,
-    recentAdminActivities: 0,
-    recentSearches: 0,
-    activeSubscribers: 0,
+    myRecentSearches: 0,
+    newUpdatesThisWeek: 0,
+    activeMonitoring: 7, // Static for now - represents agencies being monitored
+    myAccountStatus: 'Free',
     loading: true,
     error: null
   });
@@ -25,48 +25,50 @@ export const useDashboardMetrics = () => {
       try {
         setMetrics(prev => ({ ...prev, loading: true, error: null }));
 
-        // Get total users count
-        const { count: totalUsers, error: usersError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          // If no user, show general metrics
+          setMetrics({
+            myRecentSearches: 0,
+            newUpdatesThisWeek: 47, // Static placeholder for regulatory updates
+            activeMonitoring: 7, // FDA, USDA, EPA, FSIS, CDC, EMA, FTC
+            myAccountStatus: 'Sign in to view your data',
+            loading: false,
+            error: null
+          });
+          return;
+        }
 
-        if (usersError) throw usersError;
-
-        // Get recent admin activities (last 24 hours)
-        const twentyFourHoursAgo = new Date();
-        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-
-        const { count: recentAdminActivities, error: adminError } = await supabase
-          .from('admin_activities')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', twentyFourHoursAgo.toISOString());
-
-        if (adminError) throw adminError;
-
-        // Get recent searches (last 30 days)
+        // Get user's search count (last 30 days)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const { count: recentSearches, error: searchError } = await supabase
+        const { count: mySearchCount, error: searchError } = await supabase
           .from('perplexity_searches')
           .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
           .gte('created_at', thirtyDaysAgo.toISOString());
 
         if (searchError) throw searchError;
 
-        // Get active subscribers
-        const { count: activeSubscribers, error: subscribersError } = await supabase
+        // Get user's subscription status
+        const { data: subscriber } = await supabase
           .from('subscribers')
-          .select('*', { count: 'exact', head: true })
-          .eq('subscribed', true);
+          .select('subscribed, subscription_tier')
+          .eq('user_id', user.id)
+          .single();
 
-        if (subscribersError) throw subscribersError;
+        const accountStatus = subscriber?.subscribed 
+          ? (subscriber.subscription_tier?.charAt(0).toUpperCase() + subscriber.subscription_tier?.slice(1) || 'Pro')
+          : 'Free';
 
         setMetrics({
-          totalUsers: totalUsers || 0,
-          recentAdminActivities: recentAdminActivities || 0,
-          recentSearches: recentSearches || 0,
-          activeSubscribers: activeSubscribers || 0,
+          myRecentSearches: mySearchCount || 0,
+          newUpdatesThisWeek: 47, // Placeholder - would be actual regulatory updates
+          activeMonitoring: 7, // Number of agencies monitored
+          myAccountStatus: accountStatus,
           loading: false,
           error: null
         });

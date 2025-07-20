@@ -23,7 +23,8 @@ import {
   CreditCard,
   RefreshCw,
   Users,
-  Activity
+  Activity,
+  Search as SearchIcon
 } from "lucide-react";
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { RegulatoryFeed } from "@/components/RegulatoryFeed";
@@ -204,38 +205,12 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">My Recent Searches</CardTitle>
+                <SearchIcon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {metrics.loading ? "..." : metrics.totalUsers}
-                </div>
-                <p className="text-xs text-muted-foreground">Registered users</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Admin Activity</CardTitle>
-                <Activity className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {metrics.loading ? "..." : metrics.recentAdminActivities}
-                </div>
-                <p className="text-xs text-muted-foreground">Last 24 hours</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Recent Searches</CardTitle>
-                <Search className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {metrics.loading ? "..." : metrics.recentSearches}
+                  {metrics.loading ? "..." : metrics.myRecentSearches}
                 </div>
                 <p className="text-xs text-muted-foreground">Last 30 days</p>
               </CardContent>
@@ -243,14 +218,40 @@ const Dashboard = () => {
             
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Subscribers</CardTitle>
+                <CardTitle className="text-sm font-medium">New Updates</CardTitle>
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {metrics.loading ? "..." : metrics.newUpdatesThisWeek}
+                </div>
+                <p className="text-xs text-muted-foreground">This week</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Agencies Monitored</CardTitle>
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {metrics.loading ? "..." : metrics.activeSubscribers}
+                  {metrics.loading ? "..." : metrics.activeMonitoring}
                 </div>
-                <p className="text-xs text-muted-foreground">Active plans</p>
+                <p className="text-xs text-muted-foreground">FDA, USDA, EPA & more</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Account Plan</CardTitle>
+                <User className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {metrics.loading ? "..." : metrics.myAccountStatus}
+                </div>
+                <p className="text-xs text-muted-foreground">Current plan</p>
               </CardContent>
             </Card>
           </div>
