@@ -13,8 +13,6 @@ import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
 import AuthCallback from "./pages/AuthCallback";
 import Subscription from "./pages/Subscription";
 import { AdminDashboard } from "./pages/AdminDashboard";
@@ -22,6 +20,7 @@ import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 import { LegalFramework } from "./components/LegalFramework";
 import { AuthGuard } from "./hooks/useAuthGuard";
+import UnifiedAuth from "./components/UnifiedAuth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,9 +70,9 @@ const App = () => (
               <Suspense fallback={<PageLoadingFallback />}>
                 <Routes>
                   <Route path="/" element={<Landing />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/auth" element={<UnifiedAuth />} />
+                  <Route path="/login" element={<UnifiedAuth />} />
+                  <Route path="/signup" element={<UnifiedAuth />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/dashboard" element={
                     <AuthGuard>
