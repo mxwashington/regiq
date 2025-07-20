@@ -81,22 +81,44 @@ export const useDashboardMetrics = () => {
           ? ((recentUsers || 0) / previousUsers) * 100 
           : 0;
 
-        // Generate mock time series data for charts
+        // Generate time series data based on actual data
         const last7Days = Array.from({ length: 7 }, (_, i) => {
           const date = new Date();
           date.setDate(date.getDate() - (6 - i));
           return date.toISOString().split('T')[0];
         });
 
-        const userSignupsOverTime = last7Days.map(date => ({
-          date,
-          signups: Math.floor(Math.random() * 10) + 1
-        }));
+        // Get actual user signups over time
+        const userSignupsOverTime = await Promise.all(
+          last7Days.map(async (date) => {
+            const nextDate = new Date(date);
+            nextDate.setDate(nextDate.getDate() + 1);
+            
+            const { count } = await supabase
+              .from('profiles')
+              .select('*', { count: 'exact', head: true })
+              .gte('created_at', date)
+              .lt('created_at', nextDate.toISOString());
+            
+            return { date, signups: count || 0 };
+          })
+        );
 
-        const dailyActiveUsers = last7Days.map(date => ({
-          date,
-          users: Math.floor(Math.random() * 50) + 10
-        }));
+        // Get actual daily active users (based on last_seen_at)
+        const dailyActiveUsers = await Promise.all(
+          last7Days.map(async (date) => {
+            const nextDate = new Date(date);
+            nextDate.setDate(nextDate.getDate() + 1);
+            
+            const { count } = await supabase
+              .from('profiles')
+              .select('*', { count: 'exact', head: true })
+              .gte('last_seen_at', date)
+              .lt('last_seen_at', nextDate.toISOString());
+            
+            return { date, users: count || 0 };
+          })
+        );
 
         setMetrics({
           totalUsers: totalUsers || 0,
