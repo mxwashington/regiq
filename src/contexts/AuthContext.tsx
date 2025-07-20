@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('No session, clearing profile data...');
       userProfile.clearProfile();
     }
-  }, [sessionManager.session, userProfile]);
+  }, [sessionManager.session, userProfile.checkAdminStatus, userProfile.updateUserActivity, userProfile.clearProfile]);
 
   // Session health monitoring
   useEffect(() => {
