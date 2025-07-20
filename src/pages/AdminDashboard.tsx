@@ -21,10 +21,10 @@ const AdminDashboard = () => {
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <Routes>
-        <Route index element={<AdminNavigation />} />
+        <Route index element={<EnterpriseAdminDashboard />} />
+        <Route path="user-management" element={<AdminNavigation />} />
         <Route path="analytics" element={<FDAAnalyticsDashboard />} />
-        <Route path="users" element={<EnterpriseAdminDashboard />} />
-        <Route path="settings" element={<EnterpriseAdminDashboard />} />
+        <Route path="settings" element={<AdminNavigation />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </div>

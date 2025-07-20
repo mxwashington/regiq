@@ -10,8 +10,8 @@ const adminNavItems = [{
   icon: BarChart3,
   description: 'Usage metrics and insights'
 }, {
-  title: 'Users',
-  path: '/admin/users',
+  title: 'User Management',
+  path: '/admin/user-management',
   icon: Users,
   description: 'User management and roles'
 }, {
