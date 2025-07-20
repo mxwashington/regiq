@@ -45,7 +45,19 @@ export default function UnifiedAuth() {
           title: 'Success',
           description: 'Signed in successfully!',
         });
-        navigate('/dashboard');
+        
+        // Check if user is admin and redirect accordingly
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('user_id', data.user.id)
+          .single();
+        
+        if (profile?.is_admin) {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
       toast({
