@@ -497,18 +497,18 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       </div>
 
       {/* Feed Items */}
-      {filteredData.length === 0 ? (
+      {(filteredData ?? []).length === 0 ? (
         <Card className="text-center py-12">
           <CardContent>
             <Info className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No results found</h3>
+            <h3 className="text-lg font-medium mb-2">No regulatory updates to display</h3>
             <p className="text-muted-foreground">
-              Try adjusting your filters or search query to see more results.
+              The regulatory feed is currently unavailable. Please try again later.
             </p>
           </CardContent>
         </Card>
       ) : (
-        Array.isArray(filteredData) && filteredData.map((item) => {
+        (filteredData ?? []).map((item) => {
           const UrgencyIcon = getUrgencyIcon(item.urgencyLevel);
           const isExpanded = expandedItems.has(item.id);
           const isSaved = savedItems.has(item.id);
