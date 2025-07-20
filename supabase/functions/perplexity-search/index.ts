@@ -95,7 +95,13 @@ serve(async (req) => {
     const enhancedQuery = buildRegulatoryQuery(searchRequest);
     
     // Check cache first (1-hour cache)
-    const cacheKey = btoa(encodeURIComponent(enhancedQuery)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+    let cacheKey;
+    try {
+      cacheKey = btoa(encodeURIComponent(enhancedQuery)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+    } catch (error) {
+      logStep("Cache key generation failed, using fallback", { error: error.message });
+      cacheKey = btoa(searchRequest.query).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+    }
     const cacheExpiry = new Date();
     cacheExpiry.setHours(cacheExpiry.getHours() - 1);
 
@@ -160,7 +166,11 @@ serve(async (req) => {
 
     // Process the response
     const result = {
-      content: data.choices[0].message.content,
+      response: data.choices[0].message.content,
+      sources: extractCitations(data.choices[0].message.content).map(url => ({
+        title: url.split('/').pop() || 'Government Source',
+        url: url
+      })),
       citations: extractCitations(data.choices[0].message.content),
       related_questions: data.choices[0].message.related_questions || [],
       urgency_score: calculateUrgencyScore(data.choices[0].message.content),
