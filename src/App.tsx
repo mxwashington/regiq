@@ -77,11 +77,6 @@ const App = () => (
                   <Route path="/signup" element={<UnifiedAuth />} />
                   <Route path="/auth/reset-password" element={<ResetPassword />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/dashboard" element={
-                    <AuthGuard>
-                      <Dashboard />
-                    </AuthGuard>
-                  } />
                   
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/admin/*" element={

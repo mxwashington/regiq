@@ -23,8 +23,12 @@ const agencies = [
   { id: "usda", name: "USDA", color: "agency-usda" },
   { id: "epa", name: "EPA", color: "agency-epa" },
   { id: "fsis", name: "FSIS", color: "agency-fda" },
+  { id: "cdc", name: "CDC", color: "agency-cdc" },
+  { id: "osha", name: "OSHA", color: "agency-osha" },
+  { id: "ftc", name: "FTC", color: "agency-ftc" },
   { id: "ema", name: "EMA", color: "agency-ema" },
-  { id: "efsa", name: "EFSA", color: "agency-ema" }
+  { id: "efsa", name: "EFSA", color: "agency-ema" },
+  { id: "canada_health", name: "Health Canada", color: "agency-canada" }
 ];
 
 const industries = [

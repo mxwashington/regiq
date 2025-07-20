@@ -8,6 +8,7 @@ import { DataFreshnessIndicator } from '@/components/DataFreshnessIndicator';
 import { AlertsCleanStatus } from '@/components/AlertsCleanStatus';
 import { Button } from '@/components/ui/button';
 import { Shield } from 'lucide-react';
+import { DataRefreshButton } from '@/components/DataRefreshButton';
 import Dashboard from './Dashboard';
 
 const AdminDashboard = () => {
@@ -27,7 +28,15 @@ const AdminDashboard = () => {
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <Routes>
-        <Route path="dashboard" element={<EnterpriseAdminDashboard />} />
+        <Route path="dashboard" element={
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+              <DataRefreshButton />
+            </div>
+            <EnterpriseAdminDashboard />
+          </div>
+        } />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="user-view" element={
           <div className="space-y-6">

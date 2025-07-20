@@ -31,9 +31,10 @@ export default function PerplexitySearch() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastSearchTime, setLastSearchTime] = useState<number>(0);
   const { toast } = useToast();
 
-  const availableAgencies = ['FDA', 'USDA', 'EPA', 'FSIS', 'CDC'];
+  const availableAgencies = ['FDA', 'USDA', 'EPA', 'FSIS', 'CDC', 'OSHA', 'FTC', 'EFSA', 'Health Canada'];
   const industries = ['Food & Beverage', 'Pharmaceuticals', 'Medical Devices', 'Chemicals', 'Agriculture', 'Cosmetics'];
 
   const handleSearch = async () => {
@@ -46,10 +47,27 @@ export default function PerplexitySearch() {
       return;
     }
 
+    // Rate limiting: prevent searches within 3 seconds of each other
+    const now = Date.now();
+    if (now - lastSearchTime < 3000) {
+      toast({
+        title: "Search Too Frequent",
+        description: "Please wait a moment before searching again",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setLastSearchTime(now);
 
     try {
+      // Add timeout to prevent hanging requests
+      const timeoutId = setTimeout(() => {
+        throw new Error('Search request timed out');
+      }, 30000); // 30 second timeout
+
       const { data, error } = await supabase.functions.invoke('perplexity-search', {
         body: {
           query: query.trim(),
@@ -59,6 +77,8 @@ export default function PerplexitySearch() {
           searchType
         }
       });
+
+      clearTimeout(timeoutId);
 
       if (error) {
         throw new Error(error.message);
