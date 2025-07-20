@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Shield, Zap, Bell, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { MobileNavigation } from "@/components/MobileNavigation";
 
 import { FeatureShowcase } from "@/components/FeatureShowcase";
@@ -15,8 +16,13 @@ import { DemoInteractiveDashboard } from "@/components/DemoInteractiveDashboard"
 import { useState } from "react";
 
 const Landing = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const { isAdmin } = useAdminAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  
+  const getDashboardUrl = () => {
+    return isAdmin ? "/admin/dashboard" : "/dashboard";
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5">
@@ -31,9 +37,14 @@ const Landing = () => {
             <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
             <a href="#platform" className="text-muted-foreground hover:text-foreground transition-colors">Platform</a>
             {user ? (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={getDashboardUrl()}>Dashboard</Link>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  Sign Out
+                </Button>
+              </>
             ) : (
               <>
                 <Button variant="outline" size="sm" asChild>
@@ -212,7 +223,7 @@ const Landing = () => {
             Start getting free regulatory alerts today. No credit card required.
           </p>
           <Button size="lg" asChild>
-            <Link to={user ? "/dashboard" : "/auth"}>
+            <Link to={user ? getDashboardUrl() : "/auth"}>
               Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
