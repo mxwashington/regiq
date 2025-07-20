@@ -203,6 +203,48 @@ export type Database = {
         }
         Relationships: []
       }
+      data_sources: {
+        Row: {
+          agency: string
+          created_at: string
+          fetch_interval: number | null
+          id: string
+          is_active: boolean
+          last_fetched_at: string | null
+          metadata: Json | null
+          name: string
+          source_type: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          agency: string
+          created_at?: string
+          fetch_interval?: number | null
+          id?: string
+          is_active?: boolean
+          last_fetched_at?: string | null
+          metadata?: Json | null
+          name: string
+          source_type: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          agency?: string
+          created_at?: string
+          fetch_interval?: number | null
+          id?: string
+          is_active?: boolean
+          last_fetched_at?: string | null
+          metadata?: Json | null
+          name?: string
+          source_type?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       demo_content: {
         Row: {
           content: Json
