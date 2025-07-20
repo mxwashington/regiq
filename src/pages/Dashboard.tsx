@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   LogOut,
   CreditCard,
-  RefreshCw
+  RefreshCw,
+  MessageCircle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
@@ -27,7 +28,7 @@ import { EnhancedAlertsDashboard } from '@/components/EnhancedAlertsDashboard';
 import { AdminNavigation } from '@/components/AdminNavigation';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { RegulatoryFeed } from '@/components/RegulatoryFeed';
-import PerplexitySearch from '@/components/PerplexitySearch';
+import { ThirdShiftChatbot } from '@/components/ThirdShiftChatbot';
 import { MobileNavigation } from '@/components/MobileNavigation';
 import { useNavigationHelper } from '@/components/NavigationHelper';
 import { SessionStatusIndicator } from '@/components/SessionStatusIndicator';
@@ -49,6 +50,7 @@ const Dashboard = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [stats, setStats] = useState({
     newUpdates: 0,
     highPriority: 0,
@@ -243,6 +245,12 @@ const Dashboard = () => {
               <EnhancedAlertsDashboard />
             </div>
           </main>
+
+          {/* ThirdShift.ai Chatbot */}
+          <ThirdShiftChatbot 
+            isOpen={isChatbotOpen} 
+            onToggle={() => setIsChatbotOpen(!isChatbotOpen)} 
+          />
         </div>
       </DashboardErrorBoundary>
     );
@@ -261,12 +269,16 @@ const Dashboard = () => {
               </div>
               <Separator orientation="vertical" className="h-6" />
               <nav className="hidden md:flex items-center space-x-6">
-                <Button variant="ghost" size="sm" className="font-medium">Dashboard</Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/search">Search</Link>
-                </Button>
-                <Button variant="ghost" size="sm">Alerts</Button>
-                <Button variant="ghost" size="sm">Saved Items</Button>
+                <Button variant="ghost" size="sm" className="font-medium bg-secondary">Dashboard</Button>
+                <Button variant="ghost" size="sm" onClick={() => navigateTo('/search')}>Search</Button>
+                <Button variant="ghost" size="sm" onClick={() => {
+                  // Filter to show only high priority alerts
+                  setSelectedFilters(prev => ({ ...prev, urgency: ['High'] }));
+                }}>Alerts</Button>
+                <Button variant="ghost" size="sm" onClick={() => {
+                  // Future: Implement saved items functionality
+                  console.log('Saved items feature coming soon');
+                }}>Saved Items</Button>
               </nav>
             </div>
 
@@ -336,47 +348,56 @@ const Dashboard = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
+              setSelectedFilters(prev => ({ ...prev, dateRange: '1day' }));
+            }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">New Updates</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.newUpdates}</div>
-                <p className="text-xs text-muted-foreground">Last 24 hours</p>
+                <p className="text-xs text-muted-foreground">Last 24 hours • Click to filter</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
+              setSelectedFilters(prev => ({ ...prev, urgency: ['High'] }));
+            }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">High Priority</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.highPriority}</div>
-                <p className="text-xs text-muted-foreground">Require attention</p>
+                <p className="text-xs text-muted-foreground">Require attention • Click to filter</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
+              setSelectedFilters(prev => ({ ...prev, dateRange: '30days' }));
+            }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
                 <Bell className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.activeAlerts}</div>
-                <p className="text-xs text-muted-foreground">This month</p>
+                <p className="text-xs text-muted-foreground">This month • Click to filter</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
+              // Show agencies view
+              console.log('Show agencies coverage details');
+            }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Coverage</CardTitle>
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.sources}</div>
-                <p className="text-xs text-muted-foreground">Agencies monitored</p>
+                <p className="text-xs text-muted-foreground">Agencies monitored • Click for details</p>
               </CardContent>
             </Card>
           </div>
@@ -400,8 +421,8 @@ const Dashboard = () => {
                     Feed
                   </TabsTrigger>
                   <TabsTrigger value="search" className="flex items-center gap-2">
-                    <Search className="h-4 w-4" />
-                    AI Search
+                    <MessageCircle className="h-4 w-4" />
+                    ThirdShift.ai
                   </TabsTrigger>
                   <TabsTrigger value="trends" className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
@@ -500,15 +521,14 @@ const Dashboard = () => {
                 <TabsContent value="search" className="mt-6">
                   <div className="space-y-6">
                     <div className="text-center py-8 border border-dashed border-border rounded-lg">
-                      <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Advanced AI Search</h3>
-                      <p className="text-muted-foreground mb-4">Access powerful regulatory intelligence search with advanced filters and analytics</p>
-                      <Button onClick={() => navigateTo('/search')} className="w-auto">
-                        <Search className="mr-2 h-4 w-4" />
-                        Go to Advanced Search
+                      <MessageCircle className="h-12 w-12 mx-auto text-primary mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">ThirdShift.ai Assistant</h3>
+                      <p className="text-muted-foreground mb-4">Get instant regulatory intelligence with our AI-powered chatbot using OpenAI and Perplexity</p>
+                      <Button onClick={() => setIsChatbotOpen(true)} className="w-auto">
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Open ThirdShift.ai Chat
                       </Button>
                     </div>
-                    <PerplexitySearch />
                   </div>
                 </TabsContent>
 
@@ -531,6 +551,12 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* ThirdShift.ai Chatbot */}
+        <ThirdShiftChatbot 
+          isOpen={isChatbotOpen} 
+          onToggle={() => setIsChatbotOpen(!isChatbotOpen)} 
+        />
       </div>
     </DashboardErrorBoundary>
   );

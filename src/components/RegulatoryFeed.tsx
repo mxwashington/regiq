@@ -116,6 +116,23 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       );
     }
 
+    // Apply signal type filter
+    if (selectedFilters.signalTypes.length > 0) {
+      filtered = filtered.filter(item => {
+        // Extract signal type from full_content or detect from title/summary
+        let itemSignalType = 'Market Signal'; // default
+        
+        try {
+          const fullContent = JSON.parse(item.full_content || '{}');
+          itemSignalType = fullContent.signal_type || detectSignalType(item.title, item.summary);
+        } catch {
+          itemSignalType = detectSignalType(item.title, item.summary);
+        }
+        
+        return selectedFilters.signalTypes.includes(itemSignalType);
+      });
+    }
+
     return filtered;
   }, [alerts, searchQuery, selectedFilters]);
 
@@ -153,6 +170,19 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       case 'medium': return "bg-orange-100 text-orange-800 border-orange-200";
       default: return "bg-blue-100 text-blue-800 border-blue-200";
     }
+  };
+
+  // Helper function to detect signal type from text
+  const detectSignalType = (title: string, description: string): string => {
+    const text = (title + ' ' + description).toLowerCase();
+    
+    if (text.includes('recall') || text.includes('withdrawn')) return 'Recall';
+    if (text.includes('warning letter') || text.includes('warning to')) return 'Warning Letter';
+    if (text.includes('guidance') || text.includes('draft guidance') || text.includes('final guidance')) return 'Guidance';
+    if (text.includes('rule') || text.includes('regulation') || text.includes('cfr') || text.includes('federal register')) return 'Rule Change';
+    if (text.includes('alert') || text.includes('safety communication') || text.includes('advisory')) return 'Market Signal';
+    
+    return 'Market Signal'; // default
   };
 
   const formatDate = (dateString: string) => {
