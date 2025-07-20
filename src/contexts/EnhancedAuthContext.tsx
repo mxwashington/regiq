@@ -133,8 +133,14 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
     try {
       console.log('Attempting to extend session for user:', userId);
       
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await ipResponse.json();
+      // Use the IP detection service instead of direct API calls
+      const { ipDetectionService } = await import('@/services/ipDetection');
+      const ip = await ipDetectionService.getCurrentIP();
+      
+      if (!ip) {
+        console.warn('Could not detect IP for session extension');
+        return;
+      }
       
       const { data: shouldExtend } = await supabase.rpc('should_extend_session', {
         user_id_param: userId,

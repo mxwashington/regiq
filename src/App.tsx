@@ -10,6 +10,7 @@ import { DemoProvider } from "@/contexts/DemoContext";
 import { AdminProtectedRoute } from "@/hooks/useAdminAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
+import Debug from "./pages/Debug";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -89,6 +90,7 @@ const App = () => (
                     </AdminProtectedRoute>
                   } />
                   <Route path="/legal" element={<LegalFramework />} />
+                  <Route path="/debug" element={<Debug />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

@@ -96,11 +96,11 @@ export const useUserProfile = () => {
     try {
       console.log('Updating user activity for:', userId);
       
-      // Get current IP
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await ipResponse.json();
+      // Use the IP detection service instead of direct API calls
+      const { ipDetectionService } = await import('@/services/ipDetection');
+      const ip = await ipDetectionService.getCurrentIP();
       
-      // Update user activity
+      // Update user activity (IP can be null, which is fine)
       await supabase.rpc('update_user_activity', {
         user_id_param: userId,
         ip_address_param: ip

@@ -6,68 +6,90 @@ import { Shield, Wifi, AlertTriangle } from 'lucide-react';
 import { useIPTracking } from '@/hooks/useIPTracking';
 import { useAuth } from '@/contexts/AuthContext';
 import { SessionHealthMonitor } from './SessionHealthMonitor';
+import { IPServiceErrorBoundary } from './IPServiceErrorBoundary';
 
 export const SessionStatusIndicator = () => {
   const { user, isHealthy } = useAuth();
-  const { ipInfo, loading } = useIPTracking();
+  const { ipInfo, loading, error } = useIPTracking();
 
-  if (!user || loading) return null;
+  if (!user) return null;
 
   return (
-    <div className="flex items-center gap-2">
-      <SessionHealthMonitor />
-      
-      {isHealthy && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant={ipInfo?.isTrusted ? "default" : "secondary"}
-                  className="flex items-center gap-1"
-                >
-                  {ipInfo?.isTrusted ? (
+    <IPServiceErrorBoundary>
+      <div className="flex items-center gap-2">
+        <SessionHealthMonitor />
+        
+        {isHealthy && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant={error ? "destructive" : ipInfo?.isTrusted ? "default" : "secondary"}
+                    className="flex items-center gap-1 cursor-help"
+                  >
+                    {error ? (
+                      <>
+                        <AlertTriangle className="h-3 w-3" />
+                        IP Service Error
+                      </>
+                    ) : loading ? (
+                      <>
+                        <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                        Loading...
+                      </>
+                    ) : ipInfo?.isTrusted ? (
+                      <>
+                        <Shield className="h-3 w-3" />
+                        Trusted Session
+                      </>
+                    ) : (
+                      <>
+                        <Wifi className="h-3 w-3" />
+                        Active Session
+                      </>
+                    )}
+                  </Badge>
+                  
+                  {ipInfo?.sessionExtended && !error && (
+                    <Badge variant="outline" className="text-xs">
+                      Extended
+                    </Badge>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <div className="space-y-2">
+                  <div className="font-medium">Session Status</div>
+                  {error ? (
                     <>
-                      <Shield className="h-3 w-3" />
-                      Trusted Session
+                      <div className="text-destructive">IP service unavailable</div>
+                      <div className="text-xs text-muted-foreground">
+                        Session tracking continues without IP detection
+                      </div>
+                    </>
+                  ) : loading ? (
+                    <div>Loading session information...</div>
+                  ) : ipInfo ? (
+                    <>
+                      <div>IP: {ipInfo.ip}</div>
+                      <div>Status: {ipInfo.isTrusted ? 'Trusted device' : 'Active session'}</div>
+                      {ipInfo.sessionExtended && (
+                        <div className="text-green-600">Extended for 30 days</div>
+                      )}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        IP tracking helps maintain your session across visits
+                      </div>
                     </>
                   ) : (
-                    <>
-                      <Wifi className="h-3 w-3" />
-                      Active Session
-                    </>
+                    <div>Session active without IP tracking</div>
                   )}
-                </Badge>
-                
-                {ipInfo?.sessionExtended && (
-                  <Badge variant="outline" className="text-xs">
-                    Extended
-                  </Badge>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="text-sm">
-                <div className="font-medium mb-1">Session Status</div>
-                {ipInfo ? (
-                  <>
-                    <div>IP: {ipInfo.ip}</div>
-                    <div>Status: {ipInfo.isTrusted ? 'Trusted device' : 'Active session'}</div>
-                    {ipInfo.sessionExtended && (
-                      <div className="text-green-600">Extended for 30 days</div>
-                    )}
-                    <div className="text-xs text-muted-foreground mt-1">
-                      IP tracking helps maintain your session across visits
-                    </div>
-                  </>
-                ) : (
-                  <div>Loading session info...</div>
-                )}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-    </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+    </IPServiceErrorBoundary>
   );
 };

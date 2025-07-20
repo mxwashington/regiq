@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { ipDetectionService } from '@/services/ipDetection';
 
 interface IPInfo {
   ip: string;
@@ -11,118 +12,137 @@ interface IPInfo {
 export const useIPTracking = () => {
   const [ipInfo, setIPInfo] = useState<IPInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user, session } = useAuth();
 
-  // Get user's IP address
-  const getCurrentIP = async (): Promise<string | null> => {
-    try {
-      // Try multiple IP services for reliability
-      const ipServices = [
-        'https://api.ipify.org?format=json',
-        'https://ipapi.co/json/',
-        'https://httpbin.org/ip'
-      ];
-
-      for (const service of ipServices) {
-        try {
-          const response = await fetch(service);
-          const data = await response.json();
-          return data.ip || data.origin || null;
-        } catch (error) {
-          console.warn(`IP service ${service} failed:`, error);
-          continue;
-        }
-      }
-      return null;
-    } catch (error) {
-      console.error('Failed to get IP address:', error);
-      return null;
-    }
-  };
-
-  // Update user activity and IP tracking
-  const updateUserActivity = async (ipAddress?: string) => {
+  // Update user activity with proper error handling
+  const updateUserActivity = useCallback(async (ipAddress?: string) => {
     if (!user || !session) return;
 
     try {
-      const currentIP = ipAddress || await getCurrentIP();
-      if (!currentIP) return;
-
-      // Call the database function to update activity
-      const { error } = await supabase.rpc('update_user_activity', {
-        user_id_param: user.id,
-        ip_address_param: currentIP
-      });
-
-      if (error) {
-        console.error('Failed to update user activity:', error);
-        return;
-      }
-
-      // Check if session should be extended
-      const { data: shouldExtend, error: checkError } = await supabase.rpc('should_extend_session', {
-        user_id_param: user.id,
-        current_ip: currentIP
-      });
-
-      if (checkError) {
-        console.error('Failed to check session extension:', checkError);
-        return;
-      }
-
-      setIPInfo({
-        ip: currentIP,
-        isTrusted: shouldExtend || false,
-        sessionExtended: shouldExtend || false
-      });
-
-      // If session should be extended, refresh the auth token
-      if (shouldExtend) {
-        await supabase.auth.refreshSession();
-      }
-
-    } catch (error) {
-      console.error('Error in updateUserActivity:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Track IP on authentication state changes
-  useEffect(() => {
-    if (user && session) {
-      updateUserActivity();
+      let currentIP = ipAddress;
       
-      // Set up periodic activity updates (every 5 minutes)
-      const interval = setInterval(() => {
-        updateUserActivity();
-      }, 5 * 60 * 1000);
+      if (!currentIP) {
+        // Use the IP detection service with circuit breaker
+        currentIP = await ipDetectionService.getCurrentIP();
+      }
 
-      return () => clearInterval(interval);
-    } else {
-      setLoading(false);
-      setIPInfo(null);
+      // Continue with user activity update even if IP detection fails
+      const { error: activityError } = await supabase.rpc('update_user_activity', {
+        user_id_param: user.id,
+        ip_address_param: currentIP // This can be null, which is fine
+      });
+
+      if (activityError) {
+        console.warn('Failed to update user activity:', activityError);
+        return;
+      }
+
+      // Check if session should be extended (only if we have an IP)
+      if (currentIP) {
+        const { data: shouldExtend } = await supabase.rpc('should_extend_session', {
+          user_id_param: user.id,
+          current_ip: currentIP
+        });
+
+        // Update trusted IP list if needed
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('trusted_ips')
+          .eq('user_id', user.id)
+          .single();
+
+        const trustedIPs = profile?.trusted_ips || [];
+        const isTrusted = trustedIPs.includes(currentIP);
+
+        setIPInfo({
+          ip: currentIP,
+          isTrusted,
+          sessionExtended: shouldExtend || false
+        });
+
+        // If session should be extended, refresh the auth token
+        if (shouldExtend) {
+          await supabase.auth.refreshSession();
+        }
+      } else {
+        // Set minimal info when IP detection fails
+        setIPInfo({
+          ip: 'Unknown',
+          isTrusted: false,
+          sessionExtended: false
+        });
+      }
+
+      setError(null);
+    } catch (error) {
+      console.error('Error in user activity tracking:', error);
+      setError(error instanceof Error ? error.message : 'Unknown error');
+      
+      // Set fallback state
+      setIPInfo({
+        ip: 'Detection failed',
+        isTrusted: false,
+        sessionExtended: false
+      });
     }
   }, [user, session]);
 
-  // Track activity on page interactions
+  // Initialize IP tracking on component mount and user change
   useEffect(() => {
-    const trackActivity = () => {
-      if (user && session) {
-        updateUserActivity();
-      }
-    };
+    if (!user || !session) {
+      setLoading(false);
+      setIPInfo(null);
+      return;
+    }
 
-    // Track mouse movements, clicks, and keyboard activity
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    setLoading(true);
+    setError(null);
+    
+    // Add a small delay to prevent immediate requests on mount
+    const timer = setTimeout(() => {
+      updateUserActivity().finally(() => setLoading(false));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [user, session, updateUserActivity]);
+
+  // Periodic activity updates with throttling
+  useEffect(() => {
+    if (!user || !session) return;
+
+    // Set up periodic activity updates (every 10 minutes instead of 5)
+    const interval = setInterval(() => {
+      updateUserActivity();
+    }, 10 * 60 * 1000); // Reduced frequency
+
+    return () => clearInterval(interval);
+  }, [user, session, updateUserActivity]);
+
+  // Track activity on page interactions with heavy throttling
+  useEffect(() => {
+    if (!user || !session) return;
+
     let activityTimeout: NodeJS.Timeout;
+    let lastActivity = 0;
+    const ACTIVITY_THROTTLE = 5 * 60 * 1000; // 5 minutes minimum between activity updates
 
     const handleActivity = () => {
-      // Debounce activity tracking to avoid too many calls
+      const now = Date.now();
+      if (now - lastActivity < ACTIVITY_THROTTLE) {
+        return; // Throttle activity updates
+      }
+
       clearTimeout(activityTimeout);
-      activityTimeout = setTimeout(trackActivity, 30000); // Track after 30s of activity
+      activityTimeout = setTimeout(() => {
+        lastActivity = Date.now();
+        updateUserActivity();
+      }, 30000); // Track after 30s of activity
     };
 
+    // Reduced event tracking to prevent excessive calls
+    const events = ['mousedown', 'keydown'];
+    
     events.forEach(event => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
@@ -133,12 +153,36 @@ export const useIPTracking = () => {
         document.removeEventListener(event, handleActivity);
       });
     };
-  }, [user, session]);
+  }, [user, session, updateUserActivity]);
+
+  // Manual refresh function with throttling
+  const refresh = useCallback(async () => {
+    if (loading) return; // Prevent concurrent refreshes
+    
+    setLoading(true);
+    await updateUserActivity();
+    setLoading(false);
+  }, [loading, updateUserActivity]);
+
+  // Get service status for debugging
+  const getServiceStatus = useCallback(() => {
+    return ipDetectionService.getStatus();
+  }, []);
+
+  // Clear cache function
+  const clearCache = useCallback(() => {
+    ipDetectionService.clearCache();
+    setIPInfo(null);
+    setError(null);
+  }, []);
 
   return {
     ipInfo,
     loading,
+    error,
     updateUserActivity,
-    getCurrentIP
+    refresh,
+    getServiceStatus,
+    clearCache
   };
 };
