@@ -88,15 +88,35 @@ const Dashboard = () => {
     dateRange: "7days" as string
   });
 
-  useEffect(() => {
-    searchCacheUtils.cleanExpiredCache();
+  // All hooks must be defined before any conditional returns
+  const handleFilterChange = useCallback((filterType: string, value: string) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      [filterType]: prev[filterType as keyof typeof prev].includes(value)
+        ? (prev[filterType as keyof typeof prev] as string[]).filter(item => item !== value)
+        : [...(prev[filterType as keyof typeof prev] as string[]), value]
+    }));
   }, []);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigateTo('/login');
-    }
-  }, [user, loading, navigateTo]);
+  const clearAllFilters = useCallback(() => {
+    setSelectedFilters({
+      agencies: [],
+      industries: [],
+      urgency: [],
+      signalTypes: [],
+      dateRange: "7days"
+    });
+    setSearchQuery("");
+  }, []);
+
+  const getActiveFilterCount = useCallback(() => {
+    return Object.values(selectedFilters).reduce((count, filters) => {
+      if (Array.isArray(filters)) {
+        return count + filters.length;
+      }
+      return filters !== "7days" ? count + 1 : count;
+    }, 0);
+  }, [selectedFilters]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -113,6 +133,17 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  useEffect(() => {
+    searchCacheUtils.cleanExpiredCache();
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigateTo('/login');
+    }
+  }, [user, loading, navigateTo]);
+
+  // Now conditional returns are safe since all hooks are defined above
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -183,36 +214,6 @@ const Dashboard = () => {
       </DashboardErrorBoundary>
     );
   }
-
-  // Regular user gets the new dashboard
-  const handleFilterChange = useCallback((filterType: string, value: string) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      [filterType]: prev[filterType as keyof typeof prev].includes(value)
-        ? (prev[filterType as keyof typeof prev] as string[]).filter(item => item !== value)
-        : [...(prev[filterType as keyof typeof prev] as string[]), value]
-    }));
-  }, []);
-
-  const clearAllFilters = useCallback(() => {
-    setSelectedFilters({
-      agencies: [],
-      industries: [],
-      urgency: [],
-      signalTypes: [],
-      dateRange: "7days"
-    });
-    setSearchQuery("");
-  }, []);
-
-  const getActiveFilterCount = useCallback(() => {
-    return Object.values(selectedFilters).reduce((count, filters) => {
-      if (Array.isArray(filters)) {
-        return count + filters.length;
-      }
-      return filters !== "7days" ? count + 1 : count;
-    }, 0);
-  }, [selectedFilters]);
 
   return (
     <DashboardErrorBoundary>
