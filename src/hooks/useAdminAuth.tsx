@@ -1,50 +1,81 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-export function useAdminAuth() {
-  const { user, isAdmin, adminRole, adminPermissions, loading } = useAuth();
-  
-  return { 
-    user, 
-    isAdmin, 
-    adminRole, 
-    adminPermissions, 
-    loading 
+interface AdminProfile {
+  role: string;
+  is_admin: boolean;
+  full_name?: string;
+  email: string;
+}
+
+export const useAdminAuth = () => {
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        setAdminProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role, is_admin, full_name, email')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching admin status:', error);
+          setIsAdmin(false);
+          setAdminProfile(null);
+        } else {
+          const adminStatus = profile?.role === 'admin' || profile?.is_admin === true;
+          setIsAdmin(adminStatus);
+          setAdminProfile(profile as AdminProfile);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+        setAdminProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  const logAdminActivity = async (action: string, targetType?: string, targetId?: string, details?: any) => {
+    if (!user || !isAdmin) return;
+
+    try {
+      await supabase
+        .from('admin_activities')
+        .insert({
+          admin_user_id: user.id,
+          action,
+          target_type: targetType,
+          target_id: targetId,
+          details: details || {},
+          ip_address: null, // Could be enhanced to capture real IP
+          user_agent: navigator.userAgent
+        });
+    } catch (error) {
+      console.error('Error logging admin activity:', error);
+    }
   };
-}
 
-export function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isAdmin, loading } = useAdminAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Verifying admin access...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground mb-4">
-            You don't have admin privileges to access this area.
-          </p>
-          <Navigate to="/dashboard" replace />
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-}
+  return {
+    isAdmin,
+    adminProfile,
+    loading,
+    logAdminActivity
+  };
+};

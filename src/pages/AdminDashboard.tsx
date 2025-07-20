@@ -1,287 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { AdminNavigation } from '@/components/AdminNavigation';
+import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { EnterpriseAdminDashboard } from '@/components/EnterpriseAdminDashboard';
-import { DemoContentDisplay } from '@/components/DemoContentDisplay';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { useDemoMode } from '@/contexts/DemoContext';
-import { supabase } from '@/integrations/supabase/client';
-import { 
-  Users, 
-  Radio, 
-  BarChart3, 
-  AlertCircle, 
-  RefreshCw,
-  TrendingUp,
-  Clock,
-  Database
-} from 'lucide-react';
 
-interface AdminStats {
-  totalUsers: number;
-  activeUsers: number;
-  totalSubscribers: number;
-  feedsStatus: 'healthy' | 'warning' | 'error';
-  lastFeedUpdate: string;
-  systemHealth: 'good' | 'warning' | 'error';
-}
+const AdminDashboard = () => {
+  const { loading: authLoading } = useAuthGuard(true);
 
-export function AdminDashboard() {
-  const { user, adminRole } = useAdminAuth();
-  const { isDemoMode } = useDemoMode();
-  const [stats, setStats] = useState<AdminStats>({
-    totalUsers: 0,
-    activeUsers: 0,
-    totalSubscribers: 0,
-    feedsStatus: 'healthy',
-    lastFeedUpdate: new Date().toISOString(),
-    systemHealth: 'good'
-  });
-  const [loading, setLoading] = useState(true);
-
-  const loadAdminStats = async () => {
-    try {
-      setLoading(true);
-      
-      // Get user counts
-      const { count: totalUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-      
-      // Get subscriber counts
-      const { count: totalSubscribers } = await supabase
-        .from('subscribers')
-        .select('*', { count: 'exact', head: true })
-        .eq('subscribed', true);
-      
-      setStats({
-        totalUsers: totalUsers || 0,
-        activeUsers: Math.floor((totalUsers || 0) * 0.6), // Estimate
-        totalSubscribers: totalSubscribers || 0,
-        feedsStatus: 'healthy',
-        lastFeedUpdate: new Date().toISOString(),
-        systemHealth: 'good'
-      });
-    } catch (error) {
-      console.error('Error loading admin stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadAdminStats();
-  }, []);
-
-  const quickActions = [
-    {
-      label: 'Refresh All Feeds',
-      icon: RefreshCw,
-      action: () => console.log('Refresh feeds'),
-      variant: 'default' as const
-    },
-    {
-      label: 'Export Analytics',
-      icon: BarChart3,
-      action: () => console.log('Export analytics'),
-      variant: 'outline' as const
-    },
-    {
-      label: 'View System Logs',
-      icon: AlertCircle,
-      action: () => console.log('View logs'),
-      variant: 'outline' as const
-    },
-    {
-      label: 'Backup Database',
-      icon: Database,
-      action: () => console.log('Backup database'),
-      variant: 'outline' as const
-    }
-  ];
-
-  // Check if this is an enterprise admin
-  const isEnterpriseAdmin = adminRole === 'enterprise_admin';
-
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <AdminNavigation />
-      
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {isEnterpriseAdmin ? 'Enterprise Admin Dashboard' : 'Admin Dashboard'}
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Welcome back, {user?.email}. {isEnterpriseAdmin ? 'Full enterprise access enabled.' : "Here's what's happening with RegIQ."}
-                </p>
-              </div>
-              {isEnterpriseAdmin && (
-                <Badge variant="outline" className="text-orange-600 border-orange-600">
-                  Enterprise Admin
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          {/* Enterprise Admin Dashboard or Standard Dashboard */}
-          {isEnterpriseAdmin ? (
-            <div className="space-y-8">
-              <EnterpriseAdminDashboard />
-              {isDemoMode && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-4">Demo Content Preview</h2>
-                  <DemoContentDisplay />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              {/* Standard Admin Dashboard Content */}
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                    <p className="text-xs text-muted-foreground">
-                      +12% from last month
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.activeUsers}</div>
-                    <p className="text-xs text-muted-foreground">
-                      {Math.round((stats.activeUsers / stats.totalUsers) * 100)}% active rate
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Subscribers</CardTitle>
-                    <BarChart3 className="h-4 w-4 text-primary" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalSubscribers}</div>
-                    <p className="text-xs text-muted-foreground">
-                      {stats.totalUsers > 0 ? Math.round((stats.totalSubscribers / stats.totalUsers) * 100) : 0}% conversion rate
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">RSS Feeds</CardTitle>
-                    <Radio className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant={stats.feedsStatus === 'healthy' ? 'default' : 'destructive'}
-                      >
-                        {stats.feedsStatus}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Last updated: {new Date(stats.lastFeedUpdate).toLocaleTimeString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Quick Actions */}
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                  <CardDescription>
-                    Perform common administrative tasks
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {quickActions.map((action, index) => {
-                      const Icon = action.icon;
-                      return (
-                        <Button
-                          key={index}
-                          variant={action.variant}
-                          onClick={action.action}
-                          className="h-auto flex flex-col items-center space-y-2 p-4"
-                        >
-                          <Icon className="h-6 w-6" />
-                          <span className="text-sm text-center">{action.label}</span>
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recent Activity */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent System Activity</CardTitle>
-                  <CardDescription>
-                    Latest admin actions and system events
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                      <Clock className="h-5 w-5 text-gray-400" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Admin access granted</p>
-                        <p className="text-xs text-gray-500">
-                          {user?.email} was granted admin privileges
-                        </p>
-                      </div>
-                      <span className="text-xs text-gray-400">Just now</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                      <Radio className="h-5 w-5 text-green-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">RSS feeds refreshed</p>
-                        <p className="text-xs text-gray-500">
-                          All regulatory feeds updated successfully
-                        </p>
-                      </div>
-                      <span className="text-xs text-gray-400">2 min ago</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                      <Users className="h-5 w-5 text-blue-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">New user registration</p>
-                        <p className="text-xs text-gray-500">
-                          User registered with Starter plan
-                        </p>
-                      </div>
-                      <span className="text-xs text-gray-400">5 min ago</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+  if (authLoading) {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-6 max-w-7xl">
+      <Routes>
+        <Route index element={<AdminNavigation />} />
+        <Route path="analytics" element={<FDAAnalyticsDashboard />} />
+        <Route path="users" element={<EnterpriseAdminDashboard />} />
+        <Route path="settings" element={<EnterpriseAdminDashboard />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
     </div>
   );
-}
+};
+
+export default AdminDashboard;

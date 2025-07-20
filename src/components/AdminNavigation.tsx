@@ -1,92 +1,98 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { Link, useLocation } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
-  Home, 
-  Users, 
   BarChart3, 
+  Users, 
   Settings, 
-  LogOut,
-  Shield
+  Shield, 
+  ArrowLeft,
+  MonitorSpeaker
 } from 'lucide-react';
 
-export function AdminNavigation() {
-  const { signOut } = useAuth();
-  const { user, adminRole } = useAdminAuth();
+const adminNavItems = [
+  { 
+    title: 'Analytics', 
+    path: '/admin/analytics', 
+    icon: BarChart3,
+    description: 'Usage metrics and insights'
+  },
+  { 
+    title: 'Users', 
+    path: '/admin/users', 
+    icon: Users,
+    description: 'User management and roles'
+  },
+  { 
+    title: 'Settings', 
+    path: '/admin/settings', 
+    icon: Settings,
+    description: 'App configuration'
+  }
+];
+
+export const AdminNavigation = () => {
   const location = useLocation();
 
-  const navItems = [
-    { name: 'Dashboard', href: '/admin', icon: Home },
-    { name: 'Users', href: '/admin/users', icon: Users },
-    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-    { name: 'Settings', href: '/admin/settings', icon: Settings }
-  ];
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
   return (
-    <div className="h-screen w-64 bg-card border-r border-border flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-primary rounded-lg">
-            <Shield className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">RegIQ Admin</h2>
-            <p className="text-sm text-muted-foreground">{adminRole?.replace('_', ' ')}</p>
-          </div>
+    <div className="space-y-6">
+      {/* Admin Header */}
+      <div className="border-b pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Shield className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <Badge variant="secondary">Admin</Badge>
         </div>
+        <p className="text-muted-foreground">
+          Manage RegIQ users, settings, and analytics
+        </p>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
-            const Icon = item.icon;
-            
-            return (
-              <li key={item.name}>
-                <Link
-                  to={item.href}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-foreground hover:bg-muted'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      {/* Quick Actions */}
+      <div className="flex gap-3">
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/dashboard">
+            <MonitorSpeaker className="h-4 w-4 mr-2" />
+            View as User
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Link>
+        </Button>
+      </div>
 
-      {/* User Info & Sign Out */}
-      <div className="p-4 border-t border-border">
-        <div className="space-y-3">
-          <div className="text-sm">
-            <p className="font-medium text-foreground">{user?.email}</p>
-            <p className="text-muted-foreground">Admin Access</p>
-          </div>
-          <Button 
-            onClick={handleSignOut}
-            variant="outline" 
-            size="sm"
-            className="w-full flex items-center space-x-2"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Sign Out</span>
-          </Button>
-        </div>
+      {/* Navigation Cards */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {adminNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          
+          return (
+            <Link key={item.path} to={item.path}>
+              <Card className={`hover:shadow-md transition-shadow cursor-pointer ${
+                isActive ? 'border-primary bg-primary/5' : ''
+              }`}>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Icon className={`h-5 w-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <h3 className={`font-semibold ${isActive ? 'text-primary' : ''}`}>
+                      {item.title}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
-}
+};

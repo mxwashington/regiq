@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
-import { AdminProtectedRoute } from "@/hooks/useAdminAuth";
+
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 import Debug from "./pages/Debug";
@@ -16,11 +16,11 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 
-import { AdminDashboard } from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 import { LegalFramework } from "./components/LegalFramework";
-import { AuthGuard } from "./hooks/useAuthGuard";
+import { AdminProtectedRoute as AuthGuard } from "./hooks/useAuthGuard";
 import UnifiedAuth from "./components/UnifiedAuth";
 import ResetPassword from "./components/ResetPassword";
 
@@ -84,10 +84,10 @@ const App = () => (
                   } />
                   
                   <Route path="/search" element={<SearchPage />} />
-                  <Route path="/admin" element={
-                    <AdminProtectedRoute>
+                  <Route path="/admin/*" element={
+                    <AuthGuard>
                       <AdminDashboard />
-                    </AdminProtectedRoute>
+                    </AuthGuard>
                   } />
                   <Route path="/legal" element={<LegalFramework />} />
                   <Route path="/debug" element={<Debug />} />
