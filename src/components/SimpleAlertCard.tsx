@@ -102,7 +102,19 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2 text-xs"
-                onClick={() => window.open(alert.external_url, '_blank')}
+                onClick={() => {
+                  // Decode HTML entities in the URL
+                  const decodedUrl = alert.external_url
+                    ?.replace(/&amp;/g, '&')
+                    ?.replace(/&lt;/g, '<')
+                    ?.replace(/&gt;/g, '>')
+                    ?.replace(/&quot;/g, '"')
+                    ?.replace(/&#39;/g, "'");
+                  
+                  if (decodedUrl) {
+                    window.open(decodedUrl, '_blank', 'noopener,noreferrer');
+                  }
+                }}
               >
                 <ExternalLink className="h-3 w-3 mr-1" />
                 View Source

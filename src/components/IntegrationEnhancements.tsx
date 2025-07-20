@@ -84,10 +84,26 @@ export function IntegrationEnhancements({ searchQuery = "listeria" }: Integratio
 
     // Add FDA recall events
     fdaResults.forEach((recall, index) => {
+      // Safely parse the date
+      let timestamp: Date;
+      try {
+        if (recall.recall_initiation_date && recall.recall_initiation_date !== '') {
+          timestamp = new Date(recall.recall_initiation_date);
+          // Check if date is valid
+          if (isNaN(timestamp.getTime())) {
+            timestamp = new Date(); // Fallback to current date
+          }
+        } else {
+          timestamp = new Date(); // Fallback to current date
+        }
+      } catch (error) {
+        timestamp = new Date(); // Fallback to current date
+      }
+
       events.push({
         id: `fda-${index}`,
         type: 'fda_recall',
-        timestamp: new Date(recall.recall_initiation_date || new Date()),
+        timestamp,
         title: recall.reason_for_recall || 'FDA Enforcement Action',
         description: `${recall.product_description || 'Product'} - ${recall.company_name || 'Company'}`,
         severity: recall.classification === 'Class I' ? 'high' : 
