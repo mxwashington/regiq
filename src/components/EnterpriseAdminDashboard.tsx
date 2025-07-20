@@ -13,6 +13,7 @@ import AuthTestingPanel from "./AuthTestingPanel";
 import { BugTestSuite } from "./BugTestSuite";
 import { DemoInteractiveDashboard } from "./DemoInteractiveDashboard";
 import { DataPipelineManager } from "./DataPipelineManager";
+import { AdminAlertManager } from "./AdminAlertManager";
 
 export const EnterpriseAdminDashboard = () => {
   const navigate = useNavigate();
@@ -35,8 +36,9 @@ export const EnterpriseAdminDashboard = () => {
       </div>
         
         <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="alerts">Alerts</TabsTrigger>
+            <TabsTrigger value="manage">Manage</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="demo">Demo Dashboard</TabsTrigger>
@@ -47,6 +49,10 @@ export const EnterpriseAdminDashboard = () => {
 
           <TabsContent value="alerts">
             <AlertsDashboard />
+          </TabsContent>
+          
+          <TabsContent value="manage">
+            <AdminAlertManager />
           </TabsContent>
           
           <TabsContent value="analytics">

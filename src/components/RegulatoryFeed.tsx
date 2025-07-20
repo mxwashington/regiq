@@ -114,11 +114,21 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
       );
     }
 
-    // Apply agency filter
+    // Apply agency filter - check if source contains any of the selected agencies
     if (selectedFilters.agencies.length > 0) {
-      filtered = filtered.filter(item => 
-        selectedFilters.agencies.includes(item.source)
-      );
+      filtered = filtered.filter(item => {
+        const itemSource = item.source.toLowerCase();
+        return selectedFilters.agencies.some(agency => {
+          const agencyName = agency.toLowerCase();
+          // Check both exact match and contains for flexibility
+          return itemSource.includes(agencyName) || 
+                 itemSource.includes(agencyName.toUpperCase()) ||
+                 (agency === 'usda' && (itemSource.includes('department of agriculture') || itemSource.includes('fsis'))) ||
+                 (agency === 'fda' && (itemSource.includes('food and drug'))) ||
+                 (agency === 'epa' && (itemSource.includes('environmental protection'))) ||
+                 (agency === 'cdc' && (itemSource.includes('centers for disease') || itemSource.includes('disease control')));
+        });
+      });
     }
 
     // Apply urgency filter

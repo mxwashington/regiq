@@ -27,7 +27,8 @@ const AdminDashboard = () => {
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <Routes>
-        <Route index element={<EnterpriseAdminDashboard />} />
+        <Route path="dashboard" element={<EnterpriseAdminDashboard />} />
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="user-view" element={
           <div className="space-y-6">
             <div className="flex items-center justify-between">
