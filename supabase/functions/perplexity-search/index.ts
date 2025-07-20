@@ -93,14 +93,18 @@ serve(async (req) => {
 
     // Build enhanced query with regulatory context
     const enhancedQuery = buildRegulatoryQuery(searchRequest);
+    logStep("Enhanced query built", { originalQuery: searchRequest.query, enhancedQuery });
     
-    // Check cache first (1-hour cache)
+    // Check cache first (1-hour cache) - with safer encoding
     let cacheKey;
     try {
-      cacheKey = btoa(encodeURIComponent(enhancedQuery)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+      // Use safer encoding approach
+      const safeQuery = enhancedQuery.replace(/[^\w\s-]/g, ''); // Remove special chars
+      cacheKey = btoa(safeQuery).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+      logStep("Cache key generated successfully", { cacheKey });
     } catch (error) {
       logStep("Cache key generation failed, using fallback", { error: error.message });
-      cacheKey = btoa(searchRequest.query).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+      cacheKey = btoa(searchRequest.query.replace(/[^\w\s-]/g, '')).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
     }
     const cacheExpiry = new Date();
     cacheExpiry.setHours(cacheExpiry.getHours() - 1);
@@ -212,9 +216,16 @@ serve(async (req) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in perplexity-search", { message: errorMessage });
+    logStep("ERROR in perplexity-search", { 
+      message: errorMessage, 
+      stack: error instanceof Error ? error.stack : undefined,
+      query: (error as any)?.query || 'unknown'
+    });
     
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      details: "Check edge function logs for more information" 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
