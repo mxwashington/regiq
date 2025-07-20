@@ -20,23 +20,27 @@ export function DataRefreshButton() {
     try {
       const result = await triggerDataRefresh();
       
-      if (result.success) {
+      if (result?.success) {
         setLastRefresh(new Date().toLocaleTimeString());
         
         toast({
           title: "Data Refresh Complete",
-          description: `Updated data from all regulatory sources. Found ${result.totalAlertsProcessed || 0} new alerts.`,
-          variant: "default",
+          description: `Data pipeline completed successfully. Found ${result.totalAlertsProcessed || 0} new alerts.`,
         });
       } else {
-        throw new Error(result.error || 'Unknown error');
+        console.error('Data refresh failed:', result);
+        toast({
+          title: "Refresh Failed", 
+          description: result?.error || "Failed to refresh data from sources",
+          variant: "destructive",
+        });
       }
 
     } catch (error) {
       console.error('Error refreshing data:', error);
       toast({
-        title: "Refresh Failed",
-        description: error instanceof Error ? error.message : "Failed to refresh data",
+        title: "Refresh Error",
+        description: "Unable to connect to data pipeline",
         variant: "destructive",
       });
     } finally {
