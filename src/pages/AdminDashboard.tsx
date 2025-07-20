@@ -5,6 +5,7 @@ import { AdminNavigation } from '@/components/AdminNavigation';
 import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { EnterpriseAdminDashboard } from '@/components/EnterpriseAdminDashboard';
 import { DataFreshnessIndicator } from '@/components/DataFreshnessIndicator';
+import { AlertsCleanStatus } from '@/components/AlertsCleanStatus';
 
 const AdminDashboard = () => {
   const { loading: authLoading } = useAuthGuard(true);
@@ -24,6 +25,7 @@ const AdminDashboard = () => {
       <Routes>
         <Route index element={
           <div className="space-y-6">
+            <AlertsCleanStatus />
             <DataFreshnessIndicator />
             <EnterpriseAdminDashboard />
           </div>
