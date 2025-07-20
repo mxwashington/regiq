@@ -23,6 +23,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 
 interface RegulatoryAlert {
@@ -38,81 +39,7 @@ interface RegulatoryAlert {
   keywords: string[];
 }
 
-// Demo data representing real regulatory alerts
-const demoAlerts: RegulatoryAlert[] = [
-  {
-    id: '1',
-    title: 'FDA Issues Class I Recall for Contaminated Infant Formula Products',
-    summary: 'The FDA announced a voluntary recall of infant formula products due to potential Cronobacter contamination. Affected lots distributed nationwide.',
-    agency: 'FDA',
-    urgency: 'high',
-    date: '2024-01-19',
-    category: 'Product Recall',
-    source_url: '#',
-    industry: ['Food & Beverage', 'Infant Care'],
-    keywords: ['recall', 'contamination', 'infant formula', 'cronobacter']
-  },
-  {
-    id: '2',
-    title: 'USDA Updates Organic Certification Requirements for Livestock',
-    summary: 'New guidelines for organic livestock certification including updated pasture management and animal welfare standards.',
-    agency: 'USDA',
-    urgency: 'medium',
-    date: '2024-01-18',
-    category: 'Regulation Update',
-    source_url: '#',
-    industry: ['Agriculture', 'Organic Products'],
-    keywords: ['organic', 'livestock', 'certification', 'pasture']
-  },
-  {
-    id: '3',
-    title: 'EPA Proposes Stricter PFAS Limits in Drinking Water',
-    summary: 'Environmental Protection Agency proposes new maximum contaminant levels for PFOA and PFOS in public water systems.',
-    agency: 'EPA',
-    urgency: 'high',
-    date: '2024-01-17',
-    category: 'Environmental',
-    source_url: '#',
-    industry: ['Water Treatment', 'Chemical Manufacturing'],
-    keywords: ['PFAS', 'drinking water', 'contaminant', 'public health']
-  },
-  {
-    id: '4',
-    title: 'FDA Approves New Drug for Rare Genetic Disorder',
-    summary: 'FDA grants accelerated approval for novel treatment targeting patients with ultra-rare metabolic condition.',
-    agency: 'FDA',
-    urgency: 'low',
-    date: '2024-01-16',
-    category: 'Drug Approval',
-    source_url: '#',
-    industry: ['Pharmaceutical', 'Biotechnology'],
-    keywords: ['drug approval', 'rare disease', 'genetic disorder', 'accelerated']
-  },
-  {
-    id: '5',
-    title: 'USDA Issues Emergency Use Authorization for New Pesticide',
-    summary: 'Emergency authorization granted for specialized pesticide to address invasive species outbreak affecting crops.',
-    agency: 'USDA',
-    urgency: 'medium',
-    date: '2024-01-15',
-    category: 'Emergency Authorization',
-    source_url: '#',
-    industry: ['Agriculture', 'Pest Control'],
-    keywords: ['pesticide', 'emergency use', 'invasive species', 'crops']
-  },
-  {
-    id: '6',
-    title: 'EPA Announces Clean Air Act Enforcement Actions',
-    summary: 'Multiple violations identified at manufacturing facilities; penalties and remediation requirements issued.',
-    agency: 'EPA',
-    urgency: 'medium',
-    date: '2024-01-14',
-    category: 'Enforcement',
-    source_url: '#',
-    industry: ['Manufacturing', 'Chemical Processing'],
-    keywords: ['clean air act', 'enforcement', 'violations', 'penalties']
-  }
-];
+// Agencies, urgency levels, and categories for filtering
 
 const agencies = ['All Agencies', 'FDA', 'USDA', 'EPA', 'EMA', 'FSIS'];
 const urgencyLevels = ['All Levels', 'high', 'medium', 'low'];
@@ -127,10 +54,52 @@ export function DemoInteractiveDashboard() {
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [interactionCount, setInteractionCount] = useState(0);
   const [showTutorial, setShowTutorial] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [demoAlerts, setDemoAlerts] = useState<RegulatoryAlert[]>([]);
   const { user } = useAuth();
+
+  // Fetch real alerts from database
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('alerts')
+          .select('*')
+          .order('published_date', { ascending: false })
+          .limit(20); // Limit for demo purposes
+
+        if (error) throw error;
+
+        // Convert database format to demo format
+        const convertedAlerts = (data || []).map(alert => ({
+          id: alert.id,
+          title: alert.title,
+          summary: alert.summary,
+          agency: alert.source,
+          urgency: alert.urgency?.toLowerCase() as 'high' | 'medium' | 'low',
+          date: alert.published_date.split('T')[0],
+          category: 'Regulatory Update', // Default category since not in DB
+          source_url: alert.external_url || '#',
+          industry: ['General'], // Default industry since not in DB
+          keywords: alert.title.toLowerCase().split(' ').slice(0, 3) // Extract keywords from title
+        }));
+
+        setDemoAlerts(convertedAlerts);
+      } catch (error) {
+        console.error('Error fetching alerts:', error);
+        // Fallback to empty array if fetch fails
+        setDemoAlerts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
 
   // Filter alerts based on current selections
   const filteredAlerts = useMemo(() => {
+    if (loading || demoAlerts.length === 0) return [];
     return demoAlerts.filter(alert => {
       const matchesSearch = !searchQuery || 
         alert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -143,7 +112,7 @@ export function DemoInteractiveDashboard() {
       
       return matchesSearch && matchesAgency && matchesUrgency && matchesCategory;
     });
-  }, [searchQuery, selectedAgency, selectedUrgency, selectedCategory]);
+  }, [demoAlerts, searchQuery, selectedAgency, selectedUrgency, selectedCategory, loading]);
 
   // Track interactions
   const trackInteraction = () => {
@@ -221,7 +190,7 @@ export function DemoInteractiveDashboard() {
               <div>
                 <h2 className="text-2xl font-bold">Live Regulatory Intelligence Demo</h2>
                 <p className="text-primary-foreground/90">
-                  Explore {filteredAlerts.length} active regulatory alerts
+                  {loading ? 'Loading regulatory alerts...' : `Explore ${filteredAlerts.length} active regulatory alerts`}
                 </p>
               </div>
               {!user && (
@@ -250,14 +219,18 @@ export function DemoInteractiveDashboard() {
               {/* Quick Stats */}
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-primary">6</div>
+                  <div className="text-2xl font-bold text-primary">
+                    {loading ? '-' : demoAlerts.filter(alert => alert.urgency === 'high').length}
+                  </div>
                   <div className="text-xs text-muted-foreground">High Priority</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-primary">24h</div>
-                  <div className="text-xs text-muted-foreground">Latest Update</div>
+                  <div className="text-2xl font-bold text-primary">
+                    {loading ? '-' : demoAlerts.length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Total Alerts</div>
                 </CardContent>
               </Card>
             </div>
@@ -327,7 +300,19 @@ export function DemoInteractiveDashboard() {
             <div className="lg:col-span-2 border-r">
               <ScrollArea className="h-full">
                 <div className="p-4 space-y-3">
-                  {filteredAlerts.map((alert) => (
+                  {loading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-muted-foreground">Loading alerts...</p>
+                      </div>
+                    </div>
+                  ) : filteredAlerts.length === 0 ? (
+                    <div className="text-center text-muted-foreground p-8">
+                      <p>No alerts found matching your criteria.</p>
+                    </div>
+                  ) : (
+                    filteredAlerts.map((alert) => (
                     <Card 
                       key={alert.id} 
                       className="cursor-pointer hover:shadow-md transition-shadow"
@@ -361,7 +346,7 @@ export function DemoInteractiveDashboard() {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )))}
                 </div>
               </ScrollArea>
             </div>
@@ -431,7 +416,25 @@ export function DemoInteractiveDashboard() {
               <div>
                 <h4 className="font-medium mb-2">Trending Searches</h4>
                 <div className="flex flex-wrap gap-2">
-                  {['PFAS contamination', 'infant formula recalls', 'organic certification', 'drug approvals'].map(trend => (
+                  {loading ? (
+                    ['Loading...'].map(trend => (
+                      <Button 
+                        key={trend} 
+                        variant="ghost" 
+                        size="sm" 
+                        disabled
+                        className="text-xs h-6"
+                      >
+                        {trend}
+                      </Button>
+                    ))
+                  ) : (
+                    // Generate trending searches from alert keywords
+                    Array.from(new Set(
+                      demoAlerts
+                        .flatMap(alert => alert.keywords)
+                        .slice(0, 4)
+                    )).map(trend => (
                     <Button 
                       key={trend} 
                       variant="ghost" 
@@ -441,7 +444,7 @@ export function DemoInteractiveDashboard() {
                     >
                       {trend}
                     </Button>
-                  ))}
+                  )))}
                 </div>
               </div>
               <div className="text-right text-sm text-muted-foreground">
@@ -471,7 +474,7 @@ export function DemoInteractiveDashboard() {
                 <div>
                   <h4 className="font-medium mb-2">Demo Includes:</h4>
                   <ul className="text-muted-foreground space-y-1">
-                    <li>• 6 sample alerts</li>
+                    <li>• {demoAlerts.length} real alerts</li>
                     <li>• Basic filtering</li>
                     <li>• Read-only access</li>
                   </ul>
