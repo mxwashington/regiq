@@ -21,7 +21,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AlertsDashboard } from '@/components/AlertsDashboard';
 import { AdminNavigation } from '@/components/AdminNavigation';
@@ -39,9 +39,13 @@ const Dashboard = () => {
   const { user, loading, signOut, isAdmin } = useAuth();
   const { navigateTo } = useNavigationHelper();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
+  // Check if forced to view as user via URL parameter
+  const forceUserView = searchParams.get('viewAsUser') === 'true';
+  
   // Add state for view toggle - admins can switch between admin and user view
-  const [viewAsUser, setViewAsUser] = useState(false);
+  const [viewAsUser, setViewAsUser] = useState(forceUserView);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);

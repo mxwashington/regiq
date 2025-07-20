@@ -219,9 +219,12 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
           const isBookmarked = bookmarkedItems.has(item.id);
 
           return (
-            <Card key={item.id} className="overflow-hidden">
+            <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
               <Collapsible>
-                <CardHeader className="pb-3">
+                <CardHeader 
+                  className="pb-3 cursor-pointer"
+                  onClick={() => toggleExpanded(item.id)}
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -243,7 +246,7 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
                         </div>
                       </div>
 
-                      <h4 className="font-semibold text-base leading-tight">
+                      <h4 className="font-semibold text-base leading-tight hover:text-primary transition-colors">
                         {item.title}
                       </h4>
                     </div>
@@ -252,13 +255,20 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleBookmark(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleBookmark(item.id);
+                        }}
                         className={isBookmarked ? "text-yellow-600" : ""}
                       >
                         <Bookmark className="h-4 w-4" />
                       </Button>
 
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Share2 className="h-4 w-4" />
                       </Button>
 
@@ -266,7 +276,10 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => toggleExpanded(item.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpanded(item.id);
+                          }}
                         >
                           {isExpanded ? (
                             <ChevronUp className="h-4 w-4" />
