@@ -101,7 +101,7 @@ export function FDAProfessionalTools() {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const { user, subscriptionTier } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   // Export functionality
@@ -371,8 +371,8 @@ export function FDAProfessionalTools() {
   };
 
   const isPremiumFeature = (feature: string) => {
-    const premiumTiers = ['professional', 'enterprise'];
-    return !premiumTiers.includes(subscriptionTier || '');
+    // Since this is now a free app, all features are available
+    return false;
   };
 
   return (

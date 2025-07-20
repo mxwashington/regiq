@@ -31,7 +31,6 @@ const Landing = () => {
           <nav className="hidden md:flex items-center space-x-6">
             <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
             <a href="#platform" className="text-muted-foreground hover:text-foreground transition-colors">Platform</a>
-            <Link to="/subscription" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
             {user ? (
               <Button variant="outline" size="sm" asChild>
                 <Link to="/dashboard">Dashboard</Link>
@@ -42,7 +41,7 @@ const Landing = () => {
                   <Link to="/auth">Sign In</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/auth">Start Free Trial</Link>
+                  <Link to="/auth">Get Started Free</Link>
                 </Button>
               </>
             )}
@@ -59,12 +58,11 @@ const Landing = () => {
             AI-Powered Regulatory Intelligence
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight mb-4">
-            Transform Regulatory 
-            <span className="text-primary"> Complexity</span> into 
-            <span className="text-primary"> Clarity</span>
+            RegIQ - Regulatory news, 
+            <span className="text-primary">minus the noise</span>
           </h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Explore our live regulatory intelligence platform. Search, filter, and analyze real FDA, USDA, and EPA alerts below.
+            Free regulatory alerts from FDA, USDA, and EPA for compliance teams. Get started in 30 seconds, no credit card required.
           </p>
           
           {/* Agency Badges */}
@@ -257,7 +255,7 @@ const Landing = () => {
           </p>
           <Button size="lg" asChild>
             <Link to={user ? "/dashboard" : "/auth"}>
-              Start Your Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+              Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>

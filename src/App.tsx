@@ -15,7 +15,7 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
-import Subscription from "./pages/Subscription";
+
 import { AdminDashboard } from "./pages/AdminDashboard";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
@@ -82,7 +82,7 @@ const App = () => (
                       <Dashboard />
                     </AuthGuard>
                   } />
-                  <Route path="/subscription" element={<Subscription />} />
+                  
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/admin" element={
                     <AdminProtectedRoute>

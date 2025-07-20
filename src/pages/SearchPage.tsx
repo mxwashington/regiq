@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 export default function SearchPage() {
-  const { user, loading, subscribed, subscriptionTier } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function SearchPage() {
     enterprise: 500
   };
 
-  const currentTier = subscribed ? subscriptionTier : 'free';
+  const currentTier = 'free';
   const dailyLimit = searchLimits[currentTier as keyof typeof searchLimits] || 5;
 
   return (
@@ -85,8 +85,8 @@ export default function SearchPage() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <Badge variant={subscribed ? "default" : "secondary"}>
-              {currentTier?.charAt(0).toUpperCase() + currentTier?.slice(1)} Plan
+            <Badge variant="secondary">
+              Free Plan
             </Badge>
             <Badge variant="outline">
               {dailyLimit} searches/day
@@ -218,8 +218,8 @@ export default function SearchPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Upgrade Prompt for Free Users */}
-        {!subscribed && (
+        {/* Note: All features are now free */}
+        {false && (
           <Card className="mt-8 border-primary/20 bg-primary/5">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">

@@ -59,7 +59,7 @@ export function RegulatorySearch() {
     tier: string;
   } | null>(null);
 
-  const { session, subscriptionTier } = useAuth();
+  const { session } = useAuth();
   const { toast } = useToast();
 
   const agencies = [
@@ -123,7 +123,7 @@ export function RegulatorySearch() {
           setUsageInfo({
             current_usage: data?.current_usage || 0,
             daily_limit: data?.daily_limit || 0,
-            tier: subscriptionTier || 'free'
+            tier: 'free'
           });
           setError(`Daily search limit reached. Upgrade your plan for more searches.`);
         } else {

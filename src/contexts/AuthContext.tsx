@@ -9,9 +9,6 @@ import { useMagicLinkAuth } from '@/hooks/useMagicLinkAuth';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  subscribed: boolean;
-  subscriptionTier: string | null;
-  subscriptionEnd: string | null;
   isAdmin: boolean;
   adminRole: string | null;
   adminPermissions: string[];
@@ -20,7 +17,6 @@ interface AuthContextType {
   lastError: string | null;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  refreshSubscription: () => Promise<void>;
   checkAdminStatus: () => Promise<void>;
 }
 
@@ -43,11 +39,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Wrapper functions for backwards compatibility
-  const refreshSubscription = async () => {
-    await userProfile.checkSubscription(sessionManager.session);
-  };
-
   const checkAdminStatus = async () => {
     await userProfile.checkAdminStatus(sessionManager.session);
   };
@@ -59,7 +50,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Defer profile checks to avoid blocking auth state update
       setTimeout(() => {
-        userProfile.checkSubscription(sessionManager.session);
         userProfile.checkAdminStatus(sessionManager.session);
         userProfile.updateUserActivity(sessionManager.session!.user.id);
       }, 100);
@@ -88,9 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     user: sessionManager.user,
     session: sessionManager.session,
-    subscribed: userProfile.subscribed,
-    subscriptionTier: userProfile.subscriptionTier,
-    subscriptionEnd: userProfile.subscriptionEnd,
     isAdmin: userProfile.isAdmin,
     adminRole: userProfile.adminRole,
     adminPermissions: userProfile.adminPermissions,
@@ -99,7 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     lastError: sessionManager.lastError,
     signInWithMagicLink,
     signOut,
-    refreshSubscription,
     checkAdminStatus,
   };
 

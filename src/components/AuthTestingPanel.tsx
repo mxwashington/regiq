@@ -20,13 +20,10 @@ export default function AuthTestingPanel() {
   const { 
     user, 
     session, 
-    subscribed, 
-    subscriptionTier, 
     isAdmin, 
     adminRole, 
     adminPermissions,
     loading,
-    refreshSubscription,
     checkAdminStatus 
   } = useAuth();
   
@@ -50,8 +47,8 @@ export default function AuthTestingPanel() {
     // Test 5: Admin permissions (if admin)
     results.adminPermissions = !isAdmin || (isAdmin && adminPermissions.length > 0);
     
-    // Test 6: Subscription status sync
-    results.subscriptionSync = typeof subscribed === 'boolean';
+    // Test 6: Authentication complete
+    results.authComplete = !!user && !!session;
     
     setTestResults(results);
   };
@@ -120,28 +117,8 @@ export default function AuthTestingPanel() {
             </div>
           )}
 
-          {/* Subscription & Permissions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-3 border rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Mail className="h-4 w-4" />
-                <span className="font-medium">Subscription</span>
-              </div>
-              <div className="space-y-1 text-sm">
-                <p><strong>Status:</strong> {subscribed ? '✅ Active' : '❌ Free'}</p>
-                <p><strong>Tier:</strong> {subscriptionTier || 'Free'}</p>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={refreshSubscription}
-                  className="mt-2"
-                >
-                  <RefreshCw className="h-3 w-3 mr-1" />
-                  Refresh
-                </Button>
-              </div>
-            </div>
-
+          {/* Admin Permissions */}
+          <div className="grid grid-cols-1 gap-4">
             <div className="p-3 border rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="h-4 w-4" />
