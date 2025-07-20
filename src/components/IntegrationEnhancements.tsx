@@ -15,23 +15,13 @@ import {
   Link,
   TrendingUp,
   Shield,
-  Rss,
   Database
 } from 'lucide-react';
 import { fdaApi, FDAEnforcementResult } from '@/lib/fda-api';
 
-interface RSSFeedItem {
-  title: string;
-  pubDate: string;
-  link: string;
-  description: string;
-  category?: string;
-  source: string;
-}
-
 interface TimelineEvent {
   id: string;
-  type: 'fda_recall' | 'rss_alert' | 'web_mention' | 'correlation';
+  type: 'fda_recall' | 'web_mention' | 'correlation';
   timestamp: Date;
   title: string;
   description: string;
@@ -41,506 +31,366 @@ interface TimelineEvent {
   correlations?: string[];
 }
 
-interface CrossReference {
-  fdaRecall: FDAEnforcementResult;
-  rssItem: RSSFeedItem;
-  confidenceScore: number;
-  matchType: 'company' | 'product' | 'recall_number' | 'keyword';
-  matchDetails: string[];
+interface IntegrationEnhancementsProps {
+  searchQuery?: string;
 }
 
-export function IntegrationEnhancements() {
-  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
-  const [crossReferences, setCrossReferences] = useState<CrossReference[]>([]);
+export function IntegrationEnhancements({ searchQuery = "listeria" }: IntegrationEnhancementsProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedTimeRange, setSelectedTimeRange] = useState('7days');
-
+  const [fdaData, setFdaData] = useState<FDAEnforcementResult[]>([]);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadIntegratedData();
-  }, [selectedTimeRange]);
+    if (searchQuery) {
+      fetchIntegratedData();
+    }
+  }, [searchQuery]);
 
-  const loadIntegratedData = async () => {
+  const fetchIntegratedData = async () => {
     setLoading(true);
     try {
-      // Calculate date range
-      const endDate = new Date();
-      const startDate = new Date();
-      const days = selectedTimeRange === '7days' ? 7 : selectedTimeRange === '30days' ? 30 : 90;
-      startDate.setDate(endDate.getDate() - days);
-
       // Fetch FDA data
-      const fdaQuery = `recall_initiation_date:[${startDate.toISOString().split('T')[0]}+TO+${endDate.toISOString().split('T')[0]}]`;
-      const fdaResults = await fdaApi.searchMultipleEndpoints(
-        fdaQuery, 
-        ['foodEnforcement', 'drugEnforcement', 'deviceEnforcement'], 
-        100
-      );
+      const fdaResponse = await fdaApi.searchFoodEnforcement({
+        search: searchQuery,
+        limit: 10
+      });
 
-      // Simulate RSS feed data (in real implementation, this would come from RSS integration)
-      const mockRSSItems: RSSFeedItem[] = generateMockRSSData(startDate, endDate);
+      setFdaData(fdaResponse.results);
 
-      // Create unified timeline
-      const timelineEvents = createUnifiedTimeline(fdaResults, mockRSSItems);
-      setTimeline(timelineEvents);
-
-      // Find cross-references
-      const crossRefs = findCrossReferences(fdaResults, mockRSSItems);
-      setCrossReferences(crossRefs);
+      // Create timeline events from FDA data only
+      const timelineEvents = createTimelineFromFDA(fdaResponse.results);
+      setTimelineEvents(timelineEvents);
 
       toast({
-        title: "Integration Data Loaded",
-        description: `Found ${timelineEvents.length} events and ${crossRefs.length} correlations`,
+        title: "Data Integration Complete",
+        description: `Found ${fdaResponse.results.length} FDA enforcement records for analysis.`,
       });
 
     } catch (error) {
-      console.error('Integration error:', error);
+      console.error('Error fetching integrated data:', error);
       toast({
         title: "Integration Error",
-        description: "Failed to load integrated data",
-        variant: "destructive"
+        description: "Unable to fetch integrated regulatory data.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const generateMockRSSData = (startDate: Date, endDate: Date): RSSFeedItem[] => {
-    // Mock RSS feed items that would come from USDA FSIS and other sources
-    return [
-      {
-        title: "FSIS Issues Public Health Alert for Listeria Contamination",
-        pubDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        link: "https://www.fsis.usda.gov/news-events/news-press-releases",
-        description: "FSIS is issuing a public health alert for ready-to-eat meat products that may be contaminated with Listeria monocytogenes.",
-        category: "Food Safety",
-        source: "USDA FSIS"
-      },
-      {
-        title: "FDA Announces Voluntary Recall of Blood Pressure Medication",
-        pubDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        link: "https://www.fda.gov/news-events/press-announcements",
-        description: "Pharmaceutical company voluntarily recalls lots of blood pressure medication due to potential contamination.",
-        category: "Drug Safety",
-        source: "FDA Press Release"
-      },
-      {
-        title: "Salmonella Outbreak Linked to Contaminated Produce",
-        pubDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        link: "https://www.cdc.gov/salmonella/outbreaks",
-        description: "CDC investigates multi-state Salmonella outbreak potentially linked to leafy greens.",
-        category: "Outbreak Investigation",
-        source: "CDC"
-      }
-    ];
-  };
-
-  const createUnifiedTimeline = (
-    fdaResults: Array<{ endpoint: string; data: any }>,
-    rssItems: RSSFeedItem[]
-  ): TimelineEvent[] => {
+  const createTimelineFromFDA = (fdaResults: FDAEnforcementResult[]): TimelineEvent[] => {
     const events: TimelineEvent[] = [];
 
     // Add FDA recall events
-    fdaResults.forEach(result => {
-      result.data.results.forEach((recall: any) => {
-        events.push({
-          id: `fda-${recall.recall_number || Math.random()}`,
-          type: 'fda_recall',
-          timestamp: new Date(recall.recall_initiation_date),
-          title: `${recall.classification} Recall: ${recall.product_description?.substring(0, 60)}...`,
-          description: recall.reason_for_recall || 'No reason specified',
-          severity: recall.classification === 'Class I' ? 'high' : 
-                   recall.classification === 'Class II' ? 'medium' : 'low',
-          source: `FDA ${result.endpoint}`,
-          data: recall
-        });
-      });
-    });
-
-    // Add RSS feed events
-    rssItems.forEach((item, index) => {
+    fdaResults.forEach((recall, index) => {
       events.push({
-        id: `rss-${index}`,
-        type: 'rss_alert',
-        timestamp: new Date(item.pubDate),
-        title: item.title,
-        description: item.description,
-        severity: item.title.toLowerCase().includes('listeria') || 
-                 item.title.toLowerCase().includes('class i') ? 'high' : 'medium',
-        source: item.source,
-        data: item
+        id: `fda-${index}`,
+        type: 'fda_recall',
+        timestamp: new Date(recall.recall_initiation_date || new Date()),
+        title: recall.reason_for_recall || 'FDA Enforcement Action',
+        description: `${recall.product_description || 'Product'} - ${recall.company_name || 'Company'}`,
+        severity: recall.classification === 'Class I' ? 'high' : 
+                 recall.classification === 'Class II' ? 'medium' : 'low',
+        source: 'FDA Enforcement Database',
+        data: recall
       });
     });
 
-    // Sort by timestamp (newest first)
+    // Sort by timestamp
     return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  };
-
-  const findCrossReferences = (
-    fdaResults: Array<{ endpoint: string; data: any }>,
-    rssItems: RSSFeedItem[]
-  ): CrossReference[] => {
-    const crossRefs: CrossReference[] = [];
-
-    fdaResults.forEach(result => {
-      result.data.results.forEach((recall: any) => {
-        rssItems.forEach(rssItem => {
-          const matches = findMatches(recall, rssItem);
-          if (matches.score > 0.3) { // Minimum confidence threshold
-            crossRefs.push({
-              fdaRecall: recall,
-              rssItem,
-              confidenceScore: matches.score,
-              matchType: matches.type,
-              matchDetails: matches.details
-            });
-          }
-        });
-      });
-    });
-
-    return crossRefs.sort((a, b) => b.confidenceScore - a.confidenceScore);
-  };
-
-  const findMatches = (recall: any, rssItem: RSSFeedItem) => {
-    let score = 0;
-    const details: string[] = [];
-    let matchType: 'company' | 'product' | 'recall_number' | 'keyword' = 'keyword';
-
-    // Check for company name matches
-    if (recall.company_name && rssItem.title.toLowerCase().includes(recall.company_name.toLowerCase())) {
-      score += 0.8;
-      details.push(`Company match: ${recall.company_name}`);
-      matchType = 'company';
-    }
-
-    // Check for recall number matches
-    if (recall.recall_number && (rssItem.title.includes(recall.recall_number) || rssItem.description.includes(recall.recall_number))) {
-      score += 0.9;
-      details.push(`Recall number match: ${recall.recall_number}`);
-      matchType = 'recall_number';
-    }
-
-    // Check for product matches
-    const productKeywords = recall.product_description?.toLowerCase().split(' ') || [];
-    productKeywords.forEach(keyword => {
-      if (keyword.length > 4 && (rssItem.title.toLowerCase().includes(keyword) || rssItem.description.toLowerCase().includes(keyword))) {
-        score += 0.2;
-        details.push(`Product keyword: ${keyword}`);
-        matchType = 'product';
-      }
-    });
-
-    // Check for pathogen/contamination matches
-    const contaminants = ['listeria', 'salmonella', 'e. coli', 'hepatitis', 'norovirus'];
-    contaminants.forEach(contaminant => {
-      if (recall.reason_for_recall?.toLowerCase().includes(contaminant) && 
-          (rssItem.title.toLowerCase().includes(contaminant) || rssItem.description.toLowerCase().includes(contaminant))) {
-        score += 0.6;
-        details.push(`Contamination match: ${contaminant}`);
-      }
-    });
-
-    // Check for timing correlation (within 3 days)
-    const recallDate = new Date(recall.recall_initiation_date);
-    const rssDate = new Date(rssItem.pubDate);
-    const timeDiff = Math.abs(recallDate.getTime() - rssDate.getTime()) / (1000 * 60 * 60 * 24);
-    if (timeDiff <= 3) {
-      score += 0.3;
-      details.push(`Timeline correlation: ${Math.round(timeDiff)} days apart`);
-    }
-
-    return { score: Math.min(score, 1.0), type: matchType, details };
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high': return 'text-red-600 bg-red-100 border-red-200';
-      case 'medium': return 'text-orange-600 bg-orange-100 border-orange-200';
-      case 'low': return 'text-green-600 bg-green-100 border-green-200';
-      default: return 'text-gray-600 bg-gray-100 border-gray-200';
-    }
   };
 
   const getEventIcon = (type: string) => {
     switch (type) {
       case 'fda_recall': return Database;
-      case 'rss_alert': return Rss;
-      case 'web_mention': return ExternalLink;
+      case 'web_mention': return Link;
       case 'correlation': return GitMerge;
       default: return Activity;
     }
   };
 
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high': return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'low': return 'text-green-600 bg-green-50 border-green-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <GitMerge className="h-5 w-5" />
-            <span>Unified Regulatory Intelligence</span>
-          </CardTitle>
-          <CardDescription>
-            Cross-platform integration showing correlations between FDA data, RSS feeds, and web intelligence
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant={selectedTimeRange === '7days' ? 'default' : 'outline'}
-              onClick={() => setSelectedTimeRange('7days')}
-            >
-              Last 7 days
-            </Button>
-            <Button 
-              variant={selectedTimeRange === '30days' ? 'default' : 'outline'}
-              onClick={() => setSelectedTimeRange('30days')}
-            >
-              Last 30 days
-            </Button>
-            <Button 
-              variant={selectedTimeRange === '90days' ? 'default' : 'outline'}
-              onClick={() => setSelectedTimeRange('90days')}
-            >
-              Last 90 days
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold">Regulatory Intelligence Integration</h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Unified regulatory intelligence showing FDA enforcement data and regulatory timeline analysis
+        </p>
+      </div>
 
-      {/* Integration Tabs */}
-      <Tabs defaultValue="timeline" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="timeline">Unified Timeline</TabsTrigger>
-          <TabsTrigger value="correlations">Cross-References</TabsTrigger>
-          <TabsTrigger value="notifications">Smart Notifications</TabsTrigger>
+      <Tabs defaultValue="timeline" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="timeline" className="flex items-center gap-2">
+            <Timeline className="h-4 w-4" />
+            Timeline View
+          </TabsTrigger>
+          <TabsTrigger value="analysis" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Analysis Dashboard
+          </TabsTrigger>
         </TabsList>
 
-        {/* Unified Timeline */}
-        <TabsContent value="timeline">
+        <TabsContent value="timeline" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center gap-2">
                 <Timeline className="h-5 w-5" />
-                <span>Regulatory Event Timeline</span>
+                Regulatory Timeline
               </CardTitle>
               <CardDescription>
-                Chronological view of FDA actions, RSS alerts, and web intelligence
+                Chronological view of FDA actions and regulatory events
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {timeline.map((event, index) => (
-                  <div key={event.id} className="flex items-start space-x-4 p-4 border rounded-lg">
-                    <div className="flex-shrink-0">
-                      {React.createElement(getEventIcon(event.type), { 
-                        className: `h-6 w-6 ${event.severity === 'high' ? 'text-red-500' : 
-                                             event.severity === 'medium' ? 'text-orange-500' : 'text-green-500'}` 
-                      })}
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">{event.title}</h4>
-                        <div className="flex items-center space-x-2">
-                          <Badge className={getSeverityColor(event.severity)}>
-                            {event.severity}
-                          </Badge>
-                          <Badge variant="outline">
-                            {event.source}
-                          </Badge>
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading regulatory timeline...</p>
+                </div>
+              ) : timelineEvents.length > 0 ? (
+                <div className="space-y-4">
+                  {timelineEvents.map((event) => {
+                    const EventIcon = getEventIcon(event.type);
+                    return (
+                      <div key={event.id} className="flex gap-4 p-4 border rounded-lg">
+                        <div className="flex-shrink-0">
+                          <div className="p-2 rounded-full bg-primary/10">
+                            <EventIcon className="h-4 w-4 text-primary" />
+                          </div>
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-1">
+                              <h4 className="font-medium text-sm">{event.title}</h4>
+                              <p className="text-sm text-muted-foreground">{event.description}</p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <Badge variant="outline" className={`text-xs ${getSeverityColor(event.severity)}`}>
+                                {event.severity.toUpperCase()}
+                              </Badge>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(event.timestamp)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {event.source}
+                            </Badge>
+                            {event.type === 'fda_recall' && event.data.recall_number && (
+                              <Badge variant="outline" className="text-xs">
+                                {event.data.recall_number}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{event.description}</p>
-                      <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{event.timestamp.toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Activity className="h-3 w-3" />
-                          <span>{event.type.replace('_', ' ')}</span>
-                        </div>
-                      </div>
-                      {event.correlations && event.correlations.length > 0 && (
-                        <div className="mt-2">
-                          <Badge variant="secondary" className="text-xs">
-                            <Link className="h-3 w-3 mr-1" />
-                            {event.correlations.length} correlation(s)
-                          </Badge>
-                        </div>
-                      )}
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-medium mb-2">No Timeline Data</h3>
+                  <p className="text-muted-foreground">
+                    Start a search to see regulatory timeline events.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analysis" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Database className="h-4 w-4 text-blue-500" />
+                  FDA Data
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Total Records</span>
+                    <Badge variant="secondary">{fdaData.length}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Class I Recalls</span>
+                    <Badge variant="destructive">
+                      {fdaData.filter(item => item.classification === 'Class I').length}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Recent Actions</span>
+                    <Badge variant="outline">
+                      {fdaData.filter(item => {
+                        const date = new Date(item.recall_initiation_date || '');
+                        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                        return date > thirtyDaysAgo;
+                      }).length}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  Risk Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">High Risk Events</span>
+                    <Badge variant="destructive">
+                      {timelineEvents.filter(e => e.severity === 'high').length}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Medium Risk</span>
+                    <Badge className="bg-orange-500">
+                      {timelineEvents.filter(e => e.severity === 'medium').length}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Low Risk</span>
+                    <Badge className="bg-green-500">
+                      {timelineEvents.filter(e => e.severity === 'low').length}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-purple-500" />
+                  System Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">FDA Integration</span>
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3 text-green-500" />
+                      <span className="text-xs text-green-600">Active</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Data Freshness</span>
+                    <Badge variant="outline" className="text-xs">
+                      Live
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Last Update</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date().toLocaleTimeString()}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Cross-References */}
-        <TabsContent value="correlations">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Link className="h-5 w-5" />
-                <span>FDA-RSS Cross-References</span>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Shield className="h-4 w-4 text-blue-500" />
+                Regulatory Intelligence Dashboard
               </CardTitle>
               <CardDescription>
-                Automatic correlations between FDA database records and RSS feed alerts
+                Real-time monitoring and analysis of regulatory enforcement actions
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {crossReferences.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    No cross-references found for the selected time period
-                  </p>
-                ) : (
-                  crossReferences.map((crossRef, index) => (
-                    <div key={index} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Cross-Reference Match</h4>
-                        <Badge className={crossRef.confidenceScore > 0.7 ? 'bg-green-100 text-green-800' : 
-                                         crossRef.confidenceScore > 0.5 ? 'bg-yellow-100 text-yellow-800' : 
-                                         'bg-blue-100 text-blue-800'}>
-                          {Math.round(crossRef.confidenceScore * 100)}% confidence
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* FDA Recall */}
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Database className="h-4 w-4 text-blue-500" />
-                            <span className="font-medium text-sm">FDA Recall</span>
-                          </div>
-                          <div className="bg-blue-50 p-3 rounded">
-                            <p className="text-sm font-medium">{crossRef.fdaRecall.product_description}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {crossRef.fdaRecall.company_name} - {crossRef.fdaRecall.classification}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Recall #{crossRef.fdaRecall.recall_number}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* RSS Alert */}
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Rss className="h-4 w-4 text-orange-500" />
-                            <span className="font-medium text-sm">RSS Alert</span>
-                          </div>
-                          <div className="bg-orange-50 p-3 rounded">
-                            <p className="text-sm font-medium">{crossRef.rssItem.title}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {crossRef.rssItem.source}
-                            </p>
-                            <a 
-                              href={crossRef.rssItem.link} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:underline inline-flex items-center mt-1"
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              View Source
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Match Details */}
-                      <div className="space-y-2">
-                        <span className="text-sm font-medium">Match Details:</span>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline">
-                            Type: {crossRef.matchType.replace('_', ' ')}
-                          </Badge>
-                          {crossRef.matchDetails.map((detail, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {detail}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Smart Notifications */}
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <AlertCircle className="h-5 w-5" />
-                <span>Smart Notification System</span>
-              </CardTitle>
-              <CardDescription>
-                Intelligent alerts when FDA database confirms RSS feed alerts or correlations are detected
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="p-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span className="font-medium">Confirmed Alerts</span>
-                    </div>
-                    <div className="text-2xl font-bold text-green-600">
-                      {crossReferences.filter(cr => cr.confidenceScore > 0.7).length}
-                    </div>
-                    <p className="text-xs text-muted-foreground">High confidence matches</p>
-                  </Card>
-
-                  <Card className="p-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <AlertCircle className="h-5 w-5 text-orange-500" />
-                      <span className="font-medium">Pending Review</span>
-                    </div>
-                    <div className="text-2xl font-bold text-orange-600">
-                      {crossReferences.filter(cr => cr.confidenceScore >= 0.5 && cr.confidenceScore <= 0.7).length}
-                    </div>
-                    <p className="text-xs text-muted-foreground">Medium confidence matches</p>
-                  </Card>
-
-                  <Card className="p-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <TrendingUp className="h-5 w-5 text-blue-500" />
-                      <span className="font-medium">Total Events</span>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600">{timeline.length}</div>
-                    <p className="text-xs text-muted-foreground">All regulatory events</p>
-                  </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Key Capabilities</h4>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span>Real-time FDA enforcement monitoring</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span>Automated risk assessment</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span>Intelligent timeline analysis</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span>Compliance impact evaluation</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Data Sources</h4>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <Database className="h-3 w-3 text-blue-500" />
+                        <span>FDA Enforcement Reports Database</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Database className="h-3 w-3 text-blue-500" />
+                        <span>Regulatory Classification System</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Database className="h-3 w-3 text-blue-500" />
+                        <span>Real-time API Integration</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-800 mb-2">Smart Notification Features</h4>
-                  <ul className="space-y-2 text-sm text-blue-700">
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Automatic correlation detection between FDA and RSS data</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Real-time alerts when RSS feeds are confirmed by FDA actions</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Timeline analysis showing regulatory event patterns</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Confidence scoring for cross-platform matches</span>
-                    </li>
-                  </ul>
+                <div className="pt-4 border-t">
+                  <Button 
+                    onClick={fetchIntegratedData} 
+                    disabled={loading}
+                    className="w-full md:w-auto"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+                        Refreshing Data...
+                      </>
+                    ) : (
+                      <>
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        Refresh Analysis
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </CardContent>

@@ -475,13 +475,13 @@ export const EnterpriseAdminDashboard = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>RSS Feed Health</Label>
+                  <Label>API Health</Label>
                   <Button
                     variant="outline"
-                    onClick={() => handleSystemMaintenance('check_feeds')}
+                    onClick={() => handleSystemMaintenance('check_apis')}
                     className="w-full"
                   >
-                    Check Feed Status
+                    Check API Status
                   </Button>
                 </div>
                 

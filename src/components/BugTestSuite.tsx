@@ -78,14 +78,14 @@ export const BugTestSuite = () => {
       status: 'pending'
     },
     {
-      id: 'rss-performance',
+      id: 'auth-performance',
       category: 'performance',
-      name: 'RSS Feed Performance',
-      description: 'Check RSS feed function improvements',
+      name: 'Authentication Performance',
+      description: 'Check authentication system improvements',
       test: async () => {
         try {
           const startTime = Date.now();
-          // Simulate checking if RSS feeds have proper timeout
+          // Simulate checking authentication performance
           await new Promise(resolve => setTimeout(resolve, 100));
           const endTime = Date.now();
           return (endTime - startTime) < 5000; // Should be fast

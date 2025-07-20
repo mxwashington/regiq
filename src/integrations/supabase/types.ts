@@ -296,36 +296,6 @@ export type Database = {
         }
         Relationships: []
       }
-      rss_feed_logs: {
-        Row: {
-          created_at: string | null
-          error_message: string | null
-          feed_id: string
-          fetch_duration: number | null
-          fetch_status: string | null
-          id: string
-          items_fetched: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          error_message?: string | null
-          feed_id: string
-          fetch_duration?: number | null
-          fetch_status?: string | null
-          id?: string
-          items_fetched?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          error_message?: string | null
-          feed_id?: string
-          fetch_duration?: number | null
-          fetch_status?: string | null
-          id?: string
-          items_fetched?: number | null
-        }
-        Relationships: []
-      }
       search_cache: {
         Row: {
           cache_key: string

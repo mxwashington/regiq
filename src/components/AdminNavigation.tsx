@@ -6,7 +6,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
   Users, 
-  Radio, 
   BarChart3, 
   Settings, 
   LogOut,
@@ -21,7 +20,6 @@ export function AdminNavigation() {
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: Home },
     { name: 'Users', href: '/admin/users', icon: Users },
-    { name: 'RSS Feeds', href: '/admin/feeds', icon: Radio },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/admin/settings', icon: Settings }
   ];

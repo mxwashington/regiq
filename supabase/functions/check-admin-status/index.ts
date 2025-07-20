@@ -44,7 +44,6 @@ serve(async (req) => {
           is_admin: true,
           admin_permissions: [
             "user_management",
-            "feed_management", 
             "system_settings",
             "analytics",
             "billing"
@@ -63,7 +62,7 @@ serve(async (req) => {
           action: "admin_access_granted",
           target_type: "user",
           target_id: user.id,
-          details: { email: user.email, granted_permissions: ["user_management", "feed_management", "system_settings", "analytics", "billing"] }
+          details: { email: user.email, granted_permissions: ["user_management", "system_settings", "analytics", "billing"] }
         });
 
       return new Response(JSON.stringify({ 
