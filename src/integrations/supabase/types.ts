@@ -768,6 +768,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      reset_data_pipeline_timestamps: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       should_extend_session: {
         Args: { user_id_param: string; current_ip?: unknown }
         Returns: boolean

@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { triggerDataPipelineNow } from './trigger-pipeline';
 
 interface TriggerDataRefreshResponse {
   success: boolean;
@@ -9,26 +10,7 @@ interface TriggerDataRefreshResponse {
 }
 
 export async function triggerDataRefresh(): Promise<TriggerDataRefreshResponse> {
-  try {
-    console.log('Triggering regulatory data pipeline...');
-    
-    const { data, error } = await supabase.functions.invoke('regulatory-data-pipeline');
-    
-    if (error) {
-      console.error('Data pipeline error:', error);
-      throw new Error(error.message);
-    }
-
-    console.log('Data pipeline completed successfully:', data);
-    return data;
-    
-  } catch (error) {
-    console.error('Error triggering data refresh:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
-  }
+  return await triggerDataPipelineNow();
 }
 
 // Auto-trigger data refresh when this module loads to get fresh data
