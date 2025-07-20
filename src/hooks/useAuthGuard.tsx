@@ -29,16 +29,35 @@ export const useAuthGuard = (requireAdmin = false) => {
   };
 };
 
-// Admin Route Protection Component
+// Protected Route Component with better error handling
 export const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { loading } = useAuthGuard(true);
+  const { user, loading, isHealthy } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Don't redirect while still loading
+    if (loading) return;
+    
+    // If not healthy or no user, redirect to auth
+    if (!isHealthy || !user) {
+      console.log('Auth guard redirecting to auth:', { isHealthy, hasUser: !!user });
+      navigate('/auth');
+    }
+  }, [user, loading, isHealthy, navigate]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
+  }
+
+  if (!isHealthy || !user) {
+    return null; // Will redirect in useEffect
   }
 
   return <>{children}</>;

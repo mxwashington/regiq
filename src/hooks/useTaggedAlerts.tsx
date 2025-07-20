@@ -50,6 +50,7 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
+        console.log('Fetching tagged alerts...', { filters, limit });
         setLoading(true);
         setError(null);
 
@@ -86,13 +87,17 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
           // For each filter, we need to ensure the alert has that specific tag
           const tagIds = filters.map(f => f.tagId);
           query = query.in('alert_tags.tag_id', tagIds);
+          console.log('Applied filters:', { tagIds });
         }
 
         const { data, error: fetchError } = await query;
 
         if (fetchError) {
+          console.error('Error fetching alerts:', fetchError);
           throw fetchError;
         }
+
+        console.log('Raw alert data:', { count: data?.length, data });
 
         // Transform the data to match our interface
         const transformedAlerts = data?.map(alert => ({
@@ -112,8 +117,8 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
             }
           }))
         })) || [];
-
-        // Additional client-side filtering for multiple category filters
+        
+        console.log('Transformed alerts:', { count: transformedAlerts?.length });
         let filteredAlerts = transformedAlerts;
         if (filters.length > 0) {
           const filtersByCategory = filters.reduce((acc, filter) => {

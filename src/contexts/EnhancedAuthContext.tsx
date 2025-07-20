@@ -175,6 +175,7 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
     let mounted = true;
     console.log('=== ENHANCED AUTH CONTEXT INITIALIZATION ===');
     
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -187,6 +188,7 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
           timestamp: new Date().toISOString()
         });
         
+        // Update state immediately
         setState(prev => ({
           ...prev,
           session,
@@ -206,7 +208,7 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
             }
           }, 100);
         } else {
-          console.log('No user session, clearing state...');
+          console.log('No session, clearing profile data...');
           setState(prev => ({
             ...prev,
             subscribed: false,
@@ -220,6 +222,7 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
       }
     );
 
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!mounted) return;
       
@@ -235,14 +238,15 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
         userEmail: session?.user?.email
       });
       
-      setState(prev => ({
-        ...prev,
-        session,
-        user: session?.user ?? null,
-        loading: false
-      }));
-      
-      if (session?.user) {
+      // Only update if this is the initial load and we have a session
+      if (session) {
+        setState(prev => ({
+          ...prev,
+          session,
+          user: session?.user ?? null,
+          loading: false
+        }));
+        
         setTimeout(() => {
           if (mounted) {
             refreshSubscription();
@@ -250,6 +254,11 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
             extendSessionIfTrusted(session.user.id);
           }
         }, 100);
+      } else {
+        setState(prev => ({
+          ...prev,
+          loading: false
+        }));
       }
     });
 

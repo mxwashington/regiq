@@ -11,8 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import TagFilter from './TagFilter';
 import TaggedAlertCard from './TaggedAlertCard';
+import SimpleAlertCard from './SimpleAlertCard';
 import { useTaxonomy } from '@/hooks/useTaxonomy';
 import { useTaggedAlerts } from '@/hooks/useTaggedAlerts';
+import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 
 interface ActiveFilter {
   categoryId: string;
@@ -31,11 +33,29 @@ export function AlertsDashboard() {
   // Load taxonomy data
   const { categories: taxonomyCategories, loading: taxonomyLoading } = useTaxonomy();
   
-  // Load alerts with current filters
-  const { alerts, loading: alertsLoading } = useTaggedAlerts({ 
+  // Load alerts with current filters - with fallback to simple alerts
+  const { alerts: taggedAlerts, loading: taggedAlertsLoading, error: taggedAlertsError } = useTaggedAlerts({ 
     filters: activeFilters,
     limit: 100 
   });
+  
+  // Fallback to simple alerts if tagged alerts fail
+  const { alerts: simpleAlerts, loading: simpleAlertsLoading } = useSimpleAlerts(100);
+  
+  // Use tagged alerts if available, otherwise fallback to simple alerts
+  const alerts = taggedAlertsError ? simpleAlerts : taggedAlerts;
+  const alertsLoading = taggedAlertsError ? simpleAlertsLoading : taggedAlertsLoading;
+  
+  // Log debugging info
+  React.useEffect(() => {
+    console.log('AlertsDashboard state:', {
+      taggedAlertsError,
+      taggedAlertsCount: taggedAlerts?.length,
+      simpleAlertsCount: simpleAlerts?.length,
+      usingSimpleAlerts: !!taggedAlertsError,
+      activeFiltersCount: activeFilters.length
+    });
+  }, [taggedAlertsError, taggedAlerts?.length, simpleAlerts?.length, activeFilters.length]);
 
   // Filter alerts by search term
   const filteredAlerts = React.useMemo(() => {
@@ -209,16 +229,16 @@ export function AlertsDashboard() {
             </TabsList>
 
             <TabsContent value="all" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.all} onTagClick={handleTagClick} />
+              <AlertsList alerts={alertsByUrgency.all} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} />
             </TabsContent>
             <TabsContent value="high" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.high} onTagClick={handleTagClick} />
+              <AlertsList alerts={alertsByUrgency.high} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} />
             </TabsContent>
             <TabsContent value="medium" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.medium} onTagClick={handleTagClick} />
+              <AlertsList alerts={alertsByUrgency.medium} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} />
             </TabsContent>
             <TabsContent value="low" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.low} onTagClick={handleTagClick} />
+              <AlertsList alerts={alertsByUrgency.low} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} />
             </TabsContent>
           </Tabs>
         </div>
@@ -246,38 +266,50 @@ export function AlertsDashboard() {
       </div>
     </div>
   );
+}
 
-  interface AlertsListProps {
-    alerts: any[];
-    onTagClick: (categoryName: string, tagId: string, tagName: string) => void;
-  }
+interface AlertsListProps {
+  alerts: any[];
+  onTagClick: (categoryName: string, tagId: string, tagName: string) => void;
+  hasTaggedAlertsError: boolean;
+}
 
-  function AlertsList({ alerts, onTagClick }: AlertsListProps) {
-    if (alerts.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-muted-foreground">No alerts found</h3>
-          <p className="text-muted-foreground">
-            {activeFilters.length > 0 
-              ? 'Try adjusting your tag filters or search criteria.'
-              : 'No alerts match your search criteria.'
-            }
-          </p>
-        </div>
-      );
-    }
-
+function AlertsList({ alerts, onTagClick, hasTaggedAlertsError }: AlertsListProps) {
+  if (alerts.length === 0) {
     return (
-      <div className="grid gap-4">
-        {alerts.map((alert) => (
-          <TaggedAlertCard
-            key={alert.id}
-            alert={alert}
-            onTagClick={onTagClick}
-          />
-        ))}
+      <div className="text-center py-12">
+        <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-muted-foreground">No alerts found</h3>
+        <p className="text-muted-foreground">
+          Try adjusting your search criteria or check back later for new alerts.
+        </p>
       </div>
     );
   }
+
+  return (
+    <div className="grid gap-4">
+      {alerts.map((alert) => {
+        // Check if this is a tagged alert or simple alert
+        const hasAlertTags = alert.alert_tags && Array.isArray(alert.alert_tags);
+        
+        if (hasAlertTags && !hasTaggedAlertsError) {
+          return (
+            <TaggedAlertCard
+              key={alert.id}
+              alert={alert}
+              onTagClick={onTagClick}
+            />
+          );
+        } else {
+          return (
+            <SimpleAlertCard
+              key={alert.id}
+              alert={alert}
+            />
+          );
+        }
+      })}
+    </div>
+  );
 }
