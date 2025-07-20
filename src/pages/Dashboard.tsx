@@ -78,6 +78,9 @@ const Dashboard = () => {
   const { navigateTo } = useNavigationHelper();
   const navigate = useNavigate();
 
+  // Add state for view toggle - admins can switch between admin and user view
+  const [viewAsUser, setViewAsUser] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -159,8 +162,11 @@ const Dashboard = () => {
     return null; // Will redirect in useEffect
   }
 
-  // If user is admin, show the old admin-focused dashboard
-  if (isAdmin) {
+  // Show user view if admin has toggled "view as user" or if user is not admin
+  const showUserView = !isAdmin || viewAsUser;
+
+  // If admin and not viewing as user, show admin dashboard
+  if (isAdmin && !viewAsUser) {
     return (
       <DashboardErrorBoundary>
         <div className="min-h-screen bg-background">
@@ -173,6 +179,16 @@ const Dashboard = () => {
               </div>
               
               <div className="flex items-center space-x-3">
+                {/* Add View Toggle Button */}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setViewAsUser(true)}
+                  className="flex items-center space-x-2"
+                >
+                  <User className="h-4 w-4" />
+                  <span>View as User</span>
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="flex items-center space-x-2">
@@ -240,6 +256,18 @@ const Dashboard = () => {
             <div className="flex items-center space-x-4">
               <MobileNavigation />
               <div className="hidden md:flex items-center space-x-4">
+              {/* Add Admin Toggle Button if user is admin but viewing as user */}
+              {isAdmin && viewAsUser && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setViewAsUser(false)}
+                  className="flex items-center space-x-2"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span>Admin View</span>
+                </Button>
+              )}
               <Button 
                 variant="ghost" 
                 size="sm" 
