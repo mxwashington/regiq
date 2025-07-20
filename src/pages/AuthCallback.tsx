@@ -143,15 +143,34 @@ export default function AuthCallback() {
             message: 'Authentication failed: No user data received'
           }));
         }
-      } else if (type === 'recovery') {
+      } else if (type === 'recovery' && accessToken && refreshToken) {
         console.log('Processing password recovery...');
+        
+        // Set the session for password recovery
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (sessionError) {
+          console.error('Recovery Session Error:', sessionError);
+          setState(prev => ({
+            ...prev,
+            status: 'error',
+            message: `Recovery session setup failed: ${sessionError.message}`
+          }));
+          return;
+        }
+
+        console.log('Recovery session established successfully');
         setState(prev => ({
           ...prev,
           status: 'success',
-          message: 'Password recovery link verified. You can now reset your password.'
+          message: 'Password recovery link verified. Redirecting to reset form...'
         }));
+        
         setTimeout(() => {
-          navigateTo('/auth?mode=reset');
+          navigate('/auth/reset-password');
         }, 2000);
       } else {
         if (user) {

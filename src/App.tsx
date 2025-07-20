@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import { LegalFramework } from "./components/LegalFramework";
 import { AuthGuard } from "./hooks/useAuthGuard";
 import UnifiedAuth from "./components/UnifiedAuth";
+import ResetPassword from "./components/ResetPassword";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,6 +74,7 @@ const App = () => (
                   <Route path="/auth" element={<UnifiedAuth />} />
                   <Route path="/login" element={<UnifiedAuth />} />
                   <Route path="/signup" element={<UnifiedAuth />} />
+                  <Route path="/auth/reset-password" element={<ResetPassword />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/dashboard" element={
                     <AuthGuard>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Loader2, RotateCcw } from 'lucide-react';
 
 export default function UnifiedAuth() {
   const [loading, setLoading] = useState<string | null>(null);
@@ -16,7 +16,9 @@ export default function UnifiedAuth() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [magicEmail, setMagicEmail] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -125,6 +127,52 @@ export default function UnifiedAuth() {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading('reset');
+    
+    try {
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: redirectUrl,
+      });
+
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'Reset link sent',
+        description: 'Check your email for password reset instructions.',
+      });
+      setResetEmail('');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // Show success message if redirected from password reset
+  React.useEffect(() => {
+    if (location.state?.message) {
+      toast({
+        title: 'Success',
+        description: location.state.message,
+      });
+    }
+  }, [location.state, toast]);
+
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading('magic');
@@ -177,9 +225,10 @@ export default function UnifiedAuth() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="reset">Reset</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin" className="space-y-4">
@@ -355,6 +404,40 @@ export default function UnifiedAuth() {
                     </>
                   ) : (
                     'Create Account'
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="reset" className="space-y-4">
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <div className="relative">
+                    <RotateCcw className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={loading === 'reset'}
+                >
+                  {loading === 'reset' ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reset Link'
                   )}
                 </Button>
               </form>
