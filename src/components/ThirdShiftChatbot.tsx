@@ -59,6 +59,8 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
     setIsLoading(true);
 
     try {
+      console.log('ThirdShift.ai: Starting search with query:', inputValue);
+      
       // Call our enhanced search API
       const { data, error } = await supabase.functions.invoke('perplexity-search', {
         body: {
@@ -69,7 +71,12 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
         }
       });
 
-      if (error) throw error;
+      console.log('ThirdShift.ai: API response:', { data, error });
+
+      if (error) {
+        console.error('ThirdShift.ai: Supabase function error:', error);
+        throw error;
+      }
 
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -94,7 +101,9 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
       }
 
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('ThirdShift.ai: Complete error details:', error);
+      console.error('ThirdShift.ai: Error type:', typeof error);
+      console.error('ThirdShift.ai: Error keys:', error ? Object.keys(error) : 'no keys');
       
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),

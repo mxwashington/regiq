@@ -36,8 +36,10 @@ serve(async (req) => {
 
     const perplexityApiKey = Deno.env.get("PERPLEXITY_API_KEY");
     if (!perplexityApiKey) {
+      logStep("PERPLEXITY_API_KEY is missing");
       throw new Error("PERPLEXITY_API_KEY is not set");
     }
+    logStep("API key found", { keyLength: perplexityApiKey.length });
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
