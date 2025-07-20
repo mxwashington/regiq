@@ -21,6 +21,38 @@ export default function ResetPassword() {
     // Check if we have a valid recovery session
     const checkRecoverySession = async () => {
       try {
+        // First check URL hash parameters (this is where Supabase puts recovery tokens)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
+        
+        console.log('Hash params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+        
+        if (type === 'recovery' && accessToken) {
+          // We have a recovery token, set the session
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          });
+          
+          if (error) {
+            console.error('Error setting recovery session:', error);
+            setSessionValid(false);
+            toast({
+              title: 'Invalid reset link',
+              description: 'This password reset link is invalid or has expired. Please request a new one.',
+              variant: 'destructive',
+            });
+            return;
+          }
+          
+          console.log('Recovery session established successfully');
+          setSessionValid(true);
+          return;
+        }
+        
+        // Fallback: check current session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -29,15 +61,11 @@ export default function ResetPassword() {
           return;
         }
 
-        // Check if this is a recovery session
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const type = hashParams.get('type') || searchParams.get('type');
-        
-        if (session && (type === 'recovery' || session.user?.aud === 'authenticated')) {
-          console.log('Valid recovery session found');
+        if (session && session.user?.aud === 'authenticated') {
+          console.log('Valid session found for password reset');
           setSessionValid(true);
         } else {
-          console.log('No valid recovery session found');
+          console.log('No valid session found');
           setSessionValid(false);
           toast({
             title: 'Invalid reset link',

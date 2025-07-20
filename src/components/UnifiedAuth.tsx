@@ -132,7 +132,7 @@ export default function UnifiedAuth() {
     setLoading('reset');
     
     try {
-      const redirectUrl = `${window.location.origin}/auth/callback`;
+      const redirectUrl = `${window.location.origin}/auth/reset-password`;
       
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: redirectUrl,
