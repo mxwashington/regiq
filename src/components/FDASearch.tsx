@@ -179,7 +179,10 @@ export function FDASearch() {
           foodEvents: () => fdaApi.searchFoodEvents(params),
           drugEvents: () => fdaApi.searchDrugEvents(params),
           drugShortages: () => fdaApi.searchDrugShortages(params),
-          animalEvents: () => fdaApi.searchAnimalEvents(params)
+          animalEvents: () => fdaApi.searchAnimalEvents(params),
+          drugLabels: () => fdaApi.searchDrugLabels(params),
+          devicePma: () => fdaApi.searchDevicePma(params),
+          tobaccoProblems: () => fdaApi.searchTobaccoProblems(params)
         };
 
         const method = endpointMap[filters.endpoint];

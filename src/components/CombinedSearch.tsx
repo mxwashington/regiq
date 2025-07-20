@@ -88,10 +88,10 @@ export function CombinedSearch() {
 
         // FDA search based on scope
         searchScope === 'combined' 
-          ? fdaApi.searchMultipleEndpoints(query, ['foodEnforcement', 'drugEnforcement', 'deviceEnforcement', 'drugShortages'], 15)
+          ? fdaApi.searchMultipleEndpoints(query, ['foodEnforcement', 'drugEnforcement', 'deviceEnforcement', 'drugsFda'], 15)
           : searchScope === 'enforcement'
           ? fdaApi.searchMultipleEndpoints(query, ['foodEnforcement', 'drugEnforcement', 'deviceEnforcement'], 20)
-          : fdaApi.searchMultipleEndpoints(query, ['foodEvents', 'drugEvents', 'animalEvents'], 20)
+          : fdaApi.searchMultipleEndpoints(query, ['foodEvent', 'drugEvent', 'animalEvent'], 20)
       ]);
 
       let perplexityResult: PerplexityResult | undefined;

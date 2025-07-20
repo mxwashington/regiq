@@ -2,13 +2,29 @@
 // Base URL: https://api.fda.gov
 
 export interface FDAEndpoints {
-  foodEnforcement: '/food/enforcement.json';
+  // Drug endpoints
+  drugEvent: '/drug/event.json';
+  drugLabel: '/drug/label.json';
+  drugNdc: '/drug/ndc.json';
   drugEnforcement: '/drug/enforcement.json';
+  drugsFda: '/drug/drugsfda.json';
+  
+  // Device endpoints
+  devicePma: '/device/pma.json';
+  deviceReglist: '/device/reglist.json';
+  deviceCovid19Serology: '/device/covid19serology.json';
+  deviceUdi: '/device/udi.json';
   deviceEnforcement: '/device/enforcement.json';
-  foodEvents: '/food/event.json';
-  drugEvents: '/drug/event.json';
-  drugShortages: '/drug/shortages.json';
-  animalEvents: '/animal/event.json';
+  
+  // Food endpoints
+  foodEnforcement: '/food/enforcement.json';
+  foodEvent: '/food/event.json';
+  
+  // Animal & Veterinary endpoints
+  animalEvent: '/animalandveterinary/event.json';
+  
+  // Tobacco endpoints
+  tobaccoProblem: '/tobacco/problem.json';
 }
 
 export interface FDASearchParams {
@@ -17,6 +33,7 @@ export interface FDASearchParams {
   skip?: number;
   count?: string;
   sort?: string;
+  api_key?: string;
 }
 
 export interface FDAMeta {
@@ -133,6 +150,11 @@ export class FDAApiClient {
   private baseUrl = 'https://api.fda.gov';
   private requestsCache = new Map<string, { data: any; timestamp: number }>();
   private cacheExpiry = 60 * 60 * 1000; // 1 hour cache
+  private apiKey?: string;
+
+  constructor(apiKey?: string) {
+    this.apiKey = apiKey;
+  }
 
   private async makeRequest<T>(
     endpoint: string, 
@@ -153,9 +175,14 @@ export class FDAApiClient {
       params.limit = 20;
     }
 
+    // Add API key if available
+    if (this.apiKey || params.api_key) {
+      url.searchParams.append('api_key', this.apiKey || params.api_key!);
+    }
+
     // Add parameters to URL
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+      if (value !== undefined && value !== null && key !== 'api_key') {
         url.searchParams.append(key, value.toString());
       }
     });
@@ -187,35 +214,71 @@ export class FDAApiClient {
     }
   }
 
-  // Enforcement Actions
-  async searchFoodEnforcement(params: FDASearchParams = {}): Promise<FDAResponse<FDAEnforcementResult>> {
-    return this.makeRequest<FDAEnforcementResult>('/food/enforcement.json', params);
+  // Drug endpoints
+  async searchDrugEvents(params: FDASearchParams = {}): Promise<FDAResponse<FDAEventResult>> {
+    return this.makeRequest<FDAEventResult>('/drug/event.json', params);
+  }
+
+  async searchDrugLabels(params: FDASearchParams = {}) {
+    return this.makeRequest('/drug/label.json', params);
+  }
+
+  async searchDrugNdc(params: FDASearchParams = {}) {
+    return this.makeRequest('/drug/ndc.json', params);
   }
 
   async searchDrugEnforcement(params: FDASearchParams = {}): Promise<FDAResponse<FDAEnforcementResult>> {
     return this.makeRequest<FDAEnforcementResult>('/drug/enforcement.json', params);
   }
 
+  async searchDrugsFda(params: FDASearchParams = {}) {
+    return this.makeRequest('/drug/drugsfda.json', params);
+  }
+
+  // Device endpoints
+  async searchDevicePma(params: FDASearchParams = {}) {
+    return this.makeRequest('/device/pma.json', params);
+  }
+
+  async searchDeviceReglist(params: FDASearchParams = {}) {
+    return this.makeRequest('/device/reglist.json', params);
+  }
+
+  async searchDeviceCovid19Serology(params: FDASearchParams = {}) {
+    return this.makeRequest('/device/covid19serology.json', params);
+  }
+
+  async searchDeviceUdi(params: FDASearchParams = {}) {
+    return this.makeRequest('/device/udi.json', params);
+  }
+
   async searchDeviceEnforcement(params: FDASearchParams = {}): Promise<FDAResponse<FDAEnforcementResult>> {
     return this.makeRequest<FDAEnforcementResult>('/device/enforcement.json', params);
   }
 
-  // Adverse Events
+  // Food endpoints
+  async searchFoodEnforcement(params: FDASearchParams = {}): Promise<FDAResponse<FDAEnforcementResult>> {
+    return this.makeRequest<FDAEnforcementResult>('/food/enforcement.json', params);
+  }
+
   async searchFoodEvents(params: FDASearchParams = {}): Promise<FDAResponse<FDAEventResult>> {
     return this.makeRequest<FDAEventResult>('/food/event.json', params);
   }
 
-  async searchDrugEvents(params: FDASearchParams = {}): Promise<FDAResponse<FDAEventResult>> {
-    return this.makeRequest<FDAEventResult>('/drug/event.json', params);
-  }
-
+  // Animal & Veterinary endpoints
   async searchAnimalEvents(params: FDASearchParams = {}): Promise<FDAResponse<FDAEventResult>> {
-    return this.makeRequest<FDAEventResult>('/animal/event.json', params);
+    return this.makeRequest<FDAEventResult>('/animalandveterinary/event.json', params);
   }
 
-  // Drug Shortages
+  // Tobacco endpoints
+  async searchTobaccoProblems(params: FDASearchParams = {}) {
+    return this.makeRequest('/tobacco/problem.json', params);
+  }
+
+  // Legacy method for backwards compatibility
   async searchDrugShortages(params: FDASearchParams = {}): Promise<FDAResponse<FDAShortageResult>> {
-    return this.makeRequest<FDAShortageResult>('/drug/shortages.json', params);
+    // Use the drugs@FDA endpoint which includes shortage information
+    return this.makeRequest<FDAShortageResult>('/drug/drugsfda.json', params);
   }
 
   // Combined search across multiple endpoints
@@ -230,13 +293,20 @@ export class FDAApiClient {
     };
 
     const endpointMethods = {
-      foodEnforcement: this.searchFoodEnforcement.bind(this),
+      drugEvent: this.searchDrugEvents.bind(this),
+      drugLabel: this.searchDrugLabels.bind(this),
+      drugNdc: this.searchDrugNdc.bind(this),
       drugEnforcement: this.searchDrugEnforcement.bind(this),
+      drugsFda: this.searchDrugsFda.bind(this),
+      devicePma: this.searchDevicePma.bind(this),
+      deviceReglist: this.searchDeviceReglist.bind(this),
+      deviceCovid19Serology: this.searchDeviceCovid19Serology.bind(this),
+      deviceUdi: this.searchDeviceUdi.bind(this),
       deviceEnforcement: this.searchDeviceEnforcement.bind(this),
-      foodEvents: this.searchFoodEvents.bind(this),
-      drugEvents: this.searchDrugEvents.bind(this),
-      drugShortages: this.searchDrugShortages.bind(this),
-      animalEvents: this.searchAnimalEvents.bind(this)
+      foodEnforcement: this.searchFoodEnforcement.bind(this),
+      foodEvent: this.searchFoodEvents.bind(this),
+      animalEvent: this.searchAnimalEvents.bind(this),
+      tobaccoProblem: this.searchTobaccoProblems.bind(this)
     };
 
     const results = await Promise.allSettled(
@@ -352,3 +422,90 @@ export class FDAApiClient {
 
 // Export singleton instance
 export const fdaApi = new FDAApiClient();
+
+// FSIS API Client
+export interface FSISRecallResult {
+  recallNumber: string;
+  productName: string;
+  companyName: string;
+  recallDate: string;
+  recallClass: string;
+  summary: string;
+  distributionPattern: string;
+  productQuantity: string;
+  reasonForRecall: string;
+}
+
+export class FSISApiClient {
+  private baseUrl = 'https://www.fsis.usda.gov/fsis/api/recall/v/1';
+  private requestsCache = new Map<string, { data: any; timestamp: number }>();
+  private cacheExpiry = 60 * 60 * 1000; // 1 hour cache
+
+  async searchRecalls(params: Record<string, string> = {}): Promise<FSISRecallResult[]> {
+    const cacheKey = `recalls?${new URLSearchParams(params).toString()}`;
+    
+    // Check cache first
+    const cached = this.requestsCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < this.cacheExpiry) {
+      return cached.data;
+    }
+
+    const url = new URL(this.baseUrl);
+    
+    // Add parameters to URL
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.append(key, value);
+      }
+    });
+
+    try {
+      const response = await fetch(url.toString(), {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'RegIQ-FSIS-Client/1.0'
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('No FSIS recall data found');
+        }
+        if (response.status === 429) {
+          throw new Error('FSIS API rate limit exceeded. Please try again later.');
+        }
+        throw new Error(`FSIS API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Cache the result
+      this.requestsCache.set(cacheKey, { data, timestamp: Date.now() });
+      
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to fetch data from FSIS API');
+    }
+  }
+
+  async getRecentRecalls(days: number = 30): Promise<FSISRecallResult[]> {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    const dateString = date.toISOString().split('T')[0];
+    
+    return this.searchRecalls({
+      fromDate: dateString,
+      limit: '50'
+    });
+  }
+
+  clearCache(): void {
+    this.requestsCache.clear();
+  }
+}
+
+// Export singleton instance
+export const fsisApi = new FSISApiClient();

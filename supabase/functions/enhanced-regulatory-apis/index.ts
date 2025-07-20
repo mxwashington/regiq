@@ -26,8 +26,58 @@ interface APIEndpoint {
   keywords: string[];
 }
 
-// Validated working APIs from the user's list
+// Comprehensive API configs including new openFDA and FSIS APIs
 const API_CONFIGS: APIConfig[] = [
+  {
+    name: 'FDA_openFDA',
+    baseUrl: 'https://api.fda.gov',
+    requiresAuth: false,
+    endpoints: [
+      {
+        path: '/drug/event.json',
+        params: { limit: '20' },
+        urgencyLevel: 'High',
+        keywords: ['adverse', 'reaction', 'side effect', 'death', 'hospitalization']
+      },
+      {
+        path: '/drug/enforcement.json',
+        params: { limit: '20' },
+        urgencyLevel: 'High',
+        keywords: ['recall', 'class i', 'class ii', 'withdrawal', 'defect']
+      },
+      {
+        path: '/food/enforcement.json',
+        params: { limit: '20' },
+        urgencyLevel: 'High',
+        keywords: ['contamination', 'recall', 'listeria', 'salmonella', 'allergen']
+      },
+      {
+        path: '/device/enforcement.json',
+        params: { limit: '20' },
+        urgencyLevel: 'High',
+        keywords: ['malfunction', 'defect', 'recall', 'safety', 'death']
+      },
+      {
+        path: '/animalandveterinary/event.json',
+        params: { limit: '20' },
+        urgencyLevel: 'Medium',
+        keywords: ['veterinary', 'animal', 'adverse', 'death', 'reaction']
+      }
+    ]
+  },
+  {
+    name: 'FSIS_Recalls',
+    baseUrl: 'https://www.fsis.usda.gov/fsis/api/recall/v/1',
+    requiresAuth: false,
+    endpoints: [
+      {
+        path: '',
+        params: { limit: '20' },
+        urgencyLevel: 'High',
+        keywords: ['meat', 'poultry', 'recall', 'contamination', 'pathogen']
+      }
+    ]
+  },
   {
     name: 'EPA_ECHO',
     baseUrl: 'https://echo.epa.gov/tools/web-services',
@@ -106,6 +156,10 @@ serve(async (req) => {
     const { action, apiName, ...params } = await req.json();
 
     switch (action) {
+      case 'fetch_fda_apis':
+        return await fetchFDAAPIs(supabaseClient);
+      case 'fetch_fsis_recalls':
+        return await fetchFSISRecalls(supabaseClient);
       case 'fetch_epa_enforcement':
         return await fetchEPAEnforcement(supabaseClient);
       case 'fetch_federal_register':
@@ -366,16 +420,184 @@ async function fetchCanadaRecalls(supabase: any) {
   });
 }
 
+async function fetchFDAAPIs(supabase: any) {
+  const fdaConfig = API_CONFIGS.find(api => api.name === 'FDA_openFDA');
+  if (!fdaConfig) throw new Error('FDA openFDA config not found');
+
+  let totalProcessed = 0;
+
+  for (const endpoint of fdaConfig.endpoints) {
+    try {
+      const queryParams = new URLSearchParams(endpoint.params || {});
+      const url = `${fdaConfig.baseUrl}${endpoint.path}?${queryParams}`;
+      
+      logStep(`Fetching FDA data from: ${endpoint.path}`);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'RegIQ-Enhanced-APIs/1.0',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        logStep(`FDA API error: ${response.status}`);
+        continue;
+      }
+
+      const data = await response.json();
+      
+      if (data.results && data.results.length > 0) {
+        for (const item of data.results.slice(0, 20)) {
+          const alert = {
+            title: `FDA ${endpoint.path.includes('enforcement') ? 'Enforcement' : 'Alert'}: ${item.product_description || item.brand_name || item.product_name || 'FDA Regulatory Alert'}`,
+            source: 'FDA',
+            urgency: determineUrgency(item, endpoint),
+            summary: `${item.reason_for_recall || item.summary || 'FDA regulatory alert'} - ${item.company_name || 'Unknown Company'}`,
+            published_date: item.recall_initiation_date ? new Date(item.recall_initiation_date).toISOString() : new Date().toISOString(),
+            external_url: `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts`,
+            full_content: JSON.stringify(item)
+          };
+
+          // Check if already exists
+          const { data: existing } = await supabase
+            .from('alerts')
+            .select('id')
+            .eq('title', alert.title)
+            .eq('source', alert.source)
+            .gte('published_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+            .maybeSingle();
+
+          if (!existing) {
+            const { error } = await supabase
+              .from('alerts')
+              .insert(alert);
+
+            if (!error) {
+              totalProcessed++;
+              logStep(`Added FDA alert: ${alert.title}`);
+            }
+          }
+        }
+      }
+
+      // Rate limit pause
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      logStep(`Error processing FDA endpoint ${endpoint.path}:`, error);
+    }
+  }
+
+  return new Response(JSON.stringify({ 
+    message: `Processed ${totalProcessed} FDA alerts`,
+    processed: totalProcessed 
+  }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+}
+
+async function fetchFSISRecalls(supabase: any) {
+  const fsisConfig = API_CONFIGS.find(api => api.name === 'FSIS_Recalls');
+  if (!fsisConfig) throw new Error('FSIS Recalls config not found');
+
+  let totalProcessed = 0;
+
+  for (const endpoint of fsisConfig.endpoints) {
+    try {
+      const queryParams = new URLSearchParams(endpoint.params || {});
+      const url = `${fsisConfig.baseUrl}${endpoint.path}?${queryParams}`;
+      
+      logStep(`Fetching FSIS recalls data`);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'RegIQ-Enhanced-APIs/1.0',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        logStep(`FSIS API error: ${response.status}`);
+        continue;
+      }
+
+      const data = await response.json();
+      
+      if (data && Array.isArray(data)) {
+        for (const item of data.slice(0, 20)) {
+          const alert = {
+            title: `FSIS Recall: ${item.productName || item.product_description || 'Meat/Poultry Recall'}`,
+            source: 'FSIS',
+            urgency: determineUrgency(item, endpoint),
+            summary: `${item.summary || item.reasonForRecall || 'FSIS meat/poultry recall'} - ${item.companyName || 'Unknown Company'}`,
+            published_date: item.recallDate ? new Date(item.recallDate).toISOString() : new Date().toISOString(),
+            external_url: `https://www.fsis.usda.gov/recalls-alerts`,
+            full_content: JSON.stringify(item)
+          };
+
+          // Check if already exists
+          const { data: existing } = await supabase
+            .from('alerts')
+            .select('id')
+            .eq('title', alert.title)
+            .eq('source', alert.source)
+            .gte('published_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+            .maybeSingle();
+
+          if (!existing) {
+            const { error } = await supabase
+              .from('alerts')
+              .insert(alert);
+
+            if (!error) {
+              totalProcessed++;
+              logStep(`Added FSIS recall alert: ${alert.title}`);
+            }
+          }
+        }
+      }
+
+      // Rate limit pause
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      logStep(`Error processing FSIS endpoint:`, error);
+    }
+  }
+
+  return new Response(JSON.stringify({ 
+    message: `Processed ${totalProcessed} FSIS recall alerts`,
+    processed: totalProcessed 
+  }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+}
+
 async function syncAllAPIs(supabase: any) {
   logStep("Starting sync of all enhanced APIs");
   
   const results = {
+    fda_apis: 0,
+    fsis_recalls: 0,
     epa_enforcement: 0,
     federal_register: 0,
     canada_health: 0
   };
 
   try {
+    // FDA APIs
+    const fdaResponse = await fetchFDAAPIs(supabase);
+    const fdaData = await fdaResponse.json();
+    results.fda_apis = fdaData.processed || 0;
+
+    // FSIS Recalls
+    const fsisResponse = await fetchFSISRecalls(supabase);
+    const fsisData = await fsisResponse.json();
+    results.fsis_recalls = fsisData.processed || 0;
+
     // EPA Enforcement
     const epaResponse = await fetchEPAEnforcement(supabase);
     const epaData = await epaResponse.json();
