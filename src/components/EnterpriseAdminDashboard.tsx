@@ -15,8 +15,6 @@ import { DataPipelineManager } from "./DataPipelineManager";
 export const EnterpriseAdminDashboard = () => {
   return (
     <div className="space-y-8">
-      <AdminNavigation />
-      
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
           <Database className="h-6 w-6" />

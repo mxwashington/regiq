@@ -23,13 +23,7 @@ const AdminDashboard = () => {
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <Routes>
-        <Route index element={
-          <div className="space-y-6">
-            <AlertsCleanStatus />
-            <DataFreshnessIndicator />
-            <EnterpriseAdminDashboard />
-          </div>
-        } />
+        <Route index element={<EnterpriseAdminDashboard />} />
         <Route path="user-management" element={<AdminNavigation />} />
         <Route path="analytics" element={<FDAAnalyticsDashboard />} />
         <Route path="settings" element={<AdminNavigation />} />
