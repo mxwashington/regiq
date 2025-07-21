@@ -152,9 +152,7 @@ const App = () => (
         <AuthProvider>
           <DemoProvider>
             <BrowserRouter>
-              <DashboardErrorBoundary>
-                <PWAApp />
-              </DashboardErrorBoundary>
+              <PWAApp />
             </BrowserRouter>
           </DemoProvider>
         </AuthProvider>
