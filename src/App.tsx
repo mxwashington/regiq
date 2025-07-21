@@ -12,7 +12,7 @@ import { usePWA } from "@/hooks/usePWA";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
-// Lazy load pages for better performance
+// Lazy load pages for better performance with mobile-optimized imports
 const Debug = React.lazy(() => import("./pages/Debug"));
 const Landing = React.lazy(() => import("./pages/Landing"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -21,10 +21,12 @@ const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const SearchPage = React.lazy(() => import("./pages/SearchPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
-const LegalFramework = React.lazy(() => import("./components/LegalFramework").then(m => ({ default: m.LegalFramework })));
-const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth"));
-const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
-const AuthGuard = React.lazy(() => import("./hooks/useAuthGuard").then(m => ({ default: m.AdminProtectedRoute })));
+
+// Import components directly to avoid complex module transformations that fail on mobile
+import { LegalFramework } from "@/components/LegalFramework";
+import UnifiedAuth from "@/components/UnifiedAuth";
+import ResetPassword from "@/components/ResetPassword";
+import { AdminProtectedRoute } from "@/hooks/useAuthGuard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,9 +85,9 @@ const PWAApp = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/admin/*" element={
-              <AuthGuard>
+              <AdminProtectedRoute>
                 <AdminDashboard />
-              </AuthGuard>
+              </AdminProtectedRoute>
             } />
             <Route path="/legal" element={<LegalFramework />} />
             <Route path="/debug" element={<Debug />} />

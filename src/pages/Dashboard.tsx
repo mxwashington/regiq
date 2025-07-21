@@ -30,7 +30,9 @@ import { FilterSidebar } from '@/components/FilterSidebar';
 import { RegulatoryFeed } from '@/components/RegulatoryFeed';
 import { ThirdShiftChatbot } from '@/components/ThirdShiftChatbot';
 import { MobileNavigation } from '@/components/MobileNavigation';
+import { MobileDashboard } from '@/components/MobileDashboard';
 import { useNavigationHelper } from '@/components/NavigationHelper';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { SessionStatusIndicator } from '@/components/SessionStatusIndicator';
 import { DashboardErrorBoundary } from '@/components/DashboardErrorBoundary';
 import { searchCacheUtils } from '@/lib/search-cache';
@@ -85,6 +87,8 @@ const Dashboard = () => {
     });
     setSearchQuery("");
   }, []);
+
+  const isMobile = useIsMobile();
 
   const getActiveFilterCount = useCallback(() => {
     return Object.values(selectedFilters).reduce((count, filters) => {
@@ -183,6 +187,30 @@ const Dashboard = () => {
 
   // Show user view if admin has toggled "view as user" or if user is not admin
   const showUserView = !isAdmin || viewAsUser;
+
+  // Mobile-first: Show mobile dashboard on mobile devices
+  if (isMobile && showUserView) {
+    return (
+      <DashboardErrorBoundary>
+        <MobileDashboard
+          stats={stats}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedFilters={selectedFilters}
+          handleFilterChange={handleFilterChange}
+          clearAllFilters={clearAllFilters}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+        />
+        
+        {/* ThirdShift.ai Chatbot for mobile */}
+        <ThirdShiftChatbot 
+          isOpen={isChatbotOpen} 
+          onToggle={() => setIsChatbotOpen(!isChatbotOpen)} 
+        />
+      </DashboardErrorBoundary>
+    );
+  }
 
   // If admin and not viewing as user, show admin dashboard
   if (isAdmin && !viewAsUser) {
