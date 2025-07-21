@@ -241,16 +241,40 @@ function processRSSItem(item: any, source: DataSource): ProcessedAlert {
 
   const signalType = detectSignalType(item.title || '', item.description || '');
   
+  // Detect if CDC is republishing FDA recalls and correctly attribute them
+  let actualAgency = source.agency;
+  let actualSource = source.agency;
+  
+  if (source.agency === 'CDC') {
+    const title = item.title || '';
+    const description = item.description || '';
+    const content = (title + ' ' + description).toLowerCase();
+    
+    // Check if this is an FDA-originated recall being republished by CDC
+    if (content.includes('fda') || 
+        content.includes('food and drug administration') ||
+        (content.includes('recall') && (
+          content.includes('food') || 
+          content.includes('drug') || 
+          content.includes('device') || 
+          content.includes('allergy') ||
+          content.includes('undeclared')
+        ))) {
+      actualAgency = 'FDA';
+      actualSource = 'FDA';
+    }
+  }
+  
   return {
     title: item.title || 'Untitled Regulatory Update',
-    source: source.agency,
+    source: actualSource,
     urgency: calculateUrgency(item, source),
     summary: item.description || 'No description available.',
     published_date: publishedDate.toISOString(),
     external_url: item.link || '',
     full_content: JSON.stringify({ ...item, signal_type: signalType }),
     region: source.region,
-    agency: source.agency
+    agency: actualAgency
   };
 }
 
