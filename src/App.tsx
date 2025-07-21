@@ -96,9 +96,6 @@ const PWAApp = () => {
   
   return (
     <>
-      <Toaster />
-      <Sonner />
-      <PWAInstallPrompt />
       <ErrorBoundary fallback={RouteErrorFallback}>
         <Suspense fallback={<PageLoadingFallback />}>
           <Routes>
@@ -145,20 +142,27 @@ const PWAApp = () => {
 };
 
 // Main App component with all providers
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ErrorBoundary fallback={RouteErrorFallback}>
-        <AuthProvider>
-          <DemoProvider>
-            <BrowserRouter>
-              <PWAApp />
-            </BrowserRouter>
-          </DemoProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <ErrorBoundary fallback={RouteErrorFallback}>
+            <AuthProvider>
+              <DemoProvider>
+                <BrowserRouter>
+                  <Toaster />
+                  <Sonner />
+                  <PWAInstallPrompt />
+                  <PWAApp />
+                </BrowserRouter>
+              </DemoProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
+};
 
 export default App;
