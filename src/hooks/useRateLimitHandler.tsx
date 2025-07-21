@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { useMockToast } from '@/hooks/useMockToast';
+import { useToast } from '@/hooks/use-toast';
 
 interface RateLimitState {
   isRateLimited: boolean;
@@ -14,7 +14,7 @@ export const useRateLimitHandler = () => {
     retryAfter: 0,
     attempts: 0
   });
-  const { toast } = useMockToast();
+  const { toast } = useToast();
 
   const handleRateLimit = useCallback((error: any) => {
     console.log('=== RATE LIMIT HANDLER ===');

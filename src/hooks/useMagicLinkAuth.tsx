@@ -1,11 +1,11 @@
 
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockToast } from '@/hooks/useMockToast';
+import { useToast } from '@/hooks/use-toast';
 import { buildMagicLinkRedirectUrl } from '@/lib/domain';
 
 export const useMagicLinkAuth = () => {
-  const { toast } = useMockToast();
+  const { toast } = useToast();
 
   const signInWithMagicLink = useCallback(async (email: string) => {
     try {

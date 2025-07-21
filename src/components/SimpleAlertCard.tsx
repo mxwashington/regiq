@@ -2,8 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Clock, AlertTriangle, X, Share2 } from 'lucide-react';
+import { ExternalLink, Clock, AlertTriangle, X, Share2, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { MobileSourceViewer } from './MobileSourceViewer';
 
 interface SimpleAlert {
   id: string;
@@ -120,61 +121,63 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+              className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px] flex items-center gap-1"
               onClick={handleShare}
             >
-              <Share2 className="h-3 w-3 mr-1" />
+              <Share2 className="h-3 w-3" />
+              <span className="sm:hidden">Share</span>
               <span className="hidden sm:inline">Share</span>
             </Button>
             {onDismissAlert && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px] flex items-center gap-1"
                 onClick={() => onDismissAlert(alert.id)}
               >
-                <X className="h-3 w-3 mr-1" />
+                <X className="h-3 w-3" />
+                <span className="sm:hidden">Hide</span>
                 <span className="hidden sm:inline">Dismiss</span>
               </Button>
             )}
+            {/* Mobile: Enhanced source viewer */}
+            <div className="sm:hidden">
+              <MobileSourceViewer
+                alert={alert}
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-3 text-xs min-w-[44px] flex items-center gap-1"
+                  >
+                    <Info className="h-3 w-3" />
+                    Details
+                  </Button>
+                }
+              />
+            </div>
+            {/* Desktop: Direct source link */}
             {alert.external_url && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px] touch-manipulation"
+                className="hidden sm:flex h-7 px-2 text-xs items-center gap-1"
                 onClick={() => {
-                  try {
-                    // Decode HTML entities in the URL
-                    const decodedUrl = alert.external_url
-                      ?.replace(/&amp;/g, '&')
-                      ?.replace(/&lt;/g, '<')
-                      ?.replace(/&gt;/g, '>')
-                      ?.replace(/&quot;/g, '"')
-                      ?.replace(/&#39;/g, "'");
-                    
-                    if (decodedUrl) {
-                      // For mobile devices, use location.href instead of window.open for better compatibility
-                      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                        window.location.href = decodedUrl;
-                      } else {
-                        window.open(decodedUrl, '_blank', 'noopener,noreferrer');
-                      }
-                    }
-                  } catch (error) {
-                    console.error('Error opening URL:', error);
-                    // Fallback: try to copy URL to clipboard
-                    if (navigator.clipboard && alert.external_url) {
-                      navigator.clipboard.writeText(alert.external_url);
-                      toast({
-                        title: "Link copied",
-                        description: "Source URL copied to clipboard.",
-                      });
-                    }
+                  // Decode HTML entities in the URL
+                  const decodedUrl = alert.external_url
+                    ?.replace(/&amp;/g, '&')
+                    ?.replace(/&lt;/g, '<')
+                    ?.replace(/&gt;/g, '>')
+                    ?.replace(/&quot;/g, '"')
+                    ?.replace(/&#39;/g, "'");
+                  
+                  if (decodedUrl) {
+                    window.open(decodedUrl, '_blank', 'noopener,noreferrer');
                   }
                 }}
               >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                <span className="hidden sm:inline">View Source</span>
+                <ExternalLink className="h-3 w-3" />
+                View Source
               </Button>
             )}
           </div>

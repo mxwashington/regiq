@@ -1,5 +1,5 @@
 
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,7 +12,6 @@ import { usePWA } from "@/hooks/usePWA";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
-
 // Lazy load pages for better performance
 const Debug = React.lazy(() => import("./pages/Debug"));
 const Landing = React.lazy(() => import("./pages/Landing"));
@@ -61,28 +60,6 @@ const PageLoadingFallback = () => (
   </div>
 );
 
-// Safe wrapper to ensure React is ready
-const SafeTooltipProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isReady, setIsReady] = useState(false);
-  
-  useEffect(() => {
-    // Ensure React is fully initialized
-    const timer = setTimeout(() => setIsReady(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-  
-  if (!isReady) {
-    return <>{children}</>;
-  }
-  
-  try {
-    return <TooltipProvider>{children}</TooltipProvider>;
-  } catch (error) {
-    console.error('TooltipProvider failed:', error);
-    return <>{children}</>;
-  }
-};
-
 // PWA-enabled App component
 const PWAApp = () => {
   // Initialize PWA functionality
@@ -90,6 +67,8 @@ const PWAApp = () => {
   
   return (
     <>
+      <Toaster />
+      <Sonner />
       <PWAInstallPrompt />
       <BrowserRouter>
         <Suspense fallback={<PageLoadingFallback />}>
@@ -118,22 +97,18 @@ const PWAApp = () => {
   );
 };
 
-const App = () => {
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <Toaster />
-        <Sonner />
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <ErrorBoundary>
         <AuthProvider>
           <DemoProvider>
-            <SafeTooltipProvider>
-              <PWAApp />
-            </SafeTooltipProvider>
+            <PWAApp />
           </DemoProvider>
         </AuthProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-};
+      </ErrorBoundary>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

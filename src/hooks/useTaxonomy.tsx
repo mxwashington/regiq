@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockToast } from '@/hooks/useMockToast';
+import { useToast } from '@/hooks/use-toast';
 
 interface TaxonomyTag {
   id: string;
@@ -26,7 +26,7 @@ export const useTaxonomy = (): TaxonomyData => {
   const [categories, setCategories] = useState<TaxonomyCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useMockToast();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTaxonomy = async () => {
