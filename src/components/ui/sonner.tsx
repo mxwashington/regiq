@@ -1,29 +1,12 @@
-import { useTheme } from "next-themes"
-import { Toaster as Sonner, toast } from "sonner"
+// TEMPORARY: Mock implementation to avoid React hook conflicts
+const Toaster = () => {
+  console.warn("Sonner Toaster component temporarily disabled due to React hook conflicts");
+  return null;
+};
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+// Mock toast function
+const toast = (message: any) => {
+  console.log("Toast (disabled):", message);
+};
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
-
-  return (
-    <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
-      toastOptions={{
-        classNames: {
-          toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton:
-            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton:
-            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-        },
-      }}
-      {...props}
-    />
-  )
-}
-
-export { Toaster, toast }
+export { Toaster, toast };
