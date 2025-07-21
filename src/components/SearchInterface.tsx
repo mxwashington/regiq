@@ -202,9 +202,9 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
                         rel="noopener noreferrer"
                         className="flex items-center gap-2"
                       >
-                        <ExternalLink className="h-3 w-3" />
-                        View Source
-                      </a>
+                         <ExternalLink className="h-3 w-3" />
+                         Read Full Alert
+                       </a>
                     </Button>
                   )}
                   

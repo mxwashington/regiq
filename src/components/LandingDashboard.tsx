@@ -252,7 +252,7 @@ const LandingDashboard = () => {
                           <Button variant="outline" size="sm" asChild>
                             <a href={alert.external_url} target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="w-3 h-3 mr-1" />
-                              View Full Alert
+                              Read Full Alert
                             </a>
                           </Button>
                         )}
