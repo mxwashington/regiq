@@ -25,6 +25,7 @@ const LegalFramework = React.lazy(() => import("./components/LegalFramework").th
 const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth"));
 const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
 const AuthGuard = React.lazy(() => import("./hooks/useAuthGuard").then(m => ({ default: m.AdminProtectedRoute })));
+const RegIQFeedPage = React.lazy(() => import("./pages/RegIQFeedPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,6 +83,7 @@ const PWAApp = () => {
             
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/regiq" element={<RegIQFeedPage />} />
             <Route path="/admin/*" element={
               <AuthGuard>
                 <AdminDashboard />
