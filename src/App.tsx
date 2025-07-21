@@ -97,18 +97,21 @@ const PWAApp = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ErrorBoundary>
-        <AuthProvider>
-          <DemoProvider>
-            <PWAApp />
-          </DemoProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Ensure React is properly initialized before rendering providers
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AuthProvider>
+            <DemoProvider>
+              <PWAApp />
+            </DemoProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;
