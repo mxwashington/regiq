@@ -80,7 +80,7 @@ export function ThirdShiftStatusIndicator() {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger>
           <Badge 
             variant={config.variant}
             className={`flex items-center gap-1 cursor-help ${config.className}`}
