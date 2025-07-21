@@ -1,5 +1,4 @@
-import React, { Suspense } from 'react';
-import { Toaster } from "@/components/ui/toaster";
+import React, { Suspense, useEffect } from 'react';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -42,6 +41,7 @@ const queryClient = new QueryClient({
       },
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
       staleTime: 5 * 60 * 1000, // 5 minutes - reasonable cache time
+      // Note: gcTime is correct for TanStack Query v5
       gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
       refetchOnWindowFocus: false, // Prevent excessive refetches
       refetchOnMount: 'always', // Always fetch fresh data on mount
@@ -68,8 +68,8 @@ const PageLoadingFallback = () => (
   </div>
 );
 
-// Error fallback for route loading
-const RouteErrorFallback = ({ error, retry }) => (
+// Error fallback for route loading - FIXED the prop name
+const RouteErrorFallback = ({ error, resetErrorBoundary }) => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
     <div className="text-center max-w-md mx-auto p-6">
       <div className="text-red-600 mb-4">
@@ -80,7 +80,7 @@ const RouteErrorFallback = ({ error, retry }) => (
       <h2 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
       <p className="text-gray-600 mb-4">Failed to load the page. Please try again.</p>
       <button 
-        onClick={retry}
+        onClick={resetErrorBoundary}
         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
       >
         Try Again
@@ -89,13 +89,20 @@ const RouteErrorFallback = ({ error, retry }) => (
   </div>
 );
 
-// PWA-enabled App component
+// PWA-enabled App component - FIXED PWA hook usage
 const PWAApp = () => {
-  // Initialize PWA functionality
-  usePWA();
+  // Initialize PWA functionality safely in useEffect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const { initializePWA } = usePWA();
+      initializePWA?.();
+    }
+  }, []);
   
   return (
     <>
+      <Sonner />
+      <PWAInstallPrompt />
       <ErrorBoundary fallback={RouteErrorFallback}>
         <Suspense fallback={<PageLoadingFallback />}>
           <Routes>
@@ -116,14 +123,15 @@ const PWAApp = () => {
             {/* Feature routes */}
             <Route path="/search" element={<SearchPage />} />
             
-            {/* Admin routes */}
-            <Route path="/admin/*" element={
-              <Suspense fallback={<PageLoadingFallback />}>
-                <AuthGuard>
-                  <AdminDashboard />
-                </AuthGuard>
-              </Suspense>
-            } />
+            {/* Admin routes - FIXED to use element prop */}
+            <Route 
+              path="/admin/*" 
+              element={
+                <Suspense fallback={<PageLoadingFallback />}>
+                  <AuthGuard element={<AdminDashboard />} />
+                </Suspense>
+              } 
+            />
             
             {/* Utility routes */}
             <Route path="/legal" element={<LegalFramework />} />
@@ -142,27 +150,20 @@ const PWAApp = () => {
 };
 
 // Main App component with all providers
-const App = () => {
-  return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ErrorBoundary fallback={RouteErrorFallback}>
-            <AuthProvider>
-              <DemoProvider>
-                <BrowserRouter>
-                  <Toaster />
-                  <Sonner />
-                  <PWAInstallPrompt />
-                  <PWAApp />
-                </BrowserRouter>
-              </DemoProvider>
-            </AuthProvider>
-          </ErrorBoundary>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <ErrorBoundary fallback={RouteErrorFallback}>
+        <AuthProvider>
+          <DemoProvider>
+            <BrowserRouter>
+              <PWAApp />
+            </BrowserRouter>
+          </DemoProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
