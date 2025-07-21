@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
-import MobileFilterPanel from "@/components/MobileFilterPanel";
 import { 
   Calendar, 
   ExternalLink, 
@@ -17,8 +16,7 @@ import {
   TrendingUp,
   AlertTriangle,
   Info,
-  Target,
-  Filter
+  Target
 } from "lucide-react";
 
 interface RegulatoryItem {
@@ -70,7 +68,6 @@ const getAgencyColor = (agency: string) => {
 export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [bookmarkedItems, setBookmarkedItems] = useState<Set<string>>(new Set());
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const { toast } = useToast();
 
   // Use the same data source as AlertsDashboard for consistency
@@ -222,17 +219,6 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
             {filteredData.length} regulatory updates • Real-time monitoring
           </p>
         </div>
-        
-        {/* Mobile Filter Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowMobileFilters(true)}
-          className="lg:hidden flex items-center gap-2"
-        >
-          <Filter className="h-4 w-4" />
-          Filters
-        </Button>
       </div>
 
       <div className="space-y-3">
@@ -394,25 +380,6 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
           </Card>
         )}
       </div>
-      
-      {/* Mobile Filter Panel */}
-      <MobileFilterPanel 
-        isOpen={showMobileFilters}
-        onClose={() => setShowMobileFilters(false)}
-        filters={{
-          sources: ["FDA", "EU Commission", "ISO", "Health Canada", "TGA", "PMDA", "USDA", "EPA", "CDC"],
-          urgency: ["high", "medium", "low"],
-          tags: ["Medical Devices", "FDA", "Guidance", "EU MDR", "Regulation", "ISO", "Quality Management", "Standards"],
-          dateRange: ["Last 24 hours", "Last 7 days", "Last 30 days", "Custom"]
-        }}
-        onFilterChange={() => {}} // This would need to be connected to parent component filter state
-        activeFilters={{
-          sources: selectedFilters.agencies,
-          urgency: selectedFilters.urgency,
-          tags: [],
-          dateRange: selectedFilters.dateRange
-        }}
-      />
     </div>
   );
 }
