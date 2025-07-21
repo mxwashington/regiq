@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -315,7 +316,7 @@ export function RegulatorySearch() {
               You've used {usageInfo.current_usage}/{usageInfo.daily_limit} searches today on the {usageInfo.tier} plan.
             </p>
             <Button variant="outline" size="sm" className="mt-3" asChild>
-              <a href="/subscription" className="text-primary hover:underline">Upgrade Plan</a>
+              <Link to="/subscription" className="text-primary hover:underline">Upgrade Plan</Link>
             </Button>
           </CardContent>
         </Card>
