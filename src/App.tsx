@@ -25,6 +25,7 @@ const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth"));
 const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
 const AuthGuard = React.lazy(() => import("./hooks/useAuthGuard").then(m => ({ default: m.AdminProtectedRoute })));
 const RegIQFeedPage = React.lazy(() => import("./pages/RegIQFeedPage"));
+const LandingDashboard = React.lazy(() => import("./components/LandingDashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,7 +74,7 @@ const PWAApp = () => {
       <BrowserRouter>
         <Suspense fallback={<PageLoadingFallback />}>
           <Routes>
-            <Route path="/" element={<RegIQFeedPage />} />
+            <Route path="/" element={<LandingDashboard />} />
             <Route path="/auth" element={<UnifiedAuth />} />
             <Route path="/login" element={<UnifiedAuth />} />
             <Route path="/signup" element={<UnifiedAuth />} />
