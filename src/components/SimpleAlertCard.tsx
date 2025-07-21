@@ -90,18 +90,18 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 text-xs"
+                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
                 onClick={() => onDismissAlert(alert.id)}
               >
                 <X className="h-3 w-3 mr-1" />
-                Dismiss
+                <span className="hidden xs:inline">Dismiss</span>
               </Button>
             )}
             {alert.external_url && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 text-xs"
+                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
                 onClick={() => {
                   // Decode HTML entities in the URL
                   const decodedUrl = alert.external_url
@@ -117,7 +117,7 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
                 }}
               >
                 <ExternalLink className="h-3 w-3 mr-1" />
-                View Source
+                <span className="hidden xs:inline">View Source</span>
               </Button>
             )}
           </div>

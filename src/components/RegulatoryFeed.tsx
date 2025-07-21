@@ -275,7 +275,46 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const shareData = {
+                              title: `RegIQ Alert: ${item.title}`,
+                              text: item.summary || 'Regulatory alert from RegIQ',
+                              url: item.external_url || window.location.href
+                            };
+
+                            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                              await navigator.share(shareData);
+                            } else {
+                              // Fallback: Copy URL to clipboard
+                              const urlToCopy = item.external_url || window.location.href;
+                              await navigator.clipboard.writeText(urlToCopy);
+                              toast({
+                                title: "Link copied to clipboard",
+                                description: "You can now paste and share this alert.",
+                              });
+                            }
+                          } catch (error) {
+                            if (error.name !== 'AbortError') {
+                              // Fallback: Copy URL to clipboard
+                              try {
+                                const urlToCopy = item.external_url || window.location.href;
+                                await navigator.clipboard.writeText(urlToCopy);
+                                toast({
+                                  title: "Link copied to clipboard",
+                                  description: "You can now paste and share this alert.",
+                                });
+                              } catch (clipboardError) {
+                                toast({
+                                  title: "Unable to share",
+                                  description: "Sharing is not supported on this device.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }
+                          }
+                        }}
                       >
                         <Share2 className="h-4 w-4" />
                       </Button>
