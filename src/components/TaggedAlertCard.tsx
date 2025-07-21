@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Clock, AlertTriangle, X } from 'lucide-react';
+import { ExternalLink, Clock, AlertTriangle, X, Share2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface AlertTag {
   id: string;
@@ -38,6 +39,8 @@ interface TaggedAlertCardProps {
 }
 
 const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, onDismissAlert }) => {
+  const { toast } = useToast();
+  
   const getUrgencyColor = (urgency: string) => {
     switch (urgency.toLowerCase()) {
       case 'high': return 'text-red-600 bg-red-50 border-red-200';
@@ -62,6 +65,34 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleShare = async () => {
+    const shareText = `${alert.title}\n\n${alert.summary}\n\nSource: ${alert.source}`;
+    const shareUrl = alert.external_url || window.location.href;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: alert.title,
+          text: shareText,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+        toast({
+          title: "Copied to clipboard",
+          description: "Alert details have been copied to your clipboard.",
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast({
+        title: "Share failed",
+        description: "Unable to share this alert.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Group tags by category for better display
@@ -147,6 +178,15 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
             {alert.alert_tags?.length || 0} tags
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+              onClick={handleShare}
+            >
+              <Share2 className="h-3 w-3 mr-1" />
+              <span className="hidden sm:inline">Share</span>
+            </Button>
             {onDismissAlert && (
               <Button
                 variant="ghost"
@@ -155,7 +195,7 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
                 onClick={() => onDismissAlert(alert.id)}
               >
                 <X className="h-3 w-3 mr-1" />
-                <span className="hidden xs:inline">Dismiss</span>
+                <span className="hidden sm:inline">Dismiss</span>
               </Button>
             )}
             {alert.external_url && (
@@ -178,7 +218,7 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
                 }}
               >
                 <ExternalLink className="h-3 w-3 mr-1" />
-                <span className="hidden xs:inline">View Source</span>
+                <span className="hidden sm:inline">View Source</span>
               </Button>
             )}
           </div>
