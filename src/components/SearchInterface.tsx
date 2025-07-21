@@ -201,10 +201,17 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center gap-2"
+                        onClick={(e) => {
+                          console.log('Clicking external URL:', alert.external_url);
+                          if (!alert.external_url) {
+                            e.preventDefault();
+                            console.error('No external URL found for alert:', alert);
+                          }
+                        }}
                       >
-                         <ExternalLink className="h-3 w-3" />
-                         Read Full Alert
-                       </a>
+                        <ExternalLink className="h-3 w-3" />
+                        Read Full Alert
+                      </a>
                     </Button>
                   )}
                   

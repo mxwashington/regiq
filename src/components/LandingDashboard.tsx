@@ -250,7 +250,19 @@ const LandingDashboard = () => {
                       <div className="flex gap-2">
                         {alert.external_url && (
                           <Button variant="outline" size="sm" asChild>
-                            <a href={alert.external_url} target="_blank" rel="noopener noreferrer">
+                            <a 
+                              href={alert.external_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              onClick={(e) => {
+                                console.log('Clicking external URL:', alert.external_url);
+                                // Ensure the link works even if there are issues
+                                if (!alert.external_url) {
+                                  e.preventDefault();
+                                  console.error('No external URL found for alert:', alert);
+                                }
+                              }}
+                            >
                               <ExternalLink className="w-3 h-3 mr-1" />
                               Read Full Alert
                             </a>
