@@ -88,18 +88,9 @@ export function MobileNavigation() {
         
         <SheetContent side="right" className="w-80 p-0">
           <SheetHeader className="p-6 border-b border-border">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-xl font-bold text-primary">
-                RegIQ
-              </SheetTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+            <SheetTitle className="text-xl font-bold text-primary">
+              RegIQ
+            </SheetTitle>
             
             {user && (
               <div className="flex items-center gap-3 pt-4">
