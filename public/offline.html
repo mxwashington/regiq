@@ -2,181 +2,113 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RegIQ - Offline</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 16px;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            overflow-x: hidden;
         }
-        
         .container {
             text-align: center;
-            padding: 32px 24px;
-            max-width: 400px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            max-width: 500px;
         }
-        
         .logo {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 24px;
-            background: white;
-            border-radius: 12px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 2rem;
             font-weight: bold;
-            color: #3B82F6;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
-        
         h1 {
-            font-size: 24px;
-            margin-bottom: 16px;
-            font-weight: 700;
-            line-height: 1.2;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
         }
-        
         p {
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 24px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
             opacity: 0.9;
         }
-        
         .offline-features {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            padding: 20px;
-            margin: 24px 0;
+            padding: 1.5rem;
+            margin: 2rem 0;
             text-align: left;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
         .offline-features h3 {
-            margin: 0 0 16px 0;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
+            margin-top: 0;
+            margin-bottom: 1rem;
         }
-        
         .offline-features ul {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-        
         .offline-features li {
-            padding: 8px 0;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+        .offline-features li:last-child {
+            border-bottom: none;
+        }
         .offline-features li::before {
             content: '✓';
-            color: #10B981;
+            color: #4ade80;
             font-weight: bold;
-            font-size: 16px;
+            margin-right: 0.5rem;
         }
-        
         .retry-btn {
-            background: white;
-            color: #3B82F6;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            width: 100%;
-            max-width: 200px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
-        
         .retry-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
-        
-        .retry-btn:active {
-            transform: translateY(0);
-        }
-        
         .status {
-            margin-top: 20px;
-            font-size: 14px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
             opacity: 0.8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
-        
-        .pulse {
-            width: 8px;
-            height: 8px;
-            background: #EF4444;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
             .container {
-                padding: 24px 20px;
-                margin: 16px;
+                padding: 1rem;
             }
-            
             h1 {
-                font-size: 22px;
+                font-size: 1.5rem;
             }
-            
-            .offline-features {
-                padding: 16px;
-            }
-        }
-        
-        /* PWA safe area insets */
-        @supports (padding: max(0px)) {
-            body {
-                padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+            p {
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">RQ</div>
+        <div class="logo">R</div>
         <h1>You're Offline</h1>
-        <p>RegIQ is currently offline, but you can still access recently viewed regulatory alerts.</p>
+        <p>RegIQ is currently offline, but you can still access recently viewed regulatory alerts and use cached features.</p>
         
         <div class="offline-features">
             <h3>Available Offline:</h3>
@@ -194,7 +126,6 @@
         </button>
         
         <div class="status" id="status">
-            <div class="pulse"></div>
             Checking network status...
         </div>
     </div>
@@ -202,69 +133,36 @@
     <script>
         function checkConnection() {
             const status = document.getElementById('status');
-            status.innerHTML = '<div class="pulse"></div>Checking connection...';
+            status.textContent = 'Checking connection...';
             
-            // Try to fetch a small resource to test connectivity
-            fetch('/', { 
-                method: 'HEAD', 
-                cache: 'no-cache',
-                signal: AbortSignal.timeout(5000)
-            })
-            .then(response => {
-                if (response.ok) {
-                    status.innerHTML = '✓ Connection restored! Redirecting...';
-                    status.style.color = '#10B981';
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    throw new Error('Server error');
-                }
-            })
-            .catch(() => {
-                status.innerHTML = '<div class="pulse"></div>Still offline. Please try again.';
-                status.style.color = '#FFA500';
-            });
+            // Try to reload the page
+            window.location.reload();
         }
 
         function updateNetworkStatus() {
             const status = document.getElementById('status');
             if (navigator.onLine) {
-                status.innerHTML = '✓ Connection detected! Click "Check Connection" to continue.';
-                status.style.color = '#10B981';
+                status.textContent = 'Connection restored! Click "Check Connection" to continue.';
+                status.style.color = '#4ade80';
             } else {
-                status.innerHTML = '<div class="pulse"></div>Still offline. Data will sync when connection is restored.';
-                status.style.color = '#FFA500';
+                status.textContent = 'Still offline. Regulatory data will sync when connection is restored.';
+                status.style.color = '#fbbf24';
             }
         }
 
         // Check network status on load
-        setTimeout(updateNetworkStatus, 500);
+        updateNetworkStatus();
 
         // Listen for network status changes
-        window.addEventListener('online', () => {
-            updateNetworkStatus();
-            // Auto-check connection when back online
-            setTimeout(checkConnection, 1000);
-        });
-        
+        window.addEventListener('online', updateNetworkStatus);
         window.addEventListener('offline', updateNetworkStatus);
 
-        // Prevent zoom on mobile
-        document.addEventListener('touchstart', function(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
+        // Auto-reload when back online
+        window.addEventListener('online', () => {
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         });
-        
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
     </script>
 </body>
 </html>
