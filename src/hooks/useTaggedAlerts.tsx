@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useMockToast } from '@/hooks/useMockToast';
 
 interface AlertTag {
   id: string;
@@ -45,7 +45,7 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
   const [alerts, setAlerts] = useState<TaggedAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+  const { toast } = useMockToast();
 
   useEffect(() => {
     const fetchAlerts = async () => {

@@ -23,38 +23,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { toast } = useToast();
-  
-  // Initialize hooks with proper error boundaries
-  let sessionManager, userProfile, magicLinkAuth;
-  
-  try {
-    sessionManager = useSessionManager();
-    userProfile = useUserProfile();
-    magicLinkAuth = useMagicLinkAuth();
-  } catch (error) {
-    console.error('Error initializing auth hooks:', error);
-    // Return minimal provider if hooks fail
-    return (
-      <AuthContext.Provider value={{
-        user: null,
-        session: null,
-        isAdmin: false,
-        adminRole: null,
-        adminPermissions: [],
-        loading: false,
-        isHealthy: false,
-        lastError: 'Authentication system failed to initialize',
-        signInWithMagicLink: async () => ({ error: 'Auth not available' }),
-        signOut: async () => {},
-        checkAdminStatus: async () => {}
-      }}>
-        {children}
-      </AuthContext.Provider>
-    );
-  }
-
-  const { signInWithMagicLink } = magicLinkAuth;
+  // All hooks MUST be called at the top level - never conditional!
+  // Temporarily commenting out useToast since Toaster is disabled
+  // const { toast } = useToast();
+  const toast = (options: any) => console.log('Toast (disabled):', options); // Fallback
+  const sessionManager = useSessionManager();
+  const userProfile = useUserProfile();
+  const { signInWithMagicLink } = useMagicLinkAuth();
 
   // Enhanced sign out with proper cleanup
   const signOut = async () => {

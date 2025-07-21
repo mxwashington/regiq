@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useMockToast } from '@/hooks/useMockToast';
 
 interface PWAState {
   isInstalled: boolean;
@@ -16,7 +16,7 @@ export const usePWA = () => {
     updateAvailable: false
   });
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
-  const { toast } = useToast();
+  const { toast } = useMockToast();
 
   useEffect(() => {
     // Register service worker
