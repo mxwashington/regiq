@@ -1,6 +1,5 @@
 import React, { Suspense, useEffect } from 'react';
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -9,12 +8,10 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { usePWA } from "@/hooks/usePWA";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 
 // Lazy load pages for better performance
 const Debug = React.lazy(() => import("./pages/Debug"));
 const Landing = React.lazy(() => import("./pages/Landing"));
-const Auth = React.lazy(() => import("./pages/Auth"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const SearchPage = React.lazy(() => import("./pages/SearchPage"));
@@ -41,7 +38,6 @@ const queryClient = new QueryClient({
       },
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
       staleTime: 5 * 60 * 1000, // 5 minutes - reasonable cache time
-      // Note: gcTime is correct for TanStack Query v5
       gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
       refetchOnWindowFocus: false, // Prevent excessive refetches
       refetchOnMount: 'always', // Always fetch fresh data on mount
@@ -68,7 +64,7 @@ const PageLoadingFallback = () => (
   </div>
 );
 
-// Error fallback for route loading - FIXED the prop name
+// Error fallback for route loading
 const RouteErrorFallback = ({ error, resetErrorBoundary }) => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
     <div className="text-center max-w-md mx-auto p-6">
@@ -89,7 +85,7 @@ const RouteErrorFallback = ({ error, resetErrorBoundary }) => (
   </div>
 );
 
-// PWA-enabled App component - FIXED PWA hook usage
+// PWA-enabled App component
 const PWAApp = () => {
   // Initialize PWA functionality safely in useEffect
   useEffect(() => {
@@ -123,7 +119,7 @@ const PWAApp = () => {
             {/* Feature routes */}
             <Route path="/search" element={<SearchPage />} />
             
-            {/* Admin routes - FIXED to use element prop */}
+            {/* Admin routes */}
             <Route 
               path="/admin/*" 
               element={
@@ -152,17 +148,15 @@ const PWAApp = () => {
 // Main App component with all providers
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ErrorBoundary fallback={RouteErrorFallback}>
-        <AuthProvider>
-          <DemoProvider>
-            <BrowserRouter>
-              <PWAApp />
-            </BrowserRouter>
-          </DemoProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </TooltipProvider>
+    <ErrorBoundary fallback={RouteErrorFallback}>
+      <AuthProvider>
+        <DemoProvider>
+          <BrowserRouter>
+            <PWAApp />
+          </BrowserRouter>
+        </DemoProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   </QueryClientProvider>
 );
 
