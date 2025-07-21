@@ -99,49 +99,47 @@ const PWAApp = () => {
       <Toaster />
       <Sonner />
       <PWAInstallPrompt />
-      <BrowserRouter>
-        <ErrorBoundary fallback={RouteErrorFallback}>
-          <Suspense fallback={<PageLoadingFallback />}>
-            <Routes>
-              {/* Main dashboard routes - RegIQ Feed is now the primary dashboard */}
-              <Route path="/" element={<RegIQFeedPage />} />
-              <Route path="/dashboard" element={<RegIQFeedPage />} />
-              
-              {/* Legacy redirect - redirect /regiq to main dashboard */}
-              <Route path="/regiq" element={<Navigate to="/dashboard" replace />} />
-              
-              {/* Authentication routes */}
-              <Route path="/auth" element={<UnifiedAuth />} />
-              <Route path="/login" element={<UnifiedAuth />} />
-              <Route path="/signup" element={<UnifiedAuth />} />
-              <Route path="/auth/reset-password" element={<ResetPassword />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              
-              {/* Feature routes */}
-              <Route path="/search" element={<SearchPage />} />
-              
-              {/* Admin routes */}
-              <Route path="/admin/*" element={
-                <Suspense fallback={<PageLoadingFallback />}>
-                  <AuthGuard>
-                    <AdminDashboard />
-                  </AuthGuard>
-                </Suspense>
-              } />
-              
-              {/* Utility routes */}
-              <Route path="/legal" element={<LegalFramework />} />
-              <Route path="/debug" element={<Debug />} />
-              
-              {/* Landing page for unauthenticated users */}
-              <Route path="/landing" element={<Landing />} />
-              
-              {/* 404 fallback */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </ErrorBoundary>
-      </BrowserRouter>
+      <ErrorBoundary fallback={RouteErrorFallback}>
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Routes>
+            {/* Main dashboard routes - RegIQ Feed is now the primary dashboard */}
+            <Route path="/" element={<RegIQFeedPage />} />
+            <Route path="/dashboard" element={<RegIQFeedPage />} />
+            
+            {/* Legacy redirect - redirect /regiq to main dashboard */}
+            <Route path="/regiq" element={<Navigate to="/dashboard" replace />} />
+            
+            {/* Authentication routes */}
+            <Route path="/auth" element={<UnifiedAuth />} />
+            <Route path="/login" element={<UnifiedAuth />} />
+            <Route path="/signup" element={<UnifiedAuth />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            
+            {/* Feature routes */}
+            <Route path="/search" element={<SearchPage />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin/*" element={
+              <Suspense fallback={<PageLoadingFallback />}>
+                <AuthGuard>
+                  <AdminDashboard />
+                </AuthGuard>
+              </Suspense>
+            } />
+            
+            {/* Utility routes */}
+            <Route path="/legal" element={<LegalFramework />} />
+            <Route path="/debug" element={<Debug />} />
+            
+            {/* Landing page for unauthenticated users */}
+            <Route path="/landing" element={<Landing />} />
+            
+            {/* 404 fallback */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 };
@@ -153,9 +151,11 @@ const App = () => (
       <ErrorBoundary fallback={RouteErrorFallback}>
         <AuthProvider>
           <DemoProvider>
-            <DashboardErrorBoundary>
-              <PWAApp />
-            </DashboardErrorBoundary>
+            <BrowserRouter>
+              <DashboardErrorBoundary>
+                <PWAApp />
+              </DashboardErrorBoundary>
+            </BrowserRouter>
           </DemoProvider>
         </AuthProvider>
       </ErrorBoundary>
