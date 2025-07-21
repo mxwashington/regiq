@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useMockToast } from '@/hooks/useMockToast';
+import { useToast } from '@/hooks/use-toast';
 
 interface SimpleAlert {
   id: string;
@@ -16,7 +16,7 @@ export const useSimpleAlerts = (limit = 50) => {
   const [alerts, setAlerts] = useState<SimpleAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useMockToast();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchAlerts = async () => {
