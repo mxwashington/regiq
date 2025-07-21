@@ -2,8 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Clock, AlertTriangle, X, Share2 } from 'lucide-react';
+import { ExternalLink, Clock, AlertTriangle, X, Share2, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { MobileSourceViewer } from './MobileSourceViewer';
 
 interface AlertTag {
   id: string;
@@ -181,28 +182,47 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+              className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px] flex items-center gap-1"
               onClick={handleShare}
             >
-              <Share2 className="h-3 w-3 mr-1" />
+              <Share2 className="h-3 w-3" />
+              <span className="sm:hidden">Share</span>
               <span className="hidden sm:inline">Share</span>
             </Button>
             {onDismissAlert && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px] flex items-center gap-1"
                 onClick={() => onDismissAlert(alert.id)}
               >
-                <X className="h-3 w-3 mr-1" />
+                <X className="h-3 w-3" />
+                <span className="sm:hidden">Hide</span>
                 <span className="hidden sm:inline">Dismiss</span>
               </Button>
             )}
+            {/* Mobile: Enhanced source viewer */}
+            <div className="sm:hidden">
+              <MobileSourceViewer
+                alert={alert}
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-3 text-xs min-w-[44px] flex items-center gap-1"
+                  >
+                    <Info className="h-3 w-3" />
+                    Details
+                  </Button>
+                }
+              />
+            </div>
+            {/* Desktop: Direct source link */}
             {alert.external_url && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+                className="hidden sm:flex h-7 px-2 text-xs items-center gap-1"
                 onClick={() => {
                   // Decode HTML entities in the URL
                   const decodedUrl = alert.external_url
@@ -217,8 +237,8 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
                   }
                 }}
               >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                <span className="hidden sm:inline">View Source</span>
+                <ExternalLink className="h-3 w-3" />
+                View Source
               </Button>
             )}
           </div>
