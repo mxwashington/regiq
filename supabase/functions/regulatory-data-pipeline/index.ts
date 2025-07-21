@@ -343,9 +343,48 @@ function processRSSItem(item: any, agency: AgencyConfig): ProcessedAlert {
     publishedDate = new Date();
   }
   
+  // Detect if CDC is republishing FDA recalls and correctly attribute them
+  let actualAgency = agency.name;
+  let actualSource = agency.name;
+  
+  if (agency.name === 'CDC') {
+    const title = item.title || '';
+    const description = item.description || '';
+    const content = (title + ' ' + description).toLowerCase();
+    
+    // Check if this is an FDA-originated recall being republished by CDC
+    if (content.includes('fda') || 
+        content.includes('food and drug administration') ||
+        (content.includes('recall') && (
+          content.includes('food') || 
+          content.includes('drug') || 
+          content.includes('device') || 
+          content.includes('allergy') ||
+          content.includes('undeclared')
+        ))) {
+      actualAgency = 'FDA';
+      actualSource = 'FDA';
+    }
+    
+    // Check if this is a USDA/FSIS recall being republished by CDC
+    if (content.includes('usda') || 
+        content.includes('fsis') ||
+        content.includes('meat') ||
+        content.includes('poultry') ||
+        (content.includes('recall') && (
+          content.includes('beef') || 
+          content.includes('chicken') || 
+          content.includes('pork') ||
+          content.includes('ground')
+        ))) {
+      actualAgency = 'USDA';
+      actualSource = 'USDA';
+    }
+  }
+  
   return {
     title: item.title || 'Untitled Regulatory Update',
-    source: agency.name,
+    source: actualSource,
     urgency: calculateUrgency(item, agency),
     summary: item.description || 'No description available.',
     published_date: publishedDate.toISOString(),
