@@ -47,8 +47,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (sessionManager.session?.user) {
       console.log('Session established, updating profile data...');
-      userProfile.checkAdminStatus(sessionManager.session);
-      userProfile.updateUserActivity(sessionManager.session.user.id);
+      // Use timeout to prevent blocking auth state changes
+      setTimeout(() => {
+        userProfile.checkAdminStatus(sessionManager.session);
+        userProfile.updateUserActivity(sessionManager.session.user.id);
+      }, 0);
     } else {
       console.log('No session, clearing profile data...');
       userProfile.clearProfile();

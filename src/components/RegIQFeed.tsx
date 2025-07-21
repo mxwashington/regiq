@@ -17,7 +17,8 @@ import {
   Info,
   Filter,
   X,
-  CheckCircle
+  CheckCircle,
+  Bookmark
 } from "lucide-react";
 import { RegIQMobileFilters } from "./RegIQMobileFilters";
 import { RegIQDesktopFilters } from "./RegIQDesktopFilters";
@@ -52,6 +53,17 @@ const defaultFilters: RegIQFilters = {
   priorities: [],
   signalTypes: []
 };
+
+interface RegIQFeedProps {
+  initialFilters?: {
+    timePeriod?: string;
+    priorities?: string[];
+    agencies?: string[];
+    showSavedOnly?: boolean;
+  };
+  onSaveAlert?: (alertId: string) => void;
+  savedAlerts?: any[];
+}
 
 // Convert database alert format to RegIQ format
 const convertToRegIQAlert = (alert: any): RegIQAlert => {
@@ -212,15 +224,20 @@ const filterByTimePeriod = (alerts: RegIQAlert[], timePeriod: string): RegIQAler
   return alerts.filter(alert => new Date(alert.published_date) >= cutoffDate);
 };
 
-export function RegIQFeed() {
+export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: RegIQFeedProps = {}) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [readItems, setReadItems] = useState<Set<string>>(new Set());
-  const [filters, setFilters] = useState<RegIQFilters>(defaultFilters);
+  const [filters, setFilters] = useState<RegIQFilters>({
+    ...defaultFilters,
+    timePeriod: initialFilters?.timePeriod || defaultFilters.timePeriod,
+    priorities: initialFilters?.priorities || [],
+    agencies: initialFilters?.agencies || []
+  });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  // Fetch alerts data
-  const { alerts: fetchedAlerts, loading } = useSimpleAlerts(100);
+  // Fetch alerts data without limit
+  const { alerts: fetchedAlerts, loading } = useSimpleAlerts();
 
   // Convert to RegIQ format
   const alerts = useMemo(() => {
@@ -495,6 +512,18 @@ export function RegIQFeed() {
                         </Button>
                       )}
                       
+                      {onSaveAlert && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => onSaveAlert(alert.id)}
+                          className={savedAlerts?.some(item => item.id === alert.id) ? 'text-blue-600' : ''}
+                        >
+                          <Bookmark className={`h-3 w-3 mr-1 ${savedAlerts?.some(item => item.id === alert.id) ? 'fill-current' : ''}`} />
+                          {savedAlerts?.some(item => item.id === alert.id) ? 'Saved' : 'Save'}
+                        </Button>
+                      )}
+
                       <Button 
                         variant="outline" 
                         size="sm"

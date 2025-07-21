@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -19,6 +19,9 @@ export const useSessionManager = () => {
     isHealthy: true,
     lastError: null
   });
+  
+  const lastAuthStateChange = useRef<number>(0);
+  const initializedRef = useRef<boolean>(false);
 
   const updateSessionState = useCallback((session: Session | null, error?: string) => {
     setState(prev => ({
@@ -32,11 +35,17 @@ export const useSessionManager = () => {
   }, []);
 
   const handleAuthStateChange = useCallback((event: AuthChangeEvent, session: Session | null) => {
+    // Debounce auth state changes to prevent loops
+    const now = Date.now();
+    if (now - lastAuthStateChange.current < 1000) {
+      return; // Skip if called within 1 second
+    }
+    lastAuthStateChange.current = now;
+
     console.log('Auth state change:', {
       event,
       hasSession: !!session,
       userId: session?.user?.id,
-      sessionExpires: session?.expires_at,
       timestamp: new Date().toISOString()
     });
 
@@ -54,9 +63,25 @@ export const useSessionManager = () => {
       return;
     }
 
-    // Update session state
-    updateSessionState(session);
-  }, [updateSessionState]);
+    // Only update state if session actually changed
+    setState(prev => {
+      const hasChanged = prev.session?.access_token !== session?.access_token ||
+                        prev.session?.user?.id !== session?.user?.id;
+      
+      if (!hasChanged) {
+        return prev; // No state change needed
+      }
+
+      return {
+        ...prev,
+        session,
+        user: session?.user ?? null,
+        loading: false,
+        isHealthy: true,
+        lastError: null
+      };
+    });
+  }, []);
 
   const signOut = useCallback(async () => {
     try {
@@ -68,7 +93,10 @@ export const useSessionManager = () => {
   }, []);
 
   useEffect(() => {
+    if (initializedRef.current) return; // Prevent re-initialization
+    
     console.log('=== SESSION MANAGER INITIALIZATION ===');
+    initializedRef.current = true;
     
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
@@ -77,19 +105,33 @@ export const useSessionManager = () => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('Error getting initial session:', error);
-        updateSessionState(null, error.message);
+        setState(prev => ({
+          ...prev,
+          session: null,
+          user: null,
+          loading: false,
+          isHealthy: false,
+          lastError: error.message
+        }));
       } else {
         console.log('Initial session check:', {
           hasSession: !!session,
           userId: session?.user?.id,
           sessionExpires: session?.expires_at
         });
-        updateSessionState(session);
+        setState(prev => ({
+          ...prev,
+          session,
+          user: session?.user ?? null,
+          loading: false,
+          isHealthy: true,
+          lastError: null
+        }));
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []); // Remove dependencies to prevent infinite loop
+  }, []); // Empty dependency array is intentional
 
   return {
     ...state,

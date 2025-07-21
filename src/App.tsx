@@ -74,14 +74,14 @@ const PWAApp = () => {
       <BrowserRouter>
         <Suspense fallback={<PageLoadingFallback />}>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<RegIQFeedPage />} />
             <Route path="/auth" element={<UnifiedAuth />} />
             <Route path="/login" element={<UnifiedAuth />} />
             <Route path="/signup" element={<UnifiedAuth />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<RegIQFeedPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/regiq" element={<RegIQFeedPage />} />
             <Route path="/admin/*" element={

@@ -1,9 +1,5 @@
-import { RegIQFeed } from "@/components/RegIQFeed";
+import { MainDashboard } from "@/components/MainDashboard";
 
 export default function RegIQFeedPage() {
-  return (
-    <div className="container mx-auto py-6 px-4">
-      <RegIQFeed />
-    </div>
-  );
+  return <MainDashboard />;
 }

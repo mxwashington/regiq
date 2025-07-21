@@ -105,7 +105,7 @@ export const useIPTracking = () => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [user, session, updateUserActivity]);
+  }, [user?.id, session?.access_token]); // Only depend on user ID and session token
 
   // Periodic activity updates with throttling
   useEffect(() => {
@@ -117,7 +117,7 @@ export const useIPTracking = () => {
     }, 10 * 60 * 1000); // Reduced frequency
 
     return () => clearInterval(interval);
-  }, [user, session, updateUserActivity]);
+  }, [user?.id, session?.access_token]); // Only depend on user ID and session token
 
   // Track activity on page interactions with heavy throttling
   useEffect(() => {
@@ -153,7 +153,7 @@ export const useIPTracking = () => {
         document.removeEventListener(event, handleActivity);
       });
     };
-  }, [user, session, updateUserActivity]);
+  }, [user?.id, session?.access_token]); // Only depend on user ID and session token
 
   // Manual refresh function with throttling
   const refresh = useCallback(async () => {
