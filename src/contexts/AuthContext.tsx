@@ -1,100 +1,55 @@
 
-import React, { createContext, useContext, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
-import { useSessionManager } from '@/hooks/useSessionManager';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { useMagicLinkAuth } from '@/hooks/useMagicLinkAuth';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  isAdmin: boolean;
-  adminRole: string | null;
-  adminPermissions: string[];
+  user: any | null;
   loading: boolean;
-  isHealthy: boolean;
-  lastError: string | null;
-  signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  checkAdminStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { toast } = useToast();
-  const sessionManager = useSessionManager();
-  const userProfile = useUserProfile();
-  const { signInWithMagicLink } = useMagicLinkAuth();
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Enhanced sign out with proper cleanup
-  const signOut = async () => {
-    console.log('Signing out user...');
-    await sessionManager.signOut();
-    userProfile.clearProfile();
-    toast({
-      title: "Signed out",
-      description: "You have been signed out successfully.",
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
     });
-  };
 
-  const checkAdminStatus = async () => {
-    await userProfile.checkAdminStatus(sessionManager.session);
-  };
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-  // Handle session changes and update profile data
-  useEffect(() => {
-    if (sessionManager.session?.user) {
-      console.log('Session established, updating profile data...');
-      // Use timeout to prevent blocking auth state changes
-      setTimeout(() => {
-        userProfile.checkAdminStatus(sessionManager.session);
-        userProfile.updateUserActivity(sessionManager.session.user.id);
-      }, 0);
-    } else {
-      console.log('No session, clearing profile data...');
-      userProfile.clearProfile();
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
-  }, [sessionManager.session?.user?.id]); // Only depend on user ID to prevent multiple calls
-
-  // Session health monitoring
-  useEffect(() => {
-    if (!sessionManager.isHealthy && sessionManager.lastError) {
-      console.error('Session health issue detected:', sessionManager.lastError);
-      
-      // Show user-friendly error for session issues
-      if (sessionManager.lastError.includes('refresh') || sessionManager.lastError.includes('token')) {
-        toast({
-          title: "Session expired",
-          description: "Please sign in again to continue.",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [sessionManager.isHealthy, sessionManager.lastError, toast]);
-
-  const value = {
-    user: sessionManager.user,
-    session: sessionManager.session,
-    isAdmin: userProfile.isAdmin,
-    adminRole: userProfile.adminRole,
-    adminPermissions: userProfile.adminPermissions,
-    loading: sessionManager.loading,
-    isHealthy: sessionManager.isHealthy,
-    lastError: sessionManager.lastError,
-    signInWithMagicLink,
-    signOut,
-    checkAdminStatus,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+  return (
+    <AuthContext.Provider value={{ user, loading, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};
