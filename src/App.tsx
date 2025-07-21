@@ -90,8 +90,6 @@ const PWAApp = () => {
   
   return (
     <>
-      <Toaster />
-      <Sonner />
       <PWAInstallPrompt />
       <BrowserRouter>
         <Suspense fallback={<PageLoadingFallback />}>
@@ -124,6 +122,9 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        {/* Toast components must be rendered BEFORE any component that uses useToast */}
+        <Toaster />
+        <Sonner />
         <AuthProvider>
           <DemoProvider>
             <SafeTooltipProvider>
