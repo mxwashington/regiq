@@ -124,11 +124,38 @@ export function EnhancedAlertsDashboard() {
 
     // Filter by agencies
     if (filters.agencies.length > 0) {
-      filtered = filtered.filter(alert =>
-        filters.agencies.some(agency => 
-          alert.source.toLowerCase().includes(agency.toLowerCase())
-        )
-      );
+      console.log('Filtering by agencies:', filters.agencies);
+      filtered = filtered.filter(alert => {
+        const matchesAgency = filters.agencies.some(agency => {
+          const agencyLower = agency.toLowerCase();
+          const sourceLower = alert.source.toLowerCase();
+          
+          // Direct match
+          if (sourceLower === agencyLower || sourceLower.includes(agencyLower)) {
+            return true;
+          }
+          
+          // Special cases for agency names
+          if (agencyLower === 'fda' && (sourceLower.includes('food and drug') || sourceLower === 'fda')) {
+            return true;
+          }
+          if (agencyLower === 'cdc' && (sourceLower.includes('centers for disease') || sourceLower.includes('disease control') || sourceLower === 'cdc')) {
+            return true;
+          }
+          if (agencyLower === 'usda' && (sourceLower.includes('department of agriculture') || sourceLower.includes('fsis') || sourceLower === 'usda')) {
+            return true;
+          }
+          if (agencyLower === 'epa' && (sourceLower.includes('environmental protection') || sourceLower === 'epa')) {
+            return true;
+          }
+          
+          return false;
+        });
+        
+        console.log(`Alert "${alert.title}" from "${alert.source}" matches agencies:`, matchesAgency);
+        return matchesAgency;
+      });
+      console.log('Filtered alerts count after agency filter:', filtered.length);
     }
 
     // Filter by urgency
@@ -159,11 +186,24 @@ export function EnhancedAlertsDashboard() {
         case 'year':
           cutoffDate.setFullYear(now.getFullYear() - 1);
           break;
+        case '90days':
+          cutoffDate.setDate(now.getDate() - 90);
+          break;
       }
 
-      filtered = filtered.filter(alert =>
-        new Date(alert.published_date) >= cutoffDate
-      );
+      console.log(`Date filtering: ${filters.dateRange}, cutoff: ${cutoffDate.toISOString()}`);
+      const beforeFilter = filtered.length;
+      
+      filtered = filtered.filter(alert => {
+        const alertDate = new Date(alert.published_date);
+        const isWithinRange = alertDate >= cutoffDate;
+        if (!isWithinRange) {
+          console.log(`Alert "${alert.title}" (${alertDate.toISOString()}) filtered out by date range`);
+        }
+        return isWithinRange;
+      });
+      
+      console.log(`Date filter: ${beforeFilter} -> ${filtered.length} alerts`);
     }
 
     return filtered;

@@ -141,18 +141,35 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px] touch-manipulation"
                 onClick={() => {
-                  // Decode HTML entities in the URL
-                  const decodedUrl = alert.external_url
-                    ?.replace(/&amp;/g, '&')
-                    ?.replace(/&lt;/g, '<')
-                    ?.replace(/&gt;/g, '>')
-                    ?.replace(/&quot;/g, '"')
-                    ?.replace(/&#39;/g, "'");
-                  
-                  if (decodedUrl) {
-                    window.open(decodedUrl, '_blank', 'noopener,noreferrer');
+                  try {
+                    // Decode HTML entities in the URL
+                    const decodedUrl = alert.external_url
+                      ?.replace(/&amp;/g, '&')
+                      ?.replace(/&lt;/g, '<')
+                      ?.replace(/&gt;/g, '>')
+                      ?.replace(/&quot;/g, '"')
+                      ?.replace(/&#39;/g, "'");
+                    
+                    if (decodedUrl) {
+                      // For mobile devices, use location.href instead of window.open for better compatibility
+                      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                        window.location.href = decodedUrl;
+                      } else {
+                        window.open(decodedUrl, '_blank', 'noopener,noreferrer');
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Error opening URL:', error);
+                    // Fallback: try to copy URL to clipboard
+                    if (navigator.clipboard && alert.external_url) {
+                      navigator.clipboard.writeText(alert.external_url);
+                      toast({
+                        title: "Link copied",
+                        description: "Source URL copied to clipboard.",
+                      });
+                    }
                   }
                 }}
               >
