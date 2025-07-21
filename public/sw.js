@@ -3,20 +3,13 @@ const CACHE_NAME = 'regiq-v1.0.0';
 const API_CACHE_NAME = 'regiq-api-v1.0.0';
 const STATIC_CACHE_NAME = 'regiq-static-v1.0.0';
 
-// URLs to cache for offline functionality - mobile-optimized
+// URLs to cache for offline functionality
 const STATIC_URLS = [
   '/',
   '/dashboard',
   '/search',
-  '/auth',
   '/manifest.json',
   '/offline.html'
-];
-
-// Mobile-specific resources to cache
-const MOBILE_CACHE_URLS = [
-  '/assets/fonts/',
-  '/lovable-uploads/869131e3-58af-4f2a-8695-33e9e20d5b45.png'
 ];
 
 // API endpoints to cache

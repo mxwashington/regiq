@@ -157,28 +157,26 @@ export const PWAInstallPrompt: React.FC = () => {
   // Chrome/Android Installation Prompt
   if (showPrompt && (deferredPrompt || isIOS)) {
     return (
-      <Card className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 shadow-lg border-primary animate-slide-in-right">
+      <Card className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 shadow-lg border-primary">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Download className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <h3 className="font-semibold text-base">Install RegIQ</h3>
+              <Download className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold">Install RegIQ</h3>
             </div>
             <Button variant="ghost" size="sm" onClick={dismissPrompt}>
               <X className="h-4 w-4" />
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Install RegIQ for faster access to regulatory alerts and offline functionality. Works great on mobile!
+            Install RegIQ for faster access to regulatory alerts and offline functionality.
           </p>
           <div className="flex gap-2">
-            <Button onClick={handleInstallClick} size="sm" className="flex-1 shadow-md">
+            <Button onClick={handleInstallClick} size="sm" className="flex-1">
               <Download className="h-4 w-4 mr-2" />
-              Install App
+              Install
             </Button>
-            <Button variant="outline" onClick={dismissPrompt} size="sm" className="px-4">
+            <Button variant="outline" onClick={dismissPrompt} size="sm">
               Later
             </Button>
           </div>
