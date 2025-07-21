@@ -214,7 +214,7 @@ const LandingDashboard = () => {
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {filteredAlerts.map((alert) => (
-                <Card key={alert.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                <Card key={alert.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-2">
                       <Badge className={getAgencyBadgeColor(alert.source)} variant="outline">
@@ -224,25 +224,39 @@ const LandingDashboard = () => {
                         {formatDate(alert.published_date)}
                       </span>
                     </div>
-                    <CardTitle className="text-sm leading-tight line-clamp-2">
-                      {alert.title}
+                    <CardTitle className="text-sm leading-tight">
+                      {alert.external_url ? (
+                        <a 
+                          href={alert.external_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:text-primary transition-colors line-clamp-2"
+                        >
+                          {alert.title}
+                        </a>
+                      ) : (
+                        <span className="line-clamp-2">{alert.title}</span>
+                      )}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
                       {alert.summary || "AI summary processing..."}
                     </p>
                     <div className="flex items-center justify-between">
                       <Badge className={getUrgencyColor(alert.urgency)} variant="outline">
                         {alert.urgency}
                       </Badge>
-                      {alert.external_url && (
-                        <Button variant="ghost" size="sm" asChild>
-                          <a href={alert.external_url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </Button>
-                      )}
+                      <div className="flex gap-2">
+                        {alert.external_url && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={alert.external_url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              View Full Alert
+                            </a>
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

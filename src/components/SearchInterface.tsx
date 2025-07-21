@@ -171,7 +171,18 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
                     </div>
                     
                     <h3 className="text-lg font-semibold leading-tight">
-                      {alert.title}
+                      {alert.external_url ? (
+                        <a 
+                          href={alert.external_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:text-primary transition-colors"
+                        >
+                          {alert.title}
+                        </a>
+                      ) : (
+                        alert.title
+                      )}
                     </h3>
                     
                     <p className="text-sm text-muted-foreground line-clamp-2">
