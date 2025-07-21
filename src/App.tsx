@@ -99,17 +99,17 @@ const PWAApp = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ErrorBoundary>
-        <AuthProvider>
-          <DemoProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <DemoProvider>
+          <TooltipProvider>
             <PWAApp />
-          </DemoProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </TooltipProvider>
-  </QueryClientProvider>
+          </TooltipProvider>
+        </DemoProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
