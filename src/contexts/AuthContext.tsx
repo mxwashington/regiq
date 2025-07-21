@@ -40,7 +40,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkAdminStatus = async () => {
-    await userProfile.checkAdminStatus(sessionManager.session);
+    if (sessionManager.session) {
+      await userProfile.checkAdminStatus(sessionManager.session);
+    }
   };
 
   // Handle session changes and update profile data
@@ -49,8 +51,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Session established, updating profile data...');
       // Use timeout to prevent blocking auth state changes
       setTimeout(() => {
-        userProfile.checkAdminStatus(sessionManager.session);
-        userProfile.updateUserActivity(sessionManager.session.user.id);
+        if (sessionManager.session?.user) {
+          userProfile.checkAdminStatus(sessionManager.session);
+          userProfile.updateUserActivity(sessionManager.session.user.id);
+        }
       }, 0);
     } else {
       console.log('No session, clearing profile data...');
