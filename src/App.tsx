@@ -67,7 +67,7 @@ const PWAApp = () => {
   
   return (
     <>
-      <Toaster />
+      {/* <Toaster /> - Temporarily disabled due to React hook conflicts */}
       <PWAInstallPrompt />
       <BrowserRouter>
         <Suspense fallback={<PageLoadingFallback />}>
