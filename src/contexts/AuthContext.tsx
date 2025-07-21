@@ -24,9 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // All hooks MUST be called at the top level - never conditional!
-  // Temporarily commenting out useToast since Toaster is disabled
-  // const { toast } = useToast();
-  const toast = (options: any) => console.log('Toast (disabled):', options); // Fallback
+  const { toast } = useToast();
   const sessionManager = useSessionManager();
   const userProfile = useUserProfile();
   const { signInWithMagicLink } = useMagicLinkAuth();

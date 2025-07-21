@@ -122,9 +122,8 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        {/* Temporarily commenting out problematic toast components */}
-        {/* <Toaster /> */}
-        {/* <Sonner /> */}
+        <Toaster />
+        <Sonner />
         <AuthProvider>
           <DemoProvider>
             <SafeTooltipProvider>
