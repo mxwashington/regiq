@@ -12,41 +12,39 @@ import { usePWA } from "@/hooks/usePWA";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
-import Debug from "./pages/Debug";
-import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
-import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
-
-import AdminDashboard from "./pages/AdminDashboard";
-import SearchPage from "./pages/SearchPage";
-import NotFound from "./pages/NotFound";
-import { LegalFramework } from "./components/LegalFramework";
-import { AdminProtectedRoute as AuthGuard } from "./hooks/useAuthGuard";
-import UnifiedAuth from "./components/UnifiedAuth";
-import ResetPassword from "./components/ResetPassword";
+// Lazy load pages for better performance
+const Debug = React.lazy(() => import("./pages/Debug"));
+const Landing = React.lazy(() => import("./pages/Landing"));
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const Auth = React.lazy(() => import("./pages/Auth"));
+const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
+const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
+const SearchPage = React.lazy(() => import("./pages/SearchPage"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const LegalFramework = React.lazy(() => import("./components/LegalFramework").then(m => ({ default: m.LegalFramework })));
+const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth"));
+const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
+const AuthGuard = React.lazy(() => import("./hooks/useAuthGuard").then(m => ({ default: m.AdminProtectedRoute })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error: any) => {
-        // Don't retry on auth errors
         if (error?.status === 401 || error?.status === 403) {
           return false;
         }
-        return failureCount < 3;
+        return failureCount < 2; // Reduced retry attempts
       },
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
+      retryDelay: attemptIndex => Math.min(500 * 2 ** attemptIndex, 5000), // Faster retries
+      staleTime: 10 * 60 * 1000, // 10 minutes - longer cache
+      gcTime: 30 * 60 * 1000, // 30 minutes cache
     },
     mutations: {
       retry: (failureCount, error: any) => {
-        // Don't retry mutations on client errors
         if (error?.status >= 400 && error?.status < 500) {
           return false;
         }
-        return failureCount < 2;
+        return failureCount < 1; // Reduced retry attempts
       }
     }
   },

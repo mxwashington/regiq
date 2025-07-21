@@ -58,15 +58,27 @@ export function DemoInteractiveDashboard() {
   const [demoAlerts, setDemoAlerts] = useState<RegulatoryAlert[]>([]);
   const { user } = useAuth();
 
-  // Fetch real alerts from database
+  // Fetch real alerts from database with caching
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
+        // Check if we have cached data first
+        const cachedData = sessionStorage.getItem('demo-alerts');
+        const cacheTime = sessionStorage.getItem('demo-alerts-time');
+        const now = Date.now();
+        
+        // Use cache if it's less than 5 minutes old
+        if (cachedData && cacheTime && (now - parseInt(cacheTime)) < 5 * 60 * 1000) {
+          setDemoAlerts(JSON.parse(cachedData));
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase
           .from('alerts')
-          .select('*')
+          .select('id, title, summary, source, urgency, published_date, external_url')
           .order('published_date', { ascending: false })
-          .limit(20); // Limit for demo purposes
+          .limit(15); // Reduced limit for faster loading
 
         if (error) throw error;
 
@@ -76,18 +88,21 @@ export function DemoInteractiveDashboard() {
           title: alert.title,
           summary: alert.summary,
           agency: alert.source,
-          urgency: alert.urgency?.toLowerCase() as 'high' | 'medium' | 'low',
+          urgency: (alert.urgency?.toLowerCase() || 'medium') as 'high' | 'medium' | 'low',
           date: alert.published_date.split('T')[0],
-          category: 'Regulatory Update', // Default category since not in DB
+          category: 'Regulatory Update',
           source_url: alert.external_url || '#',
-          industry: ['General'], // Default industry since not in DB
-          keywords: alert.title.toLowerCase().split(' ').slice(0, 3) // Extract keywords from title
+          industry: ['General'],
+          keywords: alert.title.toLowerCase().split(' ').slice(0, 3)
         }));
 
+        // Cache the results
+        sessionStorage.setItem('demo-alerts', JSON.stringify(convertedAlerts));
+        sessionStorage.setItem('demo-alerts-time', now.toString());
+        
         setDemoAlerts(convertedAlerts);
       } catch (error) {
         console.error('Error fetching alerts:', error);
-        // Fallback to empty array if fetch fails
         setDemoAlerts([]);
       } finally {
         setLoading(false);

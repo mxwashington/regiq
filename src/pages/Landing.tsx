@@ -12,8 +12,10 @@ import { MobileNavigation } from "@/components/MobileNavigation";
 import { FeatureShowcase } from "@/components/FeatureShowcase";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { CookieConsent } from "@/components/CookieConsent";
-import { DemoInteractiveDashboard } from "@/components/DemoInteractiveDashboard";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
+
+// Lazy load heavy components
+const DemoInteractiveDashboard = lazy(() => import("@/components/DemoInteractiveDashboard").then(m => ({ default: m.DemoInteractiveDashboard })));
 
 const Landing = () => {
   const { user, signOut } = useAuth();
@@ -95,7 +97,16 @@ const Landing = () => {
               This is a fully functional demo with real regulatory data. Click, search, and explore to experience RegIQ's powerful capabilities firsthand.
             </p>
           </div>
-          <DemoInteractiveDashboard />
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-96 border rounded-lg bg-muted/20">
+              <div className="text-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading interactive demo...</p>
+              </div>
+            </div>
+          }>
+            <DemoInteractiveDashboard />
+          </Suspense>
         </div>
       </section>
 
