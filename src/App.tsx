@@ -122,9 +122,9 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        {/* Toast components must be rendered BEFORE any component that uses useToast */}
-        <Toaster />
-        <Sonner />
+        {/* Temporarily commenting out problematic toast components */}
+        {/* <Toaster /> */}
+        {/* <Sonner /> */}
         <AuthProvider>
           <DemoProvider>
             <SafeTooltipProvider>
