@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -26,6 +27,9 @@ const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth"));
 const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
 const AuthGuard = React.lazy(() => import("./hooks/useAuthGuard").then(m => ({ default: m.AdminProtectedRoute })));
 const RegIQFeedPage = React.lazy(() => import("./pages/RegIQFeedPage"));
+const AgencyPage = React.lazy(() => import("./pages/AgencyPage"));
+const AllAlertsPage = React.lazy(() => import("./pages/AllAlertsPage"));
+const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage"));
 
 
 const queryClient = new QueryClient({
@@ -82,13 +86,27 @@ const PWAApp = () => {
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
+            {/* Main user pages */}
             <Route path="/dashboard" element={<UserDashboard />} />
             <Route path="/search" element={<SearchPage />} />
+            
+            {/* SEO-optimized alert pages */}
+            <Route path="/alerts" element={<AllAlertsPage />} />
+            <Route path="/alerts/:agency" element={<AgencyPage />} />
+            
+            {/* Industry-specific pages */}
+            <Route path="/food-safety" element={<FoodSafetyPage />} />
+            <Route path="/pharma-compliance" element={<FoodSafetyPage />} />
+            <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
+            
+            {/* Admin routes */}
             <Route path="/admin/*" element={
               <AuthGuard>
                 <AdminDashboard />
               </AuthGuard>
             } />
+            
+            {/* Other pages */}
             <Route path="/legal" element={<LegalFramework />} />
             <Route path="/debug" element={<Debug />} />
             <Route path="*" element={<NotFound />} />
@@ -101,15 +119,17 @@ const PWAApp = () => {
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <DemoProvider>
-          <TooltipProvider>
-            <PWAApp />
-          </TooltipProvider>
-        </DemoProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <DemoProvider>
+            <TooltipProvider>
+              <PWAApp />
+            </TooltipProvider>
+          </DemoProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   </ErrorBoundary>
 );
 

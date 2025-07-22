@@ -19,6 +19,7 @@ import { AlertSourceFinder } from "@/components/AlertSourceFinder";
 import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
 import { KeywordExtractionDemo } from "@/components/KeywordExtractionDemo";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
+import { Helmet } from 'react-helmet-async';
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
@@ -111,6 +112,56 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5">
+      <Helmet>
+        <title>RegIQ - Real-Time FDA, USDA & EPA Regulatory Alerts | Compliance Monitoring</title>
+        <meta name="description" content="Get instant FDA recalls, USDA food safety alerts, and EPA enforcement actions. AI-powered regulatory monitoring for food, pharma, and ag compliance teams." />
+        <meta name="keywords" content="FDA alerts, USDA recalls, EPA enforcement, regulatory compliance, food safety alerts, pharma recalls, real-time monitoring" />
+        <link rel="canonical" href="https://regiq.com" />
+        
+        {/* Dynamic structured data for homepage */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "RegIQ",
+            "url": "https://regiq.com",
+            "description": "Real-time FDA, USDA, EPA regulatory alerts and compliance monitoring",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://regiq.com/search?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            },
+            "mainEntity": {
+              "@type": "SoftwareApplication",
+              "name": "RegIQ Regulatory Monitoring",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Web",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              }
+            }
+          })}
+        </script>
+
+        {/* Organization structured data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "RegIQ",
+            "description": "AI-powered regulatory intelligence platform",
+            "url": "https://regiq.com",
+            "logo": "https://regiq.com/lovable-uploads/869131e3-58af-4f2a-8695-33e9e20d5b45.png",
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "customer service",
+              "areaServed": "US"
+            }
+          })}
+        </script>
+      </Helmet>
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -119,7 +170,8 @@ const Landing = () => {
             <span className="font-bold text-2xl">RegIQ</span>
           </div>
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#alerts" className="text-muted-foreground hover:text-foreground transition-colors">Live Alerts</a>
+            <Link to="/alerts" className="text-muted-foreground hover:text-foreground transition-colors">Browse Alerts</Link>
+            <Link to="/food-safety" className="text-muted-foreground hover:text-foreground transition-colors">Food Safety</Link>
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How it Works</a>
             {user ? (
               <>
