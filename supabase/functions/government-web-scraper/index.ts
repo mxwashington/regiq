@@ -37,33 +37,34 @@ function logStep(message: string, data?: any) {
   console.log(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
-// Predefined scraping targets with legal compliance
+// Enhanced scraping targets with comprehensive agency coverage
 const SCRAPING_TARGETS: ScrapingTarget[] = [
+  // US Federal Agencies
   {
-    id: 'fda-enforcement-reports',
-    name: 'FDA Enforcement Reports',
+    id: 'fda-recalls-alerts',
+    name: 'FDA Recalls and Safety Alerts',
     agency: 'FDA',
-    url: 'https://www.fda.gov/safety/enforcement-reports',
+    url: 'https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts',
     selectors: {
-      title: '.field-name-title a',
-      content: '.field-name-body',
-      date: '.date-display-single',
-      links: '.field-name-title a'
+      title: '.field-name-title a, .views-field-title a',
+      content: '.field-name-body, .views-field-body',
+      date: '.date-display-single, .views-field-field-date',
+      links: '.field-name-title a, .views-field-title a'
     },
-    frequency: 'weekly',
-    legal_basis: 'Public information under Freedom of Information Act',
-    compliance_notes: 'Enforcement reports are public safety information'
+    frequency: 'daily',
+    legal_basis: 'Public safety information under Federal Food, Drug, and Cosmetic Act',
+    compliance_notes: 'FDA safety alerts are published for public protection'
   },
   {
-    id: 'usda-recalls',
-    name: 'USDA Food Safety Recalls',
+    id: 'usda-fsis-recalls',
+    name: 'USDA FSIS Recalls and Alerts',
     agency: 'USDA',
     url: 'https://www.fsis.usda.gov/recalls-alerts',
     selectors: {
-      title: '.views-field-title a',
-      content: '.views-field-body',
-      date: '.views-field-field-recall-date',
-      links: '.views-field-title a'
+      title: '.views-field-title a, .node-title a',
+      content: '.views-field-body, .field-name-body',
+      date: '.views-field-field-recall-date, .date-display-single',
+      links: '.views-field-title a, .node-title a'
     },
     frequency: 'daily',
     legal_basis: 'Public safety information under Federal Food, Drug, and Cosmetic Act',
@@ -73,16 +74,107 @@ const SCRAPING_TARGETS: ScrapingTarget[] = [
     id: 'epa-enforcement',
     name: 'EPA Enforcement Actions',
     agency: 'EPA',
-    url: 'https://www.epa.gov/enforcement/enforcement-annual-results',
+    url: 'https://www.epa.gov/enforcement',
     selectors: {
-      title: '.field-name-title',
-      content: '.field-name-body',
-      date: '.date-display-single',
-      links: 'a[href*="enforcement"]'
+      title: '.field-name-title, .node-title a',
+      content: '.field-name-body, .node-content',
+      date: '.date-display-single, .field-name-post-date',
+      links: 'a[href*="enforcement"], .node-title a'
     },
-    frequency: 'monthly',
+    frequency: 'weekly',
     legal_basis: 'Public information under Environmental laws',
     compliance_notes: 'Environmental enforcement actions are public record'
+  },
+  {
+    id: 'cdc-media-releases',
+    name: 'CDC Media Releases',
+    agency: 'CDC',
+    url: 'https://www.cdc.gov/media/releases/',
+    selectors: {
+      title: '.syndicate h3 a, .list-item-title a',
+      content: '.syndicate .summary, .list-item-description',
+      date: '.syndicate .date, .list-item-date',
+      links: '.syndicate h3 a, .list-item-title a'
+    },
+    frequency: 'daily',
+    legal_basis: 'Public health information under CDC authority',
+    compliance_notes: 'Public health communications are in the public interest'
+  },
+  {
+    id: 'osha-news',
+    name: 'OSHA News Releases',
+    agency: 'OSHA',
+    url: 'https://www.osha.gov/news/newsreleases',
+    selectors: {
+      title: '.views-field-title a, .node-title a',
+      content: '.views-field-field-summary, .field-name-body',
+      date: '.views-field-field-news-release-date, .date-display-single',
+      links: '.views-field-title a, .node-title a'
+    },
+    frequency: 'weekly',
+    legal_basis: 'Public workplace safety information',
+    compliance_notes: 'Workplace safety information serves public interest'
+  },
+  {
+    id: 'ftc-press-releases',
+    name: 'FTC Press Releases',
+    agency: 'FTC',
+    url: 'https://www.ftc.gov/news-events/news/press-releases',
+    selectors: {
+      title: '.views-field-title a, .press-release-title a',
+      content: '.views-field-field-summary, .press-release-summary',
+      date: '.views-field-field-date, .press-release-date',
+      links: '.views-field-title a, .press-release-title a'
+    },
+    frequency: 'weekly',
+    legal_basis: 'Public consumer protection information',
+    compliance_notes: 'Consumer protection information is public'
+  },
+  // International Agencies
+  {
+    id: 'ema-news',
+    name: 'EMA European Medicines Agency News',
+    agency: 'EMA',
+    url: 'https://www.ema.europa.eu/en/news',
+    selectors: {
+      title: '.views-field-title a, .news-item-title a',
+      content: '.views-field-field-news-teaser, .news-item-summary',
+      date: '.views-field-field-ema-news-date, .news-item-date',
+      links: '.views-field-title a, .news-item-title a'
+    },
+    frequency: 'daily',
+    legal_basis: 'Public pharmaceutical safety information under EU regulations',
+    compliance_notes: 'European pharmaceutical safety information is public'
+  },
+  {
+    id: 'efsa-news',
+    name: 'EFSA European Food Safety Authority News',
+    agency: 'EFSA',
+    url: 'https://www.efsa.europa.eu/en/news',
+    selectors: {
+      title: '.views-field-title a, .news-title a',
+      content: '.views-field-field-news-summary, .news-summary',
+      date: '.views-field-field-news-date, .news-date',
+      links: '.views-field-title a, .news-title a'
+    },
+    frequency: 'daily',
+    legal_basis: 'Public food safety information under EU regulations',
+    compliance_notes: 'European food safety information serves public interest'
+  },
+  {
+    id: 'health-canada-recalls',
+    name: 'Health Canada Recalls and Safety Alerts',
+    agency: 'Health Canada',
+    url: 'https://recalls-rappels.canada.ca/en',
+    selectors: {
+      title: '.gc-advnc-srch-rslt h3 a, .recall-title a',
+      content: '.gc-advnc-srch-rslt .description, .recall-summary',
+      date: '.gc-advnc-srch-rslt .date, .recall-date',
+      links: '.gc-advnc-srch-rslt h3 a, .recall-title a'
+    },
+    frequency: 'daily',
+    legal_basis: 'Public health safety information under Canadian regulations',
+    compliance_notes: 'Canadian health safety information is public'
   }
 ];
 

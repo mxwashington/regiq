@@ -146,48 +146,309 @@ serve(async (req) => {
 async function enhancedSourceFinding(alert: Alert): Promise<SourceResult[]> {
   const results: SourceResult[] = []
   
-  // Method 1: Government site direct search
+  // Method 1: Check cached scraped data first
+  const cachedResults = await checkScrapedCache(alert)
+  results.push(...cachedResults)
+  
+  // Method 2: Government site direct search
   const govResults = await searchGovernmentSites(alert)
   results.push(...govResults)
   
-  // Method 2: RSS feed reverse lookup
-  const rssResults = await rssReverseLookup(alert)
-  results.push(...rssResults)
+  // Method 3: Fuzzy title matching with scraped data
+  const fuzzyResults = await fuzzyMatchScrapedData(alert)
+  results.push(...fuzzyResults)
   
-  // Method 3: Web search with multiple engines
-  const webResults = await multiEngineWebSearch(alert)
-  results.push(...webResults)
+  // Method 4: Date-based matching for recent alerts
+  const dateResults = await dateBasedMatching(alert)
+  results.push(...dateResults)
   
-  // Method 4: Content pattern matching
+  // Method 5: Content pattern matching
   const patternResults = await contentPatternMatching(alert)
   results.push(...patternResults)
   
   return results.filter(r => r.confidence > 0.3).sort((a, b) => b.confidence - a.confidence)
 }
 
+async function checkScrapedCache(alert: Alert): Promise<SourceResult[]> {
+  const results: SourceResult[] = []
+  
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    )
+    
+    // Look for cached scraped data from the same agency
+    const { data: cachedData } = await supabaseClient
+      .from('search_cache')
+      .select('result_data')
+      .like('query', `scraped_data_${alert.source}%`)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(5)
+    
+    if (cachedData && cachedData.length > 0) {
+      for (const cache of cachedData) {
+        const items = cache.result_data?.items || []
+        
+        for (const item of items) {
+          const confidence = calculateTitleMatch(alert.title, item.title || '')
+          
+          if (confidence > 0.7 && item.link) {
+            results.push({
+              url: item.link,
+              title: item.title || alert.title,
+              snippet: item.content || alert.summary,
+              confidence: confidence * 0.95, // Slightly lower than direct match
+              method: 'cached_scraped_exact'
+            })
+          } else if (confidence > 0.4 && item.link) {
+            results.push({
+              url: item.link,
+              title: item.title || alert.title,
+              snippet: item.content || alert.summary,
+              confidence: confidence * 0.8,
+              method: 'cached_scraped_fuzzy'
+            })
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error checking scraped cache:', error)
+  }
+  
+  return results
+}
+
+async function fuzzyMatchScrapedData(alert: Alert): Promise<SourceResult[]> {
+  const results: SourceResult[] = []
+  
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    )
+    
+    // Get all recent scraped data for fuzzy matching
+    const { data: cachedData } = await supabaseClient
+      .from('search_cache')
+      .select('result_data')
+      .like('query', 'scraped_data_%')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(10)
+    
+    if (cachedData && cachedData.length > 0) {
+      for (const cache of cachedData) {
+        const items = cache.result_data?.items || []
+        
+        for (const item of items) {
+          // Check if agencies match
+          if (item.agency === alert.source || 
+              alert.source.toLowerCase().includes(item.agency.toLowerCase()) ||
+              item.agency.toLowerCase().includes(alert.source.toLowerCase())) {
+            
+            const titleMatch = calculateFuzzyTitleMatch(alert.title, item.title || '')
+            const dateMatch = calculateDateMatch(alert.published_date, item.date)
+            
+            const combinedConfidence = (titleMatch * 0.7) + (dateMatch * 0.3)
+            
+            if (combinedConfidence > 0.5 && item.link) {
+              results.push({
+                url: item.link,
+                title: item.title || alert.title,
+                snippet: item.content || alert.summary,
+                confidence: combinedConfidence,
+                method: 'fuzzy_scraped_match'
+              })
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error in fuzzy matching:', error)
+  }
+  
+  return results
+}
+
+async function dateBasedMatching(alert: Alert): Promise<SourceResult[]> {
+  const results: SourceResult[] = []
+  
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    )
+    
+    const alertDate = new Date(alert.published_date)
+    const startDate = new Date(alertDate.getTime() - 2 * 24 * 60 * 60 * 1000) // 2 days before
+    const endDate = new Date(alertDate.getTime() + 2 * 24 * 60 * 60 * 1000) // 2 days after
+    
+    const { data: cachedData } = await supabaseClient
+      .from('search_cache')
+      .select('result_data')
+      .like('query', `scraped_data_${alert.source}%`)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(5)
+    
+    if (cachedData && cachedData.length > 0) {
+      for (const cache of cachedData) {
+        const items = cache.result_data?.items || []
+        
+        for (const item of items) {
+          if (item.date && item.link) {
+            const itemDate = parseFlexibleDate(item.date)
+            
+            if (itemDate && itemDate >= startDate && itemDate <= endDate) {
+              const confidence = 0.6 + (0.3 * calculateTitleMatch(alert.title, item.title || ''))
+              
+              results.push({
+                url: item.link,
+                title: item.title || alert.title,
+                snippet: item.content || alert.summary,
+                confidence: confidence,
+                method: 'date_based_match'
+              })
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error in date-based matching:', error)
+  }
+  
+  return results
+}
+
+function calculateTitleMatch(title1: string, title2: string): number {
+  if (!title1 || !title2) return 0
+  
+  const words1 = title1.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+  const words2 = title2.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+  
+  if (words1.length === 0 || words2.length === 0) return 0
+  
+  const commonWords = words1.filter(word => words2.includes(word))
+  return commonWords.length / Math.max(words1.length, words2.length)
+}
+
+function calculateFuzzyTitleMatch(title1: string, title2: string): number {
+  if (!title1 || !title2) return 0
+  
+  // Normalize titles
+  const normalize = (text: string) => text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  
+  const norm1 = normalize(title1)
+  const norm2 = normalize(title2)
+  
+  // Check for substring matches
+  if (norm1.includes(norm2) || norm2.includes(norm1)) {
+    return 0.8
+  }
+  
+  // Word-based matching with stemming-like approach
+  const words1 = norm1.split(' ').filter(w => w.length > 3)
+  const words2 = norm2.split(' ').filter(w => w.length > 3)
+  
+  let matchCount = 0
+  for (const word1 of words1) {
+    for (const word2 of words2) {
+      // Exact match
+      if (word1 === word2) {
+        matchCount += 1
+      }
+      // Prefix match (for plurals, verb forms, etc.)
+      else if (word1.length >= 4 && word2.length >= 4) {
+        const minLen = Math.min(word1.length, word2.length)
+        const prefix = Math.floor(minLen * 0.8)
+        if (word1.substring(0, prefix) === word2.substring(0, prefix)) {
+          matchCount += 0.7
+        }
+      }
+    }
+  }
+  
+  return matchCount / Math.max(words1.length, words2.length)
+}
+
+function calculateDateMatch(alertDate: string, scrapedDate?: string): number {
+  if (!scrapedDate) return 0
+  
+  const alert = new Date(alertDate)
+  const scraped = parseFlexibleDate(scrapedDate)
+  
+  if (!scraped) return 0
+  
+  const diffMs = Math.abs(alert.getTime() - scraped.getTime())
+  const diffDays = diffMs / (24 * 60 * 60 * 1000)
+  
+  if (diffDays <= 1) return 1.0
+  if (diffDays <= 3) return 0.8
+  if (diffDays <= 7) return 0.6
+  if (diffDays <= 14) return 0.4
+  return 0.2
+}
+
+function parseFlexibleDate(dateStr: string): Date | null {
+  if (!dateStr) return null
+  
+  try {
+    // Try direct parsing first
+    let date = new Date(dateStr)
+    if (!isNaN(date.getTime())) return date
+    
+    // Try common government date formats
+    const formats = [
+      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,  // MM/DD/YYYY
+      /(\d{4})-(\d{1,2})-(\d{1,2})/,    // YYYY-MM-DD
+      /(\w+)\s+(\d{1,2}),?\s+(\d{4})/,  // Month DD, YYYY
+    ]
+    
+    for (const format of formats) {
+      const match = dateStr.match(format)
+      if (match) {
+        date = new Date(dateStr)
+        if (!isNaN(date.getTime())) return date
+      }
+    }
+    
+    return null
+  } catch {
+    return null
+  }
+}
+
 async function searchGovernmentSites(alert: Alert): Promise<SourceResult[]> {
   const results: SourceResult[] = []
   
   const govSites = [
-    { domain: 'fda.gov', api: 'https://www.fda.gov/search?query=' },
-    { domain: 'usda.gov', api: 'https://search.usa.gov/search?affiliate=usda&query=' },
-    { domain: 'epa.gov', api: 'https://search.epa.gov/search?query=' },
-    { domain: 'cdc.gov', api: 'https://search.cdc.gov/search?query=' }
+    { domain: 'fda.gov', searchPath: '/search?query=' },
+    { domain: 'usda.gov', searchPath: '/search?q=' },
+    { domain: 'epa.gov', searchPath: '/search?query=' },
+    { domain: 'cdc.gov', searchPath: '/search/?query=' }
   ]
   
   const relevantSite = govSites.find(site => 
-    alert.source.toLowerCase().includes(site.domain.split('.')[0]) ||
-    alert.agency?.toLowerCase().includes(site.domain.split('.')[0])
+    alert.source.toLowerCase().includes(site.domain.split('.')[0])
   )
   
   if (relevantSite) {
     try {
-      const searchQuery = encodeURIComponent(`"${alert.title.substring(0, 100)}"`)
-      const searchUrl = `${relevantSite.api}${searchQuery}`
+      const searchQuery = encodeURIComponent(`"${alert.title.substring(0, 80)}"`)
+      const searchUrl = `https://www.${relevantSite.domain}${relevantSite.searchPath}${searchQuery}`
       
       const response = await fetch(searchUrl, {
         headers: {
-          'User-Agent': 'RegIQ Source Finder Bot/2.0'
+          'User-Agent': 'RegIQ Enhanced Source Finder/2.0'
         }
       })
       
@@ -215,90 +476,6 @@ async function searchGovernmentSites(alert: Alert): Promise<SourceResult[]> {
   return results
 }
 
-async function rssReverseLookup(alert: Alert): Promise<SourceResult[]> {
-  const results: SourceResult[] = []
-  
-  // Common RSS feed patterns for government agencies
-  const rssFeedPatterns = [
-    `https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds`,
-    `https://www.usda.gov/rss`,
-    `https://www.epa.gov/newsroom/rss-feeds`
-  ]
-  
-  // This would ideally check known RSS feeds for the alert
-  // For now, construct likely URLs based on patterns
-  const likelyUrl = constructDetailedUrl(alert)
-  if (likelyUrl) {
-    results.push({
-      url: likelyUrl,
-      title: alert.title,
-      snippet: alert.summary,
-      confidence: 0.7,
-      method: 'rss_reverse_lookup'
-    })
-  }
-  
-  return results
-}
-
-async function multiEngineWebSearch(alert: Alert): Promise<SourceResult[]> {
-  const results: SourceResult[] = []
-  
-  const searchQueries = [
-    `"${alert.title}" site:${getSourceDomain(alert.source)}`,
-    `"${alert.title.substring(0, 60)}" ${alert.source} official`,
-    `${alert.title.split(' ').slice(0, 8).join(' ')} ${alert.agency || alert.source}`
-  ]
-  
-  for (const query of searchQueries) {
-    try {
-      // Use DuckDuckGo API (free, no key required)
-      const searchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&no_html=1&skip_disambig=1`
-      
-      const response = await fetch(searchUrl, {
-        headers: {
-          'User-Agent': 'RegIQ Enhanced Source Finder/2.0'
-        }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        
-        if (data.Results && data.Results.length > 0) {
-          for (const result of data.Results) {
-            if (result.FirstURL && isHighQualityGovernmentURL(result.FirstURL, alert.source)) {
-              results.push({
-                url: result.FirstURL,
-                title: result.Text || alert.title,
-                snippet: result.Result || alert.summary,
-                confidence: calculateConfidence(result.FirstURL, result.Text, alert),
-                method: 'web_search'
-              })
-            }
-          }
-        }
-        
-        if (data.AbstractURL && isHighQualityGovernmentURL(data.AbstractURL, alert.source)) {
-          results.push({
-            url: data.AbstractURL,
-            title: data.AbstractText || alert.title,
-            snippet: data.Abstract || alert.summary,
-            confidence: calculateConfidence(data.AbstractURL, data.AbstractText, alert),
-            method: 'web_search_abstract'
-          })
-        }
-      }
-    } catch (error) {
-      console.error(`Web search failed for query: ${query}`, error)
-    }
-    
-    // Delay between searches
-    await new Promise(resolve => setTimeout(resolve, 500))
-  }
-  
-  return results
-}
-
 async function contentPatternMatching(alert: Alert): Promise<SourceResult[]> {
   const results: SourceResult[] = []
   
@@ -319,6 +496,18 @@ async function contentPatternMatching(alert: Alert): Promise<SourceResult[]> {
         method: 'content_extraction'
       })
     }
+  }
+  
+  // Construct likely URLs based on agency patterns
+  const likelyUrl = constructDetailedUrl(alert)
+  if (likelyUrl) {
+    results.push({
+      url: likelyUrl,
+      title: alert.title,
+      snippet: alert.summary,
+      confidence: 0.7,
+      method: 'pattern_construction'
+    })
   }
   
   return results
@@ -364,9 +553,9 @@ function constructDetailedUrl(alert: Alert): string | null {
     .join('-')
   
   const urlMappings: Record<string, (slug: string) => string> = {
-    'fda': (slug) => `https://www.fda.gov/news-events/press-announcements/${slug}`,
-    'usda': (slug) => `https://www.usda.gov/media/press-releases/${slug}`,
-    'epa': (slug) => `https://www.epa.gov/newsroom/${slug}`,
+    'fda': (slug) => `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/${slug}`,
+    'usda': (slug) => `https://www.fsis.usda.gov/recalls-alerts/${slug}`,
+    'epa': (slug) => `https://www.epa.gov/enforcement/${slug}`,
     'cdc': (slug) => `https://www.cdc.gov/media/releases/${slug}`
   }
   
@@ -393,7 +582,7 @@ function isHighQualityGovernmentURL(url: string, source: string): boolean {
   const sourceLower = source.toLowerCase()
   
   // Must be government site
-  const govDomains = ['fda.gov', 'usda.gov', 'epa.gov', 'cdc.gov', 'nih.gov', 'ema.europa.eu', 'efsa.europa.eu']
+  const govDomains = ['fda.gov', 'usda.gov', 'epa.gov', 'cdc.gov', 'nih.gov', 'ema.europa.eu', 'efsa.europa.eu', 'canada.ca']
   const isGovSite = govDomains.some(domain => urlLower.includes(domain))
   
   if (!isGovSite) return false
@@ -411,7 +600,10 @@ function isHighQualityGovernmentURL(url: string, source: string): boolean {
     (sourceLower.includes('fda') && urlLower.includes('fda.gov')) ||
     (sourceLower.includes('usda') && urlLower.includes('usda.gov')) ||
     (sourceLower.includes('epa') && urlLower.includes('epa.gov')) ||
-    (sourceLower.includes('cdc') && urlLower.includes('cdc.gov'))
+    (sourceLower.includes('cdc') && urlLower.includes('cdc.gov')) ||
+    (sourceLower.includes('ema') && urlLower.includes('ema.europa.eu')) ||
+    (sourceLower.includes('efsa') && urlLower.includes('efsa.europa.eu')) ||
+    (sourceLower.includes('health canada') && urlLower.includes('canada.ca'))
   
   return hasQualityIndicator && agencyMatch
 }
@@ -425,16 +617,16 @@ function calculateConfidence(url: string, title: string, alert: Alert): number {
   
   // Title matching
   if (title) {
-    const titleWords = alert.title.toLowerCase().split(' ').filter(w => w.length > 3)
-    const matchedWords = titleWords.filter(word => title.toLowerCase().includes(word)).length
-    confidence += (matchedWords / titleWords.length) * 0.3
+    const titleMatch = calculateTitleMatch(alert.title, title)
+    confidence += titleMatch * 0.3
   }
   
   // Agency matching
   const sourceLower = alert.source.toLowerCase()
   if ((sourceLower.includes('fda') && url.includes('fda.gov')) ||
       (sourceLower.includes('usda') && url.includes('usda.gov')) ||
-      (sourceLower.includes('epa') && url.includes('epa.gov'))) {
+      (sourceLower.includes('epa') && url.includes('epa.gov')) ||
+      (sourceLower.includes('cdc') && url.includes('cdc.gov'))) {
     confidence += 0.2
   }
   
