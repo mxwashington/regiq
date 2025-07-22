@@ -160,13 +160,18 @@ const LandingDashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   {featuredAlert.summary || "AI summary processing..."}
                 </p>
-                {featuredAlert.external_url && (
-                  <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild={!!featuredAlert.external_url}>
+                  {featuredAlert.external_url ? (
                     <a href={featuredAlert.external_url} target="_blank" rel="noopener noreferrer">
                       Read Full Alert <ExternalLink className="w-3 h-3 ml-1" />
                     </a>
-                  </Button>
-                )}
+                  ) : (
+                    <span className="text-muted-foreground cursor-not-allowed">
+                      <ExternalLink className="w-3 h-3 ml-1" />
+                      No Source Available
+                    </span>
+                  )}
+                </Button>
               </CardContent>
             </Card>
           </div>

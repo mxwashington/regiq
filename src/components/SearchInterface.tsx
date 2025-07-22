@@ -194,8 +194,8 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
 
               <CardContent className="pt-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {alert.external_url && (
-                    <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild={!!alert.external_url}>
+                    {alert.external_url ? (
                       <a 
                         href={alert.external_url} 
                         target="_blank" 
@@ -203,17 +203,18 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
                         className="flex items-center gap-2"
                         onClick={(e) => {
                           console.log('Clicking external URL:', alert.external_url);
-                          if (!alert.external_url) {
-                            e.preventDefault();
-                            console.error('No external URL found for alert:', alert);
-                          }
                         }}
                       >
                         <ExternalLink className="h-3 w-3" />
                         Read Full Alert
                       </a>
-                    </Button>
-                  )}
+                    ) : (
+                      <span className="flex items-center gap-2 text-muted-foreground cursor-not-allowed">
+                        <ExternalLink className="h-3 w-3" />
+                        No Source Available
+                      </span>
+                    )}
+                  </Button>
                   
                   <Button 
                     variant="ghost" 
