@@ -189,15 +189,8 @@ export const generateAlertSummary = async (alertContent: string): Promise<string
 export const generateSearchQueries = async (title: string, agency: string) => {
   const config = getAgencySearchConfig(agency);
   
-  // Try GPT-enhanced keywords first
-  let keywords: string;
-  try {
-    keywords = await enhanceSearchWithGPT(title, agency);
-  } catch (error) {
-    // Fallback to basic extraction
-    keywords = extractKeywords(title);
-  }
-  
+  // Use basic keyword extraction (GPT temporarily disabled)
+  const keywords = extractKeywords(title);
   const cleanTitle = title.replace(/[^\w\s]/g, '').trim();
   
   return {
