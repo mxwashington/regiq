@@ -18,8 +18,8 @@ const MobileNavigation: React.FC = () => {
   const navItems: NavItem[] = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/search', icon: Search, label: 'Search', badge: 'PRO' },
-    { path: '/user', icon: Bell, label: 'Alerts' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/dashboard', icon: Bell, label: 'Alerts' },
+    { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
   ];
 
   const isActive = (path: string) => {
@@ -27,8 +27,6 @@ const MobileNavigation: React.FC = () => {
     if (path !== '/' && location.pathname.startsWith(path)) return true;
     return false;
   };
-
-  if (!user) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border md:hidden">

@@ -76,8 +76,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
               </div>
             )}
 
-            {/* Mobile navigation */}
-            {isMobile && <MobileNavigation />}
+            {/* Mobile navigation handled by App.tsx */}
           </div>
         </header>
       )}
