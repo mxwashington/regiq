@@ -575,6 +575,33 @@ export type Database = {
         }
         Relationships: []
       }
+      source_finder_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          processed: number
+          status: string
+          updated: number
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          processed?: number
+          status: string
+          updated?: number
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          processed?: number
+          status?: string
+          updated?: number
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -830,6 +857,15 @@ export type Database = {
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      log_source_finder_result: {
+        Args: {
+          processed_count: number
+          updated_count: number
+          status_text: string
+          error_text?: string
+        }
+        Returns: undefined
       }
       reset_data_pipeline_timestamps: {
         Args: Record<PropertyKey, never>
