@@ -403,6 +403,14 @@ const Landing = () => {
                   </CardHeader>
                 </Card>
               ))
+            ) : displayAlerts.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    No alerts available. Debug: total alerts = {alerts.length}, filtered = {displayAlerts.length}
+                  </p>
+                </CardContent>
+              </Card>
             ) : (
               displayAlerts.map((alert) => (
                 <Card key={alert.id} className="hover:shadow-md transition-shadow">
