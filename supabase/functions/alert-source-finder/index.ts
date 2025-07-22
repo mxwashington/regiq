@@ -36,11 +36,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     )
 
-    // Get alerts without external URLs or with low confidence URLs
+    // Get alerts without external URLs (null or empty string)
     const { data: alerts, error } = await supabaseClient
       .from('alerts')
       .select('id, title, summary, source, external_url, published_date, agency, full_content')
-      .or('external_url.is.null,external_url.like.%.gov%')
+      .or('external_url.is.null,external_url.eq.')
       .order('published_date', { ascending: false })
       .limit(20) // Process more alerts
 
