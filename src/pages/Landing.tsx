@@ -237,32 +237,32 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="py-12 px-4">
+      <section className="py-8 md:py-12 px-4">
         <div className="container mx-auto text-center max-w-6xl">
           {/* Live Status Indicator */}
-          <div className="mb-6">
-            <Badge variant="secondary" className="mb-4">
+          <div className="mb-4 md:mb-6">
+            <Badge variant="secondary" className="mb-4 text-xs md:text-sm">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
               Live • Updated {alerts.length > 0 ? formatDate(alerts[0]?.published_date) : '2 hours ago'}
             </Badge>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
             Food Industry<br />
             <span className="text-primary">Regulatory Intelligence</span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Real-time FDA, USDA, EPA alerts with AI summaries - built for food safety teams.<br />
+          <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto px-4">
+            Real-time FDA, USDA, EPA alerts with AI summaries - built for food safety teams.<br className="hidden sm:block" />
             <span className="font-medium">Stop missing critical food safety updates. Get personalized alerts that matter to your business.</span>
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <Button size="lg" className="px-8 py-3" asChild>
+          <div className="flex flex-col gap-3 md:gap-4 justify-center items-center mb-6 md:mb-8 px-4">
+            <Button size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
               <Link to={user ? getDashboardUrl() : "/auth"}>
                 Get Free Food Safety Alerts <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="outline" size="lg" className="px-8 py-3">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base">
               <a href="#food-alerts">See Live Alerts</a>
             </Button>
           </div>
@@ -270,67 +270,73 @@ const Landing = () => {
       </section>
 
       {/* Value Proposition */}
-      <section className="py-8 px-4 bg-muted/20">
+      <section className="py-6 md:py-8 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Brain className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">AI-powered search with GPT-4.1</h3>
-              <p className="text-muted-foreground">Instant regulation lookup</p>
+              <h3 className="font-semibold text-base md:text-lg mb-2">AI-powered search with GPT-4.1</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Instant regulation lookup</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Cross-agency monitoring</h3>
-              <p className="text-muted-foreground">FDA, USDA, EPA, CDC in one place</p>
+              <h3 className="font-semibold text-base md:text-lg mb-2">Cross-agency monitoring</h3>
+              <p className="text-sm md:text-base text-muted-foreground">FDA, USDA, EPA, CDC in one place</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Filter className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Plain English summaries</h3>
-              <p className="text-muted-foreground">No regulatory jargon</p>
+              <h3 className="font-semibold text-base md:text-lg mb-2">Plain English summaries</h3>
+              <p className="text-sm md:text-base text-muted-foreground">No regulatory jargon</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Free for food professionals</h3>
-              <p className="text-muted-foreground">Mobile-optimized for plant floor access</p>
+              <h3 className="font-semibold text-base md:text-lg mb-2">Free for food professionals</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Mobile-optimized for plant floor access</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* AI Search Section */}
-      <section id="ai-search" className="py-12 px-4 bg-muted/20">
+      <section id="ai-search" className="py-8 md:py-12 px-4 bg-muted/20">
         <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4">AI-Powered Food Regulation Search</h2>
-            <p className="text-muted-foreground text-lg">Ask questions in plain English, get instant answers with CFR citations</p>
+          <div className="text-center mb-6 md:mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">AI-Powered Food Regulation Search</h2>
+            <p className="text-muted-foreground text-base md:text-lg">Ask questions in plain English, get instant answers with CFR citations</p>
           </div>
           
-          <Card className="p-6">
+          <Card className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
-              <Brain className="h-6 w-6 text-primary" />
-              <h3 className="text-lg font-semibold">🤖 AI Search powered by GPT-4.1</h3>
+              <Brain className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+              <h3 className="text-base md:text-lg font-semibold">🤖 AI Search powered by GPT-4.1</h3>
             </div>
             
             <div className="relative mb-4">
               <Input
                 type="text"
                 placeholder="Search food regulations & alerts... Try: 'listeria recalls' 'organic labeling' 'HACCP requirements'"
-                className="pl-4 pr-12 py-6 text-lg"
+                className="pl-4 pr-12 py-4 md:py-6 text-base md:text-lg"
+                onClick={() => setIsChatOpen(true)}
+                readOnly
               />
-              <Button size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2">
+              <Button 
+                size="icon" 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                onClick={() => setIsChatOpen(true)}
+              >
                 <Search className="h-4 w-4" />
               </Button>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-4">
               {[
                 "Food Safety & Recalls",
                 "Labeling & Claims", 
@@ -339,13 +345,19 @@ const Landing = () => {
                 "Processing Requirements",
                 "Organic Standards"
               ].map((category) => (
-                <Button key={category} variant="outline" size="sm" className="text-xs">
+                <Button 
+                  key={category} 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-xs md:text-sm h-8 md:h-9"
+                  onClick={() => setIsChatOpen(true)}
+                >
                   {category}
                 </Button>
               ))}
             </div>
             
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-xs md:text-sm text-muted-foreground text-center">
               Natural language queries • Cross-agency regulation lookup • Plain English responses
             </p>
           </Card>
@@ -355,31 +367,31 @@ const Landing = () => {
       {/* Live Dashboard Preview */}
       <section id="food-alerts" className="py-12 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col lg:flex-row items-start justify-between mb-8 gap-6">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Live Food Safety Alerts</h2>
-              <p className="text-muted-foreground">Real-time updates from FDA, USDA, EPA, and CDC</p>
+          <div className="flex flex-col gap-6 mb-6 md:mb-8">
+            <div className="text-center lg:text-left">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">Live Food Safety Alerts</h2>
+              <p className="text-muted-foreground text-sm md:text-base">Real-time updates from FDA, USDA, EPA, and CDC</p>
             </div>
             
             {/* Enhanced Agency Filter */}
-            <div className="flex flex-col gap-4 w-full lg:w-auto">
+            <div className="flex flex-col gap-4 w-full">
               <DataRefreshButton />
               
-              <div className="bg-background border rounded-lg p-4">
+              <div className="bg-background border rounded-lg p-3 md:p-4">
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <label className="text-sm font-medium text-muted-foreground">Food Agency Focus:</label>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setSelectedAgency('ALL')}
-                      className="text-xs text-muted-foreground hover:text-foreground"
+                      className="text-xs text-muted-foreground hover:text-foreground self-start sm:self-auto"
                     >
                       Show All Agencies
                     </Button>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                     {[
                       { name: 'FDA', color: 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100', icon: '🛡️' },
                       { name: 'USDA', color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100', icon: '🌾' },
@@ -394,7 +406,7 @@ const Landing = () => {
                           size="sm"
                           onClick={() => setSelectedAgency(agency.name)}
                           className={cn(
-                            "justify-start gap-2 h-12",
+                            "justify-start gap-2 h-10 md:h-12 text-xs md:text-sm",
                             selectedAgency.toUpperCase() !== agency.name && agency.color
                           )}
                         >
@@ -412,7 +424,7 @@ const Landing = () => {
                     variant={selectedAgency === 'ALL' ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setSelectedAgency('ALL')}
-                    className="mt-2"
+                    className="mt-2 w-full sm:w-auto text-xs md:text-sm"
                   >
                     All Agencies ({alerts.length})
                   </Button>
@@ -636,49 +648,49 @@ const Landing = () => {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-12 px-4">
+      <section id="how-it-works" className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Built for Food Industry Professionals</h2>
-            <p className="text-muted-foreground text-lg">Three simple steps to smarter food safety monitoring</p>
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Built for Food Industry Professionals</h2>
+            <p className="text-muted-foreground text-base md:text-lg">Three simple steps to smarter food safety monitoring</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Search className="h-8 w-8 text-primary" />
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                <Search className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">1. We Monitor Food Agencies</h3>
-              <p className="text-muted-foreground">Real-time tracking of FDA, USDA, EPA, CDC feeds for food safety alerts</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-3">1. We Monitor Food Agencies</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Real-time tracking of FDA, USDA, EPA, CDC feeds for food safety alerts</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Brain className="h-8 w-8 text-primary" />
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                <Brain className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">2. AI Analyzes for Food Impact</h3>
-              <p className="text-muted-foreground">Smart summaries focused on food safety implications and compliance requirements</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-3">2. AI Analyzes for Food Impact</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Smart summaries focused on food safety implications and compliance requirements</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Bell className="h-8 w-8 text-primary" />
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                <Bell className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">3. You Stay Compliant</h3>
-              <p className="text-muted-foreground">Get food safety alerts that matter to your business, when they matter</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-3">3. You Stay Compliant</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Get food safety alerts that matter to your business, when they matter</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Email Signup Section */}
-      <section className="py-12 px-4">
+      <section className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl text-center">
-          <Card className="p-8">
-            <h2 className="text-3xl font-bold mb-4">Get Critical Food Safety Alerts + AI Search</h2>
-            <p className="text-muted-foreground text-lg mb-6">
+          <Card className="p-4 md:p-6 lg:p-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Get Critical Food Safety Alerts + AI Search</h2>
+            <p className="text-muted-foreground text-base md:text-lg mb-6">
               Free regulatory intelligence for food industry professionals
             </p>
             
-            <form onSubmit={handleEmailSignup} className="flex gap-2 max-w-md mx-auto mb-4">
+            <form onSubmit={handleEmailSignup} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto mb-4">
               <Input
                 type="email"
                 placeholder="Enter your work email"
@@ -687,11 +699,11 @@ const Landing = () => {
                 className="flex-1"
                 required
               />
-              <Button type="submit">Get Free Food Safety Alerts</Button>
+              <Button type="submit" className="w-full sm:w-auto whitespace-nowrap">Get Free Alerts</Button>
             </form>
             
-            <div className="text-sm text-muted-foreground mb-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-w-2xl mx-auto">
+            <div className="text-xs md:text-sm text-muted-foreground mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 max-w-2xl mx-auto">
                 <span>✅ AI-powered regulation search (GPT-4.1)</span>
                 <span>✅ FDA/USDA recalls & safety alerts</span>
                 <span>✅ Plain English summaries</span>
