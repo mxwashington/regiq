@@ -1,7 +1,22 @@
-// RegIQ Service Worker - PWA Functionality
-const CACHE_NAME = 'regiq-v1.0.0';
-const API_CACHE_NAME = 'regiq-api-v1.0.0';
-const STATIC_CACHE_NAME = 'regiq-static-v1.0.0';
+// RegIQ Service Worker - Enhanced Cache Busting
+const BUILD_VERSION = Date.now().toString(); // Dynamic version based on build time
+const CACHE_NAME = `regiq-v${BUILD_VERSION}`;
+const API_CACHE_NAME = `regiq-api-v${BUILD_VERSION}`;
+const STATIC_CACHE_NAME = `regiq-static-v${BUILD_VERSION}`;
+
+// Cache configuration
+const CACHE_CONFIG = {
+  maxAge: {
+    static: 24 * 60 * 60 * 1000,    // 24 hours for static assets
+    api: 5 * 60 * 1000,             // 5 minutes for API responses
+    alerts: 60 * 1000               // 1 minute for alerts
+  },
+  maxEntries: {
+    static: 100,
+    api: 50,
+    alerts: 200
+  }
+};
 
 // URLs to cache for offline functionality
 const STATIC_URLS = [
@@ -20,46 +35,65 @@ const API_CACHE_PATTERNS = [
   /supabase\.co.*\/rest\/v1\/regulatory_data_sources/
 ];
 
-// Install event - cache static resources
+// Install event - cache static resources and broadcast version
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  console.log('[SW] Installing service worker version:', BUILD_VERSION);
   
   event.waitUntil(
     Promise.all([
-      // Cache static resources
-      caches.open(STATIC_CACHE_NAME).then((cache) => {
+      // Cache static resources with version info
+      caches.open(STATIC_CACHE_NAME).then(async (cache) => {
         console.log('[SW] Caching static resources');
-        return cache.addAll(STATIC_URLS);
+        await cache.addAll(STATIC_URLS);
+        
+        // Store version info in cache
+        const versionResponse = new Response(JSON.stringify({
+          version: BUILD_VERSION,
+          timestamp: Date.now(),
+          cacheNames: {
+            static: STATIC_CACHE_NAME,
+            api: API_CACHE_NAME,
+            main: CACHE_NAME
+          }
+        }));
+        await cache.put('/cache-version', versionResponse);
       }),
       // Skip waiting to activate immediately
       self.skipWaiting()
     ])
   );
+  
+  // Broadcast new version available
+  broadcastToClients({ type: 'NEW_VERSION', version: BUILD_VERSION });
 });
 
-// Activate event - clean up old caches
+// Activate event - aggressive cache cleanup and client claiming
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  console.log('[SW] Activating service worker version:', BUILD_VERSION);
   
   event.waitUntil(
     Promise.all([
-      // Clean up old caches
+      // Aggressively clean up ALL old caches
       caches.keys().then((cacheNames) => {
+        const currentCaches = [CACHE_NAME, API_CACHE_NAME, STATIC_CACHE_NAME];
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME && 
-                cacheName !== API_CACHE_NAME && 
-                cacheName !== STATIC_CACHE_NAME) {
+            if (!currentCaches.includes(cacheName)) {
               console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       }),
-      // Claim all clients
+      // Clear session storage issues
+      clearStaleSessionData(),
+      // Claim all clients immediately
       self.clients.claim()
     ])
   );
+  
+  // Notify clients of activation
+  broadcastToClients({ type: 'SW_ACTIVATED', version: BUILD_VERSION });
 });
 
 // Fetch event - handle network requests with caching strategy
@@ -204,17 +238,32 @@ async function cacheFirst(request, cacheName) {
 
 async function networkFirstWithCache(request, cacheName) {
   try {
-    // Try network first
-    const networkResponse = await fetch(request);
+    // Try network first with cache headers
+    const networkResponse = await fetch(request, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
     
     if (networkResponse.ok) {
-      // Cache successful responses
+      // Add cache control headers and cache response
+      const responseWithHeaders = new Response(networkResponse.body, {
+        status: networkResponse.status,
+        statusText: networkResponse.statusText,
+        headers: {
+          ...networkResponse.headers,
+          'Cache-Control': getCacheControlForRequest(request),
+          'X-Cache-Version': BUILD_VERSION,
+          'X-Cache-Timestamp': Date.now().toString()
+        }
+      });
+      
       const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
-      return networkResponse;
+      cache.put(request, responseWithHeaders.clone());
+      return responseWithHeaders;
     }
     
-    // If network fails, try cache
     throw new Error('Network response not ok');
   } catch (error) {
     console.log('[SW] Network failed, trying cache:', error);
@@ -222,16 +271,21 @@ async function networkFirstWithCache(request, cacheName) {
     const cachedResponse = await cache.match(request);
     
     if (cachedResponse) {
+      // Check if cached response is stale
+      const cacheTimestamp = cachedResponse.headers.get('X-Cache-Timestamp');
+      const cacheVersion = cachedResponse.headers.get('X-Cache-Version');
+      
+      if (cacheVersion !== BUILD_VERSION || 
+          (cacheTimestamp && Date.now() - parseInt(cacheTimestamp) > CACHE_CONFIG.maxAge.api)) {
+        console.log('[SW] Cached response is stale, removing');
+        cache.delete(request);
+        return createOfflineResponse();
+      }
+      
       return cachedResponse;
     }
     
-    return new Response(JSON.stringify({ 
-      error: 'Offline', 
-      message: 'Data not available offline' 
-    }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return createOfflineResponse();
   }
 }
 
@@ -278,3 +332,65 @@ async function syncOfflineSearches() {
     console.log('[SW] Search sync failed:', error);
   }
 }
+
+// Enhanced helper functions for cache busting
+
+function getCacheControlForRequest(request) {
+  const url = new URL(request.url);
+  
+  if (url.pathname.includes('/alerts')) {
+    return 'public, max-age=60, stale-while-revalidate=30';
+  } else if (url.pathname.includes('/api/')) {
+    return 'public, max-age=300, stale-while-revalidate=60';
+  } else if (url.pathname.includes('/assets/')) {
+    return 'public, max-age=31536000, immutable';
+  }
+  
+  return 'no-cache, no-store, must-revalidate';
+}
+
+function createOfflineResponse() {
+  return new Response(JSON.stringify({ 
+    error: 'Offline', 
+    message: 'Data not available offline',
+    version: BUILD_VERSION,
+    timestamp: Date.now()
+  }), {
+    status: 503,
+    headers: { 
+      'Content-Type': 'application/json',
+      'X-Cache-Version': BUILD_VERSION
+    }
+  });
+}
+
+async function clearStaleSessionData() {
+  try {
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({ 
+        type: 'CLEAR_STALE_DATA',
+        version: BUILD_VERSION 
+      });
+    });
+  } catch (error) {
+    console.log('[SW] Error clearing stale data:', error);
+  }
+}
+
+function broadcastToClients(message) {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage(message);
+    });
+  });
+}
+
+// Handle messages from clients
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'SKIP_WAITING') {
+    self.skipWaiting();
+  } else if (event.data && event.data.action === 'GET_VERSION') {
+    event.ports[0].postMessage({ version: BUILD_VERSION });
+  }
+});

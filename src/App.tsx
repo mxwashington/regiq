@@ -9,7 +9,9 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { UpdateNotification } from "@/components/UpdateNotification";
 import { usePWA } from "@/hooks/usePWA";
+import { useCacheBuster } from "@/hooks/useCacheBuster";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
@@ -71,10 +73,18 @@ const PWAApp = () => {
   // Initialize PWA functionality
   usePWA();
   
+  // Initialize cache busting
+  useCacheBuster({
+    checkInterval: 5 * 60 * 1000, // Check every 5 minutes
+    clearStaleDataInterval: 24 * 60 * 60 * 1000, // Clear stale data daily
+    enableAutoRefresh: false // Don't auto-refresh, let user choose
+  });
+  
   return (
     <>
       <Toaster />
       <Sonner />
+      <UpdateNotification />
       <PWAInstallPrompt />
       <BrowserRouter>
         <Suspense fallback={<PageLoadingFallback />}>
