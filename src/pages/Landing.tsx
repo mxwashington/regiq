@@ -39,12 +39,32 @@ const Landing = () => {
 
   // Get filtered alerts for display
   const displayAlerts = useMemo(() => {
-    let filtered = alerts.slice(0, 10);
-    if (selectedAgency) {
-      filtered = alerts.filter(alert => 
-        alert.source.toLowerCase().includes(selectedAgency.toLowerCase())
-      ).slice(0, 10);
+    console.log('Filtering alerts:', { 
+      totalAlerts: alerts.length, 
+      selectedAgency, 
+      sampleSources: alerts.slice(0, 3).map(a => a.source) 
+    });
+    
+    if (!selectedAgency) {
+      return alerts.slice(0, 10);
     }
+    
+    const filtered = alerts.filter(alert => {
+      const sourceMatch = alert.source.toLowerCase() === selectedAgency.toLowerCase();
+      console.log('Filter check:', { 
+        alertSource: alert.source, 
+        selectedAgency, 
+        match: sourceMatch 
+      });
+      return sourceMatch;
+    }).slice(0, 10);
+    
+    console.log('Filtered results:', { 
+      originalCount: alerts.length, 
+      filteredCount: filtered.length,
+      selectedAgency 
+    });
+    
     return filtered;
   }, [alerts, selectedAgency]);
 
@@ -193,16 +213,31 @@ const Landing = () => {
               <DataRefreshButton />
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium">Filter:</label>
-                <select 
-                  value={selectedAgency}
-                  onChange={(e) => setSelectedAgency(e.target.value)}
-                  className="px-3 py-1 border rounded text-sm"
-                >
-                  <option value="">All Agencies</option>
-                  <option value="fda">FDA</option>
-                  <option value="usda">USDA</option>
-                  <option value="epa">EPA</option>
-                </select>
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    variant={selectedAgency === '' ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedAgency('')}
+                    className="text-xs"
+                  >
+                    All ({alerts.length})
+                  </Button>
+                  {['FDA', 'USDA', 'EPA', 'CDC'].map(agency => {
+                    const count = alerts.filter(alert => alert.source === agency).length;
+                    if (count === 0) return null;
+                    return (
+                      <Button
+                        key={agency}
+                        variant={selectedAgency.toUpperCase() === agency ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedAgency(agency)}
+                        className="text-xs"
+                      >
+                        {agency} ({count})
+                      </Button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
