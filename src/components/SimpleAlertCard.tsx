@@ -1,12 +1,12 @@
 
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ExternalLink, Clock, AlertTriangle, X, Share2, Search, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileButton } from '@/components/MobileButton';
 
 interface SimpleAlert {
   id: string;
@@ -27,7 +27,6 @@ interface SimpleAlertCardProps {
 const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert }) => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const cardRef = useRef<HTMLDivElement>(null);
   
   const getUrgencyColor = (urgency: string) => {
     switch (urgency.toLowerCase()) {
@@ -55,7 +54,10 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
     });
   };
 
-  const handleShare = async () => {
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Share button clicked for alert:', alert.title);
+    
     const shareText = `${alert.title}\n\n${alert.summary}\n\nSource: ${alert.source}`;
     const shareUrl = alert.external_url || window.location.href;
     
@@ -83,9 +85,11 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
     }
   };
 
-  const handleSearchForAlert = async () => {
+  const handleSearchForAlert = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Search button clicked for alert:', alert.title);
+    
     try {
-      console.log('Mobile search triggered for:', alert.title);
       await searchForAlert(alert.title, alert.source);
       toast({
         title: "Search Started",
@@ -101,7 +105,10 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
     }
   };
 
-  const handleExternalLink = () => {
+  const handleExternalLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('External link clicked for alert:', alert.title);
+    
     try {
       // Decode HTML entities in the URL
       const decodedUrl = alert.external_url
@@ -125,36 +132,17 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
     }
   };
 
-  // Add touch-friendly event handling for mobile
-  useEffect(() => {
-    if (!isMobile || !cardRef.current) return;
-
-    const card = cardRef.current;
-    let touchStartTime = 0;
-
-    const handleTouchStart = () => {
-      touchStartTime = Date.now();
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      const touchDuration = Date.now() - touchStartTime;
-      // Only treat as tap if touch was short (not a scroll/swipe)
-      if (touchDuration < 200) {
-        e.preventDefault();
-      }
-    };
-
-    card.addEventListener('touchstart', handleTouchStart, { passive: true });
-    card.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-    return () => {
-      card.removeEventListener('touchstart', handleTouchStart);
-      card.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isMobile]);
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Dismiss button clicked for alert:', alert.title);
+    
+    if (onDismissAlert) {
+      onDismissAlert(alert.id);
+    }
+  };
 
   return (
-    <Card ref={cardRef} className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -186,65 +174,55 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
           {alert.summary}
         </p>
 
-        {/* Actions - Optimized for mobile */}
+        {/* Actions - Mobile Optimized */}
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
             Real-time regulatory alert
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`${isMobile ? 'h-9 px-2 min-w-[60px]' : 'h-8 px-3'} text-xs`}
+            <MobileButton
               onClick={handleShare}
+              className="flex items-center gap-1"
             >
-              <Share2 className="h-3 w-3 mr-1" />
+              <Share2 className="h-3 w-3" />
               <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Share</span>
-            </Button>
+            </MobileButton>
             
             {onDismissAlert && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`${isMobile ? 'h-9 px-2 min-w-[60px]' : 'h-8 px-3'} text-xs`}
-                onClick={() => onDismissAlert(alert.id)}
+              <MobileButton
+                onClick={handleDismiss}
+                className="flex items-center gap-1"
               >
-                <X className="h-3 w-3 mr-1" />
+                <X className="h-3 w-3" />
                 <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Hide</span>
-              </Button>
+              </MobileButton>
             )}
             
             {isValidSourceUrl(alert.external_url) ? (
               <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`${isMobile ? 'h-9 px-2 min-w-[60px]' : 'h-8 px-3'} text-xs`}
+                <MobileButton
                   onClick={handleExternalLink}
+                  className="flex items-center gap-1"
                 >
-                  <ExternalLink className="h-3 w-3 mr-1" />
+                  <ExternalLink className="h-3 w-3" />
                   <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Source</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`${isMobile ? 'h-9 px-2 min-w-[60px]' : 'h-8 px-3'} text-xs`}
+                </MobileButton>
+                <MobileButton
                   onClick={handleSearchForAlert}
+                  className="flex items-center gap-1"
                 >
-                  <Globe className="h-3 w-3 mr-1" />
+                  <Globe className="h-3 w-3" />
                   <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Search</span>
-                </Button>
+                </MobileButton>
               </>
             ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`${isMobile ? 'h-9 px-2 min-w-[60px]' : 'h-8 px-3'} text-xs`}
+              <MobileButton
                 onClick={handleSearchForAlert}
+                className="flex items-center gap-1"
               >
-                <Search className="h-3 w-3 mr-1" />
+                <Search className="h-3 w-3" />
                 <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Find</span>
-              </Button>
+              </MobileButton>
             )}
           </div>
         </div>

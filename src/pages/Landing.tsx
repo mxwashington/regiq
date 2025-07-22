@@ -10,6 +10,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { MobileLayout } from "@/components/MobileLayout";
 import { MobileAlertCard } from "@/components/MobileAlertCard";
 import { MobileSearchInterface } from "@/components/MobileSearchInterface";
+import { MobileButton } from "@/components/MobileButton";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
 import { useSavedAlerts } from "@/hooks/useSavedAlerts";
@@ -113,6 +114,28 @@ const Landing = () => {
     e.preventDefault();
     // TODO: Implement email signup
     console.log('Signup with email:', email);
+  };
+
+  const handleSearchClick = (alert: any) => {
+    console.log('Landing page search button clicked for:', alert.title);
+    searchForAlert(alert.title, alert.source);
+  };
+
+  const handleExternalClick = (alert: any) => {
+    console.log('Landing page external link clicked for:', alert.title);
+    if (alert.external_url) {
+      // Decode HTML entities in the URL
+      const decodedUrl = alert.external_url
+        ?.replace(/&amp;/g, '&')
+        ?.replace(/&lt;/g, '<')
+        ?.replace(/&gt;/g, '>')
+        ?.replace(/&quot;/g, '"')
+        ?.replace(/&#39;/g, "'");
+      
+      if (decodedUrl) {
+        window.open(decodedUrl, '_blank', 'noopener,noreferrer');
+      }
+    }
   };
 
   return (
@@ -353,37 +376,32 @@ const Landing = () => {
                 <div className="flex items-center gap-2">
                   {isValidSourceUrl(featuredAlert.external_url) ? (
                     <>
-                      <Button variant="outline" size="sm" asChild>
-                        <a 
-                          href={featuredAlert.external_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          Read Full Alert
-                        </a>
-                      </Button>
-                      <Button 
+                      <MobileButton 
+                        variant="outline" 
+                        onClick={() => handleExternalClick(featuredAlert)}
+                        className="flex items-center gap-2"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Read Full Alert
+                      </MobileButton>
+                      <MobileButton 
                         variant="ghost" 
-                        size="sm"
-                        onClick={() => searchForAlert(featuredAlert.title, featuredAlert.source)}
+                        onClick={() => handleSearchClick(featuredAlert)}
                         className="flex items-center gap-2"
                       >
                         <Globe className="w-4 h-4" />
                         Search Web
-                      </Button>
+                      </MobileButton>
                     </>
                   ) : (
-                    <Button 
+                    <MobileButton 
                       variant="outline" 
-                      size="sm"
-                      onClick={() => searchForAlert(featuredAlert.title, featuredAlert.source)}
+                      onClick={() => handleSearchClick(featuredAlert)}
                       className="flex items-center gap-2"
                     >
                       <Search className="w-4 h-4" />
                       Find Source
-                    </Button>
+                    </MobileButton>
                   )}
                 </div>
               </CardContent>
@@ -441,37 +459,32 @@ const Landing = () => {
                      <div className="flex items-center gap-2">
                        {isValidSourceUrl(alert.external_url) ? (
                          <>
-                           <Button variant="outline" size="sm" asChild>
-                             <a 
-                               href={alert.external_url} 
-                               target="_blank" 
-                               rel="noopener noreferrer"
-                               className="flex items-center gap-2"
-                             >
-                               <ExternalLink className="w-3 h-3" />
-                               Read Full Alert
-                             </a>
-                           </Button>
-                           <Button 
+                           <MobileButton 
+                             variant="outline" 
+                             onClick={() => handleExternalClick(alert)}
+                             className="flex items-center gap-2"
+                           >
+                             <ExternalLink className="w-3 h-3" />
+                             Read Full Alert
+                           </MobileButton>
+                           <MobileButton 
                              variant="ghost" 
-                             size="sm"
-                             onClick={() => searchForAlert(alert.title, alert.source)}
+                             onClick={() => handleSearchClick(alert)}
                              className="flex items-center gap-2"
                            >
                              <Globe className="w-3 h-3" />
                              Search Web
-                           </Button>
+                           </MobileButton>
                          </>
                        ) : (
-                         <Button 
+                         <MobileButton 
                            variant="outline" 
-                           size="sm"
-                           onClick={() => searchForAlert(alert.title, alert.source)}
+                           onClick={() => handleSearchClick(alert)}
                            className="flex items-center gap-2"
                          >
                            <Search className="w-3 h-3" />
                            Find Source
-                         </Button>
+                         </MobileButton>
                        )}
                      </div>
                    </CardContent>

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ExternalLink, Clock, AlertTriangle, X, Share2, Search, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
+import { MobileButton } from '@/components/MobileButton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AlertTag {
   id: string;
@@ -41,6 +42,7 @@ interface TaggedAlertCardProps {
 
 const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, onDismissAlert }) => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const getUrgencyColor = (urgency: string) => {
     switch (urgency.toLowerCase()) {
@@ -68,7 +70,10 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
     });
   };
 
-  const handleShare = async () => {
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Share button clicked for alert:', alert.title);
+    
     const shareText = `${alert.title}\n\n${alert.summary}\n\nSource: ${alert.source}`;
     const shareUrl = alert.external_url || window.location.href;
     
@@ -93,6 +98,38 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
         description: "Unable to share this alert.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleExternalLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('External link clicked for alert:', alert.title);
+    
+    // Decode HTML entities in the URL
+    const decodedUrl = alert.external_url
+      ?.replace(/&amp;/g, '&')
+      ?.replace(/&lt;/g, '<')
+      ?.replace(/&gt;/g, '>')
+      ?.replace(/&quot;/g, '"')
+      ?.replace(/&#39;/g, "'");
+    
+    if (decodedUrl) {
+      window.open(decodedUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleSearch = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Search button clicked for alert:', alert.title);
+    searchForAlert(alert.title, alert.source);
+  };
+
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Dismiss button clicked for alert:', alert.title);
+    
+    if (onDismissAlert) {
+      onDismissAlert(alert.id);
     }
   };
 
@@ -145,10 +182,9 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
             {Object.entries(tagsByCategory).map(([categoryName, tags]) => (
               <div key={categoryName} className="flex flex-wrap gap-1">
                 {tags.map((alertTag) => (
-                  <Button
+                  <MobileButton
                     key={alertTag.id}
                     variant="ghost"
-                    size="sm"
                     className="h-6 px-2 text-xs hover:shadow-sm transition-all"
                     style={{
                       backgroundColor: `${alertTag.tag.color}15`,
@@ -166,82 +202,45 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
                         </span>
                       )}
                     </span>
-                  </Button>
+                  </MobileButton>
                 ))}
               </div>
             ))}
           </div>
         )}
 
-        {/* Actions */}
+        {/* Actions - Mobile Optimized */}
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
             {alert.alert_tags?.length || 0} tags
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
-              onClick={handleShare}
-            >
+            <MobileButton onClick={handleShare}>
               <Share2 className="h-3 w-3 mr-1" />
               <span className="hidden sm:inline">Share</span>
-            </Button>
+            </MobileButton>
             {onDismissAlert && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
-                onClick={() => onDismissAlert(alert.id)}
-              >
+              <MobileButton onClick={handleDismiss}>
                 <X className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">Dismiss</span>
-              </Button>
+              </MobileButton>
             )}
             {isValidSourceUrl(alert.external_url) ? (
               <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
-                  onClick={() => {
-                    // Decode HTML entities in the URL
-                    const decodedUrl = alert.external_url
-                      ?.replace(/&amp;/g, '&')
-                      ?.replace(/&lt;/g, '<')
-                      ?.replace(/&gt;/g, '>')
-                      ?.replace(/&quot;/g, '"')
-                      ?.replace(/&#39;/g, "'");
-                    
-                    if (decodedUrl) {
-                      window.open(decodedUrl, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
-                >
+                <MobileButton onClick={handleExternalLink}>
                   <ExternalLink className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">View Source</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
-                  onClick={() => searchForAlert(alert.title, alert.source)}
-                >
+                </MobileButton>
+                <MobileButton onClick={handleSearch}>
                   <Globe className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">Search</span>
-                </Button>
+                </MobileButton>
               </>
             ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
-                onClick={() => searchForAlert(alert.title, alert.source)}
-              >
+              <MobileButton onClick={handleSearch}>
                 <Search className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">Find Source</span>
-              </Button>
+              </MobileButton>
             )}
           </div>
         </div>
