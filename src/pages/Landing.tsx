@@ -7,7 +7,10 @@ import { ArrowRight, Shield, Zap, Bell, Brain, Clock, TrendingUp, ExternalLink, 
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { MobileNavigation } from "@/components/MobileNavigation";
+import { MobileLayout } from "@/components/MobileLayout";
+import { MobileAlertCard } from "@/components/MobileAlertCard";
+import { MobileSearchInterface } from "@/components/MobileSearchInterface";
+import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
 import { useSavedAlerts } from "@/hooks/useSavedAlerts";
 import { formatDistanceToNow } from "date-fns";
@@ -20,6 +23,7 @@ import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
 import { KeywordExtractionDemo } from "@/components/KeywordExtractionDemo";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 import { Helmet } from 'react-helmet-async';
+import { cn } from "@/lib/utils";
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
@@ -30,6 +34,7 @@ const Landing = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const { alerts, loading } = useSimpleAlerts();
   const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
+  const { isMobile, isTablet } = useMobileOptimization();
   
   const getDashboardUrl = () => {
     return isAdmin ? "/admin/dashboard" : "/dashboard";
@@ -111,7 +116,7 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5">
+    <MobileLayout showNavigation={false}>
       <Helmet>
         <title>RegIQ - Real-Time FDA, USDA & EPA Regulatory Alerts | Compliance Monitoring</title>
         <meta name="description" content="Get instant FDA recalls, USDA food safety alerts, and EPA enforcement actions. AI-powered regulatory monitoring for food, pharma, and ag compliance teams." />
@@ -193,7 +198,9 @@ const Landing = () => {
               </>
             )}
           </nav>
-          <MobileNavigation />
+          <div className="md:hidden">
+            {/* Mobile navigation is handled by MobileLayout */}
+          </div>
         </div>
       </header>
 
@@ -585,7 +592,7 @@ const Landing = () => {
 
       {/* Cookie Consent */}
       <CookieConsent />
-    </div>
+    </MobileLayout>
   );
 };
 

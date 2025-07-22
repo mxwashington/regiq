@@ -125,5 +125,176 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Ensure 16px font size to prevent zoom on iOS */
+    font-size: 16px;
+    /* Improve touch scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile Optimization Styles */
+@layer components {
+  /* Touch-friendly button sizing */
+  .btn-mobile {
+    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+  }
+  
+  /* Mobile alert card optimizations */
+  .mobile-alert-card {
+    @apply transform transition-transform duration-150 ease-out;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  .mobile-alert-card:active {
+    @apply scale-[0.98];
+  }
+  
+  /* Mobile navigation optimizations */
+  .mobile-nav-item {
+    @apply min-h-[48px] touch-manipulation;
+  }
+  
+  /* Mobile search optimizations */
+  .mobile-search-input {
+    @apply h-12 text-base rounded-lg touch-manipulation;
+    /* Prevent zoom on iOS */
+    font-size: 16px;
+  }
+  
+  /* Mobile filter button */
+  .mobile-filter-button {
+    @apply h-11 touch-manipulation transform transition-transform duration-100;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .mobile-filter-button:active {
+    @apply scale-[0.98];
+  }
+  
+  /* Mobile typography optimizations */
+  .mobile-title {
+    @apply text-lg font-semibold leading-tight;
+    line-height: 1.3;
+  }
+  
+  .mobile-summary {
+    @apply text-sm leading-relaxed;
+    line-height: 1.5;
+  }
+  
+  .mobile-meta {
+    @apply text-xs;
+  }
+  
+  /* Mobile spacing and layout */
+  .mobile-spacing {
+    @apply p-4 space-y-4;
+  }
+  
+  .mobile-container {
+    @apply px-4 py-2;
+  }
+  
+  /* Mobile-specific responsive classes */
+  @media (max-width: 768px) {
+    .mobile-optimized {
+      @apply p-4 rounded-xl shadow-sm;
+    }
+    
+    .mobile-full-width {
+      @apply w-full;
+    }
+    
+    .mobile-actions {
+      @apply flex flex-col gap-2;
+    }
+    
+    .mobile-compact {
+      @apply flex items-center justify-between text-xs;
+    }
+    
+    /* Ensure proper touch targets */
+    button, a, [role="button"] {
+      @apply min-h-[44px] touch-manipulation;
+    }
+    
+    /* Improve readability on mobile */
+    h1 { @apply text-2xl font-bold; }
+    h2 { @apply text-xl font-semibold; }
+    h3 { @apply text-lg font-medium; }
+    
+    /* Prevent horizontal scroll */
+    .container {
+      @apply px-4;
+    }
+    
+    /* Mobile-friendly forms */
+    input, textarea, select {
+      @apply text-base; /* Prevent zoom on iOS */
+    }
+  }
+  
+  /* Mobile landscape optimizations */
+  @media (max-width: 768px) and (orientation: landscape) {
+    .mobile-landscape-compact {
+      @apply py-2;
+    }
+    
+    .mobile-search-input {
+      @apply h-10;
+    }
+  }
+  
+  /* Pull-to-refresh indicator */
+  .pull-to-refresh {
+    @apply fixed top-0 left-0 right-0 z-50 bg-primary/10 text-primary text-center py-2 text-sm;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease-out;
+  }
+  
+  .pull-to-refresh.visible {
+    transform: translateY(0);
+  }
+  
+  /* Mobile loading states */
+  .mobile-loading {
+    @apply flex items-center justify-center py-8;
+  }
+  
+  .mobile-loading-spinner {
+    @apply w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin;
+  }
+  
+  /* Mobile error states */
+  .mobile-error {
+    @apply text-center py-8 px-4 text-muted-foreground;
+  }
+  
+  /* Mobile empty states */
+  .mobile-empty {
+    @apply text-center py-12 px-4 text-muted-foreground;
+  }
+  
+  /* Text truncation utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
