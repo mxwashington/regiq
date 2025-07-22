@@ -42,20 +42,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 function AuthProviderInner({ children }: { children: React.ReactNode }) {
-  const { toast } = useToast();
+  const [isMounted, setIsMounted] = useState(false);
+  
   const sessionManager = useSessionManager();
   const userProfile = useUserProfile();
   const { signInWithMagicLink } = useMagicLinkAuth();
+  const { toast } = useToast();
+  
+  // Ensure component is fully mounted before using effects
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Enhanced sign out with proper cleanup
   const signOut = async () => {
     console.log('Signing out user...');
     await sessionManager.signOut();
     userProfile.clearProfile();
-    toast({
-      title: "Signed out",
-      description: "You have been signed out successfully.",
-    });
+    if (isMounted) {
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully.",
+      });
+    }
   };
 
   const checkAdminStatus = async () => {
@@ -83,7 +92,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
 
   // Session health monitoring
   useEffect(() => {
-    if (!sessionManager.isHealthy && sessionManager.lastError) {
+    if (!sessionManager.isHealthy && sessionManager.lastError && isMounted) {
       console.error('Session health issue detected:', sessionManager.lastError);
       
       // Show user-friendly error for session issues
@@ -95,7 +104,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
         });
       }
     }
-  }, [sessionManager.isHealthy, sessionManager.lastError, toast]);
+  }, [sessionManager.isHealthy, sessionManager.lastError, toast, isMounted]);
 
   const value = {
     user: sessionManager.user,
