@@ -8,6 +8,7 @@ import { Loader2, MessageCircle, Send, X, Bot, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessage {
   id: string;
@@ -27,7 +28,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
     {
       id: '1',
       type: 'bot',
-      content: "Hi! I'm RegIQ's AI assistant. I can help you find FDA regulations, USDA guidelines, EPA rules, and other regulatory information. What would you like to know?",
+      content: "Hi! I'm RegIQ's AI assistant powered by GPT-4.1. I can help you find FDA regulations, USDA guidelines, EPA rules, and other regulatory information with real-time web search. What food safety or regulatory question can I help you with?",
       timestamp: new Date(),
     }
   ]);
@@ -60,12 +61,13 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
     setIsLoading(true);
 
     try {
-      // Call Perplexity search function
-      const { data, error } = await supabase.functions.invoke('perplexity-search', {
+      // Call GPT web search function instead of Perplexity
+      const { data, error } = await supabase.functions.invoke('gpt-web-search', {
         body: {
           query: userMessage.content,
-          agencies: ['FDA', 'USDA', 'EPA'],
-          searchType: 'regulatory'
+          agencies: ['FDA', 'USDA', 'EPA', 'CDC'],
+          searchType: 'regulatory',
+          industry: 'food'
         }
       });
 
@@ -145,7 +147,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
           </Avatar>
           <div>
             <h3 className="font-semibold text-sm">RegIQ Assistant</h3>
-            <p className="text-xs text-muted-foreground">Regulatory AI</p>
+            <p className="text-xs text-muted-foreground">Powered by GPT-4.1</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={onToggle}>
@@ -166,16 +168,39 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
                   {message.type === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                 </AvatarFallback>
               </Avatar>
-              <div className={`max-w-[80%] ${message.type === 'user' ? 'text-right' : ''}`}>
-                <div
-                  className={`p-3 rounded-lg text-sm ${
-                    message.type === 'user'
-                      ? 'bg-primary text-primary-foreground ml-auto'
-                      : 'bg-muted'
-                  }`}
-                >
-                  {message.content}
-                </div>
+               <div className={`max-w-[80%] ${message.type === 'user' ? 'text-right' : ''}`}>
+                 <div
+                   className={`p-3 rounded-lg text-sm ${
+                     message.type === 'user'
+                       ? 'bg-primary text-primary-foreground ml-auto'
+                       : 'bg-muted'
+                   }`}
+                 >
+                   {message.type === 'bot' ? (
+                     <div className="prose prose-sm max-w-none">
+                       <ReactMarkdown 
+                         components={{
+                           p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+                           ul: ({children}) => <ul className="list-disc list-inside mb-2 last:mb-0">{children}</ul>,
+                           li: ({children}) => <li className="mb-1">{children}</li>,
+                           strong: ({children}) => <strong className="font-semibold">{children}</strong>,
+                           h1: ({children}) => <h1 className="text-lg font-semibold mb-2">{children}</h1>,
+                           h2: ({children}) => <h2 className="text-base font-semibold mb-2">{children}</h2>,
+                           h3: ({children}) => <h3 className="text-sm font-semibold mb-1">{children}</h3>,
+                           a: ({href, children}) => (
+                             <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                               {children}
+                             </a>
+                           )
+                         }}
+                       >
+                         {message.content}
+                       </ReactMarkdown>
+                     </div>
+                   ) : (
+                     message.content
+                   )}
+                 </div>
                 {message.sources && message.sources.length > 0 && (
                   <div className="mt-2 space-y-1">
                     <p className="text-xs text-muted-foreground">Sources:</p>
@@ -221,7 +246,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask about FDA, USDA, EPA regulations..."
+            placeholder="Ask about FDA, USDA, EPA regulations... (Powered by GPT-4.1)"
             className="flex-1"
             disabled={isLoading}
           />
