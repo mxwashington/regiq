@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { useMobileOptimization } from '@/hooks/useMobileOptimization';
-import { MobileNavigation } from '@/components/MobileNavigation';
+import MobileNavigation from '@/components/MobileNavigation';
 import { UpdateNotification } from '@/components/UpdateNotification';
 import { cn } from '@/lib/utils';
 

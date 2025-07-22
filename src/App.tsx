@@ -32,6 +32,7 @@ const RegIQFeedPage = React.lazy(() => import("./pages/RegIQFeedPage"));
 const AgencyPage = React.lazy(() => import("./pages/AgencyPage"));
 const AllAlertsPage = React.lazy(() => import("./pages/AllAlertsPage"));
 const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage"));
+const MobileNavigation = React.lazy(() => import("./components/MobileNavigation"));
 
 
 const queryClient = new QueryClient({
@@ -121,6 +122,7 @@ const PWAApp = () => {
             <Route path="/debug" element={<Debug />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <MobileNavigation />
         </Suspense>
       </BrowserRouter>
     </>

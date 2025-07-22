@@ -1,163 +1,72 @@
-import React, { useState } from 'react';
-import { Menu, X, Home, Search, BarChart3, CreditCard, Shield, LogOut, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Search, Bell, Settings, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { cn } from '@/lib/utils';
 
-interface NavigationItem {
-  title: string;
-  href: string;
-  icon: React.ComponentType<any>;
-  requiresAuth?: boolean;
-  adminOnly?: boolean;
+interface NavItem {
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  badge?: string;
 }
 
-const navigationItems: NavigationItem[] = [
-  {
-    title: 'Home',
-    href: '/',
-    icon: Home,
-  },
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: BarChart3,
-    requiresAuth: true,
-  },
-  {
-    title: 'Search',
-    href: '/search',
-    icon: Search,
-    requiresAuth: true,
-  },
-  {
-    title: 'Subscription',
-    href: '/subscription',
-    icon: CreditCard,
-    requiresAuth: true,
-  },
-  {
-    title: 'Admin Dashboard',
-    href: '/admin',
-    icon: Shield,
-    requiresAuth: true,
-    adminOnly: true,
-  },
-];
-
-export function MobileNavigation() {
-  const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
+const MobileNavigation: React.FC = () => {
   const location = useLocation();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user } = useAuth();
 
-  const handleNavigation = (href: string) => {
-    navigate(href);
-    setIsOpen(false);
+  const navItems: NavItem[] = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/search', icon: Search, label: 'Search', badge: 'PRO' },
+    { path: '/user', icon: Bell, label: 'Alerts' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  const isActive = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    setIsOpen(false);
-    navigate('/');
-  };
-
-  const filteredItems = navigationItems.filter(item => {
-    if (item.requiresAuth && !user) return false;
-    if (item.adminOnly && !isAdmin) return false;
-    // Hide regular dashboard for admins - they should use admin dashboard
-    if (item.href === '/dashboard' && isAdmin) return false;
-    return true;
-  });
+  if (!user) return null;
 
   return (
-    <div className="md:hidden">
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-foreground hover:bg-muted"
-          >
-            <Menu className="h-6 w-6" />
-            <span className="sr-only">Open navigation menu</span>
-          </Button>
-        </SheetTrigger>
-        
-        <SheetContent side="right" className="w-80 p-0">
-          <SheetHeader className="p-6 border-b border-border">
-            <SheetTitle className="text-xl font-bold text-primary">
-              RegIQ
-            </SheetTitle>
-            
-            {user && (
-              <div className="flex items-center gap-3 pt-4">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {user.email}
-                  </p>
-                  {isAdmin && (
-                    <p className="text-xs text-muted-foreground">
-                      Administrator
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </SheetHeader>
-
-          <nav className="flex-1 p-6">
-            <div className="space-y-2">
-              {filteredItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                
-                return (
-                  <Button
-                    key={item.href}
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start gap-3 h-12 text-left",
-                      isActive && "bg-primary/10 text-primary font-medium"
-                    )}
-                    onClick={() => handleNavigation(item.href)}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border md:hidden">
+      <div className="flex items-center justify-around px-2 py-2">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.path);
+          
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-colors ${
+                active 
+                  ? 'text-primary bg-primary/10' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+              }`}
+            >
+              <div className="relative">
+                <Icon className={`h-5 w-5 ${active ? 'text-primary' : ''}`} />
+                {item.badge && (
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs px-1 py-0 min-w-0 h-4"
                   >
-                    <Icon className="h-5 w-5" />
-                    {item.title}
-                  </Button>
-                );
-              })}
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-border">
-              {!user ? (
-                <Button
-                  variant="default"
-                  className="w-full gap-3"
-                  onClick={() => handleNavigation('/auth')}
-                >
-                  <User className="h-5 w-5" />
-                  Sign In
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  className="w-full gap-3 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="h-5 w-5" />
-                  Sign Out
-                </Button>
-              )}
-            </div>
-          </nav>
-        </SheetContent>
-      </Sheet>
-    </div>
+                    {item.badge}
+                  </Badge>
+                )}
+              </div>
+              <span className={`text-xs mt-1 ${active ? 'font-medium' : ''}`}>
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
-}
+};
+
+export default MobileNavigation;

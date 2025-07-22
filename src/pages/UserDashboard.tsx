@@ -173,7 +173,7 @@ const UserDashboard = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">{/* Extra padding bottom for mobile nav */}
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Your Regulatory Dashboard</h1>

@@ -142,44 +142,49 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
+    <Card className={`hover:shadow-md transition-shadow ${isMobile ? 'mx-2 mb-3' : ''}`}>
+      <CardHeader className={isMobile ? "pb-2 px-3 pt-3" : "pb-3"}>
+        <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-2">
+            <h3 className={`font-semibold leading-tight line-clamp-2 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
               {alert.title}
             </h3>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className={`flex items-center gap-2 text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>
               <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {formatDate(alert.published_date)}
+                <Clock className={isMobile ? "h-2.5 w-2.5" : "h-3 w-3"} />
+                {isMobile ? 
+                  formatDate(alert.published_date).split(',')[0] : // Just date on mobile
+                  formatDate(alert.published_date)
+                }
               </span>
-              <span>{alert.source}</span>
+              <span className={isMobile ? 'text-xs truncate max-w-16' : ''}>{alert.source}</span>
             </div>
           </div>
           <Badge 
             variant="outline" 
-            className={`shrink-0 ${getUrgencyColor(alert.urgency)} text-xs px-2 py-1`}
+            className={`shrink-0 ${getUrgencyColor(alert.urgency)} ${isMobile ? 'text-xs px-1.5 py-0.5' : 'text-xs px-2 py-1'}`}
           >
             <span className="flex items-center gap-1">
               {getUrgencyIcon(alert.urgency)}
-              {alert.urgency}
+              {isMobile ? alert.urgency.charAt(0).toUpperCase() : alert.urgency}
             </span>
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+      <CardContent className={isMobile ? "pt-0 px-3 pb-3" : "pt-0"}>
+        <p className={`text-muted-foreground mb-3 ${isMobile ? 'text-xs line-clamp-2' : 'text-sm line-clamp-3'}`}>
           {alert.summary}
         </p>
 
         {/* Actions - Mobile Optimized */}
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-muted-foreground">
-            Real-time regulatory alert
-          </div>
-          <div className="flex items-center gap-1">
+        <div className={`flex items-center ${isMobile ? 'justify-end' : 'justify-between'}`}>
+          {!isMobile && (
+            <div className="text-xs text-muted-foreground">
+              Real-time regulatory alert
+            </div>
+          )}
+          <div className={`flex items-center ${isMobile ? 'gap-0.5' : 'gap-1'}`}>
             <MobileButton
               onClick={handleShare}
               className="flex items-center gap-1"
