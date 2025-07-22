@@ -492,7 +492,7 @@ export function FDAProfessionalTools() {
                         <SelectValue placeholder="Classification filter" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Classifications</SelectItem>
+                        <SelectItem value="all">All Classifications</SelectItem>
                         <SelectItem value="Class I">Class I Only</SelectItem>
                         <SelectItem value="Class II">Class II Only</SelectItem>
                         <SelectItem value="Class III">Class III Only</SelectItem>

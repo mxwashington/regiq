@@ -221,7 +221,7 @@ export default function GPTSearch() {
                 <SelectValue placeholder="Select industry" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 {industries.map(ind => (
                   <SelectItem key={ind} value={ind}>{ind}</SelectItem>
                 ))}

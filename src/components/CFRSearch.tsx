@@ -334,7 +334,7 @@ export function CFRSearch() {
                     <SelectValue placeholder="Search all titles" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Titles</SelectItem>
+                    <SelectItem value="all">All Titles</SelectItem>
                     {CFR_TITLES.map((title) => (
                       <SelectItem key={title.number} value={title.number.toString()}>
                         Title {title.number} - {title.name}

@@ -617,7 +617,7 @@ export function FDASearch() {
                   <SelectValue placeholder="All classes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Classifications</SelectItem>
+                  <SelectItem value="all">All Classifications</SelectItem>
                   <SelectItem value="Class I">Class I (Most serious)</SelectItem>
                   <SelectItem value="Class II">Class II (Moderate)</SelectItem>
                   <SelectItem value="Class III">Class III (Least serious)</SelectItem>
@@ -632,7 +632,7 @@ export function FDASearch() {
                   <SelectValue placeholder="All states" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All States</SelectItem>
+                  <SelectItem value="all">All States</SelectItem>
                   {states.map((state) => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
@@ -651,7 +651,7 @@ export function FDASearch() {
                   <SelectItem value="30">Last 30 days</SelectItem>
                   <SelectItem value="90">Last 3 months</SelectItem>
                   <SelectItem value="365">Last year</SelectItem>
-                  <SelectItem value="">All time</SelectItem>
+                  <SelectItem value="all">All time</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -663,7 +663,7 @@ export function FDASearch() {
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="Voluntary">Voluntary</SelectItem>
                   <SelectItem value="FDA Mandated">FDA Mandated</SelectItem>
                 </SelectContent>
