@@ -8,7 +8,7 @@ import { Loader2, MessageCircle, Send, X, Bot, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import ReactMarkdown from 'react-markdown';
+
 
 interface ChatMessage {
   id: string;
@@ -176,30 +176,9 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
                        : 'bg-muted'
                    }`}
                  >
-                   {message.type === 'bot' ? (
-                     <div className="prose prose-sm max-w-none">
-                       <ReactMarkdown 
-                         components={{
-                           p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
-                           ul: ({children}) => <ul className="list-disc list-inside mb-2 last:mb-0">{children}</ul>,
-                           li: ({children}) => <li className="mb-1">{children}</li>,
-                           strong: ({children}) => <strong className="font-semibold">{children}</strong>,
-                           h1: ({children}) => <h1 className="text-lg font-semibold mb-2">{children}</h1>,
-                           h2: ({children}) => <h2 className="text-base font-semibold mb-2">{children}</h2>,
-                           h3: ({children}) => <h3 className="text-sm font-semibold mb-1">{children}</h3>,
-                           a: ({href, children}) => (
-                             <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                               {children}
-                             </a>
-                           )
-                         }}
-                       >
-                         {message.content}
-                       </ReactMarkdown>
-                     </div>
-                   ) : (
-                     message.content
-                   )}
+                   <div className="whitespace-pre-wrap">
+                     {message.content}
+                   </div>
                  </div>
                 {message.sources && message.sources.length > 0 && (
                   <div className="mt-2 space-y-1">

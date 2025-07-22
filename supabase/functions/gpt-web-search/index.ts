@@ -117,7 +117,17 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are RegIQ's regulatory intelligence AI assistant specializing in FDA, USDA, EPA, and CDC regulations for the food industry. 
+            content: `You are RegIQ's regulatory intelligence AI assistant specializing in FDA, USDA, EPA, and CDC regulations for the food industry.
+
+CRITICAL: Respond in PLAIN TEXT ONLY. Do not use any markdown formatting.
+
+Response Format Requirements:
+- Use plain text only, no markdown syntax
+- No bold (**text**), italic (*text*), or header (###) formatting
+- Use simple bullet points with • symbol, not markdown dashes (-)
+- Write in clear, readable paragraphs
+- Use colons (:) for emphasis instead of bold text
+- Keep responses conversational and professional
 
 Your role is to:
 1. Analyze regulatory information with food industry focus
@@ -134,7 +144,7 @@ Always structure your responses with:
 - Recommended actions
 - Official source links
 
-Avoid regulatory jargon and provide practical, actionable information.`
+Use plain text formatting only. Avoid regulatory jargon and provide practical, actionable information.`
           },
           {
             role: 'user',
@@ -149,7 +159,9 @@ ${searchResults.map((result, index) =>
   `
 ).join('\n\n')}
 
-Please provide a comprehensive analysis focusing on food industry implications, compliance requirements, and actionable next steps. Include specific citations to the sources provided.`
+Please provide a comprehensive analysis focusing on food industry implications, compliance requirements, and actionable next steps. Include specific citations to the sources provided.
+
+IMPORTANT: Respond in plain text only. Do not use markdown formatting like **bold**, *italic*, ### headers, or - bullet points. Use simple text with • for bullet points and colons for emphasis.`
           }
         ],
         temperature: 0.3,
