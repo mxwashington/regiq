@@ -174,17 +174,17 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
                 </AvatarFallback>
               </Avatar>
                <div className={`max-w-[80%] ${message.type === 'user' ? 'text-right' : ''}`}>
-                 <div
-                   className={`p-3 rounded-lg text-sm ${
-                     message.type === 'user'
-                       ? 'bg-primary text-primary-foreground ml-auto'
-                       : 'bg-muted'
-                   }`}
-                 >
-                   <div className="whitespace-pre-wrap">
-                     {message.content}
-                   </div>
-                 </div>
+                  <div
+                    className={`p-3 rounded-lg text-sm ${
+                      message.type === 'user'
+                        ? 'bg-primary text-primary-foreground ml-auto'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap">
+                      {message.content}
+                    </div>
+                  </div>
                 {message.sources && message.sources.length > 0 && (
                   <div className="mt-2 space-y-1">
                     <p className="text-xs text-muted-foreground">Sources:</p>
