@@ -15,6 +15,7 @@ import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 // Lazy load pages for better performance
 const Debug = React.lazy(() => import("./pages/Debug"));
 const Landing = React.lazy(() => import("./pages/Landing"));
+const UserDashboard = React.lazy(() => import("./pages/UserDashboard"));
 const Auth = React.lazy(() => import("./pages/Auth"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
@@ -81,7 +82,7 @@ const PWAApp = () => {
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
-            <Route path="/dashboard" element={<Landing />} />
+            <Route path="/dashboard" element={<UserDashboard />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/admin/*" element={
               <AuthGuard>
