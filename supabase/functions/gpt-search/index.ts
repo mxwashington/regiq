@@ -189,77 +189,110 @@ serve(async (req) => {
   }
 });
 
-// Enhanced web search function with real API calls
+// Enhanced web search function with real Tavily API calls
 async function performWebSearch(query: string, agencies?: string[]): Promise<WebSearchResult[]> {
   try {
-    logStep("Starting real web search", { query, agencies });
+    logStep("Starting real web search with Tavily", { query, agencies });
     
     const results: WebSearchResult[] = [];
     
-    // Use Perplexity for real-time web search
-    const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
-    if (perplexityApiKey) {
+    // Use Tavily for real-time web search
+    const tavilyApiKey = Deno.env.get('TAVILY_API_KEY');
+    if (tavilyApiKey) {
       try {
+        // Build search query targeting government sites
         const searchQuery = agencies?.length 
           ? `${query} site:${agencies.map(a => `${a.toLowerCase()}.gov`).join(' OR site:')}`
           : `${query} site:fda.gov OR site:usda.gov OR site:epa.gov OR site:cdc.gov`;
 
-        logStep("Calling Perplexity API", { searchQuery });
+        logStep("Calling Tavily API", { searchQuery });
 
-        const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+        const tavilyResponse = await fetch('https://api.tavily.com/search', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${perplexityApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'llama-3.1-sonar-small-128k-online',
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a regulatory information specialist. Find recent, specific regulatory information and format your response as a JSON array of search results with title, url, snippet, and source fields. Return only the JSON array, no other text.'
-              },
-              {
-                role: 'user',
-                content: `Find recent regulatory information about: ${searchQuery}`
-              }
-            ],
-            temperature: 0.2,
-            max_tokens: 1000,
-            return_images: false,
-            return_related_questions: false,
-            search_recency_filter: 'month'
+            api_key: tavilyApiKey,
+            query: searchQuery,
+            search_depth: 'advanced',
+            include_answer: false,
+            include_raw_content: true,
+            max_results: 8,
+            include_domains: ['fda.gov', 'usda.gov', 'epa.gov', 'cdc.gov', 'federalregister.gov', 'osha.gov'],
+            exclude_domains: []
           })
         });
 
-        if (perplexityResponse.ok) {
-          const perplexityData = await perplexityResponse.json();
-          const content = perplexityData.choices[0].message.content;
-          
-          try {
-            const searchResults = JSON.parse(content);
-            if (Array.isArray(searchResults)) {
-              results.push(...searchResults.slice(0, 5));
-              logStep("Added Perplexity search results", { count: searchResults.length });
+        if (tavilyResponse.ok) {
+          const tavilyData = await tavilyResponse.json();
+          logStep("Tavily API response", { 
+            resultsCount: tavilyData.results?.length || 0,
+            status: tavilyResponse.status 
+          });
+
+          if (tavilyData.results && Array.isArray(tavilyData.results)) {
+            for (const result of tavilyData.results.slice(0, 6)) {
+              // Determine source agency from URL
+              let source = "Government";
+              if (result.url.includes('fda.gov')) source = "FDA";
+              else if (result.url.includes('usda.gov')) source = "USDA";
+              else if (result.url.includes('epa.gov')) source = "EPA";
+              else if (result.url.includes('cdc.gov')) source = "CDC";
+              else if (result.url.includes('osha.gov')) source = "OSHA";
+              else if (result.url.includes('federalregister.gov')) source = "Federal Register";
+
+              results.push({
+                title: result.title || "Government Source",
+                url: result.url,
+                snippet: result.content?.substring(0, 200) || "Regulatory information source",
+                source: source
+              });
             }
-          } catch (parseError) {
-            logStep("Failed to parse Perplexity results, using content as single result", { parseError });
-            results.push({
-              title: "Recent Regulatory Information",
-              url: "https://www.perplexity.ai",
-              snippet: content.substring(0, 200) + "...",
-              source: "Perplexity AI"
+            logStep("Added Tavily search results", { count: results.length });
+          }
+        } else {
+          const errorText = await tavilyResponse.text();
+          logStep("Tavily API failed", { 
+            status: tavilyResponse.status, 
+            error: errorText 
+          });
+        }
+      } catch (tavilyError) {
+        logStep("Tavily search failed", { error: tavilyError.message });
+      }
+    } else {
+      logStep("No Tavily API key found, using fallback");
+    }
+
+    // Enhanced fallback: Call FDA API directly for recalls if query mentions recalls
+    if (query.toLowerCase().includes('recall') && (results.length === 0 || !agencies || agencies.includes('FDA'))) {
+      try {
+        logStep("Calling FDA openFDA API for recalls");
+        
+        const fdaResponse = await fetch('https://api.fda.gov/food/enforcement.json?limit=5');
+        if (fdaResponse.ok) {
+          const fdaData = await fdaResponse.json();
+          if (fdaData.results && fdaData.results.length > 0) {
+            fdaData.results.slice(0, 3).forEach((recall: any, index: number) => {
+              results.push({
+                title: `FDA Recall: ${recall.product_description?.substring(0, 80) || 'Food Product'}`,
+                url: "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts",
+                snippet: `${recall.reason_for_recall || 'Safety recall'} - ${recall.distribution_pattern || 'Multiple states'}`,
+                source: "FDA"
+              });
             });
+            logStep("Added FDA API recall results", { count: fdaData.results.length });
           }
         }
-      } catch (perplexityError) {
-        logStep("Perplexity search failed", { error: perplexityError.message });
+      } catch (fdaError) {
+        logStep("FDA API call failed", { error: fdaError.message });
       }
     }
 
-    // Fallback to targeted searches if Perplexity fails or returns no results
+    // Fallback to targeted searches only if no real results found
     if (results.length === 0) {
-      logStep("Using fallback targeted searches");
+      logStep("Using static fallback sources");
       
       const searchTerms = query.toLowerCase();
       
@@ -287,24 +320,6 @@ async function performWebSearch(query: string, agencies?: string[]): Promise<Web
           url: "https://www.fsis.usda.gov/",
           snippet: "USDA regulations for meat, poultry, and egg product safety and inspection.",
           source: "USDA"
-        });
-      }
-      
-      if (!agencies || agencies.includes('EPA') || searchTerms.includes('epa') || searchTerms.includes('pesticide') || searchTerms.includes('environment')) {
-        results.push({
-          title: "EPA Pesticide Programs",
-          url: "https://www.epa.gov/pesticides",
-          snippet: "EPA regulations on pesticide use in food production and environmental safety.",
-          source: "EPA"
-        });
-      }
-      
-      if (!agencies || agencies.includes('CDC') || searchTerms.includes('cdc') || searchTerms.includes('outbreak')) {
-        results.push({
-          title: "CDC Food Safety",
-          url: "https://www.cdc.gov/foodsafety/",
-          snippet: "CDC guidance on foodborne illness prevention and outbreak investigations.",
-          source: "CDC"
         });
       }
     }
