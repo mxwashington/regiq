@@ -17,6 +17,7 @@ import { DataRefreshButton } from "@/components/DataRefreshButton";
 import { TestDataRunner } from "@/components/TestDataRunner";
 import { AlertSourceFinder } from "@/components/AlertSourceFinder";
 import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
+import { KeywordExtractionDemo } from "@/components/KeywordExtractionDemo";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 
 const Landing = () => {
@@ -256,8 +257,9 @@ const Landing = () => {
 
         {/* Search Demo */}
         {featuredAlert && (
-          <div className="mb-8">
+          <div className="mb-8 space-y-4">
             <AlertSourceSearchDemo alert={featuredAlert} />
+            <KeywordExtractionDemo />
           </div>
         )}
 

@@ -1,5 +1,5 @@
 /**
- * Alert source search utilities
+ * Alert source search utilities with smart keyword extraction
  */
 
 export interface AgencySearchConfig {
@@ -81,24 +81,69 @@ export const getAgencySearchConfig = (agency: string): AgencySearchConfig => {
 };
 
 /**
- * Generate search queries for an alert
+ * Extract meaningful keywords from alert titles for better search results
+ */
+export const extractKeywords = (title: string): string => {
+  // Common regulatory stop words that add noise to searches
+  const stopWords = [
+    'alert', 'recall', 'warning', 'notice', 'announcement', 'advisory', 'safety', 
+    'enforcement', 'action', 'update', 'notification', 'report', 'voluntary', 
+    'fda', 'usda', 'epa', 'cdc', 'osha', 'ftc', 'mhra', 'ema', 'efsa', 'health',
+    'due', 'potential', 'possible', 'may', 'could', 'might', 'because', 'linked',
+    'contamination', 'risk', 'hazard', 'companies', 'stores', 'products', 'items',
+    'select', 'certain', 'various', 'multiple', 'following', 'above', 'below',
+    'pursuant', 'accordance', 'hereby', 'therefore', 'whereas', 'effective',
+    'immediately', 'voluntarily', 'announces', 'issues', 'releases'
+  ];
+  
+  // Extract meaningful keywords
+  const keywords = title
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ') // Remove punctuation
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim()
+    .split(' ')
+    .filter(word => word.length > 2) // Remove short words
+    .filter(word => !stopWords.includes(word)) // Remove stop words
+    .filter(word => !/^\d+$/.test(word)) // Remove pure numbers
+    .slice(0, 5); // Take first 5 relevant keywords
+  
+  // If we have too few keywords, fall back to important terms from the title
+  if (keywords.length < 2) {
+    const importantTerms = title
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(' ')
+      .filter(word => word.length > 3)
+      .filter(word => !['alert', 'recall', 'warning', 'notice', 'voluntary'].includes(word))
+      .slice(0, 3);
+    
+    return importantTerms.join(' ') || title.substring(0, 50);
+  }
+  
+  return keywords.join(' ');
+};
+
+/**
+ * Generate search queries for an alert using smart keyword extraction
  */
 export const generateSearchQueries = (title: string, agency: string) => {
   const config = getAgencySearchConfig(agency);
+  const keywords = extractKeywords(title);
   const cleanTitle = title.replace(/[^\w\s]/g, '').trim();
   
   return {
-    // Primary: Exact title search on agency domain
-    primary: `"${cleanTitle}" site:${config.domain}`,
+    // Primary: Smart keywords search on agency domain
+    primary: `${keywords} site:${config.domain}`,
     
-    // Secondary: Title + agency terms on agency domain
-    secondary: `${cleanTitle} ${config.additionalTerms?.[0] || 'alert'} site:${config.domain}`,
+    // Secondary: Keywords + agency terms on agency domain
+    secondary: `${keywords} ${config.additionalTerms?.[0] || 'alert'} site:${config.domain}`,
     
-    // Fallback: Title + agency name broadly
-    fallback: `"${cleanTitle}" ${agency} ${config.additionalTerms?.[0] || 'regulatory'}`,
+    // Fallback: Keywords + agency name broadly
+    fallback: `${keywords} ${agency} ${config.additionalTerms?.[0] || 'regulatory'}`,
     
-    // Broad: General search
-    broad: `${cleanTitle} ${agency} regulatory alert`
+    // Broad: Full title as backup
+    broad: `"${cleanTitle}" ${agency} site:${config.domain}`
   };
 };
 

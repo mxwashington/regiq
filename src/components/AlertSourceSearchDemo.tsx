@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
-import { searchForAlert, generateSearchQueries } from '@/lib/alert-search';
+import { searchForAlert, generateSearchQueries, extractKeywords } from '@/lib/alert-search';
 
 interface AlertSourceSearchDemoProps {
   alert: {
@@ -32,6 +32,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
   const [showQueries, setShowQueries] = useState(false);
   
   const queries = generateSearchQueries(alert.title, alert.source);
+  const keywords = extractKeywords(alert.title);
   const hasValidUrl = alert.external_url && alert.external_url.trim() !== '';
 
   const searchOptions = [
@@ -74,12 +75,11 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="text-sm">
-          <strong>Alert:</strong> {alert.title.substring(0, 80)}...
-          <br />
-          <strong>Agency:</strong> {alert.source}
-          <br />
-          <strong>Has URL:</strong> {hasValidUrl ? '✅ Yes' : '❌ No'}
+        <div className="text-sm space-y-1">
+          <div><strong>Alert:</strong> {alert.title.substring(0, 80)}...</div>
+          <div><strong>Agency:</strong> {alert.source}</div>
+          <div><strong>Has URL:</strong> {hasValidUrl ? '✅ Yes' : '❌ No'}</div>
+          <div><strong>Extracted Keywords:</strong> <Badge variant="secondary" className="text-xs">{keywords}</Badge></div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -160,7 +160,16 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
         </div>
 
         {showQueries && (
-          <div className="space-y-2 pt-2 border-t">
+          <div className="space-y-3 pt-2 border-t">
+            <div className="text-sm font-medium">Search Analysis:</div>
+            <div className="text-xs bg-blue-50 p-3 rounded border">
+              <div className="font-medium text-blue-800 mb-2">Keyword Extraction</div>
+              <div className="space-y-1">
+                <div><span className="font-medium">Original Title:</span> {alert.title}</div>
+                <div><span className="font-medium">Extracted Keywords:</span> <Badge variant="outline" className="text-xs">{keywords}</Badge></div>
+                <div className="text-muted-foreground">✨ Noise words removed for better search targeting</div>
+              </div>
+            </div>
             <div className="text-sm font-medium">Generated Search Queries:</div>
             {searchOptions.map((option) => (
               <div key={option.type} className="text-xs bg-muted p-2 rounded">
