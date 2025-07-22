@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -62,10 +64,10 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
       console.log('ThirdShift.ai: Starting search with query:', inputValue);
       
       // Call our enhanced search API
-      const { data, error } = await supabase.functions.invoke('perplexity-search', {
+      const { data, error } = await supabase.functions.invoke('gpt-search', {
         body: {
           query: inputValue,
-          search_type: 'regulatory',
+          searchType: 'smart_search',
           agencies: ['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'],
           industry: 'regulatory_compliance'
         }
@@ -81,9 +83,12 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: data.response || 'I apologize, but I couldn\'t generate a response at this time. Please try rephrasing your question.',
+        content: data.content || 'I apologize, but I couldn\'t generate a response at this time. Please try rephrasing your question.',
         timestamp: new Date(),
-        sources: data.sources || []
+        sources: data.citations?.map((citation: string, index: number) => ({
+          title: `Source ${index + 1}`,
+          url: citation.startsWith('http') ? citation : `https://${citation}`
+        })) || []
       };
 
       setMessages(prev => [...prev, botMessage]);
@@ -187,7 +192,15 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
                     {message.type === 'bot' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     {message.type === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     <div className="flex-1">
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      {message.type === 'bot' ? (
+                        <div className="prose prose-sm max-w-none dark:prose-invert">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      )}
                       
                       {/* Sources */}
                       {message.sources && message.sources.length > 0 && (
