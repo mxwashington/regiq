@@ -18,6 +18,7 @@ import { AdminAlertManager } from "./AdminAlertManager";
 import PerplexitySearch from "./PerplexitySearch";
 import { PWASettings } from "./PWASettings";
 import { ThirdShiftChatbot } from "./ThirdShiftChatbot";
+import { AlertSourceFinder } from "./AlertSourceFinder";
 
 export const EnterpriseAdminDashboard = () => {
   const navigate = useNavigate();
@@ -74,7 +75,10 @@ export const EnterpriseAdminDashboard = () => {
           </TabsContent>
           
           <TabsContent value="manage" className="mt-4">
-            <AdminAlertManager />
+            <div className="grid gap-6 md:grid-cols-2">
+              <AdminAlertManager />
+              <AlertSourceFinder />
+            </div>
           </TabsContent>
           
           <TabsContent value="analytics" className="mt-4">

@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Shield, Zap, Bell, Brain } from "lucide-react";
+import { ArrowRight, Shield, Zap, Bell, Brain, Clock, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -64,165 +64,81 @@ const Landing = () => {
 
       {/* Hero Section */}
       <section className="py-12 px-4">
-        <div className="container mx-auto text-center max-w-6xl">
-          <Badge variant="secondary" className="mb-4">
-            <Zap className="h-3 w-3 mr-1" />
-            AI-Powered Regulatory Intelligence
-          </Badge>
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
-            RegIQ - Regulatory alerts <span className="text-primary">that actually matter</span>
+        <div className="container mx-auto text-center max-w-4xl">
+          {/* Live Status Indicator */}
+          <div className="mb-6">
+            <Badge variant="secondary" className="mb-4">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+              Live • Updated 19 minutes ago
+            </Badge>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-primary">
+            Regulatory News,<br />Minus the Noise
           </h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Get FDA, USDA, and EPA alerts summarized and delivered when they actually impact you. Free for compliance teams.
+            AI-powered regulatory alerts for food, ag, and pharma compliance teams. See what's happening right now.
           </p>
           
-          {/* Agency Badges */}
-          <div className="flex flex-wrap justify-center gap-4 opacity-60 mb-8">
-            <Badge variant="outline" className="text-agency-fda border-agency-fda">FDA</Badge>
-            <Badge variant="outline" className="text-agency-usda border-agency-usda">USDA</Badge>
-            <Badge variant="outline" className="text-agency-epa border-agency-epa">EPA</Badge>
-            <Badge variant="outline" className="text-agency-ema border-agency-ema">EMA</Badge>
-            <Badge variant="outline">FSIS</Badge>
-            <Badge variant="outline">EFSA</Badge>
+          <div className="space-y-4 mb-12">
+            <Button size="lg" className="w-full md:w-auto px-8 py-3" asChild>
+              <Link to={user ? getDashboardUrl() : "/auth"}>
+                Get Personalized Alerts
+              </Link>
+            </Button>
+            
+            <Button variant="outline" size="lg" className="w-full md:w-auto px-8 py-3">
+              How it Works
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Interactive Demo Dashboard */}
-      <section className="py-8 px-4">
-        <div className="container mx-auto max-w-7xl">
+      {/* How it Works Section */}
+      <section className="py-12 px-4 bg-muted/20">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">How it Works</h2>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card className="text-center p-6">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Real-time Monitoring</h3>
+              <p className="text-muted-foreground">
+                Aggregate FDA, USDA, EPA feeds automatically
+              </p>
+            </Card>
+            
+            <Card className="text-center p-6">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">AI Summaries</h3>
+              <p className="text-muted-foreground">
+                Complex documents simplified into actionable insights
+              </p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Recent Alerts Preview */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4">Try RegIQ Now - Live Demo</h2>
-            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-              This is a fully functional demo with real regulatory data. Click, search, and explore to experience RegIQ's powerful capabilities firsthand.
-            </p>
+            <h2 className="text-2xl font-bold mb-4">Latest Regulatory Updates</h2>
+            <p className="text-muted-foreground">See what's happening in real-time</p>
           </div>
           <Suspense fallback={
-            <div className="flex items-center justify-center h-96 border rounded-lg bg-muted/20">
-              <div className="text-center">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading interactive demo...</p>
-              </div>
+            <div className="flex items-center justify-center h-48 border rounded-lg bg-muted/20">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
             </div>
           }>
             <DemoInteractiveDashboard />
           </Suspense>
-        </div>
-      </section>
-
-      {/* Simple Value Proposition Section */}
-      <section id="platform" className="py-20 px-4 bg-muted/20">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Free Regulatory Alerts</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              A simple, useful tool to help compliance teams stay informed
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <Card className="text-center border-2">
-              <CardHeader>
-                <Bell className="h-12 w-12 text-primary mx-auto mb-4" />
-                <CardTitle className="text-xl">FDA/USDA/EPA Alerts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Get notified when new regulatory documents are published by key agencies
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2">
-              <CardHeader>
-                <Brain className="h-12 w-12 text-primary mx-auto mb-4" />
-                <CardTitle className="text-xl">AI Summaries</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Complex documents summarized into clear, readable highlights
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2">
-              <CardHeader>
-                <Zap className="h-12 w-12 text-primary mx-auto mb-4" />
-                <CardTitle className="text-xl">Email Notifications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Choose what matters to you and get updates delivered to your inbox
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-
-      {/* Feature Showcase */}
-      <FeatureShowcase />
-
-      {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-muted/30">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Everything you need to stay compliant</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Replace manual monitoring of dozens of regulatory sources with one intelligent dashboard
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="text-center">
-              <CardHeader>
-                <Zap className="h-8 w-8 text-primary mx-auto mb-2" />
-                <CardTitle className="text-lg">Real-Time Aggregation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Continuous monitoring of FDA, USDA, EPA, and other key agencies with instant updates
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardHeader>
-                <Brain className="h-8 w-8 text-primary mx-auto mb-2" />
-                <CardTitle className="text-lg">AI Summarization</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Complex regulatory documents transformed into clear, actionable summaries with risk scoring
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardHeader>
-                <Bell className="h-8 w-8 text-primary mx-auto mb-2" />
-                <CardTitle className="text-lg">Smart Alerts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Personalized notifications based on your industry, keywords, and compliance priorities
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardHeader>
-                <Shield className="h-8 w-8 text-primary mx-auto mb-2" />
-                <CardTitle className="text-lg">Advanced Filtering</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Powerful search and filter tools to focus on regulations that matter to your business
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </section>
 
