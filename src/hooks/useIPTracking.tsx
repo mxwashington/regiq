@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ipDetectionService } from '@/services/ipDetection';
+import { shouldSkipIPTracking } from '@/lib/ai-access-helper';
 
 interface IPInfo {
   ip: string;
@@ -18,6 +19,12 @@ export const useIPTracking = () => {
   // Update user activity with proper error handling
   const updateUserActivity = useCallback(async (ipAddress?: string) => {
     if (!user || !session) return;
+    
+    // Skip IP tracking for AI/bots
+    if (shouldSkipIPTracking()) {
+      setLoading(false);
+      return;
+    }
 
     try {
       let currentIP = ipAddress;

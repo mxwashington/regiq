@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
+import { AIAccessProvider } from "@/components/AIAccessProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -87,44 +88,46 @@ const PWAApp = () => {
       <Sonner />
       <UpdateNotification />
       <PWAInstallPrompt />
-      <BrowserRouter>
-        <Suspense fallback={<PageLoadingFallback />}>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<UnifiedAuth />} />
-            <Route path="/login" element={<UnifiedAuth />} />
-            <Route path="/signup" element={<UnifiedAuth />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            
-            {/* Main user pages */}
-            <Route path="/dashboard" element={<UserDashboard />} />
-            <Route path="/search" element={<SearchPage />} />
-            
-            {/* SEO-optimized alert pages */}
-            <Route path="/alerts" element={<AllAlertsPage />} />
-            <Route path="/alerts/:agency" element={<AgencyPage />} />
-            
-            {/* Industry-specific pages */}
-            <Route path="/food-safety" element={<FoodSafetyPage />} />
-            <Route path="/pharma-compliance" element={<FoodSafetyPage />} />
-            <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
-            
-            {/* Admin routes */}
-            <Route path="/admin/*" element={
-              <AuthGuard>
-                <AdminDashboard />
-              </AuthGuard>
-            } />
-            
-            {/* Other pages */}
-            <Route path="/legal" element={<LegalFramework />} />
-            <Route path="/debug" element={<Debug />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <MobileNavigation />
-        </Suspense>
-      </BrowserRouter>
+      <AIAccessProvider>
+        <BrowserRouter>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<UnifiedAuth />} />
+              <Route path="/login" element={<UnifiedAuth />} />
+              <Route path="/signup" element={<UnifiedAuth />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              
+              {/* Main user pages */}
+              <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/search" element={<SearchPage />} />
+              
+              {/* SEO-optimized alert pages */}
+              <Route path="/alerts" element={<AllAlertsPage />} />
+              <Route path="/alerts/:agency" element={<AgencyPage />} />
+              
+              {/* Industry-specific pages */}
+              <Route path="/food-safety" element={<FoodSafetyPage />} />
+              <Route path="/pharma-compliance" element={<FoodSafetyPage />} />
+              <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
+              
+              {/* Admin routes */}
+              <Route path="/admin/*" element={
+                <AuthGuard>
+                  <AdminDashboard />
+                </AuthGuard>
+              } />
+              
+              {/* Other pages */}
+              <Route path="/legal" element={<LegalFramework />} />
+              <Route path="/debug" element={<Debug />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <MobileNavigation />
+          </Suspense>
+        </BrowserRouter>
+      </AIAccessProvider>
     </>
   );
 };
