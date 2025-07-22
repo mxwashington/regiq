@@ -3,7 +3,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Calendar, ExternalLink, Bookmark, Share2 } from 'lucide-react';
+import { Search, Filter, Calendar, ExternalLink, Bookmark, Share2, Globe } from 'lucide-react';
+import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 
 interface SimpleAlert {
   id: string;
@@ -194,27 +195,43 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
 
               <CardContent className="pt-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Button variant="outline" size="sm" asChild={!!alert.external_url}>
-                    {alert.external_url ? (
-                      <a 
-                        href={alert.external_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                  {isValidSourceUrl(alert.external_url) ? (
+                    <>
+                      <Button variant="outline" size="sm" asChild>
+                        <a 
+                          href={alert.external_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2"
+                          onClick={(e) => {
+                            console.log('Clicking external URL:', alert.external_url);
+                          }}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Read Full Alert
+                        </a>
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => searchForAlert(alert.title, alert.source)}
                         className="flex items-center gap-2"
-                        onClick={(e) => {
-                          console.log('Clicking external URL:', alert.external_url);
-                        }}
                       >
-                        <ExternalLink className="h-3 w-3" />
-                        Read Full Alert
-                      </a>
-                    ) : (
-                      <span className="flex items-center gap-2 text-muted-foreground cursor-not-allowed">
-                        <ExternalLink className="h-3 w-3" />
-                        No Source Available
-                      </span>
-                    )}
-                  </Button>
+                        <Globe className="h-3 w-3" />
+                        Search Web
+                      </Button>
+                    </>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => searchForAlert(alert.title, alert.source)}
+                      className="flex items-center gap-2"
+                    >
+                      <Search className="h-3 w-3" />
+                      Find Source
+                    </Button>
+                  )}
                   
                   <Button 
                     variant="ghost" 

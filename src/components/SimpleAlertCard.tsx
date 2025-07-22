@@ -2,8 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Clock, AlertTriangle, X, Share2 } from 'lucide-react';
+import { ExternalLink, Clock, AlertTriangle, X, Share2, Search, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 
 interface SimpleAlert {
   id: string;
@@ -137,27 +138,48 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
                 <span className="hidden sm:inline">Dismiss</span>
               </Button>
             )}
-            {alert.external_url && (
+            {isValidSourceUrl(alert.external_url) ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+                  onClick={() => {
+                    // Decode HTML entities in the URL
+                    const decodedUrl = alert.external_url
+                      ?.replace(/&amp;/g, '&')
+                      ?.replace(/&lt;/g, '<')
+                      ?.replace(/&gt;/g, '>')
+                      ?.replace(/&quot;/g, '"')
+                      ?.replace(/&#39;/g, "'");
+                    
+                    if (decodedUrl) {
+                      window.open(decodedUrl, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">View Source</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
+                  onClick={() => searchForAlert(alert.title, alert.source)}
+                >
+                  <Globe className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">Search</span>
+                </Button>
+              </>
+            ) : (
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 px-3 text-xs sm:h-7 sm:px-2 min-w-[44px]"
-                onClick={() => {
-                  // Decode HTML entities in the URL
-                  const decodedUrl = alert.external_url
-                    ?.replace(/&amp;/g, '&')
-                    ?.replace(/&lt;/g, '<')
-                    ?.replace(/&gt;/g, '>')
-                    ?.replace(/&quot;/g, '"')
-                    ?.replace(/&#39;/g, "'");
-                  
-                  if (decodedUrl) {
-                    window.open(decodedUrl, '_blank', 'noopener,noreferrer');
-                  }
-                }}
+                onClick={() => searchForAlert(alert.title, alert.source)}
               >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                <span className="hidden sm:inline">View Source</span>
+                <Search className="h-3 w-3 mr-1" />
+                <span className="hidden sm:inline">Find Source</span>
               </Button>
             )}
           </div>

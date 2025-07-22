@@ -16,8 +16,11 @@ import {
   TrendingUp,
   AlertTriangle,
   Info,
-  Target
+  Target,
+  Search,
+  Globe
 } from "lucide-react";
+import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 
 interface RegulatoryItem {
   id: string;
@@ -352,12 +355,31 @@ export function RegulatoryFeed({ searchQuery, selectedFilters }: RegulatoryFeedP
                   <CardContent className="pt-0">
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 pt-2">
-                        {item.external_url && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={item.external_url} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              View Source
-                            </a>
+                        {isValidSourceUrl(item.external_url) ? (
+                          <>
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={item.external_url} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                View Source
+                              </a>
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => searchForAlert(item.title, item.source)}
+                            >
+                              <Globe className="h-3 w-3 mr-1" />
+                              Search Web
+                            </Button>
+                          </>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => searchForAlert(item.title, item.source)}
+                          >
+                            <Search className="h-3 w-3 mr-1" />
+                            Find Source
                           </Button>
                         )}
                       </div>

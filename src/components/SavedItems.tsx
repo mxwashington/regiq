@@ -2,8 +2,9 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, ExternalLink, BookmarkX, Share2, Bookmark } from 'lucide-react';
+import { Calendar, ExternalLink, BookmarkX, Share2, Bookmark, Search, Globe } from 'lucide-react';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
+import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 
 interface SavedItemsProps {
   savedAlerts: any[];
@@ -113,17 +114,38 @@ export function SavedItems({ savedAlerts, onUnsaveAlert }: SavedItemsProps) {
 
             <CardContent className="pt-0">
               <div className="flex items-center gap-2 flex-wrap">
-                {alert.external_url && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a 
-                      href={alert.external_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                {isValidSourceUrl(alert.external_url) ? (
+                  <>
+                    <Button variant="outline" size="sm" asChild>
+                      <a 
+                        href={alert.external_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        View Source
+                      </a>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => searchForAlert(alert.title, alert.source)}
                       className="flex items-center gap-2"
                     >
-                      <ExternalLink className="h-3 w-3" />
-                      View Source
-                    </a>
+                      <Globe className="h-3 w-3" />
+                      Search Web
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => searchForAlert(alert.title, alert.source)}
+                    className="flex items-center gap-2"
+                  >
+                    <Search className="h-3 w-3" />
+                    Find Source
                   </Button>
                 )}
                 
