@@ -350,9 +350,11 @@ const UserDashboard = () => {
               <Card>
                 <CardContent className="text-center py-8">
                   <p className="text-muted-foreground">
+                    Debug: Total alerts = {alerts.length}, Filtered alerts = {displayAlerts.length}
+                    <br />
                     {searchQuery || selectedAgency 
-                      ? 'No alerts match your current filters.' 
-                      : 'No alerts available at the moment.'
+                      ? `Active filters - Search: "${searchQuery}", Agency: "${selectedAgency}"` 
+                      : 'No filters active, but no alerts to display.'
                     }
                   </p>
                   {(searchQuery || selectedAgency) && (
