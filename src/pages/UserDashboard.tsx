@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle, Bot, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
@@ -13,6 +14,7 @@ import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ConversationalChatbot } from '@/components/ConversationalChatbot';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -24,6 +26,8 @@ const UserDashboard = () => {
   const [selectedAgency, setSelectedAgency] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('alerts');
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   // User preferences state
   const [preferences, setPreferences] = useState({
@@ -161,312 +165,387 @@ const UserDashboard = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Your Regulatory Dashboard</h1>
           <p className="text-muted-foreground">
-            Stay up to date with the latest regulatory alerts and manage your saved items.
+            Stay up to date with the latest regulatory alerts, use AI search, and manage your saved items.
           </p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Saved Alerts</CardTitle>
-              <Bell className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{savedAlerts.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Total alerts saved
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Alerts</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{alerts.length}</div>
-              <p className="text-xs text-muted-foreground">
-                {searchQuery || selectedAgency ? `${displayAlerts.length} filtered` : 'All sources'}
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Settings</CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <Dialog open={preferencesOpen} onOpenChange={setPreferencesOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Manage Preferences
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>User Preferences</DialogTitle>
-                    <DialogDescription>
-                      Customize your RegIQ experience and notification settings.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="email-notifications"
-                        checked={preferences.emailNotifications}
-                        onCheckedChange={(checked) => 
-                          setPreferences(prev => ({ ...prev, emailNotifications: checked as boolean }))
-                        }
-                      />
-                      <label htmlFor="email-notifications" className="text-sm">
-                        Enable email notifications
-                      </label>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Urgency Threshold</label>
-                      <Select 
-                        value={preferences.urgencyThreshold} 
-                        onValueChange={(value) => 
-                          setPreferences(prev => ({ ...prev, urgencyThreshold: value }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Low">Low</SelectItem>
-                          <SelectItem value="Medium">Medium</SelectItem>
-                          <SelectItem value="High">High</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Preferred Sources</label>
-                      <div className="space-y-2">
-                        {['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'].map(source => (
-                          <div key={source} className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={source}
-                              checked={preferences.preferredSources.includes(source)}
-                              onCheckedChange={(checked) => {
-                                setPreferences(prev => ({
-                                  ...prev,
-                                  preferredSources: checked 
-                                    ? [...prev.preferredSources, source]
-                                    : prev.preferredSources.filter(s => s !== source)
-                                }));
-                              }}
-                            />
-                            <label htmlFor={source} className="text-sm">{source}</label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setPreferencesOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handlePreferencesUpdate}>
-                      Save Changes
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Main Tabbed Interface */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="alerts" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Live Alerts
+            </TabsTrigger>
+            <TabsTrigger value="ai-search" className="flex items-center gap-2">
+              <Bot className="h-4 w-4" />
+              AI Search
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Search and Filter Section (same as landing page) */}
-        <div className="mb-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4">
-            <div className="flex-1 w-full md:w-auto">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search alerts by title, content, or agency..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+          {/* Live Alerts Tab */}
+          <TabsContent value="alerts" className="space-y-6">
+            {/* Quick Stats */}
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Saved Alerts</CardTitle>
+                  <Bell className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{savedAlerts.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Total alerts saved
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Alerts</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{alerts.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {searchQuery || selectedAgency ? `${displayAlerts.length} filtered` : 'All sources'}
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Data Freshness</CardTitle>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">Live</div>
+                  <p className="text-xs text-muted-foreground">
+                    Real-time monitoring
+                  </p>
+                </CardContent>
+              </Card>
             </div>
-            
-            <div className="flex items-center gap-2 flex-wrap">
-              <label className="text-sm font-medium">Filter:</label>
-              <Button
-                variant={selectedAgency === '' ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedAgency('')}
-                className="text-xs"
-              >
-                All ({alerts.length})
-              </Button>
-              {['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'].map(agency => {
-                const count = agencyCounts[agency] || 0;
-                if (count === 0) return null;
-                return (
+
+            {/* Search and Filter Section */}
+            <div className="mb-6">
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4">
+                <div className="flex-1 w-full md:w-auto">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search alerts by title, content, or agency..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 flex-wrap">
+                  <label className="text-sm font-medium">Filter:</label>
                   <Button
-                    key={agency}
-                    variant={selectedAgency === agency ? "default" : "outline"}
+                    variant={selectedAgency === '' ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setSelectedAgency(agency)}
+                    onClick={() => setSelectedAgency('')}
                     className="text-xs"
                   >
-                    {agency} ({count})
+                    All ({alerts.length})
                   </Button>
-                );
-              })}
-              
-              {(searchQuery || selectedAgency) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="text-xs"
-                >
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Main Feed Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">
-              {searchQuery || selectedAgency ? 'Filtered Alerts' : 'Latest Regulatory Updates'}
-            </h2>
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              Live Feed • {displayAlerts.length} alerts
-            </Badge>
-          </div>
-          
-          {/* Alert Feed (same style as landing page) */}
-          <div className="grid gap-4">
-            {loading ? (
-              // Loading skeletons
-              Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader>
-                    <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
-                    <div className="h-5 bg-muted rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-full"></div>
-                  </CardHeader>
-                </Card>
-              ))
-            ) : displayAlerts.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    Debug: Total alerts = {alerts.length}, Filtered alerts = {displayAlerts.length}
-                    <br />
-                    {searchQuery || selectedAgency 
-                      ? `Active filters - Search: "${searchQuery}", Agency: "${selectedAgency}"` 
-                      : 'No filters active, but no alerts to display.'
-                    }
-                  </p>
+                  {['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'].map(agency => {
+                    const count = agencyCounts[agency] || 0;
+                    if (count === 0) return null;
+                    return (
+                      <Button
+                        key={agency}
+                        variant={selectedAgency === agency ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedAgency(agency)}
+                        className="text-xs"
+                      >
+                        {agency} ({count})
+                      </Button>
+                    );
+                  })}
+                  
                   {(searchQuery || selectedAgency) && (
-                    <Button variant="outline" onClick={clearFilters} className="mt-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="text-xs"
+                    >
                       Clear Filters
                     </Button>
                   )}
-                </CardContent>
-              </Card>
-            ) : (
-              displayAlerts.map((alert) => (
-                <Card key={alert.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <Badge variant="outline" className={getAgencyColor(alert.source)}>
-                            {alert.source}
-                          </Badge>
-                          <Badge variant="outline" className={getUrgencyColor(alert.urgency)}>
-                            {alert.urgency === 'High' && <AlertCircle className="w-3 h-3 mr-1" />}
-                            {alert.urgency}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(alert.published_date)}
-                          </span>
-                          {savedAlerts.some(saved => saved.id === alert.id) && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Bell className="w-3 h-3 mr-1" />
-                              Saved
-                            </Badge>
-                          )}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Feed Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold">
+                  {searchQuery || selectedAgency ? 'Filtered Alerts' : 'Latest Regulatory Updates'}
+                </h2>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  Live Feed • {displayAlerts.length} alerts
+                </Badge>
+              </div>
+              
+              {/* Alert Feed */}
+              <div className="grid gap-4">
+                {loading ? (
+                  // Loading skeletons
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardHeader>
+                        <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
+                        <div className="h-5 bg-muted rounded w-3/4 mb-2"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
+                      </CardHeader>
+                    </Card>
+                  ))
+                ) : displayAlerts.length === 0 ? (
+                  <Card>
+                    <CardContent className="text-center py-8">
+                      <p className="text-muted-foreground">
+                        No alerts found matching your current filters.
+                        {(searchQuery || selectedAgency) && (
+                          <Button variant="outline" onClick={clearFilters} className="mt-4 block mx-auto">
+                            Clear Filters
+                          </Button>
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  displayAlerts.map((alert) => (
+                    <Card key={alert.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <Badge variant="outline" className={getAgencyColor(alert.source)}>
+                                {alert.source}
+                              </Badge>
+                              <Badge variant="outline" className={getUrgencyColor(alert.urgency)}>
+                                {alert.urgency === 'High' && <AlertCircle className="w-3 h-3 mr-1" />}
+                                {alert.urgency}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDate(alert.published_date)}
+                              </span>
+                              {savedAlerts.some(saved => saved.id === alert.id) && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Bell className="w-3 h-3 mr-1" />
+                                  Saved
+                                </Badge>
+                              )}
+                            </div>
+                            <CardTitle className="text-lg leading-tight mb-2">
+                              {alert.title}
+                            </CardTitle>
+                            <CardDescription className="line-clamp-2">
+                              {alert.summary}
+                            </CardDescription>
+                          </div>
                         </div>
-                        <CardTitle className="text-lg leading-tight mb-2">
-                          {alert.title}
-                        </CardTitle>
-                        <CardDescription className="line-clamp-2">
-                          {alert.summary}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {isValidSourceUrl(alert.external_url) ? (
-                        <>
-                          <Button variant="outline" size="sm" asChild>
-                            <a 
-                              href={alert.external_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {isValidSourceUrl(alert.external_url) ? (
+                            <>
+                              <Button variant="outline" size="sm" asChild>
+                                <a 
+                                  href={alert.external_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  View Full Source
+                                </a>
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => searchForAlert(alert.title, alert.source)}
+                                className="flex items-center gap-2"
+                              >
+                                <Globe className="w-3 h-3" />
+                                Search Web
+                              </Button>
+                            </>
+                          ) : (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => searchForAlert(alert.title, alert.source)}
                               className="flex items-center gap-2"
                             >
-                              <ExternalLink className="w-3 h-3" />
-                              View Full Source
-                            </a>
-                          </Button>
-                          <Button 
-                            variant="ghost" 
+                              <Search className="w-3 h-3" />
+                              Find Source
+                            </Button>
+                          )}
+                          
+                          <Button
+                            variant={savedAlerts.some(saved => saved.id === alert.id) ? "default" : "ghost"}
                             size="sm"
-                            onClick={() => searchForAlert(alert.title, alert.source)}
+                            onClick={() => toggleSaveAlert(alert.id)}
                             className="flex items-center gap-2"
                           >
-                            <Globe className="w-3 h-3" />
-                            Search Web
+                            <Bell className="w-3 h-3" />
+                            {savedAlerts.some(saved => saved.id === alert.id) ? 'Saved' : 'Save Alert'}
                           </Button>
-                        </>
-                      ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => searchForAlert(alert.title, alert.source)}
-                          className="flex items-center gap-2"
-                        >
-                          <Search className="w-3 h-3" />
-                          Find Source
-                        </Button>
-                      )}
-                      
-                      <Button
-                        variant={savedAlerts.some(saved => saved.id === alert.id) ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => toggleSaveAlert(alert.id)}
-                        className="flex items-center gap-2"
-                      >
-                        <Bell className="w-3 h-3" />
-                        {savedAlerts.some(saved => saved.id === alert.id) ? 'Saved' : 'Save Alert'}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* AI Search Tab */}
+          <TabsContent value="ai-search" className="space-y-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold mb-4">AI-Powered Regulatory Search</h2>
+                <p className="text-muted-foreground text-lg">
+                  Ask questions about FDA, USDA, EPA regulations in plain English. Our AI searches your live dashboard data first, then the web.
+                </p>
+              </div>
+              
+              <Card className="p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <Bot className="h-6 w-6 text-primary" />
+                  <h3 className="text-xl font-semibold">RegIQ AI Assistant</h3>
+                  <Badge variant="secondary">GPT-4.1 + Live Data + Web Search</Badge>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="space-y-2">
+                    <h4 className="font-medium">🎯 What's New:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Prioritizes your live dashboard alerts</li>
+                      <li>• Shows exact timestamps (hours ago)</li>
+                      <li>• Real-time FDA, USDA, EPA data first</li>
+                      <li>• Plain text responses (no markdown)</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-medium">💡 Try asking:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• "Most recent FDA food recalls?"</li>
+                      <li>• "Latest USDA meat safety alerts"</li>
+                      <li>• "EPA pesticide violations this week"</li>
+                      <li>• "Current listeria outbreak status"</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => setIsChatOpen(true)}
+                  className="w-full py-6 text-lg"
+                  size="lg"
+                >
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  Start AI Search Conversation
+                </Button>
+                
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  AI responses use your live dashboard data first • Real-time regulatory monitoring • Plain English answers
+                </p>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Preferences</CardTitle>
+                <CardDescription>
+                  Customize your RegIQ experience and notification settings.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="email-notifications"
+                    checked={preferences.emailNotifications}
+                    onCheckedChange={(checked) => 
+                      setPreferences(prev => ({ ...prev, emailNotifications: checked as boolean }))
+                    }
+                  />
+                  <label htmlFor="email-notifications" className="text-sm">
+                    Enable email notifications
+                  </label>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Urgency Threshold</label>
+                  <Select 
+                    value={preferences.urgencyThreshold} 
+                    onValueChange={(value) => 
+                      setPreferences(prev => ({ ...prev, urgencyThreshold: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Preferred Sources</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'].map(source => (
+                      <div key={source} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={source}
+                          checked={preferences.preferredSources.includes(source)}
+                          onCheckedChange={(checked) => {
+                            setPreferences(prev => ({
+                              ...prev,
+                              preferredSources: checked 
+                                ? [...prev.preferredSources, source]
+                                : prev.preferredSources.filter(s => s !== source)
+                            }));
+                          }}
+                        />
+                        <label htmlFor={source} className="text-sm">{source}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t">
+                  <Button onClick={handlePreferencesUpdate}>
+                    Save Preferences
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
+
+      {/* AI Chatbot */}
+      <ConversationalChatbot 
+        isOpen={isChatOpen} 
+        onToggle={() => setIsChatOpen(!isChatOpen)} 
+      />
     </div>
   );
 };

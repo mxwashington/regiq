@@ -306,24 +306,46 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* AI Search Section */}
+      {/* AI Search Section - Enhanced */}
       <section id="ai-search" className="py-8 md:py-12 px-4 bg-muted/20">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-6 md:mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">AI-Powered Food Regulation Search</h2>
-            <p className="text-muted-foreground text-base md:text-lg">Ask questions in plain English, get instant answers with CFR citations</p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">🚀 NEW: Enhanced AI Search with Live Data</h2>
+            <p className="text-muted-foreground text-base md:text-lg">Now prioritizes your live dashboard data first, then searches the web</p>
           </div>
           
-          <Card className="p-4 md:p-6">
+          <Card className="p-4 md:p-6 border-2 border-primary/20">
             <div className="flex items-center gap-3 mb-4">
               <Brain className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-              <h3 className="text-base md:text-lg font-semibold">🤖 AI Search powered by GPT-4.1</h3>
+              <h3 className="text-base md:text-lg font-semibold">🤖 AI Search powered by GPT-4.1 + Tavily</h3>
+              <Badge variant="secondary" className="text-xs">LIVE DATA FIRST</Badge>
+            </div>
+            
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <strong className="text-green-800">✅ What's New:</strong>
+                  <ul className="text-green-700 space-y-1 mt-1">
+                    <li>• Prioritizes live dashboard alerts</li>
+                    <li>• Shows exact timestamps (hours ago)</li>
+                    <li>• Real-time FDA/USDA/EPA data first</li>
+                  </ul>
+                </div>
+                <div>
+                  <strong className="text-green-800">🎯 Data Freshness:</strong>
+                  <ul className="text-green-700 space-y-1 mt-1">
+                    <li>• Live dashboard data (last 48 hours)</li>
+                    <li>• Plain text responses (no markdown)</li>
+                    <li>• Source timestamps included</li>
+                  </ul>
+                </div>
+              </div>
             </div>
             
             <div className="relative mb-4">
               <Input
                 type="text"
-                placeholder="Search food regulations & alerts... Try: 'listeria recalls' 'organic labeling' 'HACCP requirements'"
+                placeholder="🔥 Try: 'Most recent FDA food recalls?' or 'Latest USDA meat safety alerts'"
                 className="pl-4 pr-12 py-4 md:py-6 text-base md:text-lg"
                 onClick={() => setIsChatOpen(true)}
                 readOnly
@@ -339,12 +361,12 @@ const Landing = () => {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-4">
               {[
-                "Food Safety & Recalls",
-                "Labeling & Claims", 
-                "Import/Export Rules",
-                "Ingredients & Additives",
-                "Processing Requirements",
-                "Organic Standards"
+                "Most recent recalls",
+                "Latest safety alerts", 
+                "Current outbreaks",
+                "This week's violations",
+                "New regulations",
+                "Emergency notices"
               ].map((category) => (
                 <Button 
                   key={category} 
@@ -359,7 +381,7 @@ const Landing = () => {
             </div>
             
             <p className="text-xs md:text-sm text-muted-foreground text-center">
-              Natural language queries • Cross-agency regulation lookup • Plain English responses
+              Live dashboard data priority • Real-time regulatory monitoring • Plain English responses
             </p>
           </Card>
         </div>

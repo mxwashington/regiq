@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { AdminNavigation } from '@/components/AdminNavigation';
@@ -6,12 +6,14 @@ import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { EnterpriseAdminDashboard } from '@/components/EnterpriseAdminDashboard';
 import { SourceLinkManager } from '@/components/SourceLinkManager';
 import { DataRefreshButton } from '@/components/DataRefreshButton';
+import { ConversationalChatbot } from '@/components/ConversationalChatbot';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Bot } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { loading: authLoading } = useAuthGuard(true);
   const navigate = useNavigate();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   if (authLoading) {
     return (
@@ -33,6 +35,14 @@ const AdminDashboard = () => {
               <div className="flex items-center gap-3">
                 <Button 
                   variant="outline" 
+                  onClick={() => setIsChatOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Bot className="h-4 w-4" />
+                  AI Search
+                </Button>
+                <Button 
+                  variant="outline" 
                   onClick={() => navigate('/dashboard?viewAsUser=true')}
                   className="flex items-center gap-2"
                 >
@@ -52,6 +62,12 @@ const AdminDashboard = () => {
         <Route path="settings" element={<AdminNavigation />} />
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
+      
+      {/* AI Chatbot for Admin */}
+      <ConversationalChatbot 
+        isOpen={isChatOpen} 
+        onToggle={() => setIsChatOpen(!isChatOpen)} 
+      />
     </div>
   );
 };
