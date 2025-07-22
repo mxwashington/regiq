@@ -1,5 +1,5 @@
-import LandingDashboard from "@/components/LandingDashboard";
+import Landing from "@/pages/Landing";
 
 export default function RegIQFeedPage() {
-  return <LandingDashboard />;
+  return <Landing />;
 }
