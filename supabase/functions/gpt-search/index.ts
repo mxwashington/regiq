@@ -108,18 +108,20 @@ serve(async (req) => {
     const enhancedQuery = buildRegulatoryQuery({ query, agencies, industry, timeRange, searchType });
     logStep("Enhanced query built", { enhancedQuery });
 
-    // Get data from multiple sources in parallel
-    logStep("Starting parallel data collection");
-    const [webResults, databaseAlerts, rssData] = await Promise.all([
-      performWebSearch(enhancedQuery, agencies),
-      searchDatabaseAlerts(supabaseClient, query, agencies, timeRange),
-      searchRSSFeeds(supabaseClient, enhancedQuery, agencies)
+    // Get data from multiple sources in parallel - PRIORITIZE LIVE DASHBOARD DATA
+    logStep("Starting parallel data collection - prioritizing live dashboard alerts");
+    const [databaseAlerts, webResults, rssData] = await Promise.all([
+      searchDatabaseAlerts(supabaseClient, query, agencies, timeRange), // First priority: live data
+      performWebSearch(enhancedQuery, agencies),  // Second priority: web search
+      searchRSSFeeds(supabaseClient, enhancedQuery, agencies) // Third priority: RSS feeds
     ]);
 
     logStep("Data collection completed", { 
-      webResultsCount: webResults.length,
       databaseAlertsCount: databaseAlerts.length,
-      rssDataCount: rssData.length
+      webResultsCount: webResults.length,
+      rssDataCount: rssData.length,
+      mostRecentDashboardAlert: databaseAlerts[0]?.published_date,
+      dataFreshness: databaseAlerts.length > 0 ? 'Live dashboard data available' : 'No recent dashboard data'
     });
 
     let result: SearchResult;
@@ -333,27 +335,23 @@ async function performWebSearch(query: string, agencies?: string[]): Promise<Web
   }
 }
 
-// Search database alerts function
+// Search database alerts function - prioritize fresh data
 async function searchDatabaseAlerts(supabaseClient: any, query: string, agencies?: string[], timeRange?: string): Promise<any[]> {
   try {
-    logStep("Searching database alerts", { query, agencies, timeRange });
+    logStep("Searching live dashboard alerts first", { query, agencies, timeRange });
     
+    // First priority: Get the most recent alerts (last 24-48 hours)
     let queryBuilder = supabaseClient
       .from('alerts')
       .select('*')
       .order('published_date', { ascending: false })
-      .limit(20);
+      .limit(50); // Get more results to ensure we have fresh data
     
-    // Filter by agencies if specified
-    if (agencies && agencies.length > 0) {
-      queryBuilder = queryBuilder.in('source', agencies);
-    }
+    // Default to last 7 days for "most recent" queries, last 24 hours for priority
+    const now = new Date();
+    let startDate = new Date();
     
-    // Filter by time range if specified
     if (timeRange) {
-      const now = new Date();
-      let startDate = new Date();
-      
       switch (timeRange) {
         case 'today':
           startDate.setHours(0, 0, 0, 0);
@@ -371,8 +369,21 @@ async function searchDatabaseAlerts(supabaseClient: any, query: string, agencies
           startDate.setFullYear(now.getFullYear() - 1);
           break;
       }
-      
-      queryBuilder = queryBuilder.gte('published_date', startDate.toISOString());
+    } else {
+      // For "most recent" queries, prioritize last 48 hours, fallback to 7 days
+      const queryLower = query.toLowerCase();
+      if (queryLower.includes('most recent') || queryLower.includes('latest') || queryLower.includes('current')) {
+        startDate.setDate(now.getDate() - 2); // Last 48 hours first
+      } else {
+        startDate.setDate(now.getDate() - 7); // Last 7 days
+      }
+    }
+    
+    queryBuilder = queryBuilder.gte('published_date', startDate.toISOString());
+    
+    // Filter by agencies if specified
+    if (agencies && agencies.length > 0) {
+      queryBuilder = queryBuilder.in('source', agencies);
     }
     
     // Search by keywords in title and summary
@@ -389,8 +400,38 @@ async function searchDatabaseAlerts(supabaseClient: any, query: string, agencies
       return [];
     }
     
-    logStep("Database search completed", { alertsCount: alerts?.length || 0 });
-    return alerts || [];
+    const freshAlerts = alerts || [];
+    logStep("Database search completed", { 
+      alertsCount: freshAlerts.length,
+      dateRange: `${startDate.toISOString()} to ${now.toISOString()}`,
+      mostRecentAlert: freshAlerts[0]?.published_date
+    });
+    
+    // If no results in recent timeframe and query suggests "most recent", try expanding to 7 days
+    if (freshAlerts.length === 0 && query.toLowerCase().includes('recent') && timeRange !== 'week') {
+      logStep("No recent alerts found, expanding search to last 7 days");
+      startDate.setDate(now.getDate() - 7);
+      
+      const expandedBuilder = supabaseClient
+        .from('alerts')
+        .select('*')
+        .order('published_date', { ascending: false })
+        .limit(20)
+        .gte('published_date', startDate.toISOString());
+      
+      if (agencies && agencies.length > 0) {
+        expandedBuilder.in('source', agencies);
+      }
+      
+      if (keywords.length > 0) {
+        expandedBuilder.or(`title.ilike.%${query}%,summary.ilike.%${query}%`);
+      }
+      
+      const { data: expandedAlerts } = await expandedBuilder;
+      return expandedAlerts || [];
+    }
+    
+    return freshAlerts;
     
   } catch (error) {
     logStep("Database search error", { error: error.message });
@@ -528,30 +569,48 @@ Focus on: What product/company is affected, what the issue is, and what action i
 }
 
 async function performSmartSearch(enhancedQuery: string, originalQuery: string, agencies?: string[], webResults?: WebSearchResult[], databaseAlerts?: any[], rssData?: any[]): Promise<SearchResult> {
-  const webContext = webResults?.slice(0, 5).map(r => 
-    `Source: ${r.source} - ${r.title}\nURL: ${r.url}\nDescription: ${r.snippet}`
+  // Prioritize live dashboard data over web results
+  const freshAlerts = databaseAlerts?.slice(0, 5) || [];
+  const hasRecentData = freshAlerts.length > 0;
+  
+  // Build context starting with live dashboard data
+  let alertsContext = '';
+  if (hasRecentData) {
+    alertsContext = freshAlerts.map(a => {
+      const publishedDate = new Date(a.published_date);
+      const hoursAgo = Math.round((Date.now() - publishedDate.getTime()) / (1000 * 60 * 60));
+      return `LIVE DASHBOARD ALERT (${hoursAgo} hours ago): ${a.title}\nAgency: ${a.source}\nSummary: ${a.summary}\nUrgency: ${a.urgency}\nPublished: ${publishedDate.toISOString()}`;
+    }).join('\n\n');
+  }
+
+  const webContext = webResults?.slice(0, 3).map(r => 
+    `Web Source: ${r.source} - ${r.title}\nURL: ${r.url}\nDescription: ${r.snippet}`
   ).join('\n\n') || '';
 
-  const alertsContext = databaseAlerts?.slice(0, 3).map(a => 
-    `Alert: ${a.title}\nAgency: ${a.source}\nSummary: ${a.summary}\nUrgency: ${a.urgency}`
+  const rssContext = rssData?.slice(0, 2).map(r => 
+    `Data Source: ${r.agency} - ${r.name}\nType: ${r.source_type}\nLast Updated: ${r.last_successful_fetch}`
   ).join('\n\n') || '';
 
-  const rssContext = rssData?.slice(0, 3).map(r => 
-    `Source: ${r.agency} - ${r.name}\nType: ${r.source_type}\nLast Updated: ${r.last_successful_fetch}`
-  ).join('\n\n') || '';
+  // Determine data freshness
+  const currentTime = new Date();
+  const dataFreshnessNote = hasRecentData 
+    ? `\n\nDATA FRESHNESS: This response uses RegIQ's live dashboard data collected within the last ${Math.round((currentTime.getTime() - new Date(freshAlerts[0].published_date).getTime()) / (1000 * 60 * 60))} hours.`
+    : '\n\nDATA FRESHNESS: No recent alerts found in RegIQ\'s live dashboard. Using web search results.';
 
-  const prompt = `As a regulatory compliance expert, analyze this query and provide comprehensive insights using the available data sources:
+  const prompt = `As a regulatory compliance expert using RegIQ's live monitoring system, analyze this query using PRIORITY DATA SOURCES:
 
 Query: ${enhancedQuery}
 
-Available Web Sources:
+PRIORITY 1 - LIVE DASHBOARD DATA (Most Recent Alerts):
+${alertsContext || 'No recent alerts found in live dashboard'}
+
+PRIORITY 2 - Web Sources (if needed):
 ${webContext}
 
-Recent Database Alerts:
-${alertsContext}
-
-Active RSS Data Sources:
+PRIORITY 3 - RSS Data Sources:
 ${rssContext}
+
+${dataFreshnessNote}
 
 CRITICAL: Respond in PLAIN TEXT ONLY. Do not use any markdown formatting.
 
@@ -563,14 +622,22 @@ Response Format Requirements:
 - Use colons (:) for emphasis instead of bold text
 - Keep responses conversational and professional
 
-Provide:
-1. A clear summary of the regulatory implications
-2. Key agencies likely involved
-3. Urgency level (1-10) and reasoning
-4. Related regulatory areas to monitor
-5. Suggested search terms for finding official documents
+DATA PRIORITIZATION RULES:
+1. If live dashboard data exists, START with those alerts and their timestamps
+2. Always mention how recent the information is (hours/days ago)
+3. Flag if information is older than 48 hours
+4. For "most recent" queries, focus ONLY on alerts from last 7 days
+5. If no recent data exists, clearly state this limitation
 
-Focus on actionable insights for compliance professionals.`;
+Provide:
+1. Current regulatory status based on live dashboard data (if available)
+2. Most recent alerts with specific timestamps 
+3. Key agencies involved
+4. Urgency assessment based on data recency
+5. Related areas to monitor
+6. Data freshness disclaimer
+
+Focus on the most current information available in RegIQ's live monitoring system.`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -583,7 +650,7 @@ Focus on actionable insights for compliance professionals.`;
       messages: [
         {
           role: 'system',
-          content: 'You are a regulatory compliance expert helping professionals understand regulatory alerts and find relevant information. Always respond in plain text without any markdown formatting.'
+          content: 'You are RegIQ\'s AI assistant with access to live regulatory monitoring data. Always prioritize live dashboard data over web search results. Always respond in plain text without any markdown formatting. Include timestamps and data freshness information.'
         },
         { role: 'user', content: prompt }
       ],
