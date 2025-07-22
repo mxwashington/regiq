@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Shield, Zap, Bell, Brain, Clock, TrendingUp, ExternalLink, Filter, Search, AlertCircle } from "lucide-react";
+import { ArrowRight, Shield, Zap, Bell, Brain, Clock, TrendingUp, ExternalLink, Filter, Search, AlertCircle, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -16,6 +16,8 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { DataRefreshButton } from "@/components/DataRefreshButton";
 import { TestDataRunner } from "@/components/TestDataRunner";
 import { AlertSourceFinder } from "@/components/AlertSourceFinder";
+import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
+import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
@@ -252,6 +254,13 @@ const Landing = () => {
           </div>
         )}
 
+        {/* Search Demo */}
+        {featuredAlert && (
+          <div className="mb-8">
+            <AlertSourceSearchDemo alert={featuredAlert} />
+          </div>
+        )}
+
         {/* Featured Alert */}
           {featuredAlert && (
             <Card className="mb-8 border-2 border-orange-200 bg-orange-50/50">
@@ -280,24 +289,42 @@ const Landing = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" size="sm" asChild={!!featuredAlert.external_url}>
-                  {featuredAlert.external_url ? (
-                    <a 
-                      href={featuredAlert.external_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                <div className="flex items-center gap-2">
+                  {isValidSourceUrl(featuredAlert.external_url) ? (
+                    <>
+                      <Button variant="outline" size="sm" asChild>
+                        <a 
+                          href={featuredAlert.external_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Read Full Alert
+                        </a>
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => searchForAlert(featuredAlert.title, featuredAlert.source)}
+                        className="flex items-center gap-2"
+                      >
+                        <Globe className="w-4 h-4" />
+                        Search Web
+                      </Button>
+                    </>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => searchForAlert(featuredAlert.title, featuredAlert.source)}
                       className="flex items-center gap-2"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      Read Full Alert
-                    </a>
-                  ) : (
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <ExternalLink className="w-4 h-4" />
-                      No Source Available
-                    </span>
+                      <Search className="w-4 h-4" />
+                      Find Source
+                    </Button>
                   )}
-                </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -341,26 +368,44 @@ const Landing = () => {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <Button variant="outline" size="sm" asChild={!!alert.external_url}>
-                      {alert.external_url ? (
-                        <a 
-                          href={alert.external_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Read Full Alert
-                        </a>
-                      ) : (
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <ExternalLink className="w-3 h-3" />
-                          No Source Available
-                        </span>
-                      )}
-                    </Button>
-                  </CardContent>
+                   <CardContent className="pt-0">
+                     <div className="flex items-center gap-2">
+                       {isValidSourceUrl(alert.external_url) ? (
+                         <>
+                           <Button variant="outline" size="sm" asChild>
+                             <a 
+                               href={alert.external_url} 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               className="flex items-center gap-2"
+                             >
+                               <ExternalLink className="w-3 h-3" />
+                               Read Full Alert
+                             </a>
+                           </Button>
+                           <Button 
+                             variant="ghost" 
+                             size="sm"
+                             onClick={() => searchForAlert(alert.title, alert.source)}
+                             className="flex items-center gap-2"
+                           >
+                             <Globe className="w-3 h-3" />
+                             Search Web
+                           </Button>
+                         </>
+                       ) : (
+                         <Button 
+                           variant="outline" 
+                           size="sm"
+                           onClick={() => searchForAlert(alert.title, alert.source)}
+                           className="flex items-center gap-2"
+                         >
+                           <Search className="w-3 h-3" />
+                           Find Source
+                         </Button>
+                       )}
+                     </div>
+                   </CardContent>
                 </Card>
               ))
             )}

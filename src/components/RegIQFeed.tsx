@@ -18,11 +18,14 @@ import {
   Filter,
   X,
   CheckCircle,
-  Bookmark
+  Bookmark,
+  Search,
+  Globe
 } from "lucide-react";
 import { RegIQMobileFilters } from "./RegIQMobileFilters";
 import { RegIQDesktopFilters } from "./RegIQDesktopFilters";
 import { ThirdShiftStatusIndicator } from "./ThirdShiftStatusIndicator";
+import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 
 interface RegIQAlert {
   id: string;
@@ -493,34 +496,52 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
                 <CollapsibleContent>
                   <CardContent className="pt-0">
                     <div className="flex items-center gap-3 flex-wrap">
-                      {/* Always show read full alert button */}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        asChild={!!alert.external_url}
-                        onClick={() => markAsRead(alert.id)}
-                        disabled={!alert.external_url}
-                      >
-                        {alert.external_url ? (
-                          <a 
-                            href={alert.external_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2"
-                            onClick={(e) => {
-                              console.log('Clicking external URL:', alert.external_url);
-                            }}
+                      {/* Source link section with search fallback */}
+                      {isValidSourceUrl(alert.external_url) ? (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            asChild
+                            onClick={() => markAsRead(alert.id)}
                           >
-                            <ExternalLink className="h-3 w-3" />
-                            Read Full Alert
-                          </a>
-                        ) : (
-                          <span className="flex items-center gap-2 text-muted-foreground">
-                            <ExternalLink className="h-3 w-3" />
-                            No Source Available
-                          </span>
-                        )}
-                      </Button>
+                            <a 
+                              href={alert.external_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2"
+                              onClick={(e) => {
+                                console.log('Clicking external URL:', alert.external_url);
+                              }}
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Read Full Alert
+                            </a>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => searchForAlert(alert.title, alert.source)}
+                            className="flex items-center gap-2"
+                          >
+                            <Globe className="h-3 w-3" />
+                            Search Web
+                          </Button>
+                        </>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            searchForAlert(alert.title, alert.source);
+                            markAsRead(alert.id);
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <Search className="h-3 w-3" />
+                          Find Source
+                        </Button>
+                      )}
                       
                       {onSaveAlert && (
                         <Button 
