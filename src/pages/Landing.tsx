@@ -210,6 +210,7 @@ const Landing = () => {
           <nav className="hidden md:flex items-center space-x-6">
             <a href="#food-alerts" className="text-muted-foreground hover:text-foreground transition-colors">Food Safety Alerts</a>
             <a href="#ai-search" className="text-muted-foreground hover:text-foreground transition-colors">Food Regulation Search</a>
+            <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How it Works</a>
             {user ? (
               <>
@@ -263,9 +264,16 @@ const Landing = () => {
                 Get Free Food Safety Alerts <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base">
-              <a href="#food-alerts">See Live Alerts</a>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base">
+                <a href="#food-alerts">See Live Alerts</a>
+              </Button>
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
+                <Link to="/pricing">
+                  View Pro Plans <Zap className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
