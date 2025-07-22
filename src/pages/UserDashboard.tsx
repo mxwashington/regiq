@@ -150,8 +150,12 @@ const UserDashboard = () => {
             <Badge variant="secondary" className="hidden md:flex">
               Welcome, {user?.email}
             </Badge>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/search">Advanced Search</Link>
+            <Button variant="default" size="sm" asChild className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md">
+              <Link to="/search" className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                Advanced Search
+                <Badge variant="secondary" className="bg-white/20 text-white text-xs">PRO</Badge>
+              </Link>
             </Button>
             <Button variant="ghost" size="sm" onClick={signOut}>
               Sign Out

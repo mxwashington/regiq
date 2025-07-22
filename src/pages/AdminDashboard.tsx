@@ -8,7 +8,9 @@ import { SourceLinkManager } from '@/components/SourceLinkManager';
 import { DataRefreshButton } from '@/components/DataRefreshButton';
 import { ConversationalChatbot } from '@/components/ConversationalChatbot';
 import { Button } from '@/components/ui/button';
-import { Eye, Bot } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Bot, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { loading: authLoading } = useAuthGuard(true);
@@ -33,6 +35,17 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold">Admin Dashboard</h1>
               <div className="flex items-center gap-3">
+                <Button 
+                  variant="default" 
+                  asChild
+                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
+                >
+                  <Link to="/search" className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    Advanced Search
+                    <Badge variant="secondary" className="bg-white/20 text-white text-xs">PRO</Badge>
+                  </Link>
+                </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => setIsChatOpen(true)}
