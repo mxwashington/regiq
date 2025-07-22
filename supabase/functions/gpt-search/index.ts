@@ -152,13 +152,17 @@ serve(async (req) => {
 
     logStep("Result cached successfully");
 
-    // Log the search
+    // Log the search with correct search_type values
+    const validSearchType = query.toLowerCase().includes('recall') ? 'recalls' : 
+                           query.toLowerCase().includes('deadline') ? 'deadlines' :
+                           query.toLowerCase().includes('guidance') ? 'guidance' : 'general';
+    
     await supabaseClient
       .from('perplexity_searches')
       .insert({
         user_id: user.id,
         query,
-        search_type: searchType,
+        search_type: validSearchType,
         agencies,
         industry,
         tokens_used: result.content.length, // Approximate token count
@@ -185,68 +189,125 @@ serve(async (req) => {
   }
 });
 
-// Enhanced web search function
+// Enhanced web search function with real API calls
 async function performWebSearch(query: string, agencies?: string[]): Promise<WebSearchResult[]> {
   try {
-    logStep("Starting web search", { query });
+    logStep("Starting real web search", { query, agencies });
     
     const results: WebSearchResult[] = [];
     
-    // Generate search results based on agencies and query
-    const searchTerms = query.toLowerCase();
-    
-    if (!agencies || agencies.includes('FDA') || searchTerms.includes('fda') || searchTerms.includes('food')) {
-      results.push({
-        title: "FDA Food Safety and Applied Nutrition",
-        url: "https://www.fda.gov/food",
-        snippet: "Current FDA regulations, guidance documents, and safety alerts for food industry compliance.",
-        source: "FDA"
-      });
+    // Use Perplexity for real-time web search
+    const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
+    if (perplexityApiKey) {
+      try {
+        const searchQuery = agencies?.length 
+          ? `${query} site:${agencies.map(a => `${a.toLowerCase()}.gov`).join(' OR site:')}`
+          : `${query} site:fda.gov OR site:usda.gov OR site:epa.gov OR site:cdc.gov`;
+
+        logStep("Calling Perplexity API", { searchQuery });
+
+        const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${perplexityApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.1-sonar-small-128k-online',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a regulatory information specialist. Find recent, specific regulatory information and format your response as a JSON array of search results with title, url, snippet, and source fields. Return only the JSON array, no other text.'
+              },
+              {
+                role: 'user',
+                content: `Find recent regulatory information about: ${searchQuery}`
+              }
+            ],
+            temperature: 0.2,
+            max_tokens: 1000,
+            return_images: false,
+            return_related_questions: false,
+            search_recency_filter: 'month'
+          })
+        });
+
+        if (perplexityResponse.ok) {
+          const perplexityData = await perplexityResponse.json();
+          const content = perplexityData.choices[0].message.content;
+          
+          try {
+            const searchResults = JSON.parse(content);
+            if (Array.isArray(searchResults)) {
+              results.push(...searchResults.slice(0, 5));
+              logStep("Added Perplexity search results", { count: searchResults.length });
+            }
+          } catch (parseError) {
+            logStep("Failed to parse Perplexity results, using content as single result", { parseError });
+            results.push({
+              title: "Recent Regulatory Information",
+              url: "https://www.perplexity.ai",
+              snippet: content.substring(0, 200) + "...",
+              source: "Perplexity AI"
+            });
+          }
+        }
+      } catch (perplexityError) {
+        logStep("Perplexity search failed", { error: perplexityError.message });
+      }
+    }
+
+    // Fallback to targeted searches if Perplexity fails or returns no results
+    if (results.length === 0) {
+      logStep("Using fallback targeted searches");
       
-      if (searchTerms.includes('recall')) {
+      const searchTerms = query.toLowerCase();
+      
+      if (!agencies || agencies.includes('FDA') || searchTerms.includes('fda') || searchTerms.includes('food')) {
         results.push({
-          title: "FDA Recalls, Market Withdrawals, & Safety Alerts",
-          url: "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts",
-          snippet: "Latest FDA recalls and safety alerts affecting food products.",
+          title: "FDA Food Safety and Applied Nutrition",
+          url: "https://www.fda.gov/food",
+          snippet: "Current FDA regulations, guidance documents, and safety alerts for food industry compliance.",
           source: "FDA"
+        });
+        
+        if (searchTerms.includes('recall')) {
+          results.push({
+            title: "FDA Recalls, Market Withdrawals, & Safety Alerts",
+            url: "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts",
+            snippet: "Latest FDA recalls and safety alerts affecting food products.",
+            source: "FDA"
+          });
+        }
+      }
+      
+      if (!agencies || agencies.includes('USDA') || searchTerms.includes('usda') || searchTerms.includes('meat') || searchTerms.includes('agriculture')) {
+        results.push({
+          title: "USDA Food Safety and Inspection Service",
+          url: "https://www.fsis.usda.gov/",
+          snippet: "USDA regulations for meat, poultry, and egg product safety and inspection.",
+          source: "USDA"
+        });
+      }
+      
+      if (!agencies || agencies.includes('EPA') || searchTerms.includes('epa') || searchTerms.includes('pesticide') || searchTerms.includes('environment')) {
+        results.push({
+          title: "EPA Pesticide Programs",
+          url: "https://www.epa.gov/pesticides",
+          snippet: "EPA regulations on pesticide use in food production and environmental safety.",
+          source: "EPA"
+        });
+      }
+      
+      if (!agencies || agencies.includes('CDC') || searchTerms.includes('cdc') || searchTerms.includes('outbreak')) {
+        results.push({
+          title: "CDC Food Safety",
+          url: "https://www.cdc.gov/foodsafety/",
+          snippet: "CDC guidance on foodborne illness prevention and outbreak investigations.",
+          source: "CDC"
         });
       }
     }
-    
-    if (!agencies || agencies.includes('USDA') || searchTerms.includes('usda') || searchTerms.includes('meat') || searchTerms.includes('agriculture')) {
-      results.push({
-        title: "USDA Food Safety and Inspection Service",
-        url: "https://www.fsis.usda.gov/",
-        snippet: "USDA regulations for meat, poultry, and egg product safety and inspection.",
-        source: "USDA"
-      });
-    }
-    
-    if (!agencies || agencies.includes('EPA') || searchTerms.includes('epa') || searchTerms.includes('pesticide') || searchTerms.includes('environment')) {
-      results.push({
-        title: "EPA Pesticide Programs",
-        url: "https://www.epa.gov/pesticides",
-        snippet: "EPA regulations on pesticide use in food production and environmental safety.",
-        source: "EPA"
-      });
-    }
-    
-    if (!agencies || agencies.includes('CDC') || searchTerms.includes('cdc') || searchTerms.includes('outbreak')) {
-      results.push({
-        title: "CDC Food Safety",
-        url: "https://www.cdc.gov/foodsafety/",
-        snippet: "CDC guidance on foodborne illness prevention and outbreak investigations.",
-        source: "CDC"
-      });
-    }
-    
-    // Add Federal Register for all regulatory searches
-    results.push({
-      title: "Federal Register",
-      url: "https://www.federalregister.gov/",
-      snippet: "Official daily publication for rules, proposed rules, and notices from federal agencies.",
-      source: "Federal Register"
-    });
     
     logStep("Web search completed", { resultsCount: results.length });
     return results;

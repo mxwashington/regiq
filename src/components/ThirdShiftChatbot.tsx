@@ -93,10 +93,14 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
 
       // Log the search for analytics if user is authenticated
       if (user) {
+        const validSearchType = inputValue.toLowerCase().includes('recall') ? 'recalls' : 
+                               inputValue.toLowerCase().includes('deadline') ? 'deadlines' :
+                               inputValue.toLowerCase().includes('guidance') ? 'guidance' : 'general';
+        
         await supabase.from('perplexity_searches').insert({
           user_id: user.id,
           query: inputValue,
-          search_type: 'regulatory',
+          search_type: validSearchType,
           agencies: ['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'],
           industry: 'regulatory_compliance',
           success: true

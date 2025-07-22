@@ -89,10 +89,14 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
 
       // Log the conversation if user is authenticated
       if (user) {
+        const validSearchType = userMessage.content.toLowerCase().includes('recall') ? 'recalls' : 
+                               userMessage.content.toLowerCase().includes('deadline') ? 'deadlines' :
+                               userMessage.content.toLowerCase().includes('guidance') ? 'guidance' : 'general';
+        
         await supabase.from('perplexity_searches').insert({
           user_id: user.id,
           query: userMessage.content,
-          search_type: 'smart_search',
+          search_type: validSearchType,
           agencies: ['FDA', 'USDA', 'EPA', 'CDC'],
           industry: 'food',
           tokens_used: data.content?.length || 0,
