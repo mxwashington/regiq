@@ -13,6 +13,7 @@ import { useSavedAlerts } from "@/hooks/useSavedAlerts";
 import { formatDistanceToNow } from "date-fns";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { CookieConsent } from "@/components/CookieConsent";
+import { DataRefreshButton } from "@/components/DataRefreshButton";
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
@@ -189,6 +190,7 @@ const Landing = () => {
               <p className="text-muted-foreground">Real-time updates from trusted government sources</p>
             </div>
             <div className="flex items-center gap-4">
+              <DataRefreshButton />
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium">Filter:</label>
                 <select 
