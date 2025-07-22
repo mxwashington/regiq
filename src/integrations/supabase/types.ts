@@ -50,6 +50,41 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_interactions: {
+        Row: {
+          alert_id: string | null
+          created_at: string
+          id: string
+          interaction_data: Json | null
+          interaction_type: string
+          user_id: string | null
+        }
+        Insert: {
+          alert_id?: string | null
+          created_at?: string
+          id?: string
+          interaction_data?: Json | null
+          interaction_type: string
+          user_id?: string | null
+        }
+        Update: {
+          alert_id?: string | null
+          created_at?: string
+          id?: string
+          interaction_data?: Json | null
+          interaction_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_interactions_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alert_tags: {
         Row: {
           alert_id: string
@@ -401,6 +436,51 @@ export type Database = {
         }
         Relationships: []
       }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          load_time_ms: number | null
+          page_path: string
+          page_title: string | null
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+          viewport_height: number | null
+          viewport_width: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          load_time_ms?: number | null
+          page_path: string
+          page_title?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          load_time_ms?: number | null
+          page_path?: string
+          page_title?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Relationships: []
+      }
       perplexity_searches: {
         Row: {
           agencies: string[] | null
@@ -545,6 +625,42 @@ export type Database = {
           rss_feeds?: Json | null
           source_type?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      search_analytics: {
+        Row: {
+          clicked_result_position: number | null
+          created_at: string
+          filters_applied: Json | null
+          id: string
+          results_count: number | null
+          search_duration_ms: number | null
+          search_query: string
+          search_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_result_position?: number | null
+          created_at?: string
+          filters_applied?: Json | null
+          id?: string
+          results_count?: number | null
+          search_duration_ms?: number | null
+          search_query: string
+          search_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_result_position?: number | null
+          created_at?: string
+          filters_applied?: Json | null
+          id?: string
+          results_count?: number | null
+          search_duration_ms?: number | null
+          search_query?: string
+          search_type?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -795,6 +911,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_interactions: {
+        Row: {
+          created_at: string
+          element_id: string | null
+          element_type: string | null
+          id: string
+          interaction_data: Json | null
+          interaction_type: string
+          page_path: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          element_id?: string | null
+          element_type?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type: string
+          page_path?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          element_id?: string | null
+          element_type?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type?: string
+          page_path?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string
@@ -825,6 +977,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          browser: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          duration_seconds: number | null
+          end_time: string | null
+          id: string
+          ip_address: unknown | null
+          operating_system: string | null
+          pages_visited: number | null
+          session_id: string
+          start_time: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operating_system?: string | null
+          pages_visited?: number | null
+          session_id: string
+          start_time?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operating_system?: string | null
+          pages_visited?: number | null
+          session_id?: string
+          start_time?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -841,6 +1050,18 @@ export type Database = {
       dismiss_alert_for_user: {
         Args: { alert_id: string; user_id: string }
         Returns: undefined
+      }
+      get_analytics_overview: {
+        Args: { days_back?: number }
+        Returns: {
+          total_page_views: number
+          unique_visitors: number
+          avg_session_duration: number
+          bounce_rate: number
+          top_pages: Json
+          user_growth: Json
+          device_breakdown: Json
+        }[]
       }
       get_feature_usage: {
         Args: { user_id_param: string; feature_name_param: string }
