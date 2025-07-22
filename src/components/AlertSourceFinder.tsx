@@ -26,9 +26,8 @@ export const AlertSourceFinder = () => {
     setLastResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('alert-source-finder', {
-        method: 'POST'
-      });
+      console.log('Invoking alert-source-finder function...');
+      const { data, error } = await supabase.functions.invoke('alert-source-finder');
 
       if (error) {
         throw error;

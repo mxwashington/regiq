@@ -15,6 +15,7 @@ import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { CookieConsent } from "@/components/CookieConsent";
 import { DataRefreshButton } from "@/components/DataRefreshButton";
 import { TestDataRunner } from "@/components/TestDataRunner";
+import { AlertSourceFinder } from "@/components/AlertSourceFinder";
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
@@ -243,8 +244,13 @@ const Landing = () => {
           </div>
         </div>
         
-        {/* Test Data Runner - Temporary */}
-        <TestDataRunner />
+        {/* Admin Tools - Temporary */}
+        {isAdmin && (
+          <div className="mb-8 space-y-4">
+            <TestDataRunner />
+            <AlertSourceFinder />
+          </div>
+        )}
 
         {/* Featured Alert */}
           {featuredAlert && (
