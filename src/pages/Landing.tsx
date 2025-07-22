@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { CookieConsent } from "@/components/CookieConsent";
 import { DataRefreshButton } from "@/components/DataRefreshButton";
+import { TestDataRunner } from "@/components/TestDataRunner";
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
@@ -239,10 +240,13 @@ const Landing = () => {
                   })}
                 </div>
               </div>
-            </div>
           </div>
+        </div>
+        
+        {/* Test Data Runner - Temporary */}
+        <TestDataRunner />
 
-          {/* Featured Alert */}
+        {/* Featured Alert */}
           {featuredAlert && (
             <Card className="mb-8 border-2 border-orange-200 bg-orange-50/50">
               <CardHeader>

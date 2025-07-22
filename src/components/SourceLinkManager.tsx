@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { RefreshCw, Search, Link, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { DataScraperTrigger } from './DataScraperTrigger';
 
 interface SourceResult {
   id: string;
@@ -127,6 +128,9 @@ export const SourceLinkManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* Quick Action Runner */}
+      <DataScraperTrigger />
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

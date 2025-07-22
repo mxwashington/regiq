@@ -4,6 +4,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { AdminNavigation } from '@/components/AdminNavigation';
 import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { EnterpriseAdminDashboard } from '@/components/EnterpriseAdminDashboard';
+import { SourceLinkManager } from '@/components/SourceLinkManager';
 import { DataRefreshButton } from '@/components/DataRefreshButton';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
@@ -47,6 +48,7 @@ const AdminDashboard = () => {
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="user-management" element={<AdminNavigation />} />
         <Route path="analytics" element={<FDAAnalyticsDashboard />} />
+        <Route path="source-links" element={<SourceLinkManager />} />
         <Route path="settings" element={<AdminNavigation />} />
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
