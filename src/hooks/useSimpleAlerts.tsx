@@ -83,6 +83,7 @@ export const useSimpleAlerts = (limit?: number) => {
         setAlerts(data);
         setTotalCount(count || 0);
         setRetryCount(0);
+        setLoading(false);
         return;
 
       } catch (err: any) {
@@ -95,6 +96,7 @@ export const useSimpleAlerts = (limit?: number) => {
           setAlerts(fallbackAlerts);
           setTotalCount(fallbackAlerts.length);
           setRetryCount(attempt + 1);
+          setLoading(false);
           
           toast({
             title: 'Connection Issue',
