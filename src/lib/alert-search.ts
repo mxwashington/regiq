@@ -216,9 +216,43 @@ export const generateSearchQueries = async (title: string, agency: string) => {
 };
 
 /**
+ * Check if device is mobile to determine search method
+ */
+const isMobile = (): boolean => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || window.innerWidth <= 768
+    || ('ontouchstart' in window);
+};
+
+/**
+ * Open search URL with mobile-friendly approach
+ */
+const openSearchUrl = (searchUrl: string, title: string) => {
+  console.log('Opening search URL:', searchUrl);
+  console.log('Is mobile device:', isMobile());
+  
+  if (isMobile()) {
+    // On mobile, use direct navigation to avoid popup blockers
+    console.log('Mobile device detected, using direct navigation');
+    window.location.href = searchUrl;
+  } else {
+    // On desktop, open in new tab
+    console.log('Desktop device detected, opening in new tab');
+    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+  }
+};
+
+/**
  * Open a targeted search for an alert with GPT-4.1 enhancement
  */
 export const searchForAlert = async (title: string, agency: string, searchType: 'primary' | 'secondary' | 'fallback' | 'broad' = 'primary') => {
+  console.log('=== Mobile Search Debug ===');
+  console.log('User Agent:', navigator.userAgent);
+  console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
+  console.log('Touch support:', 'ontouchstart' in window);
+  console.log('Alert title:', title);
+  console.log('Agency:', agency);
+  
   try {
     const queries = await generateSearchQueries(title, agency);
     const query = queries[searchType];
@@ -227,16 +261,25 @@ export const searchForAlert = async (title: string, agency: string, searchType: 
     // Track search usage
     console.log(`GPT-enhanced search: ${searchType} for ${agency}`, { title: title.substring(0, 50), query });
     
-    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    openSearchUrl(searchUrl, title);
   } catch (error) {
     // Fallback to basic search if GPT enhancement fails
     console.warn('GPT search failed, using basic search:', error);
-    const config = getAgencySearchConfig(agency);
-    const keywords = extractKeywords(title);
-    const query = `${keywords} site:${config.domain}`;
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
     
-    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    try {
+      const config = getAgencySearchConfig(agency);
+      const keywords = extractKeywords(title);
+      const query = `${keywords} site:${config.domain}`;
+      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      
+      console.log('Using fallback search with keywords:', keywords);
+      openSearchUrl(searchUrl, title);
+    } catch (fallbackError) {
+      // Ultimate fallback - simple Google search
+      console.error('All search methods failed, using simple search:', fallbackError);
+      const fallbackUrl = `https://www.google.com/search?q=${encodeURIComponent(title)}`;
+      openSearchUrl(fallbackUrl, title);
+    }
   }
 };
 
