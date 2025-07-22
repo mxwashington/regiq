@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -17,7 +18,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
   useEffect(() => {
     const checkForUpdates = async () => {
       try {
-        // Check service worker version
+        // Only check service worker version - don't make API calls to non-existent endpoints
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           const messageChannel = new MessageChannel();
           
@@ -38,29 +39,8 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
             [messageChannel.port2]
           );
         }
-
-        // Also check for updates via API
-        const response = await fetch('/cache-version', {
-          cache: 'no-cache',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const storedVersion = localStorage.getItem('app-version');
-          
-          if (storedVersion && storedVersion !== data.version) {
-            setShowUpdate(true);
-            setCurrentVersion(data.version);
-          }
-          
-          localStorage.setItem('app-version', data.version);
-        }
       } catch (error) {
-        console.log('Version check failed:', error);
+        console.log('Service worker version check failed:', error);
       }
     };
 
@@ -84,9 +64,9 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
       }
     };
 
-    // Initial check and periodic checks
+    // Initial check and less frequent periodic checks
     checkForUpdates();
-    const interval = setInterval(checkForUpdates, 5 * 60 * 1000); // Check every 5 minutes
+    const interval = setInterval(checkForUpdates, 10 * 60 * 1000); // Check every 10 minutes instead of 5
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', handleMessage);

@@ -1,15 +1,16 @@
+
 import { useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CacheBusterConfig {
-  checkInterval?: number; // in milliseconds
-  clearStaleDataInterval?: number; // in milliseconds
+  checkInterval?: number;
+  clearStaleDataInterval?: number;
   enableAutoRefresh?: boolean;
 }
 
 export const useCacheBuster = (config: CacheBusterConfig = {}) => {
   const {
-    checkInterval = 5 * 60 * 1000, // 5 minutes
+    checkInterval = 15 * 60 * 1000, // Increased to 15 minutes to reduce load
     clearStaleDataInterval = 24 * 60 * 60 * 1000, // 24 hours
     enableAutoRefresh = false
   } = config;
@@ -58,12 +59,8 @@ export const useCacheBuster = (config: CacheBusterConfig = {}) => {
       // Clear stale data
       clearStaleData();
       
-      // Add cache busting parameters to current URL
-      const url = new URL(window.location.href);
-      url.searchParams.set('_cb', Date.now().toString());
-      
       // Force reload with cache bypass
-      window.location.href = url.toString();
+      window.location.reload();
     } catch (error) {
       console.error('Cache buster: Force refresh failed:', error);
       // Fallback to normal reload
@@ -73,7 +70,7 @@ export const useCacheBuster = (config: CacheBusterConfig = {}) => {
 
   const checkForUpdates = useCallback(async () => {
     try {
-      // Check service worker version
+      // Only check service worker version - avoid API calls to non-existent endpoints
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         const messageChannel = new MessageChannel();
         
@@ -84,12 +81,6 @@ export const useCacheBuster = (config: CacheBusterConfig = {}) => {
           if (storedVersion && storedVersion !== version) {
             if (enableAutoRefresh) {
               forceRefresh();
-            } else {
-              toast({
-                title: 'Update Available',
-                description: 'A new version is available. Refresh to update.',
-                duration: 10000
-              });
             }
           }
           
@@ -101,63 +92,57 @@ export const useCacheBuster = (config: CacheBusterConfig = {}) => {
           [messageChannel.port2]
         );
       }
-
-      // Check server version
-      const response = await fetch('/cache-version', {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const storedVersion = localStorage.getItem('app-version');
-        
-        if (storedVersion && storedVersion !== data.version) {
-          if (enableAutoRefresh) {
-            forceRefresh();
-          }
-        }
-        
-        localStorage.setItem('app-version', data.version);
-      }
     } catch (error) {
-      console.log('Cache buster: Update check failed:', error);
+      // Don't log this as it's expected when the endpoint doesn't exist
+      console.log('Cache buster: Service worker check skipped');
     }
-  }, [enableAutoRefresh, forceRefresh, toast]);
+  }, [enableAutoRefresh, forceRefresh]);
 
   useEffect(() => {
     // Initial setup
     clearStaleData();
     
-    // Check for updates immediately and periodically
-    checkForUpdates();
-    const updateInterval = setInterval(checkForUpdates, checkInterval);
+    // Only run periodic checks if service worker is available
+    let updateInterval: NodeJS.Timeout | null = null;
+    let dataInterval: NodeJS.Timeout | null = null;
+    
+    if ('serviceWorker' in navigator) {
+      // Check for updates less frequently
+      checkForUpdates();
+      updateInterval = setInterval(checkForUpdates, checkInterval);
+    }
     
     // Clear stale data periodically
-    const dataInterval = setInterval(clearStaleData, clearStaleDataInterval);
+    dataInterval = setInterval(clearStaleData, clearStaleDataInterval);
     
-    // Handle page visibility changes
+    // Handle page visibility changes (reduced frequency)
+    let visibilityTimeout: NodeJS.Timeout | null = null;
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        checkForUpdates();
+      if (!document.hidden && 'serviceWorker' in navigator) {
+        // Debounce visibility change checks
+        if (visibilityTimeout) clearTimeout(visibilityTimeout);
+        visibilityTimeout = setTimeout(checkForUpdates, 1000);
       }
     };
     
-    // Handle focus events
+    // Handle focus events (reduced frequency)
+    let focusTimeout: NodeJS.Timeout | null = null;
     const handleFocus = () => {
-      checkForUpdates();
+      if ('serviceWorker' in navigator) {
+        // Debounce focus checks
+        if (focusTimeout) clearTimeout(focusTimeout);
+        focusTimeout = setTimeout(checkForUpdates, 2000);
+      }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
     
     return () => {
-      clearInterval(updateInterval);
-      clearInterval(dataInterval);
+      if (updateInterval) clearInterval(updateInterval);
+      if (dataInterval) clearInterval(dataInterval);
+      if (visibilityTimeout) clearTimeout(visibilityTimeout);
+      if (focusTimeout) clearTimeout(focusTimeout);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };

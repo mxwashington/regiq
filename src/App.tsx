@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -15,6 +14,7 @@ import { useCacheBuster } from "@/hooks/useCacheBuster";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
+
 // Lazy load pages for better performance
 const Debug = React.lazy(() => import("./pages/Debug"));
 const Landing = React.lazy(() => import("./pages/Landing"));
@@ -41,11 +41,11 @@ const queryClient = new QueryClient({
         if (error?.status === 401 || error?.status === 403) {
           return false;
         }
-        return failureCount < 2; // Reduced retry attempts
+        return failureCount < 1; // Reduced retry attempts for faster loading
       },
-      retryDelay: attemptIndex => Math.min(500 * 2 ** attemptIndex, 5000), // Faster retries
-      staleTime: 10 * 60 * 1000, // 10 minutes - longer cache
-      gcTime: 30 * 60 * 1000, // 30 minutes cache
+      retryDelay: attemptIndex => Math.min(300 * 2 ** attemptIndex, 3000), // Faster retries
+      staleTime: 5 * 60 * 1000, // 5 minutes - shorter cache for fresher data
+      gcTime: 15 * 60 * 1000, // 15 minutes cache
     },
     mutations: {
       retry: (failureCount, error: any) => {
@@ -73,9 +73,9 @@ const PWAApp = () => {
   // Initialize PWA functionality
   usePWA();
   
-  // Initialize cache busting
+  // Initialize cache busting with optimized settings
   useCacheBuster({
-    checkInterval: 5 * 60 * 1000, // Check every 5 minutes
+    checkInterval: 15 * 60 * 1000, // Check every 15 minutes (reduced frequency)
     clearStaleDataInterval: 24 * 60 * 60 * 1000, // Clear stale data daily
     enableAutoRefresh: false // Don't auto-refresh, let user choose
   });
