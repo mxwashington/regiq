@@ -44,47 +44,52 @@ const Pricing = () => {
       name: "Free",
       price: "$0",
       period: "forever",
-      description: "Perfect for getting started with regulatory monitoring",
+      description: "Everything you need for regulatory monitoring",
       features: [
-        "5 AI searches per day",
+        "Unlimited AI searches",
         "Real-time FDA, USDA, EPA alerts",
         "Mobile-optimized dashboard",
-        "Basic email notifications",
-        "Community support"
+        "Advanced filtering & personalization",
+        "Priority email alerts",
+        "Export to PDF/Excel",
+        "Custom keyword tracking",
+        "30-day alert history",
+        "Email support"
       ],
       buttonText: "Get Started Free",
-      popular: false,
-      tier: "free"
+      popular: true,
+      tier: "free",
+      badge: "Everything Free!"
     },
     {
       name: "Professional",
       price: "$49",
       period: "per month",
-      description: "For food safety professionals and QA teams",
+      description: "Advanced features for QA teams (Currently FREE!)",
       features: [
-        "Unlimited AI searches",
-        "All regulatory agencies (FDA, USDA, EPA, CDC)",
-        "Advanced filtering & personalization",
-        "Priority email alerts",
-        "Export to PDF/Excel",
-        "Custom keyword tracking",
-        "Phone & email support",
-        "30-day alert history"
+        "Everything in Free plan",
+        "All features currently included at no cost",
+        "Advanced analytics (coming soon)",
+        "Team collaboration tools (coming soon)",
+        "Priority feature requests",
+        "Phone support (coming soon)"
       ],
-      buttonText: "Start Free Trial",
-      popular: true,
-      tier: "professional"
+      buttonText: "Coming Soon",
+      popular: false,
+      tier: "professional",
+      badge: "Future Paid Plan",
+      disabled: true
     },
     {
       name: "Enterprise",
       price: "$149",
       period: "per month",
-      description: "For large organizations and regulatory teams",
+      description: "For organizations needing API access",
       features: [
-        "Everything in Professional",
-        "Unlimited team members",
+        "Everything in Free plan",
         "API access for integrations",
         "Custom reporting & analytics",
+        "Unlimited team members",
         "90-day alert history",
         "Dedicated account manager",
         "SSO integration",
@@ -93,7 +98,8 @@ const Pricing = () => {
       ],
       buttonText: "Contact Sales",
       popular: false,
-      tier: "enterprise"
+      tier: "enterprise",
+      badge: "API Access Only"
     }
   ];
 
@@ -133,19 +139,19 @@ const Pricing = () => {
       <section className="py-12 px-4">
         <div className="container mx-auto text-center max-w-4xl">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Choose Your <span className="text-primary">RegIQ Plan</span>
+            <span className="text-primary">Everything Free</span> for Now!
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Start free and scale as you grow. All plans include real-time regulatory alerts and AI-powered search.
+            We're keeping all RegIQ features free while we build our community. Only API access requires an Enterprise plan.
           </p>
           
           <div className="flex items-center justify-center gap-4 mb-8">
-            <Badge variant="secondary" className="text-sm">
+            <Badge variant="secondary" className="text-sm bg-green-100 text-green-800">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-              30-day money-back guarantee
+              All features currently free!
             </Badge>
             <Badge variant="outline" className="text-sm">
-              No setup fees
+              API access available
             </Badge>
           </div>
         </div>
@@ -158,13 +164,17 @@ const Pricing = () => {
             {plans.map((plan) => (
               <Card 
                 key={plan.name} 
-                className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : ''}`}
+                className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : ''} ${plan.disabled ? 'opacity-75' : ''}`}
               >
-                {plan.popular && (
+                {plan.badge && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground px-4 py-1">
-                      <Crown className="w-3 h-3 mr-1" />
-                      Most Popular
+                    <Badge className={`px-4 py-1 ${
+                      plan.popular ? 'bg-primary text-primary-foreground' : 
+                      plan.disabled ? 'bg-muted text-muted-foreground' :
+                      'bg-secondary text-secondary-foreground'
+                    }`}>
+                      {plan.badge === 'Everything Free!' && <Crown className="w-3 h-3 mr-1" />}
+                      {plan.badge}
                     </Badge>
                   </div>
                 )}
@@ -192,7 +202,7 @@ const Pricing = () => {
 
                   <div className="pt-4">
                     {plan.tier === 'free' ? (
-                      <Button className="w-full" variant="outline" asChild>
+                      <Button className="w-full" asChild>
                         <Link to={user ? "/dashboard" : "/auth"}>
                           {plan.buttonText}
                         </Link>
@@ -204,11 +214,10 @@ const Pricing = () => {
                     ) : (
                       <Button 
                         className="w-full" 
-                        onClick={() => handleUpgrade(plan.tier)}
-                        disabled={loading === plan.tier}
+                        variant="outline"
+                        disabled={plan.disabled}
                       >
-                        {loading === plan.tier ? 'Processing...' : plan.buttonText}
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        {plan.buttonText}
                       </Button>
                     )}
                   </div>
@@ -222,35 +231,36 @@ const Pricing = () => {
       {/* Feature Comparison */}
       <section className="py-12 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-8">Feature Comparison</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Current Features & Future Plans</h2>
+          <p className="text-center text-muted-foreground mb-8">All features below are currently available for free. API access requires Enterprise plan.</p>
           
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-border rounded-lg">
               <thead>
                 <tr className="bg-muted">
                   <th className="border border-border p-4 text-left">Features</th>
-                  <th className="border border-border p-4 text-center">Free</th>
-                  <th className="border border-border p-4 text-center bg-primary/5">Professional</th>
-                  <th className="border border-border p-4 text-center">Enterprise</th>
+                  <th className="border border-border p-4 text-center bg-primary/5">Free (Current)</th>
+                  <th className="border border-border p-4 text-center">Professional (Future)</th>
+                  <th className="border border-border p-4 text-center">Enterprise (API Only)</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { feature: "AI Searches per day", free: "5", pro: "Unlimited", enterprise: "Unlimited" },
+                  { feature: "AI Searches per day", free: "Unlimited", pro: "Unlimited", enterprise: "Unlimited" },
                   { feature: "Real-time alerts", free: "✓", pro: "✓", enterprise: "✓" },
                   { feature: "Mobile dashboard", free: "✓", pro: "✓", enterprise: "✓" },
-                  { feature: "Email notifications", free: "Basic", pro: "Priority", enterprise: "Priority" },
-                  { feature: "Export (PDF/Excel)", free: "✗", pro: "✓", enterprise: "✓" },
-                  { feature: "Custom keywords", free: "✗", pro: "✓", enterprise: "✓" },
-                  { feature: "Alert history", free: "7 days", pro: "30 days", enterprise: "90 days" },
+                  { feature: "Email notifications", free: "✓", pro: "✓", enterprise: "✓" },
+                  { feature: "Export (PDF/Excel)", free: "✓", pro: "✓", enterprise: "✓" },
+                  { feature: "Custom keywords", free: "✓", pro: "✓", enterprise: "✓" },
+                  { feature: "Alert history", free: "30 days", pro: "30 days", enterprise: "90 days" },
                   { feature: "API access", free: "✗", pro: "✗", enterprise: "✓" },
-                  { feature: "Team members", free: "1", pro: "5", enterprise: "Unlimited" },
-                  { feature: "Support", free: "Community", pro: "Email & Phone", enterprise: "24/7 Dedicated" }
+                  { feature: "Team members", free: "Personal use", pro: "Coming soon", enterprise: "Unlimited" },
+                  { feature: "Support", free: "Email", pro: "Priority email", enterprise: "24/7 Dedicated" }
                 ].map((row, index) => (
                   <tr key={index} className={index % 2 === 0 ? "bg-background" : "bg-muted/50"}>
                     <td className="border border-border p-4 font-medium">{row.feature}</td>
-                    <td className="border border-border p-4 text-center">{row.free}</td>
-                    <td className="border border-border p-4 text-center bg-primary/5">{row.pro}</td>
+                    <td className="border border-border p-4 text-center bg-primary/5 font-semibold">{row.free}</td>
+                    <td className="border border-border p-4 text-center text-muted-foreground">{row.pro}</td>
                     <td className="border border-border p-4 text-center">{row.enterprise}</td>
                   </tr>
                 ))}
@@ -268,24 +278,24 @@ const Pricing = () => {
           <div className="space-y-6">
             {[
               {
-                q: "Can I cancel my subscription anytime?",
-                a: "Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your current billing period."
+                q: "Why is everything free right now?",
+                a: "We're building our community and want to provide maximum value while we develop new features. Only API access for enterprise integrations requires payment."
               },
               {
-                q: "What payment methods do you accept?",
-                a: "We accept all major credit cards (Visa, MasterCard, American Express) and bank transfers for Enterprise plans."
+                q: "Will free features stay free forever?",
+                a: "We're committed to keeping core regulatory monitoring features accessible. When we introduce paid plans, existing users will have generous grandfathering options."
               },
               {
-                q: "Is there a free trial for paid plans?",
-                a: "Yes, Professional and Enterprise plans come with a 14-day free trial. No credit card required to start."
+                q: "What does API access include?",
+                a: "Enterprise API access allows you to integrate RegIQ data into your own systems, pull alerts programmatically, and build custom applications on top of our regulatory data."
               },
               {
-                q: "Do you offer discounts for annual billing?",
-                a: "Yes, save 20% when you choose annual billing for Professional or Enterprise plans."
+                q: "When will paid features be introduced?",
+                a: "We're focused on perfecting the free experience first. Paid features will likely include advanced analytics, team collaboration tools, and premium integrations."
               },
               {
-                q: "What agencies does RegIQ monitor?",
-                a: "We monitor FDA, USDA, EPA, CDC, and other regulatory agencies for food safety, pharmaceutical, and agricultural alerts."
+                q: "How do I get API access?",
+                a: "Contact our sales team to discuss your API needs. We'll work with you to create a custom solution for your organization."
               }
             ].map((faq, index) => (
               <Card key={index}>
@@ -306,16 +316,16 @@ const Pricing = () => {
         <div className="container mx-auto text-center max-w-4xl">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-lg mb-8 opacity-90">
-            Join hundreds of food safety professionals who trust RegIQ for regulatory intelligence.
+            Join hundreds of food safety professionals using RegIQ for free regulatory intelligence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" asChild>
               <Link to={user ? "/dashboard" : "/auth"}>
-                Start Free Today
+                Start Using RegIQ Free
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-              Contact Sales
+              Contact Sales for API Access
             </Button>
           </div>
         </div>
