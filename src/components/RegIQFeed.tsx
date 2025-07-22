@@ -244,15 +244,28 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
 
   // Convert to RegIQ format
   const alerts = useMemo(() => {
-    return (fetchedAlerts || []).map(convertToRegIQAlert);
-  }, [fetchedAlerts]);
+    const converted = (fetchedAlerts || []).map(convertToRegIQAlert);
+    console.log('[RegIQFeed] Converted alerts:', {
+      fetchedCount: fetchedAlerts?.length || 0,
+      convertedCount: converted.length,
+      loading,
+      sampleConverted: converted[0]
+    });
+    return converted;
+  }, [fetchedAlerts, loading]);
 
   // Apply filters
   const filteredAlerts = useMemo(() => {
     let filtered = alerts;
+    console.log('[RegIQFeed] Starting filter process:', {
+      totalAlerts: alerts.length,
+      filters,
+      sampleAlert: alerts[0]
+    });
 
     // Time period filter
     filtered = filterByTimePeriod(filtered, filters.timePeriod);
+    console.log('[RegIQFeed] After time filter:', filtered.length);
 
     // Agency filter
     if (filters.agencies.length > 0) {
@@ -267,22 +280,31 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
                  (agency === 'CDC' && source.includes('disease control'));
         });
       });
+      console.log('[RegIQFeed] After agency filter:', filtered.length);
     }
 
     // Industry filter
     if (filters.industries.length > 0) {
       filtered = filtered.filter(alert => filters.industries.includes(alert.industry));
+      console.log('[RegIQFeed] After industry filter:', filtered.length);
     }
 
     // Priority filter
     if (filters.priorities.length > 0) {
       filtered = filtered.filter(alert => filters.priorities.includes(alert.urgency));
+      console.log('[RegIQFeed] After priority filter:', filtered.length);
     }
 
     // Signal type filter
     if (filters.signalTypes.length > 0) {
       filtered = filtered.filter(alert => filters.signalTypes.includes(alert.signal_type));
+      console.log('[RegIQFeed] After signal type filter:', filtered.length);
     }
+
+    console.log('[RegIQFeed] Final filtered alerts:', {
+      count: filtered.length,
+      sampleTitles: filtered.slice(0, 3).map(a => a.title)
+    });
 
     return filtered;
   }, [alerts, filters]);

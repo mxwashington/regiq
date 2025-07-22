@@ -26,12 +26,17 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
             const { version } = event.data;
             const storedVersion = localStorage.getItem('app-version');
             
-            if (storedVersion && storedVersion !== version) {
+            // Only show update notification if we have a stored version AND it's different
+            // AND we haven't dismissed this version already
+            const dismissedVersion = localStorage.getItem('dismissed-version');
+            
+            if (storedVersion && storedVersion !== version && dismissedVersion !== version) {
               setShowUpdate(true);
               setCurrentVersion(version);
+            } else if (!storedVersion) {
+              // First time - just store the version without showing notification
+              localStorage.setItem('app-version', version);
             }
-            
-            localStorage.setItem('app-version', version);
           };
           
           navigator.serviceWorker.controller.postMessage(
@@ -48,7 +53,9 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'NEW_VERSION') {
         const storedVersion = localStorage.getItem('app-version');
-        if (storedVersion && storedVersion !== event.data.version) {
+        const dismissedVersion = localStorage.getItem('dismissed-version');
+        
+        if (storedVersion && storedVersion !== event.data.version && dismissedVersion !== event.data.version) {
           setShowUpdate(true);
           setCurrentVersion(event.data.version);
         }
@@ -137,6 +144,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
   const handleDismiss = () => {
     setShowUpdate(false);
     localStorage.setItem('app-version', currentVersion);
+    localStorage.setItem('dismissed-version', currentVersion);
   };
 
   if (!showUpdate) return null;

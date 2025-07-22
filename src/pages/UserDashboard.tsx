@@ -35,6 +35,13 @@ const UserDashboard = () => {
 
   // Get filtered alerts for display (same logic as landing page)
   const displayAlerts = useMemo(() => {
+    console.log('[UserDashboard] Processing alerts:', {
+      totalAlerts: alerts.length,
+      searchQuery,
+      selectedAgency,
+      sampleAlert: alerts[0]
+    });
+    
     let filtered = alerts;
     
     // Apply search filter
@@ -45,6 +52,7 @@ const UserDashboard = () => {
         alert.summary.toLowerCase().includes(query) ||
         alert.source.toLowerCase().includes(query)
       );
+      console.log('[UserDashboard] After search filter:', filtered.length);
     }
     
     // Apply agency filter
@@ -53,10 +61,18 @@ const UserDashboard = () => {
         const sourceMatch = alert.source.toLowerCase() === selectedAgency.toLowerCase();
         return sourceMatch;
       });
+      console.log('[UserDashboard] After agency filter:', filtered.length);
     }
     
-    return filtered.slice(0, 20); // Show more alerts in dashboard
-  }, [alerts, selectedAgency, searchQuery]);
+    const result = filtered.slice(0, 20); // Show more alerts in dashboard
+    console.log('[UserDashboard] Final displayAlerts:', {
+      length: result.length,
+      loading,
+      sampleTitles: result.slice(0, 3).map(a => a.title)
+    });
+    
+    return result;
+  }, [alerts, selectedAgency, searchQuery, loading]);
 
   // Agency filter counts (same as landing page)
   const agencyCounts = useMemo(() => {
