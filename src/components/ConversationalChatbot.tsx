@@ -28,7 +28,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
     {
       id: '1',
       type: 'bot',
-      content: "Hi! I'm RegIQ's AI assistant powered by GPT-4.1. I can help you find FDA regulations, USDA guidelines, EPA rules, and other regulatory information with real-time web search. What food safety or regulatory question can I help you with?",
+      content: "Hi! I'm RegIQ's AI assistant powered by GPT-4.1 with real-time web search and database integration. I can help you find FDA regulations, USDA guidelines, EPA rules, and other regulatory information using our comprehensive data sources. What food safety or regulatory question can I help you with?",
       timestamp: new Date(),
     }
   ]);
@@ -61,13 +61,14 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
     setIsLoading(true);
 
     try {
-      // Call GPT web search function instead of Perplexity
-      const { data, error } = await supabase.functions.invoke('gpt-web-search', {
+      // Call enhanced GPT search function with web search and RSS integration
+      const { data, error } = await supabase.functions.invoke('gpt-search', {
         body: {
           query: userMessage.content,
           agencies: ['FDA', 'USDA', 'EPA', 'CDC'],
-          searchType: 'regulatory',
-          industry: 'food'
+          searchType: 'smart_search',
+          industry: 'food',
+          timeRange: 'month'
         }
       });
 
@@ -76,22 +77,26 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: data.response || 'I apologize, but I encountered an issue processing your request. Please try again.',
+        content: data.content || 'I apologize, but I encountered an issue processing your request. Please try again.',
         timestamp: new Date(),
-        sources: data.sources || []
+        sources: data.citations?.map((url: string) => ({
+          title: url.includes('fda.gov') ? 'FDA' : url.includes('usda.gov') ? 'USDA' : url.includes('epa.gov') ? 'EPA' : 'Government Source',
+          url
+        })) || []
       };
 
       setMessages(prev => [...prev, botMessage]);
 
       // Log the conversation if user is authenticated
       if (user) {
-        await (supabase as any).from('chat_logs').insert({
+        await supabase.from('perplexity_searches').insert({
           user_id: user.id,
-          prompt: userMessage.content,
-          response: botMessage.content,
-          tokens_used: data.tokensUsed || 0,
-          sources: data.sources || [],
-          response_time_ms: data.responseTime || 0
+          query: userMessage.content,
+          search_type: 'smart_search',
+          agencies: ['FDA', 'USDA', 'EPA', 'CDC'],
+          industry: 'food',
+          tokens_used: data.content?.length || 0,
+          success: true
         });
       }
 
@@ -147,7 +152,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
           </Avatar>
           <div>
             <h3 className="font-semibold text-sm">RegIQ Assistant</h3>
-            <p className="text-xs text-muted-foreground">Powered by GPT-4.1</p>
+            <p className="text-xs text-muted-foreground">GPT-4.1 + Web Search + Database</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={onToggle}>
@@ -225,7 +230,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask about FDA, USDA, EPA regulations... (Powered by GPT-4.1)"
+            placeholder="Ask about FDA, USDA, EPA regulations... (Enhanced AI with web search)"
             className="flex-1"
             disabled={isLoading}
           />

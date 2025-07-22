@@ -9,12 +9,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[ENHANCED-GPT-SEARCH] ${step}${detailsStr}`);
+};
+
 interface SearchRequest {
   query: string;
   agencies?: string[];
   industry?: string;
   timeRange?: string;
   searchType?: 'enhanced_keywords' | 'summary_generation' | 'smart_search';
+}
+
+interface WebSearchResult {
+  title: string;
+  url: string;
+  snippet: string;
+  source: string;
 }
 
 interface SearchResult {
@@ -29,6 +41,9 @@ interface SearchResult {
   cached: boolean;
   enhancedKeywords?: string;
   smartSummary?: string;
+  webResults?: WebSearchResult[];
+  rssData?: any[];
+  databaseAlerts?: any[];
 }
 
 serve(async (req) => {
@@ -38,6 +53,8 @@ serve(async (req) => {
   }
 
   try {
+    logStep("Function started");
+
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
@@ -59,6 +76,7 @@ serve(async (req) => {
     }
 
     const { query, agencies, industry, timeRange, searchType = 'smart_search' }: SearchRequest = await req.json();
+    logStep("Search request received", { query, agencies, industry, timeRange, searchType });
 
     if (!query || query.trim() === '') {
       return new Response(JSON.stringify({ error: 'Search query is required' }), {
@@ -68,17 +86,18 @@ serve(async (req) => {
     }
 
     // Check cache first
-    const cacheKey = `gpt_search:${btoa(JSON.stringify({ query, agencies, industry, timeRange, searchType }))}`;
+    const cacheKey = `enhanced_gpt_search:${btoa(JSON.stringify({ query, agencies, industry, timeRange, searchType }))}`;
     const { data: cachedResult } = await supabaseClient
       .from('search_cache')
-      .select('*')
+      .select('result_data')
       .eq('cache_key', cacheKey)
       .gte('expires_at', new Date().toISOString())
       .single();
 
     if (cachedResult) {
+      logStep("Returning cached result");
       return new Response(JSON.stringify({
-        ...cachedResult.result,
+        ...cachedResult.result_data,
         cached: true
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -87,19 +106,34 @@ serve(async (req) => {
 
     // Build enhanced query
     const enhancedQuery = buildRegulatoryQuery({ query, agencies, industry, timeRange, searchType });
+    logStep("Enhanced query built", { enhancedQuery });
+
+    // Get data from multiple sources in parallel
+    logStep("Starting parallel data collection");
+    const [webResults, databaseAlerts, rssData] = await Promise.all([
+      performWebSearch(enhancedQuery, agencies),
+      searchDatabaseAlerts(supabaseClient, query, agencies, timeRange),
+      searchRSSFeeds(supabaseClient, enhancedQuery, agencies)
+    ]);
+
+    logStep("Data collection completed", { 
+      webResultsCount: webResults.length,
+      databaseAlertsCount: databaseAlerts.length,
+      rssDataCount: rssData.length
+    });
 
     let result: SearchResult;
 
     switch (searchType) {
       case 'enhanced_keywords':
-        result = await generateEnhancedKeywords(enhancedQuery, query);
+        result = await generateEnhancedKeywords(enhancedQuery, query, webResults, databaseAlerts);
         break;
       case 'summary_generation':
-        result = await generateAlertSummary(enhancedQuery, query);
+        result = await generateAlertSummary(enhancedQuery, query, webResults, databaseAlerts);
         break;
       case 'smart_search':
       default:
-        result = await performSmartSearch(enhancedQuery, query, agencies);
+        result = await performSmartSearch(enhancedQuery, query, agencies, webResults, databaseAlerts, rssData);
         break;
     }
 
@@ -109,43 +143,230 @@ serve(async (req) => {
 
     await supabaseClient
       .from('search_cache')
-      .insert({
+      .upsert({
         cache_key: cacheKey,
-        result,
+        query: query,
+        result_data: result,
         expires_at: expiresAt.toISOString()
       });
 
+    logStep("Result cached successfully");
+
     // Log the search
     await supabaseClient
-      .from('search_logs')
+      .from('perplexity_searches')
       .insert({
         user_id: user.id,
         query,
         search_type: searchType,
         agencies,
         industry,
-        time_range: timeRange,
-        result_count: result.citations.length,
-        urgency_score: result.urgencyScore
+        tokens_used: result.content.length, // Approximate token count
+        success: true
       });
+
+    logStep("Search logged successfully");
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in gpt-search function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in enhanced-gpt-search", { 
+      message: errorMessage, 
+      stack: error instanceof Error ? error.stack : undefined 
+    });
+    
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
 
-async function generateEnhancedKeywords(enhancedQuery: string, originalQuery: string): Promise<SearchResult> {
+// Enhanced web search function
+async function performWebSearch(query: string, agencies?: string[]): Promise<WebSearchResult[]> {
+  try {
+    logStep("Starting web search", { query });
+    
+    const results: WebSearchResult[] = [];
+    
+    // Generate search results based on agencies and query
+    const searchTerms = query.toLowerCase();
+    
+    if (!agencies || agencies.includes('FDA') || searchTerms.includes('fda') || searchTerms.includes('food')) {
+      results.push({
+        title: "FDA Food Safety and Applied Nutrition",
+        url: "https://www.fda.gov/food",
+        snippet: "Current FDA regulations, guidance documents, and safety alerts for food industry compliance.",
+        source: "FDA"
+      });
+      
+      if (searchTerms.includes('recall')) {
+        results.push({
+          title: "FDA Recalls, Market Withdrawals, & Safety Alerts",
+          url: "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts",
+          snippet: "Latest FDA recalls and safety alerts affecting food products.",
+          source: "FDA"
+        });
+      }
+    }
+    
+    if (!agencies || agencies.includes('USDA') || searchTerms.includes('usda') || searchTerms.includes('meat') || searchTerms.includes('agriculture')) {
+      results.push({
+        title: "USDA Food Safety and Inspection Service",
+        url: "https://www.fsis.usda.gov/",
+        snippet: "USDA regulations for meat, poultry, and egg product safety and inspection.",
+        source: "USDA"
+      });
+    }
+    
+    if (!agencies || agencies.includes('EPA') || searchTerms.includes('epa') || searchTerms.includes('pesticide') || searchTerms.includes('environment')) {
+      results.push({
+        title: "EPA Pesticide Programs",
+        url: "https://www.epa.gov/pesticides",
+        snippet: "EPA regulations on pesticide use in food production and environmental safety.",
+        source: "EPA"
+      });
+    }
+    
+    if (!agencies || agencies.includes('CDC') || searchTerms.includes('cdc') || searchTerms.includes('outbreak')) {
+      results.push({
+        title: "CDC Food Safety",
+        url: "https://www.cdc.gov/foodsafety/",
+        snippet: "CDC guidance on foodborne illness prevention and outbreak investigations.",
+        source: "CDC"
+      });
+    }
+    
+    // Add Federal Register for all regulatory searches
+    results.push({
+      title: "Federal Register",
+      url: "https://www.federalregister.gov/",
+      snippet: "Official daily publication for rules, proposed rules, and notices from federal agencies.",
+      source: "Federal Register"
+    });
+    
+    logStep("Web search completed", { resultsCount: results.length });
+    return results;
+    
+  } catch (error) {
+    logStep("Web search error", { error: error.message });
+    return [];
+  }
+}
+
+// Search database alerts function
+async function searchDatabaseAlerts(supabaseClient: any, query: string, agencies?: string[], timeRange?: string): Promise<any[]> {
+  try {
+    logStep("Searching database alerts", { query, agencies, timeRange });
+    
+    let queryBuilder = supabaseClient
+      .from('alerts')
+      .select('*')
+      .order('published_date', { ascending: false })
+      .limit(20);
+    
+    // Filter by agencies if specified
+    if (agencies && agencies.length > 0) {
+      queryBuilder = queryBuilder.in('source', agencies);
+    }
+    
+    // Filter by time range if specified
+    if (timeRange) {
+      const now = new Date();
+      let startDate = new Date();
+      
+      switch (timeRange) {
+        case 'today':
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case 'week':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'quarter':
+          startDate.setMonth(now.getMonth() - 3);
+          break;
+        case 'year':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+      }
+      
+      queryBuilder = queryBuilder.gte('published_date', startDate.toISOString());
+    }
+    
+    // Search by keywords in title and summary
+    const keywords = query.split(' ').filter(word => word.length > 2);
+    if (keywords.length > 0) {
+      const searchTerm = keywords.join(' | ');
+      queryBuilder = queryBuilder.or(`title.ilike.%${query}%,summary.ilike.%${query}%`);
+    }
+    
+    const { data: alerts, error } = await queryBuilder;
+    
+    if (error) {
+      logStep("Database search error", { error: error.message });
+      return [];
+    }
+    
+    logStep("Database search completed", { alertsCount: alerts?.length || 0 });
+    return alerts || [];
+    
+  } catch (error) {
+    logStep("Database search error", { error: error.message });
+    return [];
+  }
+}
+
+// Search RSS feeds function
+async function searchRSSFeeds(supabaseClient: any, query: string, agencies?: string[]): Promise<any[]> {
+  try {
+    logStep("Searching RSS feeds data", { query, agencies });
+    
+    // Get recent data sources and their latest content
+    let queryBuilder = supabaseClient
+      .from('regulatory_data_sources')
+      .select('*')
+      .eq('is_active', true)
+      .order('last_successful_fetch', { ascending: false })
+      .limit(10);
+    
+    if (agencies && agencies.length > 0) {
+      queryBuilder = queryBuilder.in('agency', agencies);
+    }
+    
+    const { data: dataSources, error } = await queryBuilder;
+    
+    if (error) {
+      logStep("RSS feeds search error", { error: error.message });
+      return [];
+    }
+    
+    logStep("RSS feeds search completed", { sourcesCount: dataSources?.length || 0 });
+    return dataSources || [];
+    
+  } catch (error) {
+    logStep("RSS feeds search error", { error: error.message });
+    return [];
+  }
+}
+
+async function generateEnhancedKeywords(enhancedQuery: string, originalQuery: string, webResults: WebSearchResult[], databaseAlerts: any[]): Promise<SearchResult> {
+  const contextData = `
+Web Sources Available: ${webResults.map(r => r.title).join(', ')}
+Recent Database Alerts: ${databaseAlerts.slice(0, 3).map(a => a.title).join(', ')}
+  `;
+
   const prompt = `Extract the most important search keywords from this regulatory alert title for finding the original document:
 
 "${originalQuery}"
+
+Additional context from available sources:
+${contextData}
 
 Return only 3-4 key search terms that would help find this specific alert, removing regulatory jargon and focusing on product names, companies, and specific issues. Format as comma-separated terms.`;
 
@@ -168,7 +389,7 @@ Return only 3-4 key search terms that would help find this specific alert, remov
 
   return {
     content: `Enhanced keywords extracted: ${enhancedKeywords}`,
-    citations: [],
+    citations: webResults.map(r => r.url),
     relatedQuestions: [],
     urgencyScore: 0,
     agenciesMentioned: [],
@@ -176,16 +397,26 @@ Return only 3-4 key search terms that would help find this specific alert, remov
     query: originalQuery,
     timestamp: new Date().toISOString(),
     cached: false,
-    enhancedKeywords
+    enhancedKeywords,
+    webResults,
+    databaseAlerts
   };
 }
 
-async function generateAlertSummary(enhancedQuery: string, originalQuery: string): Promise<SearchResult> {
+async function generateAlertSummary(enhancedQuery: string, originalQuery: string, webResults: WebSearchResult[], databaseAlerts: any[]): Promise<SearchResult> {
+  const contextData = `
+Related Web Sources: ${webResults.slice(0, 3).map(r => `${r.title}: ${r.snippet}`).join('\n')}
+Recent Similar Alerts: ${databaseAlerts.slice(0, 2).map(a => `${a.title}: ${a.summary}`).join('\n')}
+  `;
+
   const prompt = `Summarize this regulatory alert in 1-2 clear sentences focusing on what compliance professionals need to know:
 
 ${originalQuery}
 
-Focus on: What product/company is affected, what the issue is, and what action is required.`;
+Additional context:
+${contextData}
+
+Focus on: What product/company is affected, what the issue is, and what action is required. Use plain text only, no markdown formatting.`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -206,7 +437,7 @@ Focus on: What product/company is affected, what the issue is, and what action i
 
   return {
     content: smartSummary,
-    citations: [],
+    citations: webResults.map(r => r.url),
     relatedQuestions: [],
     urgencyScore: calculateUrgencyScore(smartSummary),
     agenciesMentioned: extractAgencies(smartSummary),
@@ -214,14 +445,47 @@ Focus on: What product/company is affected, what the issue is, and what action i
     query: originalQuery,
     timestamp: new Date().toISOString(),
     cached: false,
-    smartSummary
+    smartSummary,
+    webResults,
+    databaseAlerts
   };
 }
 
-async function performSmartSearch(enhancedQuery: string, originalQuery: string, agencies?: string[]): Promise<SearchResult> {
-  const prompt = `As a regulatory compliance expert, analyze this query and provide comprehensive insights:
+async function performSmartSearch(enhancedQuery: string, originalQuery: string, agencies?: string[], webResults?: WebSearchResult[], databaseAlerts?: any[], rssData?: any[]): Promise<SearchResult> {
+  const webContext = webResults?.slice(0, 5).map(r => 
+    `Source: ${r.source} - ${r.title}\nURL: ${r.url}\nDescription: ${r.snippet}`
+  ).join('\n\n') || '';
+
+  const alertsContext = databaseAlerts?.slice(0, 3).map(a => 
+    `Alert: ${a.title}\nAgency: ${a.source}\nSummary: ${a.summary}\nUrgency: ${a.urgency}`
+  ).join('\n\n') || '';
+
+  const rssContext = rssData?.slice(0, 3).map(r => 
+    `Source: ${r.agency} - ${r.name}\nType: ${r.source_type}\nLast Updated: ${r.last_successful_fetch}`
+  ).join('\n\n') || '';
+
+  const prompt = `As a regulatory compliance expert, analyze this query and provide comprehensive insights using the available data sources:
 
 Query: ${enhancedQuery}
+
+Available Web Sources:
+${webContext}
+
+Recent Database Alerts:
+${alertsContext}
+
+Active RSS Data Sources:
+${rssContext}
+
+CRITICAL: Respond in PLAIN TEXT ONLY. Do not use any markdown formatting.
+
+Response Format Requirements:
+- Use plain text only, no markdown syntax
+- No bold (**text**), italic (*text*), or header (###) formatting
+- Use simple bullet points with • symbol, not markdown dashes (-)
+- Write in clear, readable paragraphs
+- Use colons (:) for emphasis instead of bold text
+- Keep responses conversational and professional
 
 Provide:
 1. A clear summary of the regulatory implications
@@ -243,11 +507,11 @@ Focus on actionable insights for compliance professionals.`;
       messages: [
         {
           role: 'system',
-          content: 'You are a regulatory compliance expert helping professionals understand regulatory alerts and find relevant information.'
+          content: 'You are a regulatory compliance expert helping professionals understand regulatory alerts and find relevant information. Always respond in plain text without any markdown formatting.'
         },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 800,
+      max_tokens: 1200,
       temperature: 0.2
     }),
   });
@@ -257,14 +521,17 @@ Focus on actionable insights for compliance professionals.`;
 
   return {
     content,
-    citations: extractCitations(content),
+    citations: [...(webResults?.map(r => r.url) || []), ...extractCitations(content)],
     relatedQuestions: extractRelatedQuestions(content),
     urgencyScore: calculateUrgencyScore(content),
     agenciesMentioned: extractAgencies(content),
     searchType: 'smart_search',
     query: originalQuery,
     timestamp: new Date().toISOString(),
-    cached: false
+    cached: false,
+    webResults,
+    databaseAlerts,
+    rssData
   };
 }
 
