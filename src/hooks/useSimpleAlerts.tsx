@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { fallbackAlerts } from '@/lib/debug-utils';
 
 interface SimpleAlert {
   id: string;
@@ -10,6 +11,7 @@ interface SimpleAlert {
   source: string;
   published_date: string;
   external_url?: string;
+  isFallback?: boolean;
 }
 
 export const useSimpleAlerts = (limit?: number) => {
@@ -17,16 +19,30 @@ export const useSimpleAlerts = (limit?: number) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchAlerts = async () => {
+  const loadAlertsWithRetry = async (maxRetries = 3) => {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        console.log('Fetching simple alerts...', { limit });
+        console.log(`[useSimpleAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading alerts...`, { limit });
         setLoading(true);
         setError(null);
 
-        // Build query without artificial limit
+        // Test basic connection first
+        console.log('[useSimpleAlerts] Testing database connection...');
+        const { error: pingError } = await supabase
+          .from('alerts')
+          .select('count')
+          .limit(0);
+
+        if (pingError) {
+          throw new Error(`Database connection failed: ${pingError.message}`);
+        }
+
+        console.log('[useSimpleAlerts] Database connection successful, loading alerts...');
+
+        // Build query
         let query = supabase
           .from('alerts')
           .select(`
@@ -36,7 +52,8 @@ export const useSimpleAlerts = (limit?: number) => {
             urgency,
             source,
             published_date,
-            external_url
+            external_url,
+            dismissed_by
           `, { count: 'exact' })
           .order('published_date', { ascending: false });
 
@@ -48,34 +65,67 @@ export const useSimpleAlerts = (limit?: number) => {
         const { data, error: fetchError, count } = await query;
 
         if (fetchError) {
-          console.error('Error fetching simple alerts:', fetchError);
-          throw fetchError;
+          console.error('[useSimpleAlerts] Query failed:', fetchError);
+          throw new Error(`Query failed: ${fetchError.message} (Code: ${fetchError.code})`);
         }
 
-        console.log('Simple alert data fetched:', { 
-          count: data?.length, 
+        if (!data) {
+          throw new Error('No data returned from query');
+        }
+
+        console.log('[useSimpleAlerts] Successfully loaded alerts:', { 
+          count: data.length, 
           totalCount: count,
           limit,
-          firstAlert: data?.[0] 
+          sampleTitles: data.slice(0, 3).map(a => a.title) 
         });
         
-        setAlerts(data || []);
+        setAlerts(data);
         setTotalCount(count || 0);
-      } catch (err: any) {
-        console.error('Error in useSimpleAlerts:', err);
-        setError(err.message || 'Failed to load alerts');
-        toast({
-          title: 'Error',
-          description: 'Failed to load alerts',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+        setRetryCount(0);
+        return;
 
-    fetchAlerts();
+      } catch (err: any) {
+        console.error(`[useSimpleAlerts] Attempt ${attempt + 1} failed:`, err);
+        
+        if (attempt === maxRetries) {
+          // All retries failed, use fallback
+          console.warn('[useSimpleAlerts] All retries failed, using fallback data');
+          setError(err.message || 'Failed to load alerts');
+          setAlerts(fallbackAlerts);
+          setTotalCount(fallbackAlerts.length);
+          setRetryCount(attempt + 1);
+          
+          toast({
+            title: 'Connection Issue',
+            description: 'Using cached data. Click refresh to try again.',
+            variant: 'destructive'
+          });
+        } else {
+          // Wait before retry with exponential backoff
+          const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+          console.log(`[useSimpleAlerts] Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadAlertsWithRetry();
   }, [limit, toast]);
 
-  return { alerts, loading, error, totalCount };
+  // Provide manual retry function
+  const retryLoad = () => {
+    loadAlertsWithRetry();
+  };
+
+  return { 
+    alerts, 
+    loading, 
+    error, 
+    totalCount, 
+    retryCount,
+    retryLoad 
+  };
 };

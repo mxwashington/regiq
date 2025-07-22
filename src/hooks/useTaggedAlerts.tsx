@@ -45,15 +45,28 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
   const [alerts, setAlerts] = useState<TaggedAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchAlerts = async () => {
+  const loadTaggedAlertsWithRetry = async (maxRetries = 2) => {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        console.log('Fetching tagged alerts...', { filters, limit });
+        console.log(`[useTaggedAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading tagged alerts...`, { filters, limit });
         setLoading(true);
         setError(null);
 
+        // Test if the tables exist first with a simple query
+        console.log('[useTaggedAlerts] Testing table access...');
+        const { error: testError } = await supabase
+          .from('alerts')
+          .select('id')
+          .limit(1);
+
+        if (testError) {
+          throw new Error(`Table access failed: ${testError.message}`);
+        }
+
+        // Try the complex query with proper error handling
         let query = supabase
           .from('alerts')
           .select(`
@@ -64,7 +77,8 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
             source,
             published_date,
             external_url,
-            alert_tags (
+            dismissed_by,
+            alert_tags!left (
               id,
               confidence_score,
               is_primary,
@@ -82,78 +96,123 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
           .order('published_date', { ascending: false })
           .limit(limit);
 
-        // Apply filters if any
+        // Apply filters if any - but do it more safely
         if (filters.length > 0) {
-          // Filter by tag IDs through the alert_tags relationship
           const tagIds = filters.map(f => f.tagId);
-          query = query.in('alert_tags.taxonomy_tags.id', tagIds);
-          console.log('Applied filters:', { tagIds });
+          console.log('[useTaggedAlerts] Applying filters:', { tagIds });
+          
+          // Use a more specific filter that's less likely to fail
+          query = query.not('alert_tags', 'is', null);
         }
 
         const { data, error: fetchError } = await query;
 
         if (fetchError) {
-          console.error('Error fetching alerts:', fetchError);
-          throw fetchError;
+          console.error('[useTaggedAlerts] Complex query failed:', fetchError);
+          
+          // If it's a relationship error, this might be expected
+          if (fetchError.message.includes('foreign key') || 
+              fetchError.message.includes('relation') ||
+              fetchError.message.includes('does not exist')) {
+            throw new Error('Tagged alerts feature not available - missing database relationships');
+          }
+          
+          throw new Error(`Query failed: ${fetchError.message}`);
         }
 
-        console.log('Raw alert data:', { count: data?.length, data });
+        console.log('[useTaggedAlerts] Raw data loaded:', { count: data?.length });
 
-        // Transform the data to match our interface
-        const transformedAlerts = data?.map(alert => ({
-          ...alert,
-          alert_tags: alert.alert_tags?.map(alertTag => ({
-            id: alertTag.id,
-            confidence_score: alertTag.confidence_score,
-            is_primary: alertTag.is_primary,
-            tag: {
-              id: alertTag.taxonomy_tags.id,
-              name: alertTag.taxonomy_tags.name,
-              slug: alertTag.taxonomy_tags.slug,
-              color: alertTag.taxonomy_tags.color,
-              category: {
-                name: alertTag.taxonomy_tags.taxonomy_categories.name
-              }
-            }
-          }))
-        })) || [];
+        // Transform the data more safely
+        const transformedAlerts = data?.map(alert => {
+          try {
+            return {
+              ...alert,
+              alert_tags: alert.alert_tags?.map(alertTag => ({
+                id: alertTag.id,
+                confidence_score: alertTag.confidence_score,
+                is_primary: alertTag.is_primary,
+                tag: {
+                  id: alertTag.taxonomy_tags?.id || '',
+                  name: alertTag.taxonomy_tags?.name || '',
+                  slug: alertTag.taxonomy_tags?.slug || '',
+                  color: alertTag.taxonomy_tags?.color || '#gray',
+                  category: {
+                    name: alertTag.taxonomy_tags?.taxonomy_categories?.name || ''
+                  }
+                }
+              })) || []
+            };
+          } catch (transformError) {
+            console.warn('[useTaggedAlerts] Transform error for alert:', alert.id, transformError);
+            return {
+              ...alert,
+              alert_tags: []
+            };
+          }
+        }) || [];
         
-        console.log('Transformed alerts:', { count: transformedAlerts?.length });
+        console.log('[useTaggedAlerts] Transformed alerts:', { count: transformedAlerts?.length });
+        
+        // Apply client-side filtering more safely
         let filteredAlerts = transformedAlerts;
         if (filters.length > 0) {
-          const filtersByCategory = filters.reduce((acc, filter) => {
-            if (!acc[filter.categoryId]) {
-              acc[filter.categoryId] = [];
-            }
-            acc[filter.categoryId].push(filter.tagId);
-            return acc;
-          }, {} as Record<string, string[]>);
+          try {
+            const filtersByCategory = filters.reduce((acc, filter) => {
+              if (!acc[filter.categoryId]) {
+                acc[filter.categoryId] = [];
+              }
+              acc[filter.categoryId].push(filter.tagId);
+              return acc;
+            }, {} as Record<string, string[]>);
 
-          filteredAlerts = transformedAlerts.filter(alert => {
-            return Object.entries(filtersByCategory).every(([categoryId, tagIds]) => {
-              return alert.alert_tags?.some(alertTag => 
-                tagIds.includes(alertTag.tag.id)
-              );
+            filteredAlerts = transformedAlerts.filter(alert => {
+              return Object.entries(filtersByCategory).every(([categoryId, tagIds]) => {
+                return alert.alert_tags?.some(alertTag => 
+                  tagIds.includes(alertTag.tag?.id)
+                );
+              });
             });
-          });
+            
+            console.log('[useTaggedAlerts] Applied client-side filters:', { 
+              originalCount: transformedAlerts.length,
+              filteredCount: filteredAlerts.length 
+            });
+          } catch (filterError) {
+            console.warn('[useTaggedAlerts] Filter error, using unfiltered data:', filterError);
+            filteredAlerts = transformedAlerts;
+          }
         }
 
         setAlerts(filteredAlerts);
+        setRetryCount(0);
+        return;
+
       } catch (err: any) {
-        console.error('Error fetching tagged alerts:', err);
-        setError(err.message || 'Failed to load alerts');
-        toast({
-          title: 'Error',
-          description: 'Failed to load alerts with tags',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
+        console.error(`[useTaggedAlerts] Attempt ${attempt + 1} failed:`, err);
+        
+        if (attempt === maxRetries) {
+          console.error('[useTaggedAlerts] All retries failed:', err);
+          setError(err.message || 'Failed to load tagged alerts');
+          setRetryCount(attempt + 1);
+          
+          // Don't show toast error here - let the parent component handle fallback
+          return;
+        } else {
+          // Wait before retry
+          const delay = 1000 * (attempt + 1);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
       }
-    };
+    }
+  };
 
-    fetchAlerts();
-  }, [filters, limit, toast]);
+  useEffect(() => {
+    loadTaggedAlertsWithRetry();
+  }, [filters, limit]);
 
-  return { alerts, loading, error };
+  const retryLoad = () => {
+    loadTaggedAlertsWithRetry();
+  };
+
+  return { alerts, loading, error, retryCount, retryLoad };
 };

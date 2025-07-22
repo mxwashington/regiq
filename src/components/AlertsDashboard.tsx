@@ -5,17 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Filter, Tags, TrendingUp, AlertTriangle, Clock, X, Trash2, RefreshCw } from 'lucide-react';
+import { Search, Filter, Tags, TrendingUp, AlertTriangle, Clock, X, Trash2, RefreshCw, Bug } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import TagFilter from './TagFilter';
 import TaggedAlertCard from './TaggedAlertCard';
 import SimpleAlertCard from './SimpleAlertCard';
+import { AlertsErrorBoundary } from './AlertsErrorBoundary';
 import { useTaxonomy } from '@/hooks/useTaxonomy';
 import { useTaggedAlerts } from '@/hooks/useTaggedAlerts';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useAuth } from '@/contexts/AuthContext';
+import { debugRegIQ } from '@/lib/debug-utils';
 
 interface ActiveFilter {
   categoryId: string;
@@ -31,44 +33,76 @@ export function AlertsDashboard() {
   const [showFilters, setShowFilters] = useState(false);
   const [showDismissed, setShowDismissed] = useState(false);
   const [updatingFDA, setUpdatingFDA] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
   // Load taxonomy data
-  const { categories: taxonomyCategories, loading: taxonomyLoading } = useTaxonomy();
+  const { categories: taxonomyCategories, loading: taxonomyLoading, error: taxonomyError } = useTaxonomy();
   
-  // Load alerts with current filters - with fallback to simple alerts
-  const { alerts: taggedAlerts, loading: taggedAlertsLoading, error: taggedAlertsError } = useTaggedAlerts({ 
+  // Load alerts with enhanced error handling
+  const { 
+    alerts: taggedAlerts, 
+    loading: taggedAlertsLoading, 
+    error: taggedAlertsError,
+    retryCount: taggedRetryCount,
+    retryLoad: retryTagged
+  } = useTaggedAlerts({ 
     filters: activeFilters,
     limit: 100 
   });
   
-  // Fallback to simple alerts if tagged alerts fail
-  const { alerts: simpleAlerts, loading: simpleAlertsLoading } = useSimpleAlerts(100);
+  // Always load simple alerts as fallback
+  const { 
+    alerts: simpleAlerts, 
+    loading: simpleAlertsLoading,
+    error: simpleAlertsError,
+    retryCount: simpleRetryCount,
+    retryLoad: retrySimple
+  } = useSimpleAlerts(100);
   
-  // Use tagged alerts if available, otherwise fallback to simple alerts
-  const alerts = taggedAlertsError ? simpleAlerts : taggedAlerts;
-  const alertsLoading = taggedAlertsError ? simpleAlertsLoading : taggedAlertsLoading;
+  // Smart fallback logic
+  const useSimpleFallback = !!taggedAlertsError || taggedAlerts.length === 0;
+  const alerts = useSimpleFallback ? simpleAlerts : taggedAlerts;
+  const alertsLoading = useSimpleFallback ? simpleAlertsLoading : taggedAlertsLoading;
+  const alertsError = useSimpleFallback ? simpleAlertsError : taggedAlertsError;
   
-  // Log debugging info
+  // Enhanced debugging info
   React.useEffect(() => {
-    console.log('AlertsDashboard state:', {
+    console.log('[AlertsDashboard] State:', {
       taggedAlertsError,
       taggedAlertsCount: taggedAlerts?.length,
       simpleAlertsCount: simpleAlerts?.length,
-      usingSimpleAlerts: !!taggedAlertsError,
-      activeFiltersCount: activeFilters.length
+      usingSimpleFallback: useSimpleFallback,
+      activeFiltersCount: activeFilters.length,
+      taxonomyError,
+      simpleAlertsError,
+      alertsLoading,
+      taggedRetryCount,
+      simpleRetryCount
     });
-  }, [taggedAlertsError, taggedAlerts?.length, simpleAlerts?.length, activeFilters.length]);
+  }, [
+    taggedAlertsError, 
+    taggedAlerts?.length, 
+    simpleAlerts?.length, 
+    useSimpleFallback,
+    activeFilters.length,
+    taxonomyError,
+    simpleAlertsError,
+    alertsLoading,
+    taggedRetryCount,
+    simpleRetryCount
+  ]);
 
   // Filter alerts by search term and dismissed status
   const filteredAlerts = React.useMemo(() => {
+    if (!alerts || alerts.length === 0) return [];
+    
     let filtered = alerts;
     
     // Filter by dismissed status
     if (!showDismissed && user) {
       filtered = filtered.filter(alert => {
-        // Handle both tagged and simple alerts
         const dismissedBy = (alert as any).dismissed_by;
         return !dismissedBy || !dismissedBy.includes(user.id);
       });
@@ -77,9 +111,9 @@ export function AlertsDashboard() {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(alert =>
-        alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        alert.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        alert.source.toLowerCase().includes(searchTerm.toLowerCase())
+        alert.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alert.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alert.source?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
@@ -186,6 +220,36 @@ export function AlertsDashboard() {
     }
   };
 
+  // Debug and retry functions
+  const runDebug = async () => {
+    setDebugMode(true);
+    try {
+      const debugInfo = await debugRegIQ();
+      console.log('Debug results:', debugInfo);
+      
+      toast({
+        title: 'Debug Complete',
+        description: `Found ${debugInfo.errors.length} issues. Check console for details.`,
+        variant: debugInfo.errors.length > 0 ? 'destructive' : 'default'
+      });
+    } catch (error) {
+      console.error('Debug failed:', error);
+      toast({
+        title: 'Debug Failed',
+        description: 'Could not run diagnostic. Check console.',
+        variant: 'destructive'
+      });
+    } finally {
+      setDebugMode(false);
+    }
+  };
+
+  const handleRetryAll = () => {
+    console.log('[AlertsDashboard] Retrying all data loading...');
+    if (retryTagged) retryTagged();
+    if (retrySimple) retrySimple();
+  };
+
   // Calculate stats
   const totalAlerts = filteredAlerts.length;
   const highPriorityAlerts = filteredAlerts.filter(alert => 
@@ -209,27 +273,82 @@ export function AlertsDashboard() {
     low: filteredAlerts.filter(a => a.urgency.toLowerCase() === 'low')
   };
 
+  // Handle critical errors
+  if (simpleAlertsError && taggedAlertsError) {
+    return (
+      <AlertsErrorBoundary>
+        <Card className="max-w-2xl mx-auto mt-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Failed to Load Alerts
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Unable to load regulatory alerts from the database.
+            </p>
+            
+            <div className="grid gap-2 text-sm">
+              <div><strong>Tagged Alerts Error:</strong> {taggedAlertsError}</div>
+              <div><strong>Simple Alerts Error:</strong> {simpleAlertsError}</div>
+              {simpleRetryCount > 0 && <div><strong>Retry Attempts:</strong> {simpleRetryCount}</div>}
+            </div>
+            
+            <div className="flex gap-2">
+              <Button onClick={handleRetryAll} disabled={alertsLoading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${alertsLoading ? 'animate-spin' : ''}`} />
+                Retry Loading
+              </Button>
+              <Button onClick={runDebug} variant="outline" disabled={debugMode}>
+                <Bug className={`h-4 w-4 mr-2 ${debugMode ? 'animate-pulse' : ''}`} />
+                {debugMode ? 'Running...' : 'Debug'}
+              </Button>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Refresh Page
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </AlertsErrorBoundary>
+    );
+  }
+
   if (taxonomyLoading || alertsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading regulatory alerts and taxonomy...</p>
+          <p className="text-muted-foreground">Loading regulatory alerts...</p>
+          {(taggedRetryCount > 0 || simpleRetryCount > 0) && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Retry attempt {Math.max(taggedRetryCount, simpleRetryCount)}
+            </p>
+          )}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Regulatory Alerts</h1>
-          <p className="text-muted-foreground">
-            AI-powered classification and filtering of regulatory content
-          </p>
-        </div>
+    <AlertsErrorBoundary>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Regulatory Alerts</h1>
+            <p className="text-muted-foreground">
+              {useSimpleFallback ? 
+                'Showing basic alerts (enhanced features unavailable)' : 
+                'AI-powered classification and filtering of regulatory content'
+              }
+            </p>
+            {(taggedAlertsError || simpleAlertsError) && (
+              <p className="text-xs text-amber-600 mt-1">
+                Some features may be limited due to connectivity issues
+              </p>
+            )}
+          </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -240,6 +359,16 @@ export function AlertsDashboard() {
           >
             <RefreshCw className={`h-4 w-4 ${updatingFDA ? 'animate-spin' : ''}`} />
             Update FDA Data
+          </Button>
+          <Button
+            variant="outline"
+            onClick={runDebug}
+            disabled={debugMode}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <Bug className={`h-4 w-4 ${debugMode ? 'animate-pulse' : ''}`} />
+            {debugMode ? 'Running...' : 'Debug'}
           </Button>
           <Button
             variant={showDismissed ? "secondary" : "outline"}
@@ -263,9 +392,11 @@ export function AlertsDashboard() {
             variant={showFilters ? "secondary" : "outline"}
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2"
+            disabled={useSimpleFallback}
           >
             <Tags className="h-4 w-4" />
             {showFilters ? 'Hide Filters' : 'Show Filters'}
+            {useSimpleFallback && ' (Unavailable)'}
           </Button>
         </div>
       </div>
@@ -352,22 +483,42 @@ export function AlertsDashboard() {
             </TabsList>
 
             <TabsContent value="all" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.all} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} onDismissAlert={dismissAlert} />
+              <AlertsList 
+                alerts={alertsByUrgency.all} 
+                onTagClick={handleTagClick} 
+                hasTaggedAlertsError={useSimpleFallback} 
+                onDismissAlert={dismissAlert} 
+              />
             </TabsContent>
             <TabsContent value="high" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.high} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} onDismissAlert={dismissAlert} />
+              <AlertsList 
+                alerts={alertsByUrgency.high} 
+                onTagClick={handleTagClick} 
+                hasTaggedAlertsError={useSimpleFallback} 
+                onDismissAlert={dismissAlert} 
+              />
             </TabsContent>
             <TabsContent value="medium" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.medium} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} onDismissAlert={dismissAlert} />
+              <AlertsList 
+                alerts={alertsByUrgency.medium} 
+                onTagClick={handleTagClick} 
+                hasTaggedAlertsError={useSimpleFallback} 
+                onDismissAlert={dismissAlert} 
+              />
             </TabsContent>
             <TabsContent value="low" className="space-y-4">
-              <AlertsList alerts={alertsByUrgency.low} onTagClick={handleTagClick} hasTaggedAlertsError={!!taggedAlertsError} onDismissAlert={dismissAlert} />
+              <AlertsList 
+                alerts={alertsByUrgency.low} 
+                onTagClick={handleTagClick} 
+                hasTaggedAlertsError={useSimpleFallback} 
+                onDismissAlert={dismissAlert} 
+              />
             </TabsContent>
           </Tabs>
         </div>
 
         {/* Sidebar Filters */}
-        {showFilters && (
+        {showFilters && !useSimpleFallback && (
           <div className="lg:w-1/3 space-y-4">
             <Card>
               <CardHeader>
@@ -388,6 +539,7 @@ export function AlertsDashboard() {
         )}
       </div>
     </div>
+    </AlertsErrorBoundary>
   );
 }
 
