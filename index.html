@@ -70,7 +70,91 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Fallback content for crawlers when JavaScript fails -->
+      <noscript>
+        <main>
+          <h1>RegIQ - Regulatory Intelligence Platform</h1>
+          <p>Real-time regulatory alerts and intelligence for food, agriculture, and pharmaceutical industries.</p>
+          
+          <section>
+            <h2>Features</h2>
+            <ul>
+              <li>Real-time FDA recall alerts and safety notifications</li>
+              <li>USDA FSIS food safety alerts and inspection reports</li>
+              <li>EPA enforcement actions and regulatory updates</li>
+              <li>CDC health advisories and outbreak investigations</li>
+              <li>AI-powered alert categorization and urgency scoring</li>
+              <li>Custom filtering by agency, product type, and keywords</li>
+              <li>Mobile-optimized dashboard for on-the-go monitoring</li>
+            </ul>
+          </section>
+          
+          <section>
+            <h2>Industries Served</h2>
+            <ul>
+              <li>Food and Beverage Manufacturing</li>
+              <li>Pharmaceutical and Medical Devices</li>
+              <li>Agricultural Products and Feed</li>
+              <li>Consumer Products and Cosmetics</li>
+              <li>Import/Export and Trade</li>
+            </ul>
+          </section>
+          
+          <section>
+            <h2>Key Benefits</h2>
+            <p>RegIQ aggregates regulatory data from multiple federal agencies into a single, easy-to-use platform. Our AI-powered system helps compliance teams stay ahead of regulatory changes, product recalls, and enforcement actions that could impact their operations.</p>
+            
+            <p>Features include real-time alerts, customizable dashboards, mobile access, and integration capabilities for enterprise compliance workflows.</p>
+          </section>
+          
+          <section>
+            <h2>Contact</h2>
+            <p>Learn more about RegIQ's regulatory intelligence solutions for your organization.</p>
+          </section>
+        </main>
+      </noscript>
+      
+      <!-- Enhanced fallback for crawlers that execute minimal JS -->
+      <div id="crawler-content" style="display: none;">
+        <h1>RegIQ - Real-Time Regulatory Intelligence Platform</h1>
+        <p>AI-powered monitoring of FDA, USDA, EPA, and CDC regulatory alerts for compliance professionals.</p>
+        
+        <h2>Core Features</h2>
+        <ul>
+          <li>Instant FDA recall and safety alert notifications</li>
+          <li>USDA food safety monitoring and FSIS alerts</li>
+          <li>EPA enforcement tracking and regulatory updates</li>
+          <li>CDC outbreak and health advisory monitoring</li>
+          <li>Smart categorization and urgency scoring</li>
+          <li>Custom alert filtering and search capabilities</li>
+          <li>Mobile-first design for field teams</li>
+          <li>Enterprise integration APIs</li>
+        </ul>
+        
+        <h2>Target Industries</h2>
+        <p>RegIQ serves quality assurance teams, regulatory affairs professionals, and compliance managers in:</p>
+        <ul>
+          <li>Food & Beverage: Supply chain monitoring, ingredient safety, facility inspections</li>
+          <li>Pharmaceuticals: Drug recalls, FDA warnings, manufacturing alerts</li>
+          <li>Agriculture: Pesticide regulations, feed safety, livestock alerts</li>
+          <li>Consumer Goods: Product safety recalls, labeling requirements</li>
+        </ul>
+        
+        <h2>Why RegIQ</h2>
+        <p>Traditional regulatory monitoring requires manual checking of multiple agency websites. RegIQ automates this process, delivering critical alerts in real-time through an intuitive dashboard that works on any device.</p>
+      </div>
+    </div>
+    
+    <script>
+      // Show crawler content if main app fails to load
+      setTimeout(function() {
+        if (!document.querySelector('[data-react-helmet]')) {
+          document.getElementById('crawler-content').style.display = 'block';
+        }
+      }, 2000);
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

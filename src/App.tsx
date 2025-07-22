@@ -16,23 +16,23 @@ import { useCacheBuster } from "@/hooks/useCacheBuster";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 
-// Lazy load pages for better performance
-const Debug = React.lazy(() => import("./pages/Debug"));
-const Landing = React.lazy(() => import("./pages/Landing"));
-const UserDashboard = React.lazy(() => import("./pages/UserDashboard"));
-const Auth = React.lazy(() => import("./pages/Auth"));
-const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
-const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
-const SearchPage = React.lazy(() => import("./pages/SearchPage"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
-const LegalFramework = React.lazy(() => import("./components/LegalFramework").then(m => ({ default: m.LegalFramework })));
-const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth"));
-const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
-const AuthGuard = React.lazy(() => import("./hooks/useAuthGuard").then(m => ({ default: m.AdminProtectedRoute })));
-const RegIQFeedPage = React.lazy(() => import("./pages/RegIQFeedPage"));
-const AgencyPage = React.lazy(() => import("./pages/AgencyPage"));
-const AllAlertsPage = React.lazy(() => import("./pages/AllAlertsPage"));
-const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage"));
+// Lazy load pages for better performance with error boundaries
+const Debug = React.lazy(() => import("./pages/Debug").catch(() => ({ default: () => <div>Debug unavailable</div> })));
+const Landing = React.lazy(() => import("./pages/Landing").catch(() => ({ default: () => <div>Landing unavailable</div> })));
+const UserDashboard = React.lazy(() => import("./pages/UserDashboard").catch(() => ({ default: () => <div>Dashboard unavailable</div> })));
+const Auth = React.lazy(() => import("./pages/Auth").catch(() => ({ default: () => <div>Auth unavailable</div> })));
+const AuthCallback = React.lazy(() => import("./pages/AuthCallback").catch(() => ({ default: () => <div>Callback unavailable</div> })));
+const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard").catch(() => ({ default: () => <div>Admin unavailable</div> })));
+const SearchPage = React.lazy(() => import("./pages/SearchPage").catch(() => ({ default: () => <div>Search unavailable</div> })));
+const NotFound = React.lazy(() => import("./pages/NotFound").catch(() => ({ default: () => <div>Page not found</div> })));
+const LegalFramework = React.lazy(() => import("./components/LegalFramework").then(m => ({ default: m.LegalFramework })).catch(() => ({ default: () => <div>Legal unavailable</div> })));
+const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth").catch(() => ({ default: () => <div>Auth component unavailable</div> })));
+const ResetPassword = React.lazy(() => import("./components/ResetPassword").catch(() => ({ default: () => <div>Reset unavailable</div> })));
+const AuthGuard = React.lazy(() => import("./hooks/useAuthGuard").then(m => ({ default: m.AdminProtectedRoute })).catch(() => ({ default: ({ children }: any) => children })));
+const RegIQFeedPage = React.lazy(() => import("./pages/RegIQFeedPage").catch(() => ({ default: () => <div>RegIQ Feed unavailable</div> })));
+const AgencyPage = React.lazy(() => import("./pages/AgencyPage").catch(() => ({ default: () => <div>Agency page unavailable</div> })));
+const AllAlertsPage = React.lazy(() => import("./pages/AllAlertsPage").catch(() => ({ default: () => <div>Alerts unavailable</div> })));
+const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage").catch(() => ({ default: () => <div>Food Safety unavailable</div> })));
 const MobileNavigation = React.lazy(() => import("./components/MobileNavigation"));
 
 

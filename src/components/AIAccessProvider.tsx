@@ -14,6 +14,9 @@ export const AIAccessProvider: React.FC<AIAccessProviderProps> = ({ children }) 
   const metaTags = getAIFriendlyMetaTags();
 
   useEffect(() => {
+    // Mark that React has loaded for crawler detection
+    document.documentElement.setAttribute('data-react-loaded', 'true');
+    
     if (isBot) {
       console.log('AI/Bot detected - optimizing for accessibility');
       
