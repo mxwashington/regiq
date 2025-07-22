@@ -49,7 +49,7 @@ const Landing = () => {
     return highPriorityAlerts[0] || alerts[0];
   }, [alerts]);
 
-  // Get filtered alerts for display
+  // Get filtered alerts for display - Default to food agencies
   const displayAlerts = useMemo(() => {
     console.log('Filtering alerts:', { 
       totalAlerts: alerts.length, 
@@ -58,6 +58,15 @@ const Landing = () => {
     });
     
     if (!selectedAgency) {
+      // Default to food agencies only (FDA, USDA, EPA, CDC)
+      const foodAgencies = ['FDA', 'USDA', 'EPA', 'CDC'];
+      const filtered = alerts.filter(alert => 
+        foodAgencies.includes(alert.source)
+      ).slice(0, 10);
+      return filtered;
+    }
+    
+    if (selectedAgency === 'ALL') {
       return alerts.slice(0, 10);
     }
     
@@ -198,8 +207,8 @@ const Landing = () => {
             <span className="font-bold text-2xl">RegIQ</span>
           </div>
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/alerts" className="text-muted-foreground hover:text-foreground transition-colors">Browse Alerts</Link>
-            <Link to="/food-safety" className="text-muted-foreground hover:text-foreground transition-colors">Food Safety</Link>
+            <a href="#food-alerts" className="text-muted-foreground hover:text-foreground transition-colors">Food Safety Alerts</a>
+            <a href="#ai-search" className="text-muted-foreground hover:text-foreground transition-colors">Food Regulation Search</a>
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How it Works</a>
             {user ? (
               <>
@@ -239,21 +248,22 @@ const Landing = () => {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Regulatory News,<br />
-            <span className="text-primary">Minus the Noise</span>
+            Food Industry<br />
+            <span className="text-primary">Regulatory Intelligence</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            AI-powered regulatory alerts for food, ag, and pharma compliance teams. See what's happening right now.
+            Real-time FDA, USDA, EPA alerts with AI summaries - built for food safety teams.<br />
+            <span className="font-medium">Stop missing critical food safety updates. Get personalized alerts that matter to your business.</span>
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             <Button size="lg" className="px-8 py-3" asChild>
               <Link to={user ? getDashboardUrl() : "/auth"}>
-                Get Personalized Alerts <ArrowRight className="ml-2 h-4 w-4" />
+                Get Free Food Safety Alerts <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button variant="outline" size="lg" className="px-8 py-3">
-              <a href="#how-it-works">How it Works</a>
+              <a href="#food-alerts">See Live Alerts</a>
             </Button>
           </div>
         </div>
@@ -262,72 +272,154 @@ const Landing = () => {
       {/* Value Proposition */}
       <section className="py-8 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Real-time Monitoring</h3>
-              <p className="text-muted-foreground">Aggregate FDA, USDA, EPA feeds automatically</p>
-            </div>
+          <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Brain className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">AI Summaries</h3>
-              <p className="text-muted-foreground">Cut through regulatory jargon with plain English</p>
+              <h3 className="font-semibold text-lg mb-2">AI-powered search with GPT-4.1</h3>
+              <p className="text-muted-foreground">Instant regulation lookup</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Cross-agency monitoring</h3>
+              <p className="text-muted-foreground">FDA, USDA, EPA, CDC in one place</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Filter className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Smart Filtering</h3>
-              <p className="text-muted-foreground">Get only alerts relevant to your industry</p>
+              <h3 className="font-semibold text-lg mb-2">Plain English summaries</h3>
+              <p className="text-muted-foreground">No regulatory jargon</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Free for food professionals</h3>
+              <p className="text-muted-foreground">Mobile-optimized for plant floor access</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Live Dashboard Preview */}
-      <section id="alerts" className="py-12 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Live Regulatory Alerts</h2>
-              <p className="text-muted-foreground">Real-time updates from trusted government sources</p>
+      {/* AI Search Section */}
+      <section id="ai-search" className="py-12 px-4 bg-muted/20">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">AI-Powered Food Regulation Search</h2>
+            <p className="text-muted-foreground text-lg">Ask questions in plain English, get instant answers with CFR citations</p>
+          </div>
+          
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Brain className="h-6 w-6 text-primary" />
+              <h3 className="text-lg font-semibold">🤖 AI Search powered by GPT-4.1</h3>
             </div>
-            <div className="flex items-center gap-4">
+            
+            <div className="relative mb-4">
+              <Input
+                type="text"
+                placeholder="Search food regulations & alerts... Try: 'listeria recalls' 'organic labeling' 'HACCP requirements'"
+                className="pl-4 pr-12 py-6 text-lg"
+              />
+              <Button size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+              {[
+                "Food Safety & Recalls",
+                "Labeling & Claims", 
+                "Import/Export",
+                "Ingredients & Additives",
+                "Processing Requirements",
+                "Organic Standards"
+              ].map((category) => (
+                <Button key={category} variant="outline" size="sm" className="text-xs">
+                  {category}
+                </Button>
+              ))}
+            </div>
+            
+            <p className="text-sm text-muted-foreground text-center">
+              Natural language queries • Cross-agency regulation lookup • Plain English responses
+            </p>
+          </Card>
+        </div>
+      </section>
+
+      {/* Live Dashboard Preview */}
+      <section id="food-alerts" className="py-12 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex flex-col lg:flex-row items-start justify-between mb-8 gap-6">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Live Food Safety Alerts</h2>
+              <p className="text-muted-foreground">Real-time updates from FDA, USDA, EPA, and CDC</p>
+            </div>
+            
+            {/* Enhanced Agency Filter */}
+            <div className="flex flex-col gap-4 w-full lg:w-auto">
               <DataRefreshButton />
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium">Filter:</label>
-                <div className="flex gap-2 flex-wrap">
+              
+              <div className="bg-background border rounded-lg p-4">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-muted-foreground">Food Agency Focus:</label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedAgency('ALL')}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Show All Agencies
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { name: 'FDA', color: 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100', icon: '🛡️' },
+                      { name: 'USDA', color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100', icon: '🌾' },
+                      { name: 'EPA', color: 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100', icon: '🌿' },
+                      { name: 'CDC', color: 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100', icon: '⚕️' }
+                    ].map(agency => {
+                      const count = alerts.filter(alert => alert.source === agency.name).length;
+                      return (
+                        <Button
+                          key={agency.name}
+                          variant={selectedAgency.toUpperCase() === agency.name ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedAgency(agency.name)}
+                          className={cn(
+                            "justify-start gap-2 h-12",
+                            selectedAgency.toUpperCase() !== agency.name && agency.color
+                          )}
+                        >
+                          <span className="text-base">{agency.icon}</span>
+                          <div className="flex flex-col items-start">
+                            <span className="font-medium">{agency.name}</span>
+                            <span className="text-xs opacity-70">{count} alerts</span>
+                          </div>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
                   <Button
-                    variant={selectedAgency === '' ? "default" : "outline"}
+                    variant={selectedAgency === 'ALL' ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setSelectedAgency('')}
-                    className="text-xs"
+                    onClick={() => setSelectedAgency('ALL')}
+                    className="mt-2"
                   >
-                    All ({alerts.length})
+                    All Agencies ({alerts.length})
                   </Button>
-                  {['FDA', 'USDA', 'EPA', 'CDC'].map(agency => {
-                    const count = alerts.filter(alert => alert.source === agency).length;
-                    if (count === 0) return null;
-                    return (
-                      <Button
-                        key={agency}
-                        variant={selectedAgency.toUpperCase() === agency ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedAgency(agency)}
-                        className="text-xs"
-                      >
-                        {agency} ({count})
-                      </Button>
-                    );
-                  })}
                 </div>
               </div>
+            </div>
           </div>
-        </div>
         
         {/* Admin Tools - Temporary */}
         {isAdmin && (
@@ -503,20 +595,42 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Trust Section */}
+      {/* Food Industry Trust Section */}
       <section className="py-8 px-4 bg-muted/20">
         <div className="container mx-auto max-w-4xl text-center">
           <div className="mb-6">
-            <p className="text-muted-foreground mb-4">Monitoring alerts from trusted sources</p>
-            <div className="flex justify-center items-center gap-8 flex-wrap">
-              <Badge variant="outline" className="text-red-600 border-red-200 px-4 py-2">FDA</Badge>
-              <Badge variant="outline" className="text-green-600 border-green-200 px-4 py-2">USDA</Badge>
-              <Badge variant="outline" className="text-blue-600 border-blue-200 px-4 py-2">EPA</Badge>
-              <Badge variant="outline" className="px-4 py-2">CDC</Badge>
+            <h3 className="text-xl font-semibold mb-4">Real-time Government Data • No Delays, No Filtering</h3>
+            <p className="text-muted-foreground mb-6">Official sources monitored continuously for food safety teams</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-background border rounded-lg p-4">
+                <div className="text-2xl mb-2">🛡️</div>
+                <div className="font-medium text-red-700">FDA</div>
+                <div className="text-sm text-muted-foreground">Food Safety</div>
+              </div>
+              <div className="bg-background border rounded-lg p-4">
+                <div className="text-2xl mb-2">🌾</div>
+                <div className="font-medium text-green-700">USDA</div>
+                <div className="text-sm text-muted-foreground">Agriculture</div>
+              </div>
+              <div className="bg-background border rounded-lg p-4">
+                <div className="text-2xl mb-2">🌿</div>
+                <div className="font-medium text-blue-700">EPA</div>
+                <div className="text-sm text-muted-foreground">Environment</div>
+              </div>
+              <div className="bg-background border rounded-lg p-4">
+                <div className="text-2xl mb-2">⚕️</div>
+                <div className="font-medium text-orange-700">CDC</div>
+                <div className="text-sm text-muted-foreground">Public Health</div>
+              </div>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Tracking {alerts.length.toLocaleString()}+ alerts this month
+          <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground">
+            <span>✅ Real-time Government Data</span>
+            <span>✅ Built by Food Industry Professionals</span>
+            <span>✅ Always Free for Food Safety Teams</span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-4">
+            Monitoring {alerts.length.toLocaleString()}+ food safety alerts this month
           </p>
         </div>
       </section>
@@ -525,8 +639,8 @@ const Landing = () => {
       <section id="how-it-works" className="py-12 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-            <p className="text-muted-foreground text-lg">Three simple steps to smarter regulatory monitoring</p>
+            <h2 className="text-3xl font-bold mb-4">Built for Food Industry Professionals</h2>
+            <p className="text-muted-foreground text-lg">Three simple steps to smarter food safety monitoring</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -534,51 +648,57 @@ const Landing = () => {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Search className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">1. We Monitor</h3>
-              <p className="text-muted-foreground">Real-time tracking of regulatory feeds from FDA, USDA, EPA, and more</p>
+              <h3 className="text-xl font-semibold mb-3">1. We Monitor Food Agencies</h3>
+              <p className="text-muted-foreground">Real-time tracking of FDA, USDA, EPA, CDC feeds for food safety alerts</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Brain className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">2. AI Analyzes</h3>
-              <p className="text-muted-foreground">Smart summaries and urgency scoring to cut through the noise</p>
+              <h3 className="text-xl font-semibold mb-3">2. AI Analyzes for Food Impact</h3>
+              <p className="text-muted-foreground">Smart summaries focused on food safety implications and compliance requirements</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Bell className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">3. You Decide</h3>
-              <p className="text-muted-foreground">Get alerts that matter to your business, when they matter</p>
+              <h3 className="text-xl font-semibold mb-3">3. You Stay Compliant</h3>
+              <p className="text-muted-foreground">Get food safety alerts that matter to your business, when they matter</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Email Signup Section */}
       <section className="py-12 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <Card className="p-8">
-            <h2 className="text-3xl font-bold mb-4">Ready to simplify regulatory monitoring?</h2>
+            <h2 className="text-3xl font-bold mb-4">Get Critical Food Safety Alerts + AI Search</h2>
             <p className="text-muted-foreground text-lg mb-6">
-              Join compliance teams getting smarter regulatory intelligence
+              Free regulatory intelligence for food industry professionals
             </p>
             
             <form onSubmit={handleEmailSignup} className="flex gap-2 max-w-md mx-auto mb-4">
               <Input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Enter your work email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-1"
                 required
               />
-              <Button type="submit">Get Free Alerts</Button>
+              <Button type="submit">Get Free Food Safety Alerts</Button>
             </form>
             
-            <p className="text-xs text-muted-foreground mb-4">
-              No spam, unsubscribe anytime
-            </p>
+            <div className="text-sm text-muted-foreground mb-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-w-2xl mx-auto">
+                <span>✅ AI-powered regulation search (GPT-4.1)</span>
+                <span>✅ FDA/USDA recalls & safety alerts</span>
+                <span>✅ Plain English summaries</span>
+                <span>✅ Mobile notifications</span>
+              </div>
+              <p className="mt-2">Always free, no spam</p>
+            </div>
             
             <Button variant="outline" asChild>
               <Link to="/search">Browse all alerts →</Link>
@@ -599,9 +719,14 @@ const Landing = () => {
               Privacy & Legal
             </Link>
             <p className="text-muted-foreground text-sm">
-              Built for compliance professionals who value their time
+              Built for food industry professionals by food industry experts
             </p>
           </div>
+        </div>
+        <div className="container mx-auto text-center mt-4">
+          <p className="text-sm text-muted-foreground">
+            Free regulatory intelligence for food manufacturers, suppliers & safety teams
+          </p>
         </div>
       </footer>
 
