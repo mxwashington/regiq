@@ -15,6 +15,7 @@ import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { CookieConsent } from "@/components/CookieConsent";
 
 const Landing = () => {
+  console.log('Landing component is loading - updated version!');
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminAuth();
   const [email, setEmail] = useState('');
