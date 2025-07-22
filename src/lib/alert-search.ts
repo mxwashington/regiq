@@ -125,11 +125,79 @@ export const extractKeywords = (title: string): string => {
 };
 
 /**
+ * Enhanced search with GPT-4.1 keyword extraction
+ */
+export const enhanceSearchWithGPT = async (alertTitle: string, agency: string): Promise<string> => {
+  try {
+    const response = await fetch('/functions/v1/gpt-search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+      },
+      body: JSON.stringify({
+        query: alertTitle,
+        agencies: [agency],
+        searchType: 'enhanced_keywords'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('GPT search failed');
+    }
+
+    const data = await response.json();
+    return data.enhancedKeywords || extractKeywords(alertTitle);
+  } catch (error) {
+    console.warn('GPT enhancement failed, falling back to basic extraction:', error);
+    return extractKeywords(alertTitle);
+  }
+};
+
+/**
+ * Generate alert summary using GPT-4.1
+ */
+export const generateAlertSummary = async (alertContent: string): Promise<string> => {
+  try {
+    const response = await fetch('/functions/v1/gpt-search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+      },
+      body: JSON.stringify({
+        query: alertContent,
+        searchType: 'summary_generation'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('GPT summary failed');
+    }
+
+    const data = await response.json();
+    return data.smartSummary || alertContent.substring(0, 200) + '...';
+  } catch (error) {
+    console.warn('GPT summary failed:', error);
+    return alertContent.substring(0, 200) + '...';
+  }
+};
+
+/**
  * Generate search queries for an alert using smart keyword extraction
  */
-export const generateSearchQueries = (title: string, agency: string) => {
+export const generateSearchQueries = async (title: string, agency: string) => {
   const config = getAgencySearchConfig(agency);
-  const keywords = extractKeywords(title);
+  
+  // Try GPT-enhanced keywords first
+  let keywords: string;
+  try {
+    keywords = await enhanceSearchWithGPT(title, agency);
+  } catch (error) {
+    // Fallback to basic extraction
+    keywords = extractKeywords(title);
+  }
+  
   const cleanTitle = title.replace(/[^\w\s]/g, '').trim();
   
   return {
@@ -148,17 +216,28 @@ export const generateSearchQueries = (title: string, agency: string) => {
 };
 
 /**
- * Open a targeted search for an alert
+ * Open a targeted search for an alert with GPT-4.1 enhancement
  */
-export const searchForAlert = (title: string, agency: string, searchType: 'primary' | 'secondary' | 'fallback' | 'broad' = 'primary') => {
-  const queries = generateSearchQueries(title, agency);
-  const query = queries[searchType];
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-  
-  // Track search usage
-  console.log(`Alert search: ${searchType} for ${agency}`, { title: title.substring(0, 50), query });
-  
-  window.open(searchUrl, '_blank', 'noopener,noreferrer');
+export const searchForAlert = async (title: string, agency: string, searchType: 'primary' | 'secondary' | 'fallback' | 'broad' = 'primary') => {
+  try {
+    const queries = await generateSearchQueries(title, agency);
+    const query = queries[searchType];
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    
+    // Track search usage
+    console.log(`GPT-enhanced search: ${searchType} for ${agency}`, { title: title.substring(0, 50), query });
+    
+    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+  } catch (error) {
+    // Fallback to basic search if GPT enhancement fails
+    console.warn('GPT search failed, using basic search:', error);
+    const config = getAgencySearchConfig(agency);
+    const keywords = extractKeywords(title);
+    const query = `${keywords} site:${config.domain}`;
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    
+    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+  }
 };
 
 /**

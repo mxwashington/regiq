@@ -15,7 +15,7 @@ import { BugTestSuite } from "./BugTestSuite";
 import { DemoInteractiveDashboard } from "./DemoInteractiveDashboard";
 import { DataPipelineManager } from "./DataPipelineManager";
 import { AdminAlertManager } from "./AdminAlertManager";
-import PerplexitySearch from "./PerplexitySearch";
+import GPTSearch from "./GPTSearch";
 import { PWASettings } from "./PWASettings";
 import { ThirdShiftChatbot } from "./ThirdShiftChatbot";
 import { AlertSourceFinder } from "./AlertSourceFinder";
@@ -55,7 +55,7 @@ export const EnterpriseAdminDashboard = () => {
           </TabsContent>
           
           <TabsContent value="search" className="mt-4">
-            <PerplexitySearch />
+            <GPTSearch />
           </TabsContent>
           
           <TabsContent value="thirdshift" className="mt-4">

@@ -30,41 +30,73 @@ interface AlertSourceSearchDemoProps {
 
 export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => {
   const [showQueries, setShowQueries] = useState(false);
+  const [queries, setQueries] = useState<{
+    primary: string;
+    secondary: string;
+    fallback: string;
+    broad: string;
+  } | null>(null);
+  const [isLoadingQueries, setIsLoadingQueries] = useState(false);
   
-  const queries = generateSearchQueries(alert.title, alert.source);
   const keywords = extractKeywords(alert.title);
   const hasValidUrl = alert.external_url && alert.external_url.trim() !== '';
 
-  const searchOptions = [
+  const loadQueries = async () => {
+    if (queries) return; // Already loaded
+    
+    setIsLoadingQueries(true);
+    try {
+      const generatedQueries = await generateSearchQueries(alert.title, alert.source);
+      setQueries(generatedQueries);
+    } catch (error) {
+      console.error('Failed to generate queries:', error);
+      // Fallback to basic queries
+      const config = { domain: 'gov', additionalTerms: ['alert'] };
+      setQueries({
+        primary: `${keywords} site:${config.domain}`,
+        secondary: `${keywords} alert site:${config.domain}`,
+        fallback: `${keywords} ${alert.source} alert`,
+        broad: `"${alert.title}" ${alert.source} site:${config.domain}`
+      });
+    } finally {
+      setIsLoadingQueries(false);
+    }
+  };
+
+  React.useEffect(() => {
+    loadQueries();
+  }, [alert.title, alert.source]);
+
+  const searchOptions = queries ? [
     {
       type: 'primary' as const,
-      label: `Search ${alert.source} site`,
-      description: 'Most targeted search',
+      label: `Smart Search ${alert.source}`,
+      description: 'GPT-enhanced keywords',
       icon: Target,
       query: queries.primary
     },
     {
       type: 'secondary' as const,
-      label: 'Search with keywords',
-      description: 'Agency site + relevant terms',
+      label: 'Enhanced Search',
+      description: 'AI + agency terms',
       icon: Search,
       query: queries.secondary
     },
     {
       type: 'fallback' as const,
-      label: 'Broader search',
-      description: 'All sites with agency name',
+      label: 'Broader Search',
+      description: 'All sites with agency',
       icon: Globe,
       query: queries.fallback
     },
     {
       type: 'broad' as const,
-      label: 'General search',
+      label: 'General Search',
       description: 'Widest search scope',
       icon: Zap,
       query: queries.broad
     }
-  ];
+  ] : [];
 
   return (
     <Card className="border-dashed border-blue-200 bg-blue-50/50">

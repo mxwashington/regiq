@@ -5,26 +5,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ExternalLink, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import { Search, ExternalLink, Clock, AlertTriangle, Loader2, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface SearchResult {
   content: string;
   citations: string[];
-  related_questions: string[];
-  urgency_score: number;
-  agencies_mentioned: string[];
-  search_type: string;
+  relatedQuestions: string[];
+  urgencyScore: number;
+  agenciesMentioned: string[];
+  searchType: string;
   query: string;
   timestamp: string;
   cached?: boolean;
-  cached_at?: string;
+  enhancedKeywords?: string;
+  smartSummary?: string;
 }
 
-export default function PerplexitySearch() {
+export default function GPTSearch() {
   const [query, setQuery] = useState('');
-  const [searchType, setSearchType] = useState('general');
+  const [searchType, setSearchType] = useState('smart_search');
   const [agencies, setAgencies] = useState<string[]>([]);
   const [industry, setIndustry] = useState('');
   const [timeRange, setTimeRange] = useState('month');
@@ -68,7 +69,7 @@ export default function PerplexitySearch() {
         throw new Error('Search request timed out');
       }, 30000); // 30 second timeout
 
-      const { data, error } = await supabase.functions.invoke('perplexity-search', {
+      const { data, error } = await supabase.functions.invoke('gpt-search', {
         body: {
           query: query.trim(),
           agencies: agencies.length > 0 ? agencies : undefined,
@@ -98,17 +99,17 @@ export default function PerplexitySearch() {
       setResult(data);
       toast({
         title: "Search Complete",
-        description: data.cached ? "Results from cache" : "Fresh results retrieved",
+        description: data.cached ? "Results from cache" : "Fresh AI analysis retrieved",
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
       
       // Check if it's an API key configuration issue
-      if (errorMessage.includes('PERPLEXITY_API_KEY') || errorMessage.includes('not set')) {
+      if (errorMessage.includes('OPENAI_API_KEY') || errorMessage.includes('not configured')) {
         toast({
           title: "API Configuration Required",
-          description: "Perplexity API key needs to be configured in Supabase Edge Function secrets.",
+          description: "OpenAI API key needs to be configured in Supabase Edge Function secrets.",
           variant: "destructive",
         });
       } else {
@@ -148,11 +149,11 @@ export default function PerplexitySearch() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Regulatory Intelligence Search
+            <Sparkles className="h-5 w-5 text-blue-600" />
+            AI-Powered Regulatory Intelligence
           </CardTitle>
           <CardDescription>
-            Search for the latest regulatory updates, recalls, deadlines, and guidance using AI-powered analysis
+            Search for regulatory updates using GPT-4.1 for enhanced analysis, keyword extraction, and smart summaries
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -174,10 +175,9 @@ export default function PerplexitySearch() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="general">General Updates</SelectItem>
-                  <SelectItem value="recalls">Recalls & Alerts</SelectItem>
-                  <SelectItem value="deadlines">Compliance Deadlines</SelectItem>
-                  <SelectItem value="guidance">Guidance Documents</SelectItem>
+                  <SelectItem value="smart_search">Smart Analysis</SelectItem>
+                  <SelectItem value="enhanced_keywords">Keyword Extraction</SelectItem>
+                  <SelectItem value="summary_generation">Summary Generation</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -237,12 +237,12 @@ export default function PerplexitySearch() {
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Searching...
+                Analyzing with GPT-4.1...
               </>
             ) : (
               <>
-                <Search className="mr-2 h-4 w-4" />
-                Search Regulatory Updates
+                <Sparkles className="mr-2 h-4 w-4" />
+                AI Search & Analysis
               </>
             )}
           </Button>
@@ -266,21 +266,27 @@ export default function PerplexitySearch() {
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="text-lg">Search Results</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-blue-600" />
+                  GPT-4.1 Analysis Results
+                </CardTitle>
                 <CardDescription className="flex items-center gap-2 mt-2">
                   <Clock className="h-4 w-4" />
                   {new Date(result.timestamp).toLocaleString()}
                   {result.cached && <Badge variant="outline">Cached</Badge>}
                 </CardDescription>
               </div>
-              <Badge className={getUrgencyColor(result.urgency_score)}>
-                {getUrgencyLabel(result.urgency_score)} ({result.urgency_score}/10)
+              <Badge className={getUrgencyColor(result.urgencyScore)}>
+                {getUrgencyLabel(result.urgencyScore)} ({result.urgencyScore}/10)
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <h4 className="font-medium mb-2">Summary</h4>
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-blue-600" />
+                AI Analysis
+              </h4>
               <Textarea
                 value={result.content}
                 readOnly
@@ -288,11 +294,18 @@ export default function PerplexitySearch() {
               />
             </div>
 
-            {result.agencies_mentioned.length > 0 && (
+            {result.enhancedKeywords && (
+              <div>
+                <h4 className="font-medium mb-2">Enhanced Keywords</h4>
+                <Badge variant="secondary" className="text-sm">{result.enhancedKeywords}</Badge>
+              </div>
+            )}
+
+            {result.agenciesMentioned.length > 0 && (
               <div>
                 <h4 className="font-medium mb-2">Agencies Mentioned</h4>
                 <div className="flex flex-wrap gap-2">
-                  {result.agencies_mentioned.map(agency => (
+                  {result.agenciesMentioned.map(agency => (
                     <Badge key={agency} variant="secondary">{agency}</Badge>
                   ))}
                 </div>
@@ -301,29 +314,29 @@ export default function PerplexitySearch() {
 
             {result.citations.length > 0 && (
               <div>
-                <h4 className="font-medium mb-2">Official Sources</h4>
+                <h4 className="font-medium mb-2">Suggested Sources</h4>
                 <div className="space-y-2">
                   {result.citations.map((citation, index) => (
                     <a
                       key={index}
-                      href={citation}
+                      href={`https://www.google.com/search?q=site:${citation}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
                     >
                       <ExternalLink className="h-4 w-4" />
-                      {citation}
+                      Search {citation}
                     </a>
                   ))}
                 </div>
               </div>
             )}
 
-            {result.related_questions.length > 0 && (
+            {result.relatedQuestions.length > 0 && (
               <div>
                 <h4 className="font-medium mb-2">Related Questions</h4>
                 <div className="space-y-2">
-                  {result.related_questions.map((question, index) => (
+                  {result.relatedQuestions.map((question, index) => (
                     <div
                       key={index}
                       className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
