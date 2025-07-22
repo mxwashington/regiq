@@ -106,10 +106,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle different types of requests with appropriate strategies
+// Handle different types of requests with appropriate strategies
   if (isStaticResource(url)) {
     // Static resources: Cache First strategy
     event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
+  } else if (url.hostname.includes('supabase.co')) {
+    // Supabase requests: Let them pass through directly
+    return;
   } else if (isAPIRequest(url)) {
     // API requests: Network First with cache fallback
     event.respondWith(networkFirstWithCache(request, API_CACHE_NAME));
