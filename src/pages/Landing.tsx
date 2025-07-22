@@ -91,9 +91,10 @@ const Landing = () => {
 
   const getAgencyColor = (source: string) => {
     const sourceLower = source.toLowerCase();
-    if (sourceLower.includes('fda')) return 'text-red-600 bg-red-50 border-red-200';
-    if (sourceLower.includes('usda')) return 'text-green-600 bg-green-50 border-green-200';
-    if (sourceLower.includes('epa')) return 'text-blue-600 bg-blue-50 border-blue-200';
+    if (sourceLower.includes('fda')) return 'text-blue-700 bg-blue-50 border-blue-200';
+    if (sourceLower.includes('usda')) return 'text-green-700 bg-green-50 border-green-200';
+    if (sourceLower.includes('epa')) return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+    if (sourceLower.includes('cdc')) return 'text-red-700 bg-red-50 border-red-200';
     return 'text-gray-600 bg-gray-50 border-gray-200';
   };
 
@@ -253,7 +254,7 @@ const Landing = () => {
           </h1>
           <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto px-4">
             Real-time FDA, USDA, EPA alerts with AI summaries - built for food safety teams.<br className="hidden sm:block" />
-            <span className="font-medium">Stop missing critical food safety updates. Get personalized alerts that matter to your business.</span>
+            <span className="font-medium text-foreground">Stop missing critical food safety updates. Get personalized alerts that matter to your business.</span>
           </p>
           
           <div className="flex flex-col gap-3 md:gap-4 justify-center items-center mb-6 md:mb-8 px-4">
@@ -278,13 +279,13 @@ const Landing = () => {
                 <Brain className="h-6 w-6 text-primary" />
               </div>
               <h3 className="font-semibold text-base md:text-lg mb-2">AI-powered search with GPT-4.1</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Instant regulation lookup</p>
+              <p className="text-sm md:text-base text-muted-foreground">Instant food regulation lookup</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-base md:text-lg mb-2">Cross-agency monitoring</h3>
+              <h3 className="font-semibold text-base md:text-lg mb-2">Cross-agency food monitoring</h3>
               <p className="text-sm md:text-base text-muted-foreground">FDA, USDA, EPA, CDC in one place</p>
             </div>
             <div className="text-center">
@@ -292,7 +293,7 @@ const Landing = () => {
                 <Filter className="h-6 w-6 text-primary" />
               </div>
               <h3 className="font-semibold text-base md:text-lg mb-2">Plain English summaries</h3>
-              <p className="text-sm md:text-base text-muted-foreground">No regulatory jargon</p>
+              <p className="text-sm md:text-base text-muted-foreground">No regulatory jargon, food-focused</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -340,7 +341,7 @@ const Landing = () => {
               {[
                 "Food Safety & Recalls",
                 "Labeling & Claims", 
-                "Import/Export",
+                "Import/Export Rules",
                 "Ingredients & Additives",
                 "Processing Requirements",
                 "Organic Standards"
@@ -393,27 +394,55 @@ const Landing = () => {
                   
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                     {[
-                      { name: 'FDA', color: 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100', icon: '🛡️' },
-                      { name: 'USDA', color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100', icon: '🌾' },
-                      { name: 'EPA', color: 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100', icon: '🌿' },
-                      { name: 'CDC', color: 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100', icon: '⚕️' }
+                      { 
+                        name: 'FDA', 
+                        color: 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100', 
+                        icon: '🛡️',
+                        fullName: 'FDA Food Safety',
+                        priority: 1
+                      },
+                      { 
+                        name: 'USDA', 
+                        color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100', 
+                        icon: '🌾',
+                        fullName: 'USDA Agriculture',
+                        priority: 2
+                      },
+                      { 
+                        name: 'EPA', 
+                        color: 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100', 
+                        icon: '🌿',
+                        fullName: 'EPA Environment',
+                        priority: 3
+                      },
+                      { 
+                        name: 'CDC', 
+                        color: 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100', 
+                        icon: '⚕️',
+                        fullName: 'CDC Public Health',
+                        priority: 4
+                      }
                     ].map(agency => {
                       const count = alerts.filter(alert => alert.source === agency.name).length;
+                      const isSelected = selectedAgency.toUpperCase() === agency.name;
                       return (
                         <Button
                           key={agency.name}
-                          variant={selectedAgency.toUpperCase() === agency.name ? "default" : "outline"}
+                          variant={isSelected ? "default" : "outline"}
                           size="sm"
                           onClick={() => setSelectedAgency(agency.name)}
                           className={cn(
-                            "justify-start gap-2 h-10 md:h-12 text-xs md:text-sm",
-                            selectedAgency.toUpperCase() !== agency.name && agency.color
+                            "justify-start gap-2 h-10 md:h-12 text-xs md:text-sm flex-col p-2",
+                            !isSelected && agency.color,
+                            isSelected && "bg-primary text-primary-foreground"
                           )}
                         >
-                          <span className="text-base">{agency.icon}</span>
-                          <div className="flex flex-col items-start">
-                            <span className="font-medium">{agency.name}</span>
-                            <span className="text-xs opacity-70">{count} alerts</span>
+                          <div className="flex items-center gap-1 w-full">
+                            <span className="text-base">{agency.icon}</span>
+                            <div className="flex flex-col items-start min-w-0 flex-1">
+                              <span className="font-medium truncate">{agency.name}</span>
+                              <span className="text-xs opacity-70">{count} alerts</span>
+                            </div>
                           </div>
                         </Button>
                       );
@@ -451,11 +480,11 @@ const Landing = () => {
 
         {/* Featured Alert */}
           {featuredAlert && (
-            <Card className="mb-8 border-2 border-orange-200 bg-orange-50/50">
+            <Card className="mb-8 border-2 border-red-200 bg-red-50/50">
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <Badge className={getAgencyColor(featuredAlert.source)}>
                         {featuredAlert.source}
                       </Badge>
@@ -463,6 +492,11 @@ const Landing = () => {
                         <AlertCircle className="w-3 h-3 mr-1" />
                         {featuredAlert.urgency} Priority
                       </Badge>
+                      {featuredAlert.urgency?.toLowerCase() === 'high' || featuredAlert.urgency?.toLowerCase() === 'critical' ? (
+                        <Badge className="bg-red-100 text-red-800 border-red-300">
+                          🍎 FOOD SAFETY
+                        </Badge>
+                      ) : null}
                       <span className="text-sm text-muted-foreground">
                         {formatDate(featuredAlert.published_date)}
                       </span>
@@ -611,32 +645,32 @@ const Landing = () => {
       <section className="py-8 px-4 bg-muted/20">
         <div className="container mx-auto max-w-4xl text-center">
           <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-4">Real-time Government Data • No Delays, No Filtering</h3>
-            <p className="text-muted-foreground mb-6">Official sources monitored continuously for food safety teams</p>
+            <h3 className="text-xl font-semibold mb-4">Official Government Data • No Delays, No Filtering</h3>
+            <p className="text-muted-foreground mb-6">Direct agency feeds monitored continuously for food safety teams</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-background border rounded-lg p-4">
+              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-blue-500">
                 <div className="text-2xl mb-2">🛡️</div>
-                <div className="font-medium text-red-700">FDA</div>
-                <div className="text-sm text-muted-foreground">Food Safety</div>
+                <div className="font-medium text-blue-700">FDA</div>
+                <div className="text-sm text-muted-foreground">Food Safety Authority</div>
               </div>
-              <div className="bg-background border rounded-lg p-4">
+              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-green-500">
                 <div className="text-2xl mb-2">🌾</div>
                 <div className="font-medium text-green-700">USDA</div>
-                <div className="text-sm text-muted-foreground">Agriculture</div>
+                <div className="text-sm text-muted-foreground">Agriculture & Meat Safety</div>
               </div>
-              <div className="bg-background border rounded-lg p-4">
+              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-emerald-500">
                 <div className="text-2xl mb-2">🌿</div>
-                <div className="font-medium text-blue-700">EPA</div>
-                <div className="text-sm text-muted-foreground">Environment</div>
+                <div className="font-medium text-emerald-700">EPA</div>
+                <div className="text-sm text-muted-foreground">Environmental Protection</div>
               </div>
-              <div className="bg-background border rounded-lg p-4">
+              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-red-500">
                 <div className="text-2xl mb-2">⚕️</div>
-                <div className="font-medium text-orange-700">CDC</div>
-                <div className="text-sm text-muted-foreground">Public Health</div>
+                <div className="font-medium text-red-700">CDC</div>
+                <div className="text-sm text-muted-foreground">Public Health Alerts</div>
               </div>
             </div>
           </div>
-          <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground flex-wrap">
             <span>✅ Real-time Government Data</span>
             <span>✅ Built by Food Industry Professionals</span>
             <span>✅ Always Free for Food Safety Teams</span>
@@ -661,21 +695,21 @@ const Landing = () => {
                 <Search className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
               <h3 className="text-lg md:text-xl font-semibold mb-3">1. We Monitor Food Agencies</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Real-time tracking of FDA, USDA, EPA, CDC feeds for food safety alerts</p>
+              <p className="text-sm md:text-base text-muted-foreground">Real-time tracking of FDA, USDA, EPA, CDC feeds for food safety alerts and regulatory changes</p>
             </div>
             <div className="text-center">
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Brain className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
               <h3 className="text-lg md:text-xl font-semibold mb-3">2. AI Analyzes for Food Impact</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Smart summaries focused on food safety implications and compliance requirements</p>
+              <p className="text-sm md:text-base text-muted-foreground">Smart summaries focused on food safety implications, compliance requirements, and business impact</p>
             </div>
             <div className="text-center">
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Bell className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
               <h3 className="text-lg md:text-xl font-semibold mb-3">3. You Stay Compliant</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Get food safety alerts that matter to your business, when they matter</p>
+              <p className="text-sm md:text-base text-muted-foreground">Get food safety alerts that matter to your business, when they matter - before they impact operations</p>
             </div>
           </div>
         </div>
@@ -699,21 +733,21 @@ const Landing = () => {
                 className="flex-1"
                 required
               />
-              <Button type="submit" className="w-full sm:w-auto whitespace-nowrap">Get Free Alerts</Button>
+              <Button type="submit" className="w-full sm:w-auto whitespace-nowrap">Get Free Food Safety Alerts</Button>
             </form>
             
             <div className="text-xs md:text-sm text-muted-foreground mb-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 max-w-2xl mx-auto">
-                <span>✅ AI-powered regulation search (GPT-4.1)</span>
+                <span>✅ AI-powered food regulation search (GPT-4.1)</span>
                 <span>✅ FDA/USDA recalls & safety alerts</span>
-                <span>✅ Plain English summaries</span>
-                <span>✅ Mobile notifications</span>
+                <span>✅ Plain English summaries, no jargon</span>
+                <span>✅ Mobile notifications for plant floor</span>
               </div>
-              <p className="mt-2">Always free, no spam</p>
+              <p className="mt-2">Always free for food industry professionals</p>
             </div>
             
             <Button variant="outline" asChild>
-              <Link to="/search">Browse all alerts →</Link>
+              <Link to="/search">Browse all food safety alerts →</Link>
             </Button>
           </Card>
         </div>
