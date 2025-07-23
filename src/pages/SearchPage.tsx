@@ -84,14 +84,6 @@ export default function SearchPage() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <Badge variant="secondary">
-              Free Plan
-            </Badge>
-            <Badge variant="outline">
-              {dailyLimit} searches/day
-            </Badge>
-          </div>
         </div>
       </header>
 
