@@ -153,10 +153,7 @@ serve(async (req) => {
         ],
         max_tokens: 1000,
         temperature: 0.2,
-        top_p: 0.9,
-        return_citations: true,
-        return_images: false,
-        return_related_questions: true
+        top_p: 0.9
       }),
     });
 
