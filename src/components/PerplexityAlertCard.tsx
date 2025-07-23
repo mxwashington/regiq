@@ -156,6 +156,36 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
       setIsExpanded(true); // Always expand when new data is loaded
       setIsDismissed(false); // Reset dismiss state when new data is loaded
 
+      // Update alert's external URL if we found a better source
+      if (data?.sources?.length > 0) {
+        const bestSource = data.sources[0]; // First source is typically the best
+        const newUrl = bestSource.url;
+        
+        // Only update if we don't have an external URL or found a better one
+        if (!alert.external_url || (newUrl && newUrl !== alert.external_url)) {
+          try {
+            const { error: updateError } = await supabase
+              .from('alerts')
+              .update({ external_url: newUrl })
+              .eq('id', alert.id);
+
+            if (!updateError) {
+              // Update local alert object
+              alert.external_url = newUrl;
+              
+              toast({
+                title: "Source Updated",
+                description: "Alert source link has been updated with the best available URL.",
+              });
+            } else {
+              console.error('Failed to update alert URL:', updateError);
+            }
+          } catch (updateError) {
+            console.error('Error updating alert URL:', updateError);
+          }
+        }
+      }
+
       toast({
         title: "Sources Enhanced",
         description: "Found additional regulatory sources and context.",
