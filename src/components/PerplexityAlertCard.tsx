@@ -156,6 +156,9 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
       setIsExpanded(true); // Always expand when new data is loaded
       setIsDismissed(false); // Reset dismiss state when new data is loaded
 
+      // Debug: Log the response to understand what we're getting
+      console.log('Perplexity response data:', JSON.stringify(data, null, 2));
+
       // Update alert's external URL if we found a better source
       if (data?.sources?.length > 0) {
         const bestSource = data.sources[0]; // First source is typically the best
