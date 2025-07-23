@@ -519,7 +519,7 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
                   <CardContent className="pt-0">
                     <div className="flex items-center gap-3 flex-wrap">
                       {/* Source link section with search fallback */}
-                      {isValidSourceUrl(alert.external_url) ? (
+                      {alert.external_url && alert.external_url.trim() && alert.external_url.startsWith('http') ? (
                         <>
                           <Button 
                             variant="outline" 

@@ -195,7 +195,7 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
 
               <CardContent className="pt-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {isValidSourceUrl(alert.external_url) ? (
+                  {alert.external_url && alert.external_url.trim() && alert.external_url.startsWith('http') ? (
                     <>
                       <Button variant="outline" size="sm" asChild>
                         <a 
