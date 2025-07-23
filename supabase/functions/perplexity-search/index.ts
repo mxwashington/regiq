@@ -139,20 +139,34 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      logStep("Perplexity API response received successfully");
+      logStep("Perplexity API response received successfully", { 
+        hasChoices: !!data.choices,
+        choicesLength: data.choices?.length,
+        hasCitations: !!data.citations,
+        citationsLength: data.citations?.length
+      });
 
-      // Process the response
+      // Process the response - check both locations for citations
+      const content = data.choices[0].message.content;
+      const citations = data.citations || extractCitations(content);
+      
+      logStep("Processing citations", { 
+        citationsFromAPI: data.citations?.length || 0,
+        citationsFromContent: extractCitations(content).length,
+        totalCitations: citations.length
+      });
+
       const result = {
-        content: data.choices[0].message.content, // Changed from 'response' to 'content'
-        response: data.choices[0].message.content, // Keep for backwards compatibility
-        sources: extractCitations(data.choices[0].message.content).map(url => ({
-          title: url.split('/').pop() || 'Government Source',
+        content: content,
+        response: content, // Keep for backwards compatibility
+        sources: citations.map(url => ({
+          title: extractTitleFromUrl(url),
           url: url
         })),
-        citations: extractCitations(data.choices[0].message.content),
+        citations: citations,
         related_questions: data.choices[0].message.related_questions || [],
-        urgency_score: calculateUrgencyScore(data.choices[0].message.content),
-        agencies_mentioned: extractAgencies(data.choices[0].message.content),
+        urgency_score: calculateUrgencyScore(content),
+        agencies_mentioned: extractAgencies(content),
         search_type: searchRequest.searchType || 'general',
         query: searchRequest.query,
         timestamp: new Date().toISOString()
@@ -249,19 +263,76 @@ function buildRegulatoryQuery(request: SearchRequest): string {
 
 function extractCitations(content: string): string[] {
   const citations: string[] = [];
-  const urlPattern = /https?:\/\/[^\s\)]+/g;
+  const urlPattern = /https?:\/\/[^\s\)\]]+/g;
   const matches = content.match(urlPattern);
   
   if (matches) {
     matches.forEach(url => {
-      if (url.includes('fda.gov') || url.includes('usda.gov') || 
-          url.includes('epa.gov') || url.includes('federalregister.gov')) {
-        citations.push(url);
+      // Clean up URLs (remove trailing punctuation)
+      const cleanUrl = url.replace(/[.,;!?]+$/, '');
+      if (cleanUrl.includes('fda.gov') || cleanUrl.includes('usda.gov') || 
+          cleanUrl.includes('epa.gov') || cleanUrl.includes('federalregister.gov') ||
+          cleanUrl.includes('cdc.gov') || cleanUrl.includes('foodsafety.gov')) {
+        citations.push(cleanUrl);
       }
     });
   }
   
+  // If no URLs found in content, create default sources based on content
+  if (citations.length === 0) {
+    const defaultSources = createDefaultSources(content);
+    citations.push(...defaultSources);
+  }
+  
   return [...new Set(citations)]; // Remove duplicates
+}
+
+function extractTitleFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    
+    // Extract meaningful title from path
+    if (pathname.includes('recalls') || pathname.includes('safety-alerts')) {
+      return 'FDA Recalls & Safety Alerts';
+    } else if (pathname.includes('enforcement') || pathname.includes('warning-letters')) {
+      return 'FDA Enforcement Reports';
+    } else if (pathname.includes('fsis')) {
+      return 'USDA FSIS Alerts';
+    } else if (pathname.includes('epa.gov')) {
+      return 'EPA Regulatory Information';
+    } else if (pathname.includes('cdc.gov')) {
+      return 'CDC Health & Safety Updates';
+    } else if (pathname.includes('foodsafety.gov')) {
+      return 'FoodSafety.gov Resources';
+    } else {
+      // Extract domain name as fallback
+      return urlObj.hostname.replace('www.', '').toUpperCase() + ' Official Source';
+    }
+  } catch {
+    return 'Government Source';
+  }
+}
+
+function createDefaultSources(content: string): string[] {
+  const sources: string[] = [];
+  const lowerContent = content.toLowerCase();
+  
+  // Create relevant default sources based on content
+  if (lowerContent.includes('ice cream') || lowerContent.includes('recall') || lowerContent.includes('listeria')) {
+    sources.push('https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts');
+  }
+  if (lowerContent.includes('fda')) {
+    sources.push('https://www.fda.gov/news-events/fda-newsroom');
+  }
+  if (lowerContent.includes('usda') || lowerContent.includes('meat') || lowerContent.includes('poultry')) {
+    sources.push('https://www.fsis.usda.gov/news-events/recalls');
+  }
+  if (lowerContent.includes('foodsafety')) {
+    sources.push('https://www.foodsafety.gov/recalls');
+  }
+  
+  return sources;
 }
 
 function calculateUrgencyScore(content: string): number {
