@@ -702,37 +702,27 @@ function isHighQualityGovernmentURL(url: string, source: string): boolean {
   const urlLower = url.toLowerCase()
   const sourceLower = source.toLowerCase()
   
-  // Must be government site
-  const govDomains = ['fda.gov', 'usda.gov', 'epa.gov', 'cdc.gov', 'nih.gov', 'ema.europa.eu', 'efsa.europa.eu', 'canada.ca', 'mhra.gov.uk', 'cpsc.gov']
+  // Expanded government domains - much more permissive
+  const govDomains = [
+    'fda.gov', 'usda.gov', 'epa.gov', 'cdc.gov', 'nih.gov', 
+    'ema.europa.eu', 'efsa.europa.eu', 'canada.ca', 'mhra.gov.uk', 'cpsc.gov',
+    '.gov', '.gov.uk', 'europa.eu', 'who.int', 'hc-sc.gc.ca'
+  ]
   const isGovSite = govDomains.some(domain => urlLower.includes(domain))
   
   if (!isGovSite) return false
   
-  // Quality indicators (more flexible)
-  const qualityIndicators = [
-    'press-release', 'news-events', 'safety-communication', 'newsroom',
-    'recall', 'alert', 'warning', 'announcement', 'safety', 'enforcement',
-    '/news/', '/media/', '/press/', '/alerts/', '/recalls/', '/safety/',
-    'market-withdrawals', 'safety-alerts', 'consumer-alert'
+  // Very permissive - if it's a government site, we'll likely accept it
+  // Only filter out obvious non-content pages
+  const excludePatterns = [
+    '/login', '/search', '/404', '/error', '/admin', 
+    'javascript:', 'mailto:', '.pdf', '.doc', '.xls'
   ]
   
-  const hasQualityIndicator = qualityIndicators.some(indicator => urlLower.includes(indicator))
+  const shouldExclude = excludePatterns.some(pattern => urlLower.includes(pattern))
   
-  // More flexible agency matching - if it's a gov site and has quality indicators, it's likely valid
-  // OR if it specifically matches the source agency
-  const specificAgencyMatch = 
-    (sourceLower.includes('fda') && urlLower.includes('fda.gov')) ||
-    (sourceLower.includes('usda') && urlLower.includes('usda.gov')) ||
-    (sourceLower.includes('epa') && urlLower.includes('epa.gov')) ||
-    (sourceLower.includes('cdc') && urlLower.includes('cdc.gov')) ||
-    (sourceLower.includes('ema') && urlLower.includes('ema.europa.eu')) ||
-    (sourceLower.includes('efsa') && urlLower.includes('efsa.europa.eu')) ||
-    (sourceLower.includes('mhra') && urlLower.includes('mhra.gov.uk')) ||
-    (sourceLower.includes('cpsc') && urlLower.includes('cpsc.gov')) ||
-    (sourceLower.includes('health canada') && urlLower.includes('canada.ca'))
-  
-  // Accept if either has quality indicators OR specific agency match (more permissive)
-  return hasQualityIndicator || specificAgencyMatch
+  // Accept almost all government URLs, only exclude obvious non-content
+  return !shouldExclude
 }
 
 function calculateConfidence(url: string, title: string, alert: Alert): number {
