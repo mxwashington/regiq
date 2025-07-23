@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ConversationalChatbot } from '@/components/ConversationalChatbot';
+import { EnhancedRecallDemo } from '@/components/EnhancedRecallDemo';
+import PerplexityAlertCard from '@/components/PerplexityAlertCard';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -184,10 +186,14 @@ const UserDashboard = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="alerts" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Live Alerts
+            </TabsTrigger>
+            <TabsTrigger value="enhanced-recalls" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Enhanced Recalls
             </TabsTrigger>
             <TabsTrigger value="ai-search" className="flex items-center gap-2">
               <Bot className="h-4 w-4" />
@@ -338,90 +344,22 @@ const UserDashboard = () => {
                   </Card>
                 ) : (
                   displayAlerts.map((alert) => (
-                    <Card key={alert.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2 flex-wrap">
-                              <Badge variant="outline" className={getAgencyColor(alert.source)}>
-                                {alert.source}
-                              </Badge>
-                              <Badge variant="outline" className={getUrgencyColor(alert.urgency)}>
-                                {alert.urgency === 'High' && <AlertCircle className="w-3 h-3 mr-1" />}
-                                {alert.urgency}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {formatDate(alert.published_date)}
-                              </span>
-                              {savedAlerts.some(saved => saved.id === alert.id) && (
-                                <Badge variant="secondary" className="text-xs">
-                                  <Bell className="w-3 h-3 mr-1" />
-                                  Saved
-                                </Badge>
-                              )}
-                            </div>
-                            <CardTitle className="text-lg leading-tight mb-2">
-                              {alert.title}
-                            </CardTitle>
-                            <CardDescription className="line-clamp-2">
-                              {alert.summary}
-                            </CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {isValidSourceUrl(alert.external_url) ? (
-                            <>
-                              <Button variant="outline" size="sm" asChild>
-                                <a 
-                                  href={alert.external_url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-2"
-                                >
-                                  <ExternalLink className="w-3 h-3" />
-                                  View Full Source
-                                </a>
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => searchForAlert(alert.title, alert.source)}
-                                className="flex items-center gap-2"
-                              >
-                                <Globe className="w-3 h-3" />
-                                Search Web
-                              </Button>
-                            </>
-                          ) : (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => searchForAlert(alert.title, alert.source)}
-                              className="flex items-center gap-2"
-                            >
-                              <Search className="w-3 h-3" />
-                              Find Source
-                            </Button>
-                          )}
-                          
-                          <Button
-                            variant={savedAlerts.some(saved => saved.id === alert.id) ? "default" : "ghost"}
-                            size="sm"
-                            onClick={() => toggleSaveAlert(alert.id)}
-                            className="flex items-center gap-2"
-                          >
-                            <Bell className="w-3 h-3" />
-                            {savedAlerts.some(saved => saved.id === alert.id) ? 'Saved' : 'Save Alert'}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <PerplexityAlertCard
+                      key={alert.id}
+                      alert={alert}
+                      onDismissAlert={() => {}} // TODO: Implement dismiss functionality
+                      onSaveAlert={(alert) => toggleSaveAlert(alert.id)}
+                      savedAlerts={[]} // TODO: Convert savedAlerts to proper format
+                    />
                   ))
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          {/* Enhanced Recalls Tab */}
+          <TabsContent value="enhanced-recalls" className="space-y-6">
+            <EnhancedRecallDemo />
           </TabsContent>
 
           {/* AI Search Tab */}

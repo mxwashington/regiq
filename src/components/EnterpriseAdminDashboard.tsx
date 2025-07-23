@@ -18,6 +18,7 @@ import { AdminAlertManager } from "./AdminAlertManager";
 import GPTSearch from "./GPTSearch";
 import { PWASettings } from "./PWASettings";
 import { ThirdShiftChatbot } from "./ThirdShiftChatbot";
+import { EnhancedRecallDemo } from "./EnhancedRecallDemo";
 import { AlertSourceFinder } from "./AlertSourceFinder";
 
 export const EnterpriseAdminDashboard = () => {
@@ -35,8 +36,9 @@ export const EnterpriseAdminDashboard = () => {
         
         <Tabs defaultValue="alerts" className="w-full">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-10 min-w-max">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-11 min-w-max">
               <TabsTrigger value="alerts" className="text-xs md:text-sm">Alerts</TabsTrigger>
+              <TabsTrigger value="enhanced-recalls" className="text-xs md:text-sm">Enhanced Recalls</TabsTrigger>
               <TabsTrigger value="search" className="text-xs md:text-sm">AI Search</TabsTrigger>
               <TabsTrigger value="manage" className="text-xs md:text-sm">Manage</TabsTrigger>
               <TabsTrigger value="analytics" className="text-xs md:text-sm">Analytics</TabsTrigger>
@@ -78,6 +80,10 @@ export const EnterpriseAdminDashboard = () => {
                 />
               </div>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="enhanced-recalls" className="mt-4">
+            <EnhancedRecallDemo />
           </TabsContent>
           
           <TabsContent value="manage" className="mt-4">

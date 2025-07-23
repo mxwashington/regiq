@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { EnhancedRegulatoryFilter } from './EnhancedRegulatoryFilter';
 import TaggedAlertCard from './TaggedAlertCard';
-import SimpleAlertCard from './SimpleAlertCard';
+import PerplexityAlertCard from './PerplexityAlertCard';
 
 interface Alert {
   id: string;
@@ -487,10 +487,11 @@ function AlertsList({ alerts, onDismissAlert }: AlertsListProps) {
           );
         } else {
           return (
-            <SimpleAlertCard
+            <PerplexityAlertCard
               key={alert.id}
               alert={alert}
               onDismissAlert={onDismissAlert}
+              savedAlerts={[]}
             />
           );
         }

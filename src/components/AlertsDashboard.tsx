@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import TagFilter from './TagFilter';
 import TaggedAlertCard from './TaggedAlertCard';
-import SimpleAlertCard from './SimpleAlertCard';
+import PerplexityAlertCard from './PerplexityAlertCard';
 import { AlertsErrorBoundary } from './AlertsErrorBoundary';
 import { useTaxonomy } from '@/hooks/useTaxonomy';
 import { useTaggedAlerts } from '@/hooks/useTaggedAlerts';
@@ -580,10 +580,11 @@ function AlertsList({ alerts, onTagClick, hasTaggedAlertsError, onDismissAlert }
           );
         } else {
           return (
-            <SimpleAlertCard
+            <PerplexityAlertCard
               key={alert.id}
               alert={alert}
               onDismissAlert={onDismissAlert}
+              savedAlerts={[]}
             />
           );
         }
