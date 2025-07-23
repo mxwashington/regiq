@@ -151,7 +151,7 @@ export default function SearchPage() {
 
         {/* Comprehensive FDA Search System */}
         <Tabs defaultValue="web-intelligence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="web-intelligence" className="flex items-center space-x-1">
               <Globe className="h-4 w-4" />
               <span>Web Intel</span>
@@ -171,10 +171,6 @@ export default function SearchPage() {
             <TabsTrigger value="professional" className="flex items-center space-x-1">
               <Settings className="h-4 w-4" />
               <span>Pro Tools</span>
-            </TabsTrigger>
-            <TabsTrigger value="integration" className="flex items-center space-x-1">
-              <GitMerge className="h-4 w-4" />
-              <span>Integration</span>
             </TabsTrigger>
           </TabsList>
 
@@ -198,10 +194,6 @@ export default function SearchPage() {
 
           <TabsContent value="professional">
             <FDAProfessionalTools />
-          </TabsContent>
-
-          <TabsContent value="integration">
-            <IntegrationEnhancements />
           </TabsContent>
         </Tabs>
 
