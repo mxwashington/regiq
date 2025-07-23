@@ -172,7 +172,8 @@ serve(async (req) => {
 
     // Process the response
     const result = {
-      response: data.choices[0].message.content,
+      content: data.choices[0].message.content, // Changed from 'response' to 'content'
+      response: data.choices[0].message.content, // Keep for backwards compatibility
       sources: extractCitations(data.choices[0].message.content).map(url => ({
         title: url.split('/').pop() || 'Government Source',
         url: url
