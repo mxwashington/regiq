@@ -231,8 +231,12 @@ async function perplexitySourceSearch(alert: Alert): Promise<SourceResult[]> {
 
     // Filter and score the URLs
     for (const url of foundUrls) {
+      console.log(`Checking URL: ${url} for source: ${alert.source}`)
+      
       if (isHighQualityGovernmentURL(url, alert.source)) {
         const confidence = calculatePerplexityConfidence(url, alert, content)
+        
+        console.log(`✓ Accepted URL: ${url} with confidence: ${confidence}`)
         
         results.push({
           url: url,
@@ -241,6 +245,8 @@ async function perplexitySourceSearch(alert: Alert): Promise<SourceResult[]> {
           confidence: confidence,
           method: 'perplexity_ai_search'
         })
+      } else {
+        console.log(`✗ Rejected URL: ${url} (doesn't match quality criteria)`)
       }
     }
 
@@ -697,30 +703,36 @@ function isHighQualityGovernmentURL(url: string, source: string): boolean {
   const sourceLower = source.toLowerCase()
   
   // Must be government site
-  const govDomains = ['fda.gov', 'usda.gov', 'epa.gov', 'cdc.gov', 'nih.gov', 'ema.europa.eu', 'efsa.europa.eu', 'canada.ca']
+  const govDomains = ['fda.gov', 'usda.gov', 'epa.gov', 'cdc.gov', 'nih.gov', 'ema.europa.eu', 'efsa.europa.eu', 'canada.ca', 'mhra.gov.uk', 'cpsc.gov']
   const isGovSite = govDomains.some(domain => urlLower.includes(domain))
   
   if (!isGovSite) return false
   
-  // Prefer news, press releases, safety communications
+  // Quality indicators (more flexible)
   const qualityIndicators = [
-    'press-release', 'news-events', 'safety-communication',
-    'recall', 'alert', 'warning', 'announcement', 'newsroom'
+    'press-release', 'news-events', 'safety-communication', 'newsroom',
+    'recall', 'alert', 'warning', 'announcement', 'safety', 'enforcement',
+    '/news/', '/media/', '/press/', '/alerts/', '/recalls/', '/safety/',
+    'market-withdrawals', 'safety-alerts', 'consumer-alert'
   ]
   
   const hasQualityIndicator = qualityIndicators.some(indicator => urlLower.includes(indicator))
   
-  // Must match source agency
-  const agencyMatch = 
+  // More flexible agency matching - if it's a gov site and has quality indicators, it's likely valid
+  // OR if it specifically matches the source agency
+  const specificAgencyMatch = 
     (sourceLower.includes('fda') && urlLower.includes('fda.gov')) ||
     (sourceLower.includes('usda') && urlLower.includes('usda.gov')) ||
     (sourceLower.includes('epa') && urlLower.includes('epa.gov')) ||
     (sourceLower.includes('cdc') && urlLower.includes('cdc.gov')) ||
     (sourceLower.includes('ema') && urlLower.includes('ema.europa.eu')) ||
     (sourceLower.includes('efsa') && urlLower.includes('efsa.europa.eu')) ||
+    (sourceLower.includes('mhra') && urlLower.includes('mhra.gov.uk')) ||
+    (sourceLower.includes('cpsc') && urlLower.includes('cpsc.gov')) ||
     (sourceLower.includes('health canada') && urlLower.includes('canada.ca'))
   
-  return hasQualityIndicator && agencyMatch
+  // Accept if either has quality indicators OR specific agency match (more permissive)
+  return hasQualityIndicator || specificAgencyMatch
 }
 
 function calculateConfidence(url: string, title: string, alert: Alert): number {
