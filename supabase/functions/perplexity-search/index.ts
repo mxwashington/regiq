@@ -333,8 +333,9 @@ function createSourcesFromCitations(citations: any[], content: string): Array<{t
   if (citations.length > 0 && typeof citations[0] === 'string') {
     citations.forEach(citation => {
       if (citation.startsWith('http')) {
+        const title = extractIntelligentTitle(citation, content);
         sources.push({
-          title: extractTitleFromUrl(citation),
+          title: title,
           url: citation
         });
       }
@@ -345,7 +346,7 @@ function createSourcesFromCitations(citations: any[], content: string): Array<{t
     citations.forEach(citation => {
       if (citation.url) {
         sources.push({
-          title: citation.title || extractTitleFromUrl(citation.url),
+          title: citation.title || extractIntelligentTitle(citation.url, content),
           url: citation.url
         });
       }
@@ -359,6 +360,33 @@ function createSourcesFromCitations(citations: any[], content: string): Array<{t
   }
   
   return sources;
+}
+
+function extractIntelligentTitle(url: string, content?: string): string {
+  // Extract domain for better titles
+  const domain = url.match(/https?:\/\/([^\/]+)/)?.[1] || '';
+  const upperDomain = domain.toUpperCase();
+  
+  // Agency-specific titles
+  if (domain.includes('fda.gov')) {
+    return 'FDA.GOV Official Source';
+  } else if (domain.includes('cdc.gov')) {
+    return 'CDC.GOV Official Source';  
+  } else if (domain.includes('usda.gov')) {
+    return 'USDA.GOV Official Source';
+  } else if (domain.includes('epa.gov')) {
+    return 'EPA.GOV Official Source';
+  } else if (domain.includes('mhra.gov') || domain.includes('gov.uk')) {
+    return 'GOV.UK Official Source';
+  } else if (domain.includes('cpsc.gov')) {
+    return 'CPSC.GOV Official Source';
+  } else if (domain.includes('who.int')) {
+    return 'WHO.INT Official Source';
+  } else if (domain.includes('.gov')) {
+    return `${upperDomain.replace('.GOV', '.GOV')} Official Source`;
+  } else {
+    return `${upperDomain} Official Source`;
+  }
 }
 
 function createIntelligentSources(content: string): Array<{title: string, url: string}> {
