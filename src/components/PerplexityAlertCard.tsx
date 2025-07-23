@@ -69,6 +69,14 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  // Auto-expand when enhanced data is available
+  React.useEffect(() => {
+    if (enhancedData && !isDismissed) {
+      setIsExpanded(true);
+    }
+  }, [enhancedData, isDismissed]);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -145,7 +153,8 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
 
       setEnhancedData(data);
       setHasSearched(true);
-      setIsExpanded(true);
+      setIsExpanded(true); // Always expand when new data is loaded
+      setIsDismissed(false); // Reset dismiss state when new data is loaded
 
       toast({
         title: "Sources Enhanced",
@@ -319,19 +328,37 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
         </div>
 
         {/* Enhanced Details Section */}
-        {showEnhancedDetails && (enhancedData || hasSearched) && (
+        {showEnhancedDetails && (enhancedData || hasSearched) && !isDismissed && (
           <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
             <CollapsibleTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-between p-2 h-auto border border-purple-200 bg-purple-50 hover:bg-purple-100"
-              >
-                <span className="font-medium text-purple-800 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  AI-Enhanced Details
-                </span>
-                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </Button>
+              <div className="flex items-center w-full">
+                <Button 
+                  variant="ghost" 
+                  className="flex-1 justify-between p-2 h-auto border border-purple-200 bg-purple-50 hover:bg-purple-100"
+                >
+                  <span className="font-medium text-purple-800 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    AI-Enhanced Details
+                  </span>
+                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDismissed(true);
+                    setIsExpanded(false);
+                    toast({
+                      title: "AI Sources Dismissed",
+                      description: "Click 'AI Sources' to view enhanced details again.",
+                    });
+                  }}
+                  className="ml-2 h-8 w-8 p-0 text-purple-600 hover:text-purple-800 hover:bg-purple-100"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </CollapsibleTrigger>
             
             <CollapsibleContent>
