@@ -89,8 +89,11 @@ export const MobileAlertCard: React.FC<MobileAlertCardProps> = ({
   const handleFindSource = () => {
     if (onFindSource) {
       onFindSource(alert);
-    } else if (alert.source_url) {
+    } else if (alert.source_url && alert.source_url.trim() && alert.source_url.startsWith('http')) {
       window.open(alert.source_url, '_blank', 'noopener,noreferrer');
+    } else {
+      // Could add a toast here for invalid URLs if needed
+      console.warn('Invalid or missing source URL for alert:', alert.title);
     }
   };
 

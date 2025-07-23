@@ -152,7 +152,7 @@ export const EnhancedAlertCard = ({ alert, onSummaryGenerated }: EnhancedAlertCa
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          {alert.external_url ? (
+          {alert.external_url && alert.external_url.trim() && alert.external_url.startsWith('http') ? (
             <Button variant="outline" size="sm" asChild>
               <a 
                 href={alert.external_url} 
