@@ -158,7 +158,13 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+      const errorData = await response.text();
+      logStep("Perplexity API error details", { 
+        status: response.status, 
+        statusText: response.statusText, 
+        errorData: errorData 
+      });
+      throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorData}`);
     }
 
     const data = await response.json();
