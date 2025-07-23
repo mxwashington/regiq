@@ -81,6 +81,18 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
         throw error;
       }
 
+      // Check if we hit rate limit and provide fallback
+      if (data?.error && data?.limit_reached) {
+        const botMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'bot',
+          content: `I've reached the daily search limit for enhanced AI responses (${data.current_usage}/${data.daily_limit} searches used today). However, I can still help you with general regulatory questions using my existing knowledge base. Please ask your question and I'll do my best to provide helpful information about FDA, USDA, EPA regulations, or food safety topics.`,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, botMessage]);
+        return;
+      }
+
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
