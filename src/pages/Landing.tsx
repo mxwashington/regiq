@@ -291,8 +291,8 @@ const Landing = () => {
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Brain className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-base md:text-lg mb-2">AI-powered search with GPT-4.1</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Instant food regulation lookup</p>
+              <h3 className="font-semibold text-base md:text-lg mb-2">AI-powered intelligence with Perplexity</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Instant regulatory insights with live sources</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -319,19 +319,19 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* AI Search Section - Enhanced */}
+      {/* AI Intelligence Section - Enhanced */}
       <section id="ai-search" className="py-8 md:py-12 px-4 bg-muted/20">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-6 md:mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">🚀 NEW: Enhanced AI Search with Live Data</h2>
-            <p className="text-muted-foreground text-base md:text-lg">Now prioritizes your live dashboard data first, then searches the web</p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">🚀 NEW: Enhanced AI Intelligence with Live Sources</h2>
+            <p className="text-muted-foreground text-base md:text-lg">AI-powered regulatory analysis with real-time source verification</p>
           </div>
           
           <Card className="p-4 md:p-6 border-2 border-primary/20">
             <div className="flex items-center gap-3 mb-4">
               <Brain className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-              <h3 className="text-base md:text-lg font-semibold">🤖 AI Search powered by GPT-4.1 + Tavily</h3>
-              <Badge variant="secondary" className="text-xs">LIVE DATA FIRST</Badge>
+              <h3 className="text-base md:text-lg font-semibold">🤖 AI Intelligence powered by Perplexity + OpenAI</h3>
+              <Badge variant="secondary" className="text-xs">LIVE SOURCES</Badge>
             </div>
             
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
@@ -339,17 +339,17 @@ const Landing = () => {
                 <div>
                   <strong className="text-green-800">✅ What's New:</strong>
                   <ul className="text-green-700 space-y-1 mt-1">
-                    <li>• Prioritizes live dashboard alerts</li>
-                    <li>• Shows exact timestamps (hours ago)</li>
-                    <li>• Real-time FDA/USDA/EPA data first</li>
+                    <li>• AI analyzes alerts with regulatory context</li>
+                    <li>• Real-time source verification & citations</li>
+                    <li>• Enhanced summaries with urgency scoring</li>
                   </ul>
                 </div>
                 <div>
-                  <strong className="text-green-800">🎯 Data Freshness:</strong>
+                  <strong className="text-green-800">🎯 AI Enhancement:</strong>
                   <ul className="text-green-700 space-y-1 mt-1">
-                    <li>• Live dashboard data (last 48 hours)</li>
-                    <li>• Plain text responses (no markdown)</li>
-                    <li>• Source timestamps included</li>
+                    <li>• Powered by Perplexity AI</li>
+                    <li>• Official source verification</li>
+                    <li>• Context-aware regulatory insights</li>
                   </ul>
                 </div>
               </div>
@@ -394,7 +394,7 @@ const Landing = () => {
             </div>
             
             <p className="text-xs md:text-sm text-muted-foreground text-center">
-              Live dashboard data priority • Real-time regulatory monitoring • Plain English responses
+              ✨ AI-powered regulatory intelligence with live source verification and enhanced context
             </p>
           </Card>
         </div>
@@ -558,40 +558,24 @@ const Landing = () => {
                         Read Full Alert
                       </MobileButton>
                       <MobileButton 
-                        variant="ghost" 
-                        onClick={() => handleSearchClick(featuredAlert)}
-                        className="flex items-center gap-2"
-                      >
-                        <Globe className="w-4 h-4" />
-                        Search Web
-                      </MobileButton>
-                      <MobileButton 
                         variant="secondary" 
                         className="flex items-center gap-2"
                         disabled
                       >
                         <Bot className="w-4 h-4" />
-                        Use AI Sources in Feed Below
+                        AI Enhanced Sources Available
                       </MobileButton>
                     </>
                   ) : (
                     <>
-                      <MobileButton 
-                        variant="outline" 
-                        onClick={() => handleSearchClick(featuredAlert)}
-                        className="flex items-center gap-2"
-                      >
-                        <Search className="w-4 h-4" />
-                        Find Source
-                      </MobileButton>
-                      <MobileButton 
-                        variant="secondary" 
-                        className="flex items-center gap-2"
-                        disabled
-                      >
-                        <Bot className="w-4 h-4" />
-                        Use AI Sources in Feed Below
-                      </MobileButton>
+                    <MobileButton 
+                      variant="secondary" 
+                      className="flex items-center gap-2"
+                      disabled
+                    >
+                      <Bot className="w-4 h-4" />
+                      AI Enhanced Sources Available
+                    </MobileButton>
                     </>
                   )}
                 </div>
@@ -704,8 +688,8 @@ const Landing = () => {
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Brain className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
-              <h3 className="text-lg md:text-xl font-semibold mb-3">2. AI Analyzes for Food Impact</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Smart summaries focused on food safety implications, compliance requirements, and business impact</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-3">2. AI Enhances with Live Sources</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Perplexity AI analyzes alerts, verifies sources, and provides regulatory context with official citations</p>
             </div>
             <div className="text-center">
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
@@ -741,7 +725,7 @@ const Landing = () => {
             
             <div className="text-xs md:text-sm text-muted-foreground mb-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 max-w-2xl mx-auto">
-                <span>✅ AI-powered food regulation search (GPT-4.1)</span>
+                <span>✅ AI-powered regulatory intelligence (Perplexity)</span>
                 <span>✅ FDA/USDA recalls & safety alerts</span>
                 <span>✅ Plain English summaries, no jargon</span>
                 <span>✅ Mobile notifications for plant floor</span>
