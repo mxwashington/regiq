@@ -146,27 +146,142 @@ serve(async (req) => {
 async function enhancedSourceFinding(alert: Alert): Promise<SourceResult[]> {
   const results: SourceResult[] = []
   
-  // Method 1: Check cached scraped data first
+  // Method 1: Perplexity AI-powered source discovery (primary method)
+  const perplexityResults = await perplexitySourceSearch(alert)
+  results.push(...perplexityResults)
+  
+  // Method 2: Check cached scraped data
   const cachedResults = await checkScrapedCache(alert)
   results.push(...cachedResults)
   
-  // Method 2: Government site direct search
+  // Method 3: Government site direct search (fallback)
   const govResults = await searchGovernmentSites(alert)
   results.push(...govResults)
   
-  // Method 3: Fuzzy title matching with scraped data
+  // Method 4: Fuzzy title matching with scraped data
   const fuzzyResults = await fuzzyMatchScrapedData(alert)
   results.push(...fuzzyResults)
   
-  // Method 4: Date-based matching for recent alerts
+  // Method 5: Date-based matching for recent alerts
   const dateResults = await dateBasedMatching(alert)
   results.push(...dateResults)
   
-  // Method 5: Content pattern matching
+  // Method 6: Content pattern matching
   const patternResults = await contentPatternMatching(alert)
   results.push(...patternResults)
   
   return results.filter(r => r.confidence > 0.3).sort((a, b) => b.confidence - a.confidence)
+}
+
+async function perplexitySourceSearch(alert: Alert): Promise<SourceResult[]> {
+  const results: SourceResult[] = []
+  
+  try {
+    const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY')
+    if (!perplexityApiKey) {
+      console.warn('PERPLEXITY_API_KEY not found, skipping Perplexity source search')
+      return results
+    }
+
+    // Construct a search query to find the official source URL
+    const searchQuery = `Find the official government source URL for this alert: "${alert.title}" from ${alert.source}. Include published date ${alert.published_date}. Focus on finding the direct link to the original regulatory alert, recall notice, or safety communication.`
+
+    console.log(`Using Perplexity to find source for: ${alert.title.substring(0, 60)}...`)
+
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${perplexityApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'sonar',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a regulatory intelligence assistant. Your task is to find the exact official government source URL for regulatory alerts. Focus on finding direct links to FDA, USDA, EPA, CDC, or other government agency pages. Return only the most authoritative and direct source URL.'
+          },
+          {
+            role: 'user',
+            content: searchQuery
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 1000,
+        return_images: false,
+        return_related_questions: false,
+        search_domain_filter: ['fda.gov', 'usda.gov', 'epa.gov', 'cdc.gov', 'cpsc.gov', 'mhra.gov.uk'],
+        search_recency_filter: 'month',
+        frequency_penalty: 1,
+        presence_penalty: 0
+      }),
+    })
+
+    if (!response.ok) {
+      console.error('Perplexity API error:', response.status, await response.text())
+      return results
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content || ''
+
+    // Extract URLs from the Perplexity response
+    const urlPattern = /https?:\/\/[^\s<>"'\[\]()]+/g
+    const foundUrls = content.match(urlPattern) || []
+
+    // Filter and score the URLs
+    for (const url of foundUrls) {
+      if (isHighQualityGovernmentURL(url, alert.source)) {
+        const confidence = calculatePerplexityConfidence(url, alert, content)
+        
+        results.push({
+          url: url,
+          title: alert.title,
+          snippet: content.substring(0, 200) + '...',
+          confidence: confidence,
+          method: 'perplexity_ai_search'
+        })
+      }
+    }
+
+    console.log(`Perplexity found ${results.length} potential sources for alert: ${alert.title.substring(0, 60)}...`)
+
+  } catch (error) {
+    console.error('Error in Perplexity source search:', error)
+  }
+  
+  return results
+}
+
+function calculatePerplexityConfidence(url: string, alert: Alert, content: string): number {
+  let confidence = 0.7 // Base confidence for Perplexity results
+  
+  // Boost confidence for exact agency matches
+  const urlLower = url.toLowerCase()
+  const sourceLower = alert.source.toLowerCase()
+  
+  if (sourceLower.includes('fda') && urlLower.includes('fda.gov')) confidence += 0.2
+  else if (sourceLower.includes('usda') && urlLower.includes('usda.gov')) confidence += 0.2
+  else if (sourceLower.includes('epa') && urlLower.includes('epa.gov')) confidence += 0.2
+  else if (sourceLower.includes('cdc') && urlLower.includes('cdc.gov')) confidence += 0.2
+  else if (sourceLower.includes('cpsc') && urlLower.includes('cpsc.gov')) confidence += 0.2
+  else if (sourceLower.includes('mhra') && urlLower.includes('mhra.gov')) confidence += 0.2
+  
+  // Boost confidence for recall/alert specific URLs
+  if (urlLower.includes('recall') || urlLower.includes('alert') || urlLower.includes('safety') || urlLower.includes('withdraw')) {
+    confidence += 0.1
+  }
+  
+  // Check if the content mentions key terms from the alert title
+  const titleWords = alert.title.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+  const contentLower = content.toLowerCase()
+  const matchingWords = titleWords.filter(word => contentLower.includes(word))
+  
+  if (matchingWords.length > titleWords.length * 0.5) {
+    confidence += 0.1
+  }
+  
+  return Math.min(confidence, 0.95) // Cap at 95%
 }
 
 async function checkScrapedCache(alert: Alert): Promise<SourceResult[]> {
