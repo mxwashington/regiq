@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 
 interface SearchResult {
-  content: string;
+  content?: string;
+  response?: string;
   citations: string[];
   related_questions: string[];
   urgency_score: number;
@@ -380,7 +381,7 @@ export function RegulatorySearch() {
             <div>
               <h4 className="font-medium mb-2">Regulatory Information</h4>
               <div className="prose prose-sm max-w-none">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{results.content}</p>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{results.response || results.content}</p>
               </div>
             </div>
 
