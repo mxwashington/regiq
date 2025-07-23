@@ -248,8 +248,14 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
   };
 
   const handleExternalLink = () => {
-    if (alert.external_url) {
+    if (alert.external_url && alert.external_url.trim() && alert.external_url.startsWith('http')) {
       window.open(alert.external_url, '_blank', 'noopener,noreferrer');
+    } else {
+      toast({
+        title: "Source Unavailable",
+        description: "No valid source URL available for this alert.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -319,7 +325,7 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
               </span>
             </MobileButton>
             
-            {alert.external_url && (
+            {alert.external_url && alert.external_url.trim() && alert.external_url.startsWith('http') && (
               <MobileButton
                 onClick={handleExternalLink}
                 className="flex items-center gap-1"
