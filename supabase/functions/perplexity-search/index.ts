@@ -151,15 +151,12 @@ serve(async (req) => {
             content: enhancedQuery
           }
         ],
+        max_tokens: 1000,
         temperature: 0.2,
         top_p: 0.9,
-        max_tokens: 1000,
+        return_citations: true,
         return_images: false,
-        return_related_questions: true,
-        search_domain_filter: ['fda.gov', 'usda.gov', 'epa.gov', 'federalregister.gov', 'cdc.gov'],
-        search_recency_filter: searchRequest.timeRange || 'month',
-        frequency_penalty: 1,
-        presence_penalty: 0
+        return_related_questions: true
       }),
     });
 
