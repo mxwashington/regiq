@@ -34,7 +34,7 @@ const AgencyPage = React.lazy(() => import("./pages/AgencyPage").catch(() => ({ 
 const AllAlertsPage = React.lazy(() => import("./pages/AllAlertsPage").catch(() => ({ default: () => <div>Alerts unavailable</div> })));
 const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage").catch(() => ({ default: () => <div>Food Safety unavailable</div> })));
 const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ default: () => <div>Pricing unavailable</div> })));
-const MobileNavigation = React.lazy(() => import("./components/MobileNavigation"));
+const MobileNavigation = React.lazy(() => import("./components/MobileNavigation").catch(() => ({ default: () => null })));
 
 
 const queryClient = new QueryClient({
