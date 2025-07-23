@@ -20,6 +20,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { DataRefreshButton } from "@/components/DataRefreshButton";
 import { TestDataRunner } from "@/components/TestDataRunner";
 import { AlertSourceFinder } from "@/components/AlertSourceFinder";
+import PerplexityAlertCard from "@/components/PerplexityAlertCard";
 import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
 import { KeywordExtractionDemo } from "@/components/KeywordExtractionDemo";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
@@ -36,7 +37,6 @@ const Landing = () => {
   const [email, setEmail] = useState('');
   const [selectedAgency, setSelectedAgency] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isAISourcesLoading, setIsAISourcesLoading] = useState(false);
   const { alerts, loading } = useSimpleAlerts();
   const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
   const { isMobile, isTablet } = useMobileOptimization();
@@ -152,61 +152,6 @@ const Landing = () => {
     }
   };
 
-  const handleAISourcesClick = async (alert: any) => {
-    console.log('AI Sources button clicked for:', alert.title);
-    
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to use AI Sources with Perplexity",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsAISourcesLoading(true);
-
-    try {
-      const query = `${alert.title} ${alert.summary || ''} regulatory sources official information`.trim();
-      
-      const { data, error } = await supabase.functions.invoke('perplexity-search', {
-        body: {
-          query,
-          agencies: [alert.source, alert.agency].filter(Boolean),
-          searchType: 'general',
-          industry: 'Regulatory Compliance',
-          timeRange: 'month'
-        }
-      });
-
-      if (error) {
-        console.error('AI Sources error:', error);
-        throw error;
-      }
-
-      // Show results in a more user-friendly way
-      const aiResponse = data.content || data.response || 'No additional information found.';
-      const sources = data.sources || data.citations || [];
-      
-      toast({
-        title: "AI Sources Found",
-        description: `Found ${sources.length} additional sources for this alert. Check the chat for details.`,
-      });
-
-      // You could also open the chat with the results pre-populated
-      setIsChatOpen(true);
-
-    } catch (error) {
-      console.error('AI Sources error:', error);
-      toast({
-        title: "AI Sources Error",
-        description: "Failed to find additional sources. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsAISourcesLoading(false);
-    }
-  };
 
   return (
     <MobileLayout showNavigation={false}>
@@ -622,12 +567,11 @@ const Landing = () => {
                       </MobileButton>
                       <MobileButton 
                         variant="secondary" 
-                        onClick={() => handleAISourcesClick(featuredAlert)}
-                        disabled={isAISourcesLoading}
                         className="flex items-center gap-2"
+                        disabled
                       >
                         <Bot className="w-4 h-4" />
-                        {isAISourcesLoading ? 'Searching...' : 'AI Sources'}
+                        Use AI Sources in Feed Below
                       </MobileButton>
                     </>
                   ) : (
@@ -642,12 +586,11 @@ const Landing = () => {
                       </MobileButton>
                       <MobileButton 
                         variant="secondary" 
-                        onClick={() => handleAISourcesClick(featuredAlert)}
-                        disabled={isAISourcesLoading}
                         className="flex items-center gap-2"
+                        disabled
                       >
                         <Bot className="w-4 h-4" />
-                        {isAISourcesLoading ? 'Searching...' : 'AI Sources'}
+                        Use AI Sources in Feed Below
                       </MobileButton>
                     </>
                   )}
@@ -679,84 +622,14 @@ const Landing = () => {
               </Card>
             ) : (
               displayAlerts.map((alert) => (
-                <Card key={alert.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <Badge variant="outline" className={getAgencyColor(alert.source)}>
-                            {alert.source}
-                          </Badge>
-                          <Badge variant="outline" className={getUrgencyColor(alert.urgency)}>
-                            {alert.urgency}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(alert.published_date)}
-                          </span>
-                        </div>
-                        <CardTitle className="text-lg leading-tight mb-2">
-                          {alert.title}
-                        </CardTitle>
-                        <CardDescription className="line-clamp-2">
-                          {alert.summary}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                   <CardContent className="pt-0">
-                     <div className="flex items-center gap-2 flex-wrap">
-                       {isValidSourceUrl(alert.external_url) ? (
-                         <>
-                           <MobileButton 
-                             variant="outline" 
-                             onClick={() => handleExternalClick(alert)}
-                             className="flex items-center gap-2"
-                           >
-                             <ExternalLink className="w-3 h-3" />
-                             Read Full Alert
-                           </MobileButton>
-                           <MobileButton 
-                             variant="ghost" 
-                             onClick={() => handleSearchClick(alert)}
-                             className="flex items-center gap-2"
-                           >
-                             <Globe className="w-3 h-3" />
-                             Search Web
-                           </MobileButton>
-                           <MobileButton 
-                             variant="secondary" 
-                             onClick={() => handleAISourcesClick(alert)}
-                             disabled={isAISourcesLoading}
-                             className="flex items-center gap-2"
-                           >
-                             <Bot className="w-3 h-3" />
-                             {isAISourcesLoading ? 'Searching...' : 'AI Sources'}
-                           </MobileButton>
-                         </>
-                       ) : (
-                         <>
-                           <MobileButton 
-                             variant="outline" 
-                             onClick={() => handleSearchClick(alert)}
-                             className="flex items-center gap-2"
-                           >
-                             <Search className="w-3 h-3" />
-                             Find Source
-                           </MobileButton>
-                           <MobileButton 
-                             variant="secondary" 
-                             onClick={() => handleAISourcesClick(alert)}
-                             disabled={isAISourcesLoading}
-                             className="flex items-center gap-2"
-                           >
-                             <Bot className="w-3 h-3" />
-                             {isAISourcesLoading ? 'Searching...' : 'AI Sources'}
-                           </MobileButton>
-                         </>
-                       )}
-                     </div>
-                   </CardContent>
-                </Card>
+                <PerplexityAlertCard
+                  key={alert.id}
+                  alert={alert}
+                  onDismissAlert={() => {}} // No dismiss functionality on landing page
+                  onSaveAlert={(alert) => toggleSaveAlert(alert.id)}
+                  savedAlerts={[]} // Saved alerts not applicable on landing page
+                  showEnhancedDetails={true}
+                />
               ))
             )}
           </div>
