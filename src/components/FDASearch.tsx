@@ -344,49 +344,49 @@ export function FDASearch() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('recent')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <Calendar className="h-6 w-6" />
-              <span className="text-sm font-medium">Recent Recalls</span>
-              <span className="text-xs text-muted-foreground">Last 7 days</span>
+              <span className="text-sm font-medium text-center">Recent Recalls</span>
+              <span className="text-xs text-muted-foreground text-center">Last 7 days</span>
             </Button>
 
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('classI')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <AlertTriangle className="h-6 w-6 text-red-500" />
-              <span className="text-sm font-medium">Class I Alerts</span>
-              <span className="text-xs text-muted-foreground">Critical recalls</span>
+              <span className="text-sm font-medium text-center">Class I Alerts</span>
+              <span className="text-xs text-muted-foreground text-center">Critical recalls</span>
             </Button>
 
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('listeria')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <Utensils className="h-6 w-6 text-orange-500" />
-              <span className="text-sm font-medium">Listeria Events</span>
-              <span className="text-xs text-muted-foreground">Food contamination</span>
+              <span className="text-sm font-medium text-center">Listeria Events</span>
+              <span className="text-xs text-muted-foreground text-center">Food contamination</span>
             </Button>
 
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('shortages')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <Pill className="h-6 w-6 text-blue-500" />
-              <span className="text-sm font-medium">Drug Shortages</span>
-              <span className="text-xs text-muted-foreground">Current shortages</span>
+              <span className="text-sm font-medium text-center">Drug Shortages</span>
+              <span className="text-xs text-muted-foreground text-center">Current shortages</span>
             </Button>
           </div>
         </CardContent>
