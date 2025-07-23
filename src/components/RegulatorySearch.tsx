@@ -187,11 +187,23 @@ export function RegulatorySearch() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Tabs value={filters.searchType} onValueChange={(value) => setFilters(prev => ({ ...prev, searchType: value }))}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="recalls">Recalls</TabsTrigger>
-              <TabsTrigger value="deadlines">Deadlines</TabsTrigger>
-              <TabsTrigger value="guidance">Guidance</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 h-12">
+              <TabsTrigger value="general" className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                <span>General</span>
+              </TabsTrigger>
+              <TabsTrigger value="recalls" className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                <span>Recalls</span>
+              </TabsTrigger>
+              <TabsTrigger value="deadlines" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>Deadlines</span>
+              </TabsTrigger>
+              <TabsTrigger value="guidance" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <span>Guidance</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="general" className="space-y-4">
@@ -248,27 +260,30 @@ export function RegulatorySearch() {
           </Tabs>
 
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Agencies</Label>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Regulatory Agencies</Label>
+              <div className="space-y-3 max-h-40 overflow-y-auto p-3 border rounded-lg bg-muted/30">
                 {agencies.map((agency) => (
-                  <div key={agency.id} className="flex items-center space-x-2">
+                  <div key={agency.id} className="flex items-center space-x-3">
                     <Checkbox
                       id={agency.id}
                       checked={filters.agencies.includes(agency.id)}
                       onCheckedChange={(checked) => handleAgencyChange(agency.id, checked as boolean)}
+                      className="h-4 w-4"
                     />
-                    <Label htmlFor={agency.id} className="text-sm">{agency.name}</Label>
+                    <Label htmlFor={agency.id} className="text-sm leading-relaxed cursor-pointer">
+                      {agency.name}
+                    </Label>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Industry Focus</Label>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Industry Focus</Label>
               <Select value={filters.industry} onValueChange={(value) => setFilters(prev => ({ ...prev, industry: value }))}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
                 <SelectContent>
@@ -280,10 +295,10 @@ export function RegulatorySearch() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Time Range</Label>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Time Range</Label>
               <Select value={filters.timeRange} onValueChange={(value) => setFilters(prev => ({ ...prev, timeRange: value }))}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -299,10 +314,10 @@ export function RegulatorySearch() {
           <Button 
             onClick={handleSearch} 
             disabled={loading || !query.trim()}
-            className="w-full"
+            className="w-full h-12 text-base font-medium"
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Search className="mr-2 h-4 w-4" />
+            {loading && <Loader2 className="mr-3 h-5 w-5 animate-spin" />}
+            <Search className="mr-3 h-5 w-5" />
             Search Regulatory Intelligence
           </Button>
         </CardContent>
@@ -368,11 +383,14 @@ export function RegulatorySearch() {
             {/* Agencies Mentioned */}
             {results.agencies_mentioned.length > 0 && (
               <div>
-                <h4 className="font-medium mb-2">Agencies Mentioned</h4>
-                <div className="flex flex-wrap gap-2">
+                <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Agencies Mentioned
+                </h4>
+                <div className="flex flex-wrap gap-3">
                   {results.agencies_mentioned.map((agency) => (
-                    <Badge key={agency} variant="outline">
-                      <Shield className="w-3 h-3 mr-1" />
+                    <Badge key={agency} variant="outline" className="px-3 py-1.5 text-sm">
+                      <Shield className="w-4 h-4 mr-2" />
                       {agency}
                     </Badge>
                   ))}
@@ -382,8 +400,11 @@ export function RegulatorySearch() {
 
             {/* Main Content */}
             <div>
-              <h4 className="font-medium mb-2">Regulatory Information</h4>
-              <div className="prose prose-sm max-w-none text-gray-700">
+              <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Regulatory Information
+              </h4>
+              <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {results.response || results.content || ''}
                 </ReactMarkdown>
@@ -393,14 +414,17 @@ export function RegulatorySearch() {
             {/* Sources and Citations */}
             {(results.sources?.length > 0 || results.citations?.length > 0) && (
               <div>
-                <h4 className="font-medium mb-2">Official Sources</h4>
-                <div className="space-y-2">
+                <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <ExternalLink className="h-5 w-5 text-primary" />
+                  Official Sources
+                </h4>
+                <div className="space-y-3">
                   {/* Display sources array first */}
                   {results.sources?.map((source, index) => (
-                    <div key={`source-${index}`} className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <ExternalLink className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                    <div key={`source-${index}`} className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors">
+                      <ExternalLink className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <div className="font-medium text-sm text-blue-900">{source.title}</div>
+                        <div className="font-medium text-sm text-blue-900 mb-1 leading-relaxed">{source.title}</div>
                         <a 
                           href={source.url} 
                           target="_blank" 
@@ -414,7 +438,7 @@ export function RegulatorySearch() {
                   ))}
                   {/* Display citations array as fallback */}
                   {!results.sources?.length && results.citations?.map((citation, index) => (
-                    <div key={`citation-${index}`} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                    <div key={`citation-${index}`} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
                       <a 
                         href={citation} 
@@ -433,17 +457,20 @@ export function RegulatorySearch() {
             {/* Related Questions */}
             {results.related_questions.length > 0 && (
               <div>
-                <h4 className="font-medium mb-2">Related Questions</h4>
-                <div className="space-y-2">
+                <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <Search className="h-5 w-5 text-primary" />
+                  Related Questions
+                </h4>
+                <div className="space-y-3">
                   {results.related_questions.map((question, index) => (
                     <Button
                       key={index}
                       variant="outline"
-                      size="sm"
-                      className="justify-start h-auto p-3 text-left"
+                      size="default"
+                      className="justify-start h-auto p-4 text-left w-full hover:bg-muted/50"
                       onClick={() => setQuery(question)}
                     >
-                      <span className="text-sm">{question}</span>
+                      <span className="text-sm leading-relaxed">{question}</span>
                     </Button>
                   ))}
                 </div>
