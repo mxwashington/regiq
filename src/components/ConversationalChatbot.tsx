@@ -61,6 +61,8 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
     setIsLoading(true);
 
     try {
+      console.log('ConversationalChatbot: Starting search with query:', userMessage.content);
+      
       // Call Perplexity search function for better regulatory intelligence
       const { data, error } = await supabase.functions.invoke('perplexity-search', {
         body: {
@@ -72,7 +74,12 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
         }
       });
 
-      if (error) throw error;
+      console.log('ConversationalChatbot: API response:', { data, error });
+
+      if (error) {
+        console.error('ConversationalChatbot: Supabase function error:', error);
+        throw error;
+      }
 
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),

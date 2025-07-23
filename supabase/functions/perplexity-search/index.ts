@@ -130,45 +130,60 @@ serve(async (req) => {
       });
     }
 
-    // Make Perplexity API call
+    // Make Perplexity API call with timeout and retry logic
     logStep("Making Perplexity API call", { query: enhancedQuery });
     
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${perplexityApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'sonar',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a regulatory intelligence expert. Provide accurate, up-to-date information about FDA, USDA, EPA, and other regulatory agency updates. Always cite official government sources and include dates when available. Focus on actionable compliance information.'
-          },
-          {
-            role: 'user',
-            content: enhancedQuery
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0.2,
-        top_p: 0.9
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      logStep("Perplexity API error details", { 
-        status: response.status, 
-        statusText: response.statusText, 
-        errorData: errorData 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+    
+    try {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${perplexityApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'sonar',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a regulatory intelligence expert. Provide accurate, up-to-date information about FDA, USDA, EPA, and other regulatory agency updates. Always cite official government sources and include dates when available. Focus on actionable compliance information. Be concise but comprehensive.'
+            },
+            {
+              role: 'user',
+              content: enhancedQuery
+            }
+          ],
+          max_tokens: 800, // Reduced for faster response
+          temperature: 0.1, // Lower for more consistent results
+          top_p: 0.9
+        }),
+        signal: controller.signal
       });
-      throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorData}`);
-    }
 
-    const data = await response.json();
-    logStep("Perplexity API response received");
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        logStep("Perplexity API error details", { 
+          status: response.status, 
+          statusText: response.statusText, 
+          errorData: errorData 
+        });
+        throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorData}`);
+      }
+
+      const data = await response.json();
+      logStep("Perplexity API response received successfully");
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        logStep("Perplexity API request timed out");
+        throw new Error('Request timed out. Please try again with a shorter query.');
+      }
+      throw error;
+    }
 
     // Process the response
     const result = {
