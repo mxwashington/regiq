@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Shield, Zap, Bell, Brain, Clock, TrendingUp, ExternalLink, Filter, Search, AlertCircle, Globe } from "lucide-react";
+import { ArrowRight, Shield, Zap, Bell, Brain, Clock, TrendingUp, ExternalLink, Filter, Search, AlertCircle, Globe, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -25,14 +25,18 @@ import { KeywordExtractionDemo } from "@/components/KeywordExtractionDemo";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 import { Helmet } from 'react-helmet-async';
 import { cn } from "@/lib/utils";
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [selectedAgency, setSelectedAgency] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAISourcesLoading, setIsAISourcesLoading] = useState(false);
   const { alerts, loading } = useSimpleAlerts();
   const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
   const { isMobile, isTablet } = useMobileOptimization();
@@ -62,12 +66,12 @@ const Landing = () => {
       const foodAgencies = ['FDA', 'USDA', 'EPA', 'CDC'];
       const filtered = alerts.filter(alert => 
         foodAgencies.includes(alert.source)
-      ).slice(0, 10);
+      ).slice(0, 5);
       return filtered;
     }
     
     if (selectedAgency === 'ALL') {
-      return alerts.slice(0, 10);
+      return alerts.slice(0, 5);
     }
     
     const filtered = alerts.filter(alert => {
@@ -78,7 +82,7 @@ const Landing = () => {
         match: sourceMatch 
       });
       return sourceMatch;
-    }).slice(0, 10);
+    }).slice(0, 5);
     
     console.log('Filtered results:', { 
       originalCount: alerts.length, 
@@ -145,6 +149,62 @@ const Landing = () => {
       if (decodedUrl) {
         window.open(decodedUrl, '_blank', 'noopener,noreferrer');
       }
+    }
+  };
+
+  const handleAISourcesClick = async (alert: any) => {
+    console.log('AI Sources button clicked for:', alert.title);
+    
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to use AI Sources with Perplexity",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAISourcesLoading(true);
+
+    try {
+      const query = `${alert.title} ${alert.summary || ''} regulatory sources official information`.trim();
+      
+      const { data, error } = await supabase.functions.invoke('perplexity-search', {
+        body: {
+          query,
+          agencies: [alert.source, alert.agency].filter(Boolean),
+          searchType: 'general',
+          industry: 'Regulatory Compliance',
+          timeRange: 'month'
+        }
+      });
+
+      if (error) {
+        console.error('AI Sources error:', error);
+        throw error;
+      }
+
+      // Show results in a more user-friendly way
+      const aiResponse = data.content || data.response || 'No additional information found.';
+      const sources = data.sources || data.citations || [];
+      
+      toast({
+        title: "AI Sources Found",
+        description: `Found ${sources.length} additional sources for this alert. Check the chat for details.`,
+      });
+
+      // You could also open the chat with the results pre-populated
+      setIsChatOpen(true);
+
+    } catch (error) {
+      console.error('AI Sources error:', error);
+      toast({
+        title: "AI Sources Error",
+        description: "Failed to find additional sources. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAISourcesLoading(false);
     }
   };
 
@@ -541,7 +601,7 @@ const Landing = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {isValidSourceUrl(featuredAlert.external_url) ? (
                     <>
                       <MobileButton 
@@ -560,16 +620,36 @@ const Landing = () => {
                         <Globe className="w-4 h-4" />
                         Search Web
                       </MobileButton>
+                      <MobileButton 
+                        variant="secondary" 
+                        onClick={() => handleAISourcesClick(featuredAlert)}
+                        disabled={isAISourcesLoading}
+                        className="flex items-center gap-2"
+                      >
+                        <Bot className="w-4 h-4" />
+                        {isAISourcesLoading ? 'Searching...' : 'AI Sources'}
+                      </MobileButton>
                     </>
                   ) : (
-                    <MobileButton 
-                      variant="outline" 
-                      onClick={() => handleSearchClick(featuredAlert)}
-                      className="flex items-center gap-2"
-                    >
-                      <Search className="w-4 h-4" />
-                      Find Source
-                    </MobileButton>
+                    <>
+                      <MobileButton 
+                        variant="outline" 
+                        onClick={() => handleSearchClick(featuredAlert)}
+                        className="flex items-center gap-2"
+                      >
+                        <Search className="w-4 h-4" />
+                        Find Source
+                      </MobileButton>
+                      <MobileButton 
+                        variant="secondary" 
+                        onClick={() => handleAISourcesClick(featuredAlert)}
+                        disabled={isAISourcesLoading}
+                        className="flex items-center gap-2"
+                      >
+                        <Bot className="w-4 h-4" />
+                        {isAISourcesLoading ? 'Searching...' : 'AI Sources'}
+                      </MobileButton>
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -624,7 +704,7 @@ const Landing = () => {
                     </div>
                   </CardHeader>
                    <CardContent className="pt-0">
-                     <div className="flex items-center gap-2">
+                     <div className="flex items-center gap-2 flex-wrap">
                        {isValidSourceUrl(alert.external_url) ? (
                          <>
                            <MobileButton 
@@ -643,16 +723,36 @@ const Landing = () => {
                              <Globe className="w-3 h-3" />
                              Search Web
                            </MobileButton>
+                           <MobileButton 
+                             variant="secondary" 
+                             onClick={() => handleAISourcesClick(alert)}
+                             disabled={isAISourcesLoading}
+                             className="flex items-center gap-2"
+                           >
+                             <Bot className="w-3 h-3" />
+                             {isAISourcesLoading ? 'Searching...' : 'AI Sources'}
+                           </MobileButton>
                          </>
                        ) : (
-                         <MobileButton 
-                           variant="outline" 
-                           onClick={() => handleSearchClick(alert)}
-                           className="flex items-center gap-2"
-                         >
-                           <Search className="w-3 h-3" />
-                           Find Source
-                         </MobileButton>
+                         <>
+                           <MobileButton 
+                             variant="outline" 
+                             onClick={() => handleSearchClick(alert)}
+                             className="flex items-center gap-2"
+                           >
+                             <Search className="w-3 h-3" />
+                             Find Source
+                           </MobileButton>
+                           <MobileButton 
+                             variant="secondary" 
+                             onClick={() => handleAISourcesClick(alert)}
+                             disabled={isAISourcesLoading}
+                             className="flex items-center gap-2"
+                           >
+                             <Bot className="w-3 h-3" />
+                             {isAISourcesLoading ? 'Searching...' : 'AI Sources'}
+                           </MobileButton>
+                         </>
                        )}
                      </div>
                    </CardContent>
