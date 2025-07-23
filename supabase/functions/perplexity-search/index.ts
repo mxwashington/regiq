@@ -51,44 +51,8 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    // Check user subscription and search limits
-    const { data: subscriber } = await supabaseClient
-      .from("subscribers")
-      .select("subscribed, subscription_tier")
-      .eq("user_id", user.id)
-      .single();
-
-    // Define search limits by tier
-    const searchLimits = {
-      free: 5,
-      starter: 25,
-      professional: 100,
-      enterprise: 500
-    };
-
-    const userTier = subscriber?.subscribed ? subscriber.subscription_tier : 'free';
-    const dailyLimit = searchLimits[userTier as keyof typeof searchLimits] || 5;
-
-    // Check today's usage
-    const today = new Date().toISOString().split('T')[0];
-    const { count: todayUsage } = await supabaseClient
-      .from("perplexity_searches")
-      .select("*", { count: 'exact', head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", `${today}T00:00:00.000Z`)
-      .lte("created_at", `${today}T23:59:59.999Z`);
-
-    if ((todayUsage || 0) >= dailyLimit) {
-      return new Response(JSON.stringify({ 
-        error: `Daily search limit reached (${dailyLimit} searches per day for ${userTier} plan)`,
-        limit_reached: true,
-        current_usage: todayUsage,
-        daily_limit: dailyLimit
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 429,
-      });
-    }
+    // Rate limits removed - all users can now use perplexity search without restrictions
+    logStep("Rate limiting disabled - proceeding with search");
 
     const searchRequest: SearchRequest = await req.json();
     logStep("Search request received", searchRequest);
