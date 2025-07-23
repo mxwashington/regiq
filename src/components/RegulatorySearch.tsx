@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -380,8 +382,10 @@ export function RegulatorySearch() {
             {/* Main Content */}
             <div>
               <h4 className="font-medium mb-2">Regulatory Information</h4>
-              <div className="prose prose-sm max-w-none">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{results.response || results.content}</p>
+              <div className="prose prose-sm max-w-none text-gray-700">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {results.response || results.content || ''}
+                </ReactMarkdown>
               </div>
             </div>
 
