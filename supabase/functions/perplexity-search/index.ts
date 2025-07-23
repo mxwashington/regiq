@@ -140,29 +140,41 @@ serve(async (req) => {
 
       const data = await response.json();
       logStep("Perplexity API response received successfully", { 
-        hasChoices: !!data.choices,
-        choicesLength: data.choices?.length,
-        hasCitations: !!data.citations,
-        citationsLength: data.citations?.length
+        fullResponse: JSON.stringify(data, null, 2)
       });
 
-      // Process the response - check both locations for citations
+      // Process the response - extract content and citations
       const content = data.choices[0].message.content;
-      const citations = data.citations || extractCitations(content);
       
-      logStep("Processing citations", { 
-        citationsFromAPI: data.citations?.length || 0,
-        citationsFromContent: extractCitations(content).length,
-        totalCitations: citations.length
+      // Try to extract citations from multiple possible locations
+      let citations = [];
+      
+      // Check if API provides citations directly
+      if (data.citations && Array.isArray(data.citations)) {
+        citations = data.citations;
+        logStep("Found citations in API response", { count: citations.length });
+      } else if (data.choices[0].citations && Array.isArray(data.choices[0].citations)) {
+        citations = data.choices[0].citations;
+        logStep("Found citations in choices", { count: citations.length });
+      } else {
+        // Extract from content
+        citations = extractCitations(content);
+        logStep("Extracted citations from content", { count: citations.length });
+      }
+      
+      // Create proper source objects with URLs and titles
+      const sources = createSourcesFromCitations(citations, content);
+      
+      logStep("Final sources created", { 
+        citationsCount: citations.length,
+        sourcesCount: sources.length,
+        sources: sources
       });
 
       const result = {
         content: content,
         response: content, // Keep for backwards compatibility
-        sources: citations.map(url => ({
-          title: extractTitleFromUrl(url),
-          url: url
-        })),
+        sources: sources,
         citations: citations,
         related_questions: data.choices[0].message.related_questions || [],
         urgency_score: calculateUrgencyScore(content),
@@ -278,10 +290,10 @@ function extractCitations(content: string): string[] {
     });
   }
   
-  // If no URLs found in content, create default sources based on content
+  // If no URLs found in content, fall back to intelligent sources
   if (citations.length === 0) {
-    const defaultSources = createDefaultSources(content);
-    citations.push(...defaultSources);
+    const intelligentSources = createIntelligentSources(content);
+    citations.push(...intelligentSources.map(s => s.url));
   }
   
   return [...new Set(citations)]; // Remove duplicates
@@ -314,26 +326,92 @@ function extractTitleFromUrl(url: string): string {
   }
 }
 
-function createDefaultSources(content: string): string[] {
-  const sources: string[] = [];
-  const lowerContent = content.toLowerCase();
+function createSourcesFromCitations(citations: any[], content: string): Array<{title: string, url: string}> {
+  const sources: Array<{title: string, url: string}> = [];
   
-  // Create relevant default sources based on content
-  if (lowerContent.includes('ice cream') || lowerContent.includes('recall') || lowerContent.includes('listeria')) {
-    sources.push('https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts');
+  // If citations are strings (URLs), use them directly
+  if (citations.length > 0 && typeof citations[0] === 'string') {
+    citations.forEach(citation => {
+      if (citation.startsWith('http')) {
+        sources.push({
+          title: extractTitleFromUrl(citation),
+          url: citation
+        });
+      }
+    });
+  } 
+  // If citations are objects with title/url properties
+  else if (citations.length > 0 && typeof citations[0] === 'object') {
+    citations.forEach(citation => {
+      if (citation.url) {
+        sources.push({
+          title: citation.title || extractTitleFromUrl(citation.url),
+          url: citation.url
+        });
+      }
+    });
   }
-  if (lowerContent.includes('fda')) {
-    sources.push('https://www.fda.gov/news-events/fda-newsroom');
-  }
-  if (lowerContent.includes('usda') || lowerContent.includes('meat') || lowerContent.includes('poultry')) {
-    sources.push('https://www.fsis.usda.gov/news-events/recalls');
-  }
-  if (lowerContent.includes('foodsafety')) {
-    sources.push('https://www.foodsafety.gov/recalls');
+  
+  // If we still don't have sources, create intelligent defaults based on content
+  if (sources.length === 0) {
+    const defaultSources = createIntelligentSources(content);
+    sources.push(...defaultSources);
   }
   
   return sources;
 }
+
+function createIntelligentSources(content: string): Array<{title: string, url: string}> {
+  const sources: Array<{title: string, url: string}> = [];
+  const lowerContent = content.toLowerCase();
+  
+  // UK/MHRA specific sources
+  if (lowerContent.includes('mhra') || lowerContent.includes('uk') || lowerContent.includes('medicines and healthcare')) {
+    sources.push({
+      title: 'MHRA Official Guidance',
+      url: 'https://www.gov.uk/government/organisations/medicines-and-healthcare-products-regulatory-agency'
+    });
+    sources.push({
+      title: 'MHRA Guidance Documents',
+      url: 'https://www.gov.uk/guidance/apply-for-a-licence-to-manufacture-medicines'
+    });
+  }
+  
+  // Decentralized manufacturing specific
+  if (lowerContent.includes('decentrali') || lowerContent.includes('designation') || lowerContent.includes('manufacturing')) {
+    sources.push({
+      title: 'MHRA Decentralised Manufacture Guidance',
+      url: 'https://www.gov.uk/government/publications/decentralised-manufacture-guidance'
+    });
+  }
+  
+  // FDA sources
+  if (lowerContent.includes('fda') || lowerContent.includes('recall') || lowerContent.includes('food safety')) {
+    sources.push({
+      title: 'FDA Recalls & Safety Alerts',
+      url: 'https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts'
+    });
+  }
+  
+  // USDA sources
+  if (lowerContent.includes('usda') || lowerContent.includes('meat') || lowerContent.includes('poultry')) {
+    sources.push({
+      title: 'USDA FSIS Recalls',
+      url: 'https://www.fsis.usda.gov/news-events/recalls'
+    });
+  }
+  
+  // Generic regulatory source if nothing specific matches
+  if (sources.length === 0) {
+    sources.push({
+      title: 'Government Regulatory Information',
+      url: 'https://www.federalregister.gov/'
+    });
+  }
+  
+  return sources;
+}
+
 
 function calculateUrgencyScore(content: string): number {
   let score = 5; // Base score
