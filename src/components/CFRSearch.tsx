@@ -236,60 +236,60 @@ export function CFRSearch() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('food_safety')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <Shield className="h-6 w-6 text-blue-500" />
-              <span className="text-sm font-medium">Food Safety</span>
-              <span className="text-xs text-muted-foreground">21 CFR 110-123</span>
+              <span className="text-sm font-medium text-center">Food Safety</span>
+              <span className="text-xs text-muted-foreground text-center">21 CFR 110-123</span>
             </Button>
 
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('gmp')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <Building className="h-6 w-6 text-green-500" />
-              <span className="text-sm font-medium">GMP Rules</span>
-              <span className="text-xs text-muted-foreground">Manufacturing</span>
+              <span className="text-sm font-medium text-center">GMP Rules</span>
+              <span className="text-xs text-muted-foreground text-center">Manufacturing</span>
             </Button>
 
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('haccp')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <Target className="h-6 w-6 text-orange-500" />
-              <span className="text-sm font-medium">HACCP</span>
-              <span className="text-xs text-muted-foreground">Control Points</span>
+              <span className="text-sm font-medium text-center">HACCP</span>
+              <span className="text-xs text-muted-foreground text-center">Control Points</span>
             </Button>
 
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('labeling')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <FileText className="h-6 w-6 text-purple-500" />
-              <span className="text-sm font-medium">Labeling</span>
-              <span className="text-xs text-muted-foreground">Requirements</span>
+              <span className="text-sm font-medium text-center">Labeling</span>
+              <span className="text-xs text-muted-foreground text-center">Requirements</span>
             </Button>
 
             <Button 
               variant="outline" 
               onClick={() => handleQuickSearch('medical_devices')}
               disabled={loading}
-              className="h-20 flex flex-col items-center space-y-2"
+              className="h-28 flex flex-col items-center justify-center space-y-2 p-4"
             >
               <Scale className="h-6 w-6 text-teal-500" />
-              <span className="text-sm font-medium">Medical Devices</span>
-              <span className="text-xs text-muted-foreground">21 CFR 800+</span>
+              <span className="text-sm font-medium text-center">Medical Devices</span>
+              <span className="text-xs text-muted-foreground text-center">21 CFR 800+</span>
             </Button>
           </div>
         </CardContent>
