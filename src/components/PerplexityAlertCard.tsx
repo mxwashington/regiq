@@ -357,33 +357,45 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
                         <h4 className="font-medium mb-2 text-purple-800">Official Sources</h4>
                         <div className="space-y-2">
                           {enhancedData.sources?.map((source, index) => (
-                            <div key={`source-${index}`} className="flex items-center space-x-2 p-2 bg-blue-50 rounded border border-blue-200">
-                              <ExternalLink className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                            <a
+                              key={`source-${index}`}
+                              href={source.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-2 p-3 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 hover:border-blue-300 transition-colors cursor-pointer group"
+                            >
+                              <ExternalLink className="w-4 h-4 text-blue-600 flex-shrink-0 group-hover:text-blue-700" />
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium text-xs text-blue-900 truncate">{source.title}</div>
-                                <a 
-                                  href={source.url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-blue-600 hover:underline truncate block"
-                                >
-                                  {source.url}
-                                </a>
+                                <div className="font-medium text-sm text-blue-900 group-hover:text-blue-800 truncate">
+                                  {source.title}
+                                </div>
+                                <div className="text-xs text-blue-600 group-hover:text-blue-700 truncate mt-1">
+                                  {source.url.replace(/^https?:\/\//, '')}
+                                </div>
                               </div>
-                            </div>
+                              <div className="text-blue-600 group-hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-xs">Open</span>
+                              </div>
+                            </a>
                           ))}
                           {!enhancedData.sources?.length && enhancedData.citations?.map((citation, index) => (
-                            <div key={`citation-${index}`} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                              <ExternalLink className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                              <a 
-                                href={citation} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:underline truncate"
-                              >
-                                {citation}
-                              </a>
-                            </div>
+                            <a
+                              key={`citation-${index}`}
+                              href={citation}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-2 p-3 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer group"
+                            >
+                              <ExternalLink className="w-4 h-4 text-gray-600 flex-shrink-0 group-hover:text-gray-700" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm text-gray-700 group-hover:text-gray-800 truncate">
+                                  {citation.replace(/^https?:\/\//, '')}
+                                </div>
+                              </div>
+                              <div className="text-gray-600 group-hover:text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-xs">Open</span>
+                              </div>
+                            </a>
                           ))}
                         </div>
                       </div>
