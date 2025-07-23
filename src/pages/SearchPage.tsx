@@ -151,7 +151,7 @@ export default function SearchPage() {
 
         {/* Comprehensive FDA Search System */}
         <Tabs defaultValue="web-intelligence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="web-intelligence" className="flex items-center space-x-1">
               <Globe className="h-4 w-4" />
               <span>Web Intel</span>
@@ -167,10 +167,6 @@ export default function SearchPage() {
             <TabsTrigger value="combined-search" className="flex items-center space-x-1">
               <Activity className="h-4 w-4" />
               <span>Combined</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center space-x-1">
-              <BarChart3 className="h-4 w-4" />
-              <span>Analytics</span>
             </TabsTrigger>
             <TabsTrigger value="professional" className="flex items-center space-x-1">
               <Settings className="h-4 w-4" />
@@ -199,9 +195,6 @@ export default function SearchPage() {
             <CombinedSearch />
           </TabsContent>
 
-          <TabsContent value="analytics">
-            <FDAAnalyticsDashboard />
-          </TabsContent>
 
           <TabsContent value="professional">
             <FDAProfessionalTools />
