@@ -28,6 +28,7 @@ import {
 interface SearchResult {
   content?: string;
   response?: string;
+  sources?: Array<{ title: string; url: string }>;
   citations: string[];
   related_questions: string[];
   urgency_score: number;
@@ -389,13 +390,31 @@ export function RegulatorySearch() {
               </div>
             </div>
 
-            {/* Citations */}
-            {results.citations.length > 0 && (
+            {/* Sources and Citations */}
+            {(results.sources?.length > 0 || results.citations?.length > 0) && (
               <div>
                 <h4 className="font-medium mb-2">Official Sources</h4>
                 <div className="space-y-2">
-                  {results.citations.map((citation, index) => (
-                    <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                  {/* Display sources array first */}
+                  {results.sources?.map((source, index) => (
+                    <div key={`source-${index}`} className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <ExternalLink className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-blue-900">{source.title}</div>
+                        <a 
+                          href={source.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline break-all"
+                        >
+                          {source.url}
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Display citations array as fallback */}
+                  {!results.sources?.length && results.citations?.map((citation, index) => (
+                    <div key={`citation-${index}`} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
                       <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
                       <a 
                         href={citation} 

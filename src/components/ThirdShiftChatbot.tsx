@@ -61,13 +61,14 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
     try {
       console.log('ThirdShift.ai: Starting search with query:', inputValue);
       
-      // Call our enhanced search API
-      const { data, error } = await supabase.functions.invoke('gpt-search', {
+      // Call Perplexity search function for better regulatory intelligence
+      const { data, error } = await supabase.functions.invoke('perplexity-search', {
         body: {
           query: inputValue,
-          searchType: 'smart_search',
+          searchType: 'general',
           agencies: ['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'],
-          industry: 'regulatory_compliance'
+          industry: 'Regulatory Compliance',
+          timeRange: 'month'
         }
       });
 
@@ -81,9 +82,9 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: data.content || 'I apologize, but I couldn\'t generate a response at this time. Please try rephrasing your question.',
+        content: data.content || data.response || 'I apologize, but I couldn\'t generate a response at this time. Please try rephrasing your question.',
         timestamp: new Date(),
-        sources: data.citations?.map((citation: string, index: number) => ({
+        sources: data.sources || data.citations?.map((citation: string, index: number) => ({
           title: `Source ${index + 1}`,
           url: citation.startsWith('http') ? citation : `https://${citation}`
         })) || []

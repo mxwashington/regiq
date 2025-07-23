@@ -61,13 +61,13 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
     setIsLoading(true);
 
     try {
-      // Call enhanced GPT search function with web search and RSS integration
-      const { data, error } = await supabase.functions.invoke('gpt-search', {
+      // Call Perplexity search function for better regulatory intelligence
+      const { data, error } = await supabase.functions.invoke('perplexity-search', {
         body: {
           query: userMessage.content,
           agencies: ['FDA', 'USDA', 'EPA', 'CDC'],
-          searchType: 'smart_search',
-          industry: 'food',
+          searchType: 'general',
+          industry: 'Food Safety',
           timeRange: 'month'
         }
       });
@@ -77,9 +77,9 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: data.content || 'I apologize, but I encountered an issue processing your request. Please try again.',
+        content: data.content || data.response || 'I apologize, but I encountered an issue processing your request. Please try again.',
         timestamp: new Date(),
-        sources: data.citations?.map((url: string) => ({
+        sources: data.sources || data.citations?.map((url: string) => ({
           title: url.includes('fda.gov') ? 'FDA' : url.includes('usda.gov') ? 'USDA' : url.includes('epa.gov') ? 'EPA' : 'Government Source',
           url
         })) || []
