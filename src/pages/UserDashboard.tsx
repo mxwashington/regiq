@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle, Bot, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle, Bot, MessageCircle, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
@@ -17,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ConversationalChatbot } from '@/components/ConversationalChatbot';
 import { EnhancedRecallDemo } from '@/components/EnhancedRecallDemo';
 import PerplexityAlertCard from '@/components/PerplexityAlertCard';
+import { ExportManager } from '@/components/ExportManager';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -30,6 +31,7 @@ const UserDashboard = () => {
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('alerts');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showExportManager, setShowExportManager] = useState(false);
   
   // User preferences state
   const [preferences, setPreferences] = useState({
@@ -488,6 +490,52 @@ const UserDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Export Data Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  Export Data
+                </CardTitle>
+                <CardDescription>
+                  Export your alerts, search history, and analytics for backup or analysis.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Export Your Data</p>
+                    <p className="text-sm text-muted-foreground">
+                      Download your regulatory alerts, AI search history, and usage analytics in various formats.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => setShowExportManager(true)}
+                    className="ml-4"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Export Data
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Export Manager Dialog */}
+            <Dialog open={showExportManager} onOpenChange={setShowExportManager}>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Export Data</DialogTitle>
+                  <DialogDescription>
+                    Download your RegIQ data in various formats for backup, analysis, or integration.
+                  </DialogDescription>
+                </DialogHeader>
+                <ExportManager 
+                  isOpen={showExportManager}
+                  onClose={() => setShowExportManager(false)}
+                />
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </div>

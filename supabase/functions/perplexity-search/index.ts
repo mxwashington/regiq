@@ -140,6 +140,54 @@ serve(async (req) => {
 
       const data = await response.json();
       logStep("Perplexity API response received successfully");
+
+      // Process the response
+      const result = {
+        content: data.choices[0].message.content, // Changed from 'response' to 'content'
+        response: data.choices[0].message.content, // Keep for backwards compatibility
+        sources: extractCitations(data.choices[0].message.content).map(url => ({
+          title: url.split('/').pop() || 'Government Source',
+          url: url
+        })),
+        citations: extractCitations(data.choices[0].message.content),
+        related_questions: data.choices[0].message.related_questions || [],
+        urgency_score: calculateUrgencyScore(data.choices[0].message.content),
+        agencies_mentioned: extractAgencies(data.choices[0].message.content),
+        search_type: searchRequest.searchType || 'general',
+        query: searchRequest.query,
+        timestamp: new Date().toISOString()
+      };
+
+      // Cache the result
+      await supabaseClient
+        .from("search_cache")
+        .upsert({
+          cache_key: cacheKey,
+          query: searchRequest.query,
+          result_data: result,
+          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hour
+        });
+
+      // Log the search
+      await supabaseClient
+        .from("perplexity_searches")
+        .insert({
+          user_id: user.id,
+          query: searchRequest.query,
+          search_type: searchRequest.searchType || 'general',
+          agencies: searchRequest.agencies || [],
+          industry: searchRequest.industry,
+          tokens_used: data.usage?.total_tokens || 0,
+          success: true
+        });
+
+      logStep("Search completed and logged");
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+
     } catch (error) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError') {
@@ -149,52 +197,6 @@ serve(async (req) => {
       throw error;
     }
 
-    // Process the response
-    const result = {
-      content: data.choices[0].message.content, // Changed from 'response' to 'content'
-      response: data.choices[0].message.content, // Keep for backwards compatibility
-      sources: extractCitations(data.choices[0].message.content).map(url => ({
-        title: url.split('/').pop() || 'Government Source',
-        url: url
-      })),
-      citations: extractCitations(data.choices[0].message.content),
-      related_questions: data.choices[0].message.related_questions || [],
-      urgency_score: calculateUrgencyScore(data.choices[0].message.content),
-      agencies_mentioned: extractAgencies(data.choices[0].message.content),
-      search_type: searchRequest.searchType || 'general',
-      query: searchRequest.query,
-      timestamp: new Date().toISOString()
-    };
-
-    // Cache the result
-    await supabaseClient
-      .from("search_cache")
-      .upsert({
-        cache_key: cacheKey,
-        query: searchRequest.query,
-        result_data: result,
-        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hour
-      });
-
-    // Log the search
-    await supabaseClient
-      .from("perplexity_searches")
-      .insert({
-        user_id: user.id,
-        query: searchRequest.query,
-        search_type: searchRequest.searchType || 'general',
-        agencies: searchRequest.agencies || [],
-        industry: searchRequest.industry,
-        tokens_used: data.usage?.total_tokens || 0,
-        success: true
-      });
-
-    logStep("Search completed and logged");
-
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
