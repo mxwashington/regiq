@@ -6,6 +6,7 @@ import { FDASearch } from '@/components/FDASearch';
 import { CombinedSearch } from '@/components/CombinedSearch';
 import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { FDAProfessionalTools } from '@/components/FDAProfessionalTools';
+import { EnhancedRecallDemo } from '@/components/EnhancedRecallDemo';
 import { IntegrationEnhancements } from '@/components/IntegrationEnhancements';
 import { CFRSearch } from '@/components/CFRSearch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -150,10 +151,14 @@ export default function SearchPage() {
 
         {/* Comprehensive FDA Search System */}
         <Tabs defaultValue="web-intelligence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="web-intelligence" className="flex items-center space-x-1">
               <Globe className="h-4 w-4" />
               <span>Web Intel</span>
+            </TabsTrigger>
+            <TabsTrigger value="enhanced-recalls" className="flex items-center space-x-1">
+              <Shield className="h-4 w-4" />
+              <span>Enhanced Recalls</span>
             </TabsTrigger>
             <TabsTrigger value="fda-database" className="flex items-center space-x-1">
               <Database className="h-4 w-4" />
@@ -183,6 +188,10 @@ export default function SearchPage() {
 
           <TabsContent value="web-intelligence">
             <RegulatorySearch />
+          </TabsContent>
+
+          <TabsContent value="enhanced-recalls">
+            <EnhancedRecallDemo />
           </TabsContent>
 
           <TabsContent value="fda-database">
