@@ -188,14 +188,10 @@ const UserDashboard = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="alerts" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Live Alerts
-            </TabsTrigger>
-            <TabsTrigger value="enhanced-recalls" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Enhanced Recalls
             </TabsTrigger>
             <TabsTrigger value="ai-search" className="flex items-center gap-2">
               <Bot className="h-4 w-4" />
@@ -359,10 +355,6 @@ const UserDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* Enhanced Recalls Tab */}
-          <TabsContent value="enhanced-recalls" className="space-y-6">
-            <EnhancedRecallDemo />
-          </TabsContent>
 
           {/* AI Search Tab */}
           <TabsContent value="ai-search" className="space-y-6">
