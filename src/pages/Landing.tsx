@@ -28,12 +28,14 @@ import { Helmet } from 'react-helmet-async';
 import { cn } from "@/lib/utils";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminAuth();
   const { toast } = useToast();
+  const { trackInteraction } = useAnalytics();
   const [email, setEmail] = useState('');
   const [selectedAgency, setSelectedAgency] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);

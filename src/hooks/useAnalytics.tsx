@@ -54,7 +54,13 @@ export const useAnalytics = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const loadTime = Date.now() - pageStartTime.current.getTime();
       
-      await supabase.from('page_views').insert({
+      console.log('Tracking page view:', { 
+        path: pagePath || location.pathname, 
+        userId: user?.id,
+        sessionId: sessionId.current 
+      });
+      
+      const { error } = await supabase.from('page_views').insert({
         user_id: user?.id || null,
         page_path: pagePath || location.pathname,
         page_title: pageTitle || document.title,
@@ -65,6 +71,12 @@ export const useAnalytics = () => {
         viewport_height: window.innerHeight,
         load_time_ms: loadTime
       });
+      
+      if (error) {
+        console.error('Page view insert error:', error);
+      } else {
+        console.log('Page view tracked successfully');
+      }
     } catch (error) {
       console.error('Failed to track page view:', error);
     }
@@ -146,8 +158,14 @@ export const useAnalytics = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const deviceInfo = getDeviceInfo();
       
+      console.log('Initializing analytics session:', { 
+        sessionId: sessionId.current, 
+        userId: user?.id,
+        deviceInfo 
+      });
+      
       // Try to update existing session or create new one
-      await supabase.from('user_sessions').upsert({
+      const { error } = await supabase.from('user_sessions').upsert({
         user_id: user?.id || null,
         session_id: sessionId.current,
         start_time: sessionStartTime.current.toISOString(),
@@ -158,6 +176,12 @@ export const useAnalytics = () => {
       }, {
         onConflict: 'session_id'
       });
+      
+      if (error) {
+        console.error('Session upsert error:', error);
+      } else {
+        console.log('Session initialized successfully');
+      }
     } catch (error) {
       console.error('Failed to initialize session:', error);
     }

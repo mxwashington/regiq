@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { RegulatorySearch } from '@/components/RegulatorySearch';
 import { FDASearch } from '@/components/FDASearch';
 import { CombinedSearch } from '@/components/CombinedSearch';
@@ -32,6 +33,7 @@ import {
 export default function SearchPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { trackInteraction } = useAnalytics();
 
   useEffect(() => {
     if (!loading && !user) {

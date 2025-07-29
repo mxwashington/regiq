@@ -12,6 +12,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { UpdateNotification } from "@/components/UpdateNotification";
 import { usePWA } from "@/hooks/usePWA";
 import { useCacheBuster } from "@/hooks/useCacheBuster";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
@@ -75,6 +76,9 @@ const PageLoadingFallback = () => (
 const PWAApp = () => {
   // Initialize PWA functionality
   usePWA();
+  
+  // Initialize analytics tracking
+  useAnalytics();
   
   // Initialize cache busting with optimized settings
   useCacheBuster({
