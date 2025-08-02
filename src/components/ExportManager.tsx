@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ExportManagerProps {
   isOpen?: boolean;
@@ -250,17 +252,102 @@ export function ExportManager({ isOpen = true, onClose }: ExportManagerProps) {
           break;
 
         case 'pdf':
-          // For PDF, create a formatted report
-          const reportContent = Object.entries(exportData)
-            .map(([dataType, data]) => {
-              if (Array.isArray(data) && data.length > 0) {
-                return `${dataType.toUpperCase()}\n${'-'.repeat(50)}\n${data.length} records exported\n\n`;
-              }
-              return '';
-            })
-            .join('\n');
+          // Create a professional PDF report
+          const doc = new jsPDF();
+          let yPosition = 20;
           
-          downloadFile(reportContent, `regiq-report-${timestamp}.txt`, 'text/plain');
+          // Title
+          doc.setFontSize(20);
+          doc.text('RegIQ Data Export Report', 20, yPosition);
+          yPosition += 15;
+          
+          // Date and filters info
+          doc.setFontSize(12);
+          doc.text(`Generated: ${format(new Date(), 'PPP')}`, 20, yPosition);
+          yPosition += 10;
+          
+          if (exportOptions.dateRange.from || exportOptions.dateRange.to) {
+            const dateRangeText = `Date Range: ${exportOptions.dateRange.from ? format(exportOptions.dateRange.from, 'PPP') : 'Any'} - ${exportOptions.dateRange.to ? format(exportOptions.dateRange.to, 'PPP') : 'Any'}`;
+            doc.text(dateRangeText, 20, yPosition);
+            yPosition += 10;
+          }
+          
+          if (exportOptions.filters.agencies.length > 0) {
+            doc.text(`Agencies: ${exportOptions.filters.agencies.join(', ')}`, 20, yPosition);
+            yPosition += 10;
+          }
+          
+          yPosition += 10;
+          
+          // Export each data type as a table
+          for (const [dataType, data] of Object.entries(exportData)) {
+            if (Array.isArray(data) && data.length > 0) {
+              // Add new page if needed
+              if (yPosition > 200) {
+                doc.addPage();
+                yPosition = 20;
+              }
+              
+              // Section title
+              doc.setFontSize(16);
+              doc.text(`${dataType.charAt(0).toUpperCase() + dataType.slice(1)} (${data.length} records)`, 20, yPosition);
+              yPosition += 10;
+              
+              // Prepare table data
+              const columns = Object.keys(data[0] || {}).filter(key => 
+                !['id', 'user_id', 'created_at', 'updated_at'].includes(key)
+              ).slice(0, 4); // Limit columns for PDF width
+              
+              const rows = data.slice(0, 50).map(item => // Limit rows for performance
+                columns.map(col => {
+                  const value = item[col];
+                  if (typeof value === 'string') {
+                    return value.length > 50 ? value.substring(0, 50) + '...' : value;
+                  }
+                  return String(value || '');
+                })
+              );
+              
+              // Add table
+              autoTable(doc, {
+                head: [columns.map(col => col.replace(/_/g, ' ').toUpperCase())],
+                body: rows,
+                startY: yPosition,
+                styles: { fontSize: 8, cellPadding: 2 },
+                headStyles: { fillColor: [66, 139, 202] },
+                columnStyles: {
+                  0: { cellWidth: 40 },
+                  1: { cellWidth: 40 },
+                  2: { cellWidth: 40 },
+                  3: { cellWidth: 40 }
+                },
+                margin: { left: 20, right: 20 }
+              });
+              
+              yPosition = (doc as any).lastAutoTable.finalY + 15;
+            }
+          }
+          
+          // Summary
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(14);
+          doc.text('Export Summary', 20, yPosition);
+          yPosition += 10;
+          
+          doc.setFontSize(10);
+          const totalRecords = Object.values(exportData).reduce((total: number, data) => 
+            total + (Array.isArray(data) ? data.length : 0), 0
+          );
+          doc.text(`Total Records Exported: ${totalRecords}`, 20, yPosition);
+          yPosition += 8;
+          doc.text(`Data Types: ${Object.keys(exportData).join(', ')}`, 20, yPosition);
+          
+          // Save the PDF
+          doc.save(`regiq-report-${timestamp}.pdf`);
           break;
       }
 
