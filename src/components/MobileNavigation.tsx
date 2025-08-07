@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Bell, Settings, User } from 'lucide-react';
+import { Home, Search, Bell, TrendingUp, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,6 +19,7 @@ const MobileNavigation: React.FC = () => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/search', icon: Search, label: 'Search', badge: 'PRO' },
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
+    { path: '/risk-predictor', icon: TrendingUp, label: 'Risk' },
     { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
   ];
 

@@ -6,6 +6,7 @@ import {
   Search, 
   Bookmark, 
   Brain,
+  TrendingUp,
   ChevronRight
 } from 'lucide-react';
 
@@ -41,6 +42,12 @@ export function DashboardNavigation({
       icon: Bookmark,
       description: 'Your bookmarked alerts',
       badge: savedItemsCount > 0 ? savedItemsCount : undefined
+    },
+    {
+      id: 'risk',
+      label: 'Risk Intelligence',
+      icon: TrendingUp,
+      description: 'Food safety risk prediction and analysis'
     },
     {
       id: 'thirdshift',

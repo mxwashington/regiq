@@ -34,6 +34,8 @@ const RegIQFeedPage = React.lazy(() => import("./pages/RegIQFeedPage").catch(() 
 const AgencyPage = React.lazy(() => import("./pages/AgencyPage").catch(() => ({ default: () => <div>Agency page unavailable</div> })));
 const AllAlertsPage = React.lazy(() => import("./pages/AllAlertsPage").catch(() => ({ default: () => <div>Alerts unavailable</div> })));
 const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage").catch(() => ({ default: () => <div>Food Safety unavailable</div> })));
+const RiskPredictorPage = React.lazy(() => import("./pages/RiskPredictorPage").catch(() => ({ default: () => <div>Risk Predictor unavailable</div> })));
+const RiskDashboardPage = React.lazy(() => import("./pages/RiskDashboardPage").catch(() => ({ default: () => <div>Risk Dashboard unavailable</div> })));
 const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ default: () => <div>Pricing unavailable</div> })));
 const MobileNavigation = React.lazy(() => import("./components/MobileNavigation").catch(() => ({ default: () => null })));
 
@@ -117,6 +119,10 @@ const PWAApp = () => {
               <Route path="/food-safety" element={<FoodSafetyPage />} />
               <Route path="/pharma-compliance" element={<FoodSafetyPage />} />
               <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
+              
+              {/* Risk Intelligence pages */}
+              <Route path="/risk-predictor" element={<RiskPredictorPage />} />
+              <Route path="/risk-dashboard" element={<RiskDashboardPage />} />
               
               {/* Admin routes */}
               <Route path="/admin/*" element={

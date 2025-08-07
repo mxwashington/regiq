@@ -18,6 +18,8 @@ import { ConversationalChatbot } from '@/components/ConversationalChatbot';
 import { EnhancedRecallDemo } from '@/components/EnhancedRecallDemo';
 import PerplexityAlertCard from '@/components/PerplexityAlertCard';
 import { ExportManager } from '@/components/ExportManager';
+import RiskPredictorPage from './RiskPredictorPage';
+import RiskDashboardPage from './RiskDashboardPage';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -188,10 +190,14 @@ const UserDashboard = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="alerts" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Live Alerts
+            </TabsTrigger>
+            <TabsTrigger value="risk" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Risk Intel
             </TabsTrigger>
             <TabsTrigger value="ai-search" className="flex items-center gap-2">
               <Bot className="h-4 w-4" />
@@ -355,6 +361,79 @@ const UserDashboard = () => {
             </div>
           </TabsContent>
 
+          {/* Risk Intelligence Tab */}
+          <TabsContent value="risk" className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Risk Predictor
+                  </CardTitle>
+                  <CardDescription>
+                    Analyze product descriptions for food safety risks
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Get instant risk assessments and recommendations for your food products.
+                  </p>
+                  <Button asChild className="w-full">
+                    <Link to="/risk-predictor">
+                      Start Risk Analysis
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Risk Dashboard
+                  </CardTitle>
+                  <CardDescription>
+                    View risk trends and insights across categories
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Monitor food safety trends with interactive charts and key insights.
+                  </p>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/risk-dashboard">
+                      View Dashboard
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Risk Intelligence Overview</CardTitle>
+                <CardDescription>
+                  AI-powered food safety risk assessment and prediction
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">2.3</div>
+                    <p className="text-sm text-muted-foreground">Average Risk Score</p>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">8</div>
+                    <p className="text-sm text-muted-foreground">Product Categories</p>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">94%</div>
+                    <p className="text-sm text-muted-foreground">Prediction Accuracy</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* AI Search Tab */}
           <TabsContent value="ai-search" className="space-y-6">
