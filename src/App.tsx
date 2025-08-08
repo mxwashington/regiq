@@ -74,14 +74,18 @@ const PageLoadingFallback = () => (
   </div>
 );
 
+// Ensure analytics runs within Router context
+const AnalyticsInitializer = () => {
+  useAnalytics();
+  return null;
+};
+
 // PWA-enabled App component
 const PWAApp = () => {
   // Initialize PWA functionality
   usePWA();
   
-  // Initialize analytics tracking
-  useAnalytics();
-  
+  // Analytics initialized inside Router context via AnalyticsInitializer
   // Initialize cache busting with optimized settings
   useCacheBuster({
     checkInterval: 15 * 60 * 1000, // Check every 15 minutes (reduced frequency)
@@ -97,7 +101,8 @@ const PWAApp = () => {
       <PWAInstallPrompt />
       <AIAccessProvider>
         <BrowserRouter>
-          <Suspense fallback={<PageLoadingFallback />}>
+            <AnalyticsInitializer />
+            <Suspense fallback={<PageLoadingFallback />}>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<UnifiedAuth />} />
