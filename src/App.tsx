@@ -74,73 +74,126 @@ const PageLoadingFallback = () => (
   </div>
 );
 
-// PWA-enabled App component
+// PWA-enabled App component with enhanced error handling
 const PWAApp = () => {
-  // Initialize PWA functionality
-  usePWA();
+  console.log('PWAApp component rendering');
   
-  // Initialize analytics tracking
-  useAnalytics();
-  
-  // Initialize cache busting with optimized settings
-  useCacheBuster({
-    checkInterval: 15 * 60 * 1000, // Check every 15 minutes (reduced frequency)
-    clearStaleDataInterval: 24 * 60 * 60 * 1000, // Clear stale data daily
-    enableAutoRefresh: false // Don't auto-refresh, let user choose
-  });
+  try {
+    // Initialize PWA functionality
+    console.log('Initializing PWA');
+    usePWA();
+    
+    // Initialize analytics tracking
+    console.log('Initializing analytics');
+    useAnalytics();
+    
+    // Initialize cache busting with optimized settings
+    console.log('Initializing cache buster');
+    useCacheBuster({
+      checkInterval: 15 * 60 * 1000, // Check every 15 minutes (reduced frequency)
+      clearStaleDataInterval: 24 * 60 * 60 * 1000, // Clear stale data daily
+      enableAutoRefresh: false // Don't auto-refresh, let user choose
+    });
+    
+    console.log('All hooks initialized successfully');
+  } catch (error) {
+    console.error('Error in PWAApp hooks:', error);
+    // Return a fallback UI if hooks fail
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Application Error</h1>
+          <p className="text-muted-foreground mb-4">There was an error initializing the application.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
   
   return (
-    <>
+    <ErrorBoundary fallback={
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Router Error</h1>
+          <p className="text-muted-foreground mb-4">There was an error with the application router.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    }>
       <Toaster />
       <Sonner />
       <UpdateNotification />
       <PWAInstallPrompt />
-      <AIAccessProvider>
-        <BrowserRouter>
-          <Suspense fallback={<PageLoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<UnifiedAuth />} />
-              <Route path="/login" element={<UnifiedAuth />} />
-              <Route path="/signup" element={<UnifiedAuth />} />
-              <Route path="/auth/reset-password" element={<ResetPassword />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              
-              {/* Main user pages */}
-              <Route path="/dashboard" element={<UserDashboard />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/pricing" element={<Pricing />} />
-              
-              {/* SEO-optimized alert pages */}
-              <Route path="/alerts" element={<AllAlertsPage />} />
-              <Route path="/alerts/:agency" element={<AgencyPage />} />
-              
-              {/* Industry-specific pages */}
-              <Route path="/food-safety" element={<FoodSafetyPage />} />
-              <Route path="/pharma-compliance" element={<FoodSafetyPage />} />
-              <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
-              
-              {/* Risk Intelligence pages */}
-              <Route path="/risk-predictor" element={<RiskPredictorPage />} />
-              <Route path="/risk-dashboard" element={<RiskDashboardPage />} />
-              
-              {/* Admin routes */}
-              <Route path="/admin/*" element={
-                <AuthGuard>
-                  <AdminDashboard />
-                </AuthGuard>
-              } />
-              
-              {/* Other pages */}
-              <Route path="/legal" element={<LegalFramework />} />
-              <Route path="/debug" element={<Debug />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <MobileNavigation />
-          </Suspense>
-        </BrowserRouter>
-      </AIAccessProvider>
-    </>
+      <ErrorBoundary fallback={
+        <div className="p-4 text-center">
+          <p>AI Access Provider Error</p>
+          <button onClick={() => window.location.reload()}>Reload</button>
+        </div>
+      }>
+        <AIAccessProvider>
+          <ErrorBoundary fallback={
+            <div className="p-4 text-center">
+              <p>Router Error</p>
+              <button onClick={() => window.location.reload()}>Reload</button>
+            </div>
+          }>
+            <BrowserRouter>
+              <Suspense fallback={<PageLoadingFallback />}>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/auth" element={<UnifiedAuth />} />
+                  <Route path="/login" element={<UnifiedAuth />} />
+                  <Route path="/signup" element={<UnifiedAuth />} />
+                  <Route path="/auth/reset-password" element={<ResetPassword />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  
+                  {/* Main user pages */}
+                  <Route path="/dashboard" element={<UserDashboard />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  
+                  {/* SEO-optimized alert pages */}
+                  <Route path="/alerts" element={<AllAlertsPage />} />
+                  <Route path="/alerts/:agency" element={<AgencyPage />} />
+                  
+                  {/* Industry-specific pages */}
+                  <Route path="/food-safety" element={<FoodSafetyPage />} />
+                  <Route path="/pharma-compliance" element={<FoodSafetyPage />} />
+                  <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
+                  
+                  {/* Risk Intelligence pages */}
+                  <Route path="/risk-predictor" element={<RiskPredictorPage />} />
+                  <Route path="/risk-dashboard" element={<RiskDashboardPage />} />
+                  
+                  {/* Admin routes */}
+                  <Route path="/admin/*" element={
+                    <AuthGuard>
+                      <AdminDashboard />
+                    </AuthGuard>
+                  } />
+                  
+                  {/* Other pages */}
+                  <Route path="/legal" element={<LegalFramework />} />
+                  <Route path="/debug" element={<Debug />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <MobileNavigation />
+              </Suspense>
+            </BrowserRouter>
+          </ErrorBoundary>
+        </AIAccessProvider>
+      </ErrorBoundary>
+    </ErrorBoundary>
   );
 };
 
