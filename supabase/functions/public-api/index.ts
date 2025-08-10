@@ -27,6 +27,21 @@ serve(async (req) => {
       { global: { headers: { "x-client-info": "public-api" } } }
     );
 
+    // Enforce API key if configured (Enterprise access)
+    const allowedKeys = (Deno.env.get("PUBLIC_API_KEY") || "")
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean);
+    if (allowedKeys.length > 0) {
+      const provided = req.headers.get("x-api-key") || url.searchParams.get("api_key");
+      if (!provided || !allowedKeys.includes(provided)) {
+        return new Response(JSON.stringify({ error: "Unauthorized: missing or invalid API key" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Helpers
     const cap = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 

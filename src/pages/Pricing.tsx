@@ -301,6 +301,38 @@ const Pricing = () => {
         </div>
       </section>
 
+      {/* API Access (Enterprise) */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">API Access (Enterprise)</CardTitle>
+              <CardDescription>Secure JSON API for integrating FDA/USDA/EPA alerts into your systems.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="grid gap-2">
+                <div className="font-medium">Base URL</div>
+                <pre className="rounded-md border bg-muted p-3 overflow-x-auto"><code>https://piyikxxgoekawboitrzz.supabase.co/functions/v1/public-api</code></pre>
+              </div>
+              <div className="grid gap-2">
+                <div className="font-medium">Endpoints</div>
+                <pre className="rounded-md border bg-muted p-3 overflow-x-auto"><code>GET /alerts?limit=25&source=FDA,USDA&since=7
+GET /alerts/:id
+GET /search?q=recall&limit=25</code></pre>
+              </div>
+              <div className="grid gap-2">
+                <div className="font-medium">Authentication</div>
+                <pre className="rounded-md border bg-muted p-3 overflow-x-auto"><code>x-api-key: YOUR_ENTERPRISE_API_KEY</code></pre>
+                <p className="text-muted-foreground">API access is included with Enterprise. Keys are organization‑scoped with rate limits.</p>
+              </div>
+              <div>
+                <Button asChild size="sm"><Link to="/contact">Contact Sales</Link></Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-12 px-4 bg-primary text-primary-foreground">
         <div className="container mx-auto text-center max-w-4xl">
