@@ -9,7 +9,7 @@ export const Hero: React.FC = () => {
     <section id="hero" className="py-8 md:py-12 px-4">
       <div className="container mx-auto text-center max-w-6xl">
 
-        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight uppercase">
           Regulatory intelligence built for food manufacturing
         </h1>
         <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto px-4">
