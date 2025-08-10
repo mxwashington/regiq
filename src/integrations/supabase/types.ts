@@ -85,6 +85,76 @@ export type Database = {
           },
         ]
       }
+      alert_notes: {
+        Row: {
+          alert_id: string
+          content: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_id: string
+          content: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_alert_notes_alert"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_reviews: {
+        Row: {
+          alert_id: string
+          created_at: string
+          id: string
+          reviewed: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_id: string
+          created_at?: string
+          id?: string
+          reviewed?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_id?: string
+          created_at?: string
+          id?: string
+          reviewed?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_alert_reviews_alert"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alert_tags: {
         Row: {
           alert_id: string
@@ -754,6 +824,39 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_watches: {
+        Row: {
+          agency: string | null
+          created_at: string
+          id: string
+          keywords: string[] | null
+          supplier_identifier: string | null
+          supplier_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency?: string | null
+          created_at?: string
+          id?: string
+          keywords?: string[] | null
+          supplier_identifier?: string | null
+          supplier_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency?: string | null
+          created_at?: string
+          id?: string
+          keywords?: string[] | null
+          supplier_identifier?: string | null
+          supplier_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           description: string | null
@@ -880,6 +983,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      usage_logs: {
+        Row: {
+          amount: number
+          created_at: string
+          feature_name: string
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          feature_name: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          feature_name?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       user_analytics: {
         Row: {
