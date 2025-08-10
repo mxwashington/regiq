@@ -23,21 +23,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  // Wait for React to fully initialize before using hooks
-  useEffect(() => {
-    setIsInitialized(true);
-  }, []);
-  
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-  
   return <AuthProviderInner>{children}</AuthProviderInner>;
 }
 
