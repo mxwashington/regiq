@@ -262,20 +262,6 @@ const Landing = () => {
       {/* Marketing Hero */}
       <Hero />
 
-      
-
-      {/* Problem Section */}
-      <section id="problem" className="py-8 md:py-12 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Regulatory search is broken for food manufacturing</h2>
-          <ul className="text-muted-foreground grid gap-2 text-sm md:text-base leading-relaxed list-disc pl-5">
-            <li>95% of food companies struggle with FDA/USDA jurisdiction overlap.</li>
-            <li>195 hours lost annually per professional to regulatory search inefficiency.</li>
-            <li>60% of decisions happen on plant floors—but tools aren’t mobile-first.</li>
-          </ul>
-        </div>
-      </section>
-
       {/* Pain Points Section */}
       <section id="pain-points" className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl">
@@ -288,6 +274,18 @@ const Landing = () => {
           </ul>
         </div>
       </section>
+      {/* Problem Section */}
+      <section id="problem" className="py-8 md:py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Regulatory search is broken for food manufacturing</h2>
+          <ul className="text-muted-foreground grid gap-2 text-sm md:text-base leading-relaxed list-disc pl-5">
+            <li>95% of food companies struggle with FDA/USDA jurisdiction overlap.</li>
+            <li>195 hours lost annually per professional to regulatory search inefficiency.</li>
+            <li>60% of decisions happen on plant floors—but tools aren’t mobile-first.</li>
+          </ul>
+        </div>
+      </section>
+
 
       {/* Solution Section */}
       <section id="solution" className="py-8 md:py-12 px-4 bg-muted/20">
@@ -772,11 +770,6 @@ const Landing = () => {
               Built for food industry professionals by food industry experts
             </p>
           </div>
-        </div>
-        <div className="container mx-auto text-center mt-4">
-          <p className="text-sm text-muted-foreground">
-            Built for food industry professionals by food industry experts
-          </p>
         </div>
       </footer>
 
