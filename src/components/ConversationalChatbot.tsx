@@ -154,7 +154,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
     return (
       <Button
         onClick={onToggle}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+        className="fixed right-6 h-14 w-14 rounded-full shadow-lg z-50 chat-bubble"
         size="icon"
       >
         <MessageCircle className="h-6 w-6" />
