@@ -34,7 +34,16 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { tier } = await req.json();
+    // Body is optional; handle gracefully
+    let tier: string | undefined = undefined;
+    try {
+      if (req.headers.get("content-type")?.includes("application/json")) {
+        const body = await req.json().catch(() => ({}));
+        tier = body?.tier;
+      }
+    } catch (_) {
+      tier = undefined;
+    }
     logStep("Received request", { tier });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -68,8 +77,8 @@ serve(async (req) => {
       ],
       mode: "subscription",
       subscription_data: { trial_period_days: 14 },
-      success_url: `${req.headers.get("origin")}/success`,
-      cancel_url: `${req.headers.get("origin")}/cancel`,
+      success_url: `${req.headers.get("origin")}/payment-success`,
+      cancel_url: `${req.headers.get("origin")}/payment-canceled`,
     });
 
     logStep("Checkout session created", { sessionId: session.id });
