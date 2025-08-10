@@ -39,6 +39,8 @@ const RiskDashboardPage = React.lazy(() => import("./pages/RiskDashboardPage").c
 const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ default: () => <div>Pricing unavailable</div> })));
 const Account = React.lazy(() => import("./pages/Account").catch(() => ({ default: () => <div>Account unavailable</div> })));
 const MobileNavigation = React.lazy(() => import("./components/MobileNavigation").catch(() => ({ default: () => null })));
+const Onboarding = React.lazy(() => import("./pages/Onboarding").catch(() => ({ default: () => <div>Onboarding unavailable</div> })));
+const AdminAnalytics = React.lazy(() => import("./pages/AdminAnalytics").catch(() => ({ default: () => <div>Admin Analytics unavailable</div> })));
 
 
 const queryClient = new QueryClient({
@@ -117,6 +119,7 @@ const PWAApp = () => {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<Account />} />
+              <Route path="/onboarding" element={<Onboarding />} />
               
               {/* SEO-optimized alert pages */}
               <Route path="/alerts" element={<AllAlertsPage />} />
@@ -135,6 +138,11 @@ const PWAApp = () => {
               <Route path="/admin/*" element={
                 <AuthGuard>
                   <AdminDashboard />
+                </AuthGuard>
+              } />
+              <Route path="/admin/analytics" element={
+                <AuthGuard>
+                  <AdminAnalytics />
                 </AuthGuard>
               } />
               

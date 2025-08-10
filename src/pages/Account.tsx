@@ -7,6 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
+import UsageStats from '@/components/account/UsageStats';
+import BillingHistory from '@/components/account/BillingHistory';
+import TeamManagement from '@/components/account/TeamManagement';
+import CancellationFlow from '@/components/account/CancellationFlow';
+import SupportWidget from '@/components/account/SupportWidget';
 
 const Account: React.FC = () => {
   const { user } = useAuth();
@@ -113,7 +118,12 @@ const Account: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        <UsageStats />
+        <BillingHistory />
+        <TeamManagement />
+        <CancellationFlow />
       </section>
+      <SupportWidget />
     </div>
   );
 };

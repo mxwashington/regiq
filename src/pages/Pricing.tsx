@@ -157,9 +157,14 @@ const Pricing = () => {
               {loading === 'premium' ? 'Starting trial...' : 'Start Free Trial ($799/mo)'}
             </Button>
             {user && (
-              <Button size="lg" variant="outline" onClick={handleManageBilling}>
-                Manage Billing
-              </Button>
+              <>
+                <Button size="lg" variant="outline" onClick={handleManageBilling}>
+                  Manage Billing
+                </Button>
+                <Button size="lg" variant="secondary" asChild>
+                  <Link to="/onboarding">Start Onboarding</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
