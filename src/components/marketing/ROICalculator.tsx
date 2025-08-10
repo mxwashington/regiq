@@ -44,7 +44,7 @@ export const ROICalculator: React.FC = () => {
                 <div className="text-4xl font-bold">${monthlySavings.toLocaleString()}</div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-muted-foreground">RegIQ Premium</div>
+                <div className="text-sm text-muted-foreground">RegIQ Enterprise</div>
                 <div className="text-2xl font-semibold">$799/month</div>
               </div>
               <div className="text-center">
