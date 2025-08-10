@@ -8,7 +8,6 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   base: "/",
   resolve: {
-    preserveSymlinks: true,
     dedupe: ["react", "react-dom"],
   },
   server: {
