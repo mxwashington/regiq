@@ -13,7 +13,7 @@ const Row = ({ feature, free, premium }: { feature: string; free: boolean | stri
 
 export const FeatureComparison: React.FC = () => {
   return (
-    <section className="py-8 md:py-12 px-4">
+    <section id="feature-comparison" className="py-8 md:py-12 px-4">
       <div className="container mx-auto max-w-6xl">
         <Card>
           <CardHeader>

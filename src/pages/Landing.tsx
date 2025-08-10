@@ -163,9 +163,9 @@ const Landing = () => {
   return (
     <MobileLayout showNavigation={false}>
       <Helmet>
-        <title>RegIQ - Real-Time FDA, USDA & EPA Regulatory Alerts | Compliance Monitoring</title>
-        <meta name="description" content="Get instant FDA recalls, USDA food safety alerts, and EPA enforcement actions. AI-powered regulatory monitoring for food, pharma, and ag compliance teams." />
-        <meta name="keywords" content="FDA alerts, USDA recalls, EPA enforcement, regulatory compliance, food safety alerts, pharma recalls, real-time monitoring" />
+        <title>Stop Missing Critical FDA & USDA Alerts | RegIQ</title>
+        <meta name="description" content="AI-powered regulatory monitoring that saves compliance teams 10+ hours/week. Real-time FDA, USDA, EPA alerts with summaries and urgency scoring." />
+        <meta name="keywords" content="FDA recalls, USDA alerts, EPA enforcement, regulatory monitoring, food safety compliance" />
         <link rel="canonical" href="https://regiq.com" />
         
         {/* Dynamic structured data for homepage */}
@@ -188,7 +188,7 @@ const Landing = () => {
               "operatingSystem": "Web",
               "offers": {
                 "@type": "Offer",
-                "price": "0",
+                "price": "799",
                 "priceCurrency": "USD"
               }
             }

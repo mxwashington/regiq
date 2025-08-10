@@ -14,7 +14,7 @@ export const ROICalculator: React.FC = () => {
   const roi = useMemo(() => ((monthlySavings - price) / price) * 100, [monthlySavings]);
 
   return (
-    <section className="py-8 md:py-12 px-4">
+    <section id="roi" className="py-8 md:py-12 px-4">
       <div className="container mx-auto max-w-4xl">
         <Card>
           <CardHeader>

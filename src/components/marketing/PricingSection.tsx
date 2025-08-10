@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 export const PricingSection: React.FC = () => {
   return (
-    <section className="py-8 md:py-12 px-4 bg-muted/20">
+    <section id="pricing" className="py-8 md:py-12 px-4 bg-muted/20">
       <div className="container mx-auto max-w-4xl">
         <Card className="border-2 border-primary/20">
           <CardHeader className="text-center">

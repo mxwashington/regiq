@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 
 export const Hero: React.FC = () => {
   return (
-    <section className="py-8 md:py-12 px-4">
+    <section id="hero" className="py-8 md:py-12 px-4">
       <div className="container mx-auto text-center max-w-6xl">
         <div className="mb-4 md:mb-6 flex items-center justify-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
