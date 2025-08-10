@@ -22,10 +22,13 @@ export const Hero: React.FC = () => {
               Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-3">
             <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime</p>
-            <p className="text-xs text-muted-foreground">Join 50+ food manufacturers already using RegIQ</p>
-            <p className="text-xs text-muted-foreground">Every month you wait = $3,600 in wasted compliance time</p>
+            <ul className="text-left text-sm md:text-base text-muted-foreground leading-relaxed list-disc pl-5 max-w-2xl">
+              <li>95% of food companies struggle with FDA/USDA jurisdiction overlap</li>
+              <li>Failed searches cost $34,487 per regulatory professional annually</li>
+              <li>Small manufacturers pay $50K per employee in compliance costs—4x the national average</li>
+            </ul>
           </div>
         </div>
       </div>

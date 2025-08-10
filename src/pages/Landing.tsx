@@ -276,27 +276,54 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Pain Points Section */}
+      <section id="pain-points" className="py-8 md:py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">The Hidden Federal Compliance Crisis</h2>
+          <ul className="text-muted-foreground grid gap-2 text-sm md:text-base leading-relaxed list-disc pl-5">
+            <li>Pet food manufacturers lose 217 hours annually navigating FDA/USDA dual jurisdiction</li>
+            <li>Cross-agency confusion costs companies 195 hours per professional searching for answers</li>
+            <li>60% of compliance decisions happen on plant floors—but existing tools aren't mobile-optimized</li>
+            <li>Current regulatory databases have 30-70% failure rates for food-specific searches</li>
+          </ul>
+        </div>
+      </section>
+
       {/* Solution Section */}
       <section id="solution" className="py-8 md:py-12 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-2xl md:text-3xl font-bold mb-6">Purpose-built for food manufacturing</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <article className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Food-specific search that understands your terms</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Ask “organic pasta labeling” and get the right CFR and guidance—no legal-code guessing.</p>
+              <h3 className="font-semibold text-lg mb-2">Natural language search that actually works</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Ask "pet food salmonella testing" instead of memorizing "21 CFR 501"—get results that make sense to food professionals, not lawyers.</p>
             </article>
             <article className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Cross‑agency clarity</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Unified FDA/USDA/EPA results with clear jurisdiction and next steps.</p>
+              <h3 className="font-semibold text-lg mb-2">Cross-agency jurisdiction clarity</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Navigate FDA vs USDA oversight confusion—know instantly whether pizza falls under FDA but pizza with pepperoni requires FSIS compliance.</p>
             </article>
             <article className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Built for plant floors</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Mobile-first UI, scannable views, and fast summaries your team can use on the line.</p>
+              <h3 className="font-semibold text-lg mb-2">Plain English regulatory summaries</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">AI converts complex CFR requirements into actionable guidance your team can actually use.</p>
             </article>
             <article className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Actionable signal, not noise</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Relevance-ranked results, urgency scoring, and citations ready for audits.</p>
+              <h3 className="font-semibold text-lg mb-2">Import/export federal compliance</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Multi-agency requirements (FDA, USDA, CBP) unified for seamless international trade compliance.</p>
             </article>
+          </div>
+        </div>
+      </section>
+
+      {/* Competitive Differentiation */}
+      <section id="competitive" className="py-8 md:py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Why Generic Compliance Tools Fail Food Manufacturing</h2>
+          <div className="space-y-2 text-sm md:text-base text-muted-foreground">
+            <p>❌ Healthcare-focused platforms don't understand food workflows</p>
+            <p>❌ Legal databases require regulatory expertise to navigate</p>
+            <p>❌ Government websites have 30-70% search failure rates</p>
+            <p>❌ No mobile optimization for plant floor reality</p>
+            <p className="pt-2">✅ RegIQ: Purpose-built for federal food manufacturing regulatory intelligence</p>
           </div>
         </div>
       </section>
