@@ -31,6 +31,7 @@ import { Hero } from "@/components/marketing/Hero";
 
 import { PricingSection } from "@/components/marketing/PricingSection";
 import { ROICalculator } from "@/components/marketing/ROICalculator";
+import { SocialProof } from "@/components/marketing/SocialProof";
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
@@ -171,8 +172,8 @@ const Landing = () => {
   return (
     <MobileLayout showNavigation={false}>
       <Helmet>
-        <title>Regulatory search is broken for food manufacturing | RegIQ</title>
-        <meta name="description" content="Purpose-built for food manufacturing—mobile-first, cross-agency clarity. 14-day free trial. Cancel anytime." />
+        <title>195 hours lost to broken regulatory search | RegIQ</title>
+        <meta name="description" content="95% can't find answers. $34,487 wasted per professional. FDA/USDA confusion. Mobile-first. 14-day free trial — no credit card." />
         <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory search" />
         <link rel="canonical" href="https://regiq.com" />
         
@@ -248,7 +249,7 @@ const Landing = () => {
                   <Link to="/auth">Sign In</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/auth">Start Free Trial</Link>
+                  <Link to="/pricing">Start Free Trial</Link>
                 </Button>
               </>
             )}
@@ -276,6 +277,7 @@ const Landing = () => {
       </section>
 
 
+      <SocialProof />
       {/* Solution Section */}
       <section id="solution" className="py-8 md:py-12 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
@@ -306,11 +308,10 @@ const Landing = () => {
         <div className="container mx-auto max-w-4xl">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Why Generic Compliance Tools Fail Food Manufacturing</h2>
           <div className="space-y-2 text-sm md:text-base text-muted-foreground">
-            <p>❌ Healthcare-focused platforms don't understand food workflows</p>
-            <p>❌ Legal databases require regulatory expertise to navigate</p>
-            <p>❌ Government websites have 30-70% search failure rates</p>
-            <p>❌ No mobile optimization for plant floor reality</p>
-            <p className="pt-2">✅ RegIQ: Purpose-built for federal food manufacturing regulatory intelligence</p>
+            <p>❌ LexisNexis: Healthcare-focused, requires legal expertise, $75K+ annually</p>
+            <p>❌ Thomson Reuters: Banking regulations, complex UI, no mobile access</p>
+            <p>❌ Government websites: 30-70% search failure rate, no cross-referencing</p>
+            <p>✅ RegIQ: Purpose-built for food manufacturing, mobile-first, starts at $99/month</p>
           </div>
         </div>
       </section>
@@ -637,7 +638,7 @@ const Landing = () => {
           {!user && (
             <div className="text-center mt-8">
               <Button asChild>
-                <Link to="/auth">Get Personalized Alerts</Link>
+                <Link to="/pricing">Start Free Trial</Link>
               </Button>
             </div>
           )}
@@ -729,7 +730,7 @@ const Landing = () => {
               <Button size="lg" className="w-full sm:w-auto" asChild>
                 <Link to="/pricing">Start Free Trial</Link>
               </Button>
-              <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime</p>
+              <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime • No credit card required</p>
             </div>
 
             <div className="text-xs md:text-sm text-muted-foreground mt-6">
@@ -744,6 +745,14 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Sticky Mobile CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-40 md:hidden bg-background/90 border-t backdrop-blur">
+        <div className="container mx-auto px-4 py-3">
+          <Button className="w-full" asChild>
+            <Link to="/pricing">Start Free Trial — No credit card required</Link>
+          </Button>
+        </div>
+      </div>
       {/* Footer */}
       <footer className="border-t py-8 px-4">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
