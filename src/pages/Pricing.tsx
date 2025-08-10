@@ -115,7 +115,7 @@ const Pricing = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Pricing - RegIQ | Regulatory Intelligence Plans</title>
-        <meta name="description" content="Choose the right RegIQ plan for your regulatory monitoring needs. Free plan available with 5 daily searches, or upgrade to Professional for unlimited access." />
+        <meta name="description" content="Start a 14-day free trial of RegIQ Premium. Compare Free vs Premium and Enterprise API access." />
       </Helmet>
 
       {/* Header */}
@@ -206,39 +206,80 @@ const Pricing = () => {
       {/* Feature Comparison */}
       <section className="py-12 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-4">Current Features & Future Plans</h2>
-          <p className="text-center text-muted-foreground mb-8">All features below are currently available for free. API access requires Enterprise plan.</p>
+          <h2 className="text-3xl font-bold text-center mb-4">Compare Plans</h2>
+          <p className="text-center text-muted-foreground mb-8">See what's included in Free, Premium, and Enterprise (API) plans.</p>
           
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-border rounded-lg">
               <thead>
                 <tr className="bg-muted">
-                  <th className="border border-border p-4 text-left">Features</th>
-                  <th className="border border-border p-4 text-center bg-primary/5">Free (Current)</th>
-                  <th className="border border-border p-4 text-center">Professional (Future)</th>
-                  <th className="border border-border p-4 text-center">Enterprise (API Only)</th>
+                  <th className="border border-border p-4 text-left">Feature</th>
+                  <th className="border border-border p-4 text-center">Free</th>
+                  <th className="border border-border p-4 text-center bg-primary/5">Premium ($799/mo)</th>
+                  <th className="border border-border p-4 text-center">Enterprise (API)</th>
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { feature: "AI Searches per day", free: "Unlimited", pro: "Unlimited", enterprise: "Unlimited" },
-                  { feature: "Real-time alerts", free: "✓", pro: "✓", enterprise: "✓" },
-                  { feature: "Mobile dashboard", free: "✓", pro: "✓", enterprise: "✓" },
-                  { feature: "Email notifications", free: "✓", pro: "✓", enterprise: "✓" },
-                  { feature: "Export (PDF/Excel)", free: "✓", pro: "✓", enterprise: "✓" },
-                  { feature: "Custom keywords", free: "✓", pro: "✓", enterprise: "✓" },
-                  { feature: "Alert history", free: "30 days", pro: "30 days", enterprise: "90 days" },
-                  { feature: "API access", free: "✗", pro: "✗", enterprise: "✓" },
-                  { feature: "Team members", free: "Personal use", pro: "Coming soon", enterprise: "Unlimited" },
-                  { feature: "Support", free: "Email", pro: "Priority email", enterprise: "24/7 Dedicated" }
-                ].map((row, index) => (
-                  <tr key={index} className={index % 2 === 0 ? "bg-background" : "bg-muted/50"}>
-                    <td className="border border-border p-4 font-medium">{row.feature}</td>
-                    <td className="border border-border p-4 text-center bg-primary/5 font-semibold">{row.free}</td>
-                    <td className="border border-border p-4 text-center text-muted-foreground">{row.pro}</td>
-                    <td className="border border-border p-4 text-center">{row.enterprise}</td>
-                  </tr>
-                ))}
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">FDA/USDA/EPA alerts</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">AI summaries + urgency scoring</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Supplier watch</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Up to 25</td>
+                  <td className="border border-border p-4 text-center">Custom</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Daily email digest</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Mobile dashboard</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">CSV/PDF export</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Team controls</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Roadmap</td>
+                  <td className="border border-border p-4 text-center">SSO + Roles</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Alert history</td>
+                  <td className="border border-border p-4 text-center">30 days</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">12 months</td>
+                  <td className="border border-border p-4 text-center">Custom</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">API access</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✗</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Support</td>
+                  <td className="border border-border p-4 text-center">Email</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Priority email</td>
+                  <td className="border border-border p-4 text-center">24/7 dedicated</td>
+                </tr>
               </tbody>
             </table>
           </div>
