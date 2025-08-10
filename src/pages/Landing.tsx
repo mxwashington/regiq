@@ -426,7 +426,7 @@ const Landing = () => {
             
             {/* Enhanced Agency Filter */}
             <div className="flex flex-col gap-4 w-full">
-              <DataRefreshButton />
+              <DataRefreshButton showFindSources={false} />
               
               <div className="bg-background border rounded-lg p-3 md:p-4">
                 <div className="flex flex-col gap-3">

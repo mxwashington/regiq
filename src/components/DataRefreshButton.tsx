@@ -5,7 +5,7 @@ import { triggerDataRefresh } from '@/lib/data-refresh';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-export function DataRefreshButton() {
+export function DataRefreshButton({ showFindSources = true }: { showFindSources?: boolean }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
@@ -151,17 +151,20 @@ export function DataRefreshButton() {
         {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
       </Button>
       
-      <Button
-        onClick={handleEnhanceSources}
-        disabled={isEnhancing}
-        size="sm"
-        variant="ghost"
-        className="flex items-center gap-2"
-        title="Find better source URLs for alerts"
-      >
-        <Search className={`h-4 w-4 ${isEnhancing ? 'animate-pulse' : ''}`} />
-        {isEnhancing ? 'Enhancing...' : 'Find Sources'}
-      </Button>
+      {showFindSources && (
+        <Button
+          onClick={handleEnhanceSources}
+          disabled={isEnhancing}
+          size="sm"
+          variant="ghost"
+          className="flex items-center gap-2"
+          title="Find better source URLs for alerts"
+        >
+          <Search className={`h-4 w-4 ${isEnhancing ? 'animate-pulse' : ''}`} />
+          {isEnhancing ? 'Enhancing...' : 'Find Sources'}
+        </Button>
+      )}
+
 
       <Button
         onClick={handleClearCacheOnly}
