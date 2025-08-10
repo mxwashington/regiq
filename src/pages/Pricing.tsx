@@ -205,9 +205,9 @@ const Pricing = () => {
 
       {/* Feature Comparison */}
       <section className="py-12 px-4 bg-muted/20">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-4">Compare Plans</h2>
-          <p className="text-center text-muted-foreground mb-8">See what's included in Free, Premium, and Enterprise (API) plans.</p>
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-3xl font-bold text-center mb-4">Free vs Premium</h2>
+          <p className="text-center text-muted-foreground mb-8">Compare the core Free plan with Premium ($799/month).</p>
           
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-border rounded-lg">
@@ -216,7 +216,6 @@ const Pricing = () => {
                   <th className="border border-border p-4 text-left">Feature</th>
                   <th className="border border-border p-4 text-center">Free</th>
                   <th className="border border-border p-4 text-center bg-primary/5">Premium ($799/mo)</th>
-                  <th className="border border-border p-4 text-center">Enterprise (API)</th>
                 </tr>
               </thead>
               <tbody>
@@ -224,61 +223,36 @@ const Pricing = () => {
                   <td className="border border-border p-4 font-medium">FDA/USDA/EPA alerts</td>
                   <td className="border border-border p-4 text-center">✓</td>
                   <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                  <td className="border border-border p-4 text-center">✓</td>
                 </tr>
                 <tr className="bg-muted/50">
                   <td className="border border-border p-4 font-medium">AI summaries + urgency scoring</td>
                   <td className="border border-border p-4 text-center">✗</td>
                   <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                  <td className="border border-border p-4 text-center">✓</td>
                 </tr>
                 <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">Supplier watch</td>
+                  <td className="border border-border p-4 font-medium">Supplier watch (25 suppliers)</td>
                   <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Up to 25</td>
-                  <td className="border border-border p-4 text-center">Custom</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
                 </tr>
                 <tr className="bg-muted/50">
                   <td className="border border-border p-4 font-medium">Daily email digest</td>
                   <td className="border border-border p-4 text-center">✗</td>
                   <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                  <td className="border border-border p-4 text-center">✓</td>
                 </tr>
                 <tr className="bg-background">
                   <td className="border border-border p-4 font-medium">Mobile dashboard</td>
                   <td className="border border-border p-4 text-center">✓</td>
                   <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                  <td className="border border-border p-4 text-center">✓</td>
                 </tr>
                 <tr className="bg-muted/50">
                   <td className="border border-border p-4 font-medium">CSV/PDF export</td>
                   <td className="border border-border p-4 text-center">✗</td>
                   <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                  <td className="border border-border p-4 text-center">✓</td>
                 </tr>
                 <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">Team controls</td>
+                  <td className="border border-border p-4 font-medium">Team controls (Coming soon)</td>
                   <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Roadmap</td>
-                  <td className="border border-border p-4 text-center">SSO + Roles</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">Alert history</td>
-                  <td className="border border-border p-4 text-center">30 days</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">12 months</td>
-                  <td className="border border-border p-4 text-center">Custom</td>
-                </tr>
-                <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">API access</td>
-                  <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✗</td>
-                  <td className="border border-border p-4 text-center">✓</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">Support</td>
-                  <td className="border border-border p-4 text-center">Email</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Priority email</td>
-                  <td className="border border-border p-4 text-center">24/7 dedicated</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Coming soon</td>
                 </tr>
               </tbody>
             </table>
@@ -332,12 +306,12 @@ const Pricing = () => {
         <div className="container mx-auto text-center max-w-4xl">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-lg mb-8 opacity-90">
-            Join hundreds of food safety professionals using RegIQ for free regulatory intelligence.
+            Join hundreds of food safety professionals using RegIQ to stay audit‑ready.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" asChild>
               <Link to={user ? "/dashboard" : "/auth"}>
-                Start Using RegIQ Free
+                Start Free Trial
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">

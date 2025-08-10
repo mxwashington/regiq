@@ -31,7 +31,7 @@ export const FeatureComparison: React.FC = () => {
               <TableBody>
                 <Row feature="FDA/USDA/EPA alerts" free={true} premium={true} />
                 <Row feature="AI summaries + urgency" free={false} premium={true} />
-                <Row feature="Supplier watch (25)" free={false} premium={true} />
+                <Row feature="Supplier watch (25 suppliers)" free={false} premium={true} />
                 <Row feature="Daily email digest" free={false} premium={true} />
                 <Row feature="Mobile dashboard" free={true} premium={true} />
                 <Row feature="CSV/PDF export" free={false} premium={true} />
