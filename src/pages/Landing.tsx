@@ -29,6 +29,11 @@ import { cn } from "@/lib/utils";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { Hero } from "@/components/marketing/Hero";
+import { SocialProof } from "@/components/marketing/SocialProof";
+import { FeatureComparison } from "@/components/marketing/FeatureComparison";
+import { PricingSection } from "@/components/marketing/PricingSection";
+import { ROICalculator } from "@/components/marketing/ROICalculator";
 
 const Landing = () => {
   console.log('Landing component is loading - updated version!');
@@ -245,45 +250,16 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-8 md:py-12 px-4">
-        <div className="container mx-auto text-center max-w-6xl">
-          {/* Live Status Indicator */}
-          <div className="mb-4 md:mb-6">
-            <Badge variant="secondary" className="mb-4 text-xs md:text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-              Live • Updated {alerts.length > 0 ? formatDate(alerts[0]?.published_date) : '2 hours ago'}
-            </Badge>
-          </div>
-          
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
-            Food Industry<br />
-            <span className="text-primary">Regulatory Intelligence</span>
-          </h1>
-          <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto px-4">
-            Real-time FDA, USDA, EPA alerts with AI summaries - built for food safety teams.<br className="hidden sm:block" />
-            <span className="font-medium text-foreground">Stop missing critical food safety updates. Get personalized alerts that matter to your business.</span>
-          </p>
-          
-          <div className="flex flex-col gap-3 md:gap-4 justify-center items-center mb-6 md:mb-8 px-4">
-            <Button size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
-              <Link to={user ? getDashboardUrl() : "/auth"}>
-                Get Free Food Safety Alerts <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base">
-                <a href="#food-alerts">See Live Alerts</a>
-              </Button>
-              <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
-                <Link to="/pricing">
-                  View Pro Plans <Zap className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Marketing Hero */}
+      <Hero />
+
+      <SocialProof />
+
+      <FeatureComparison />
+
+      <PricingSection />
+
+      <ROICalculator />
 
       {/* Value Proposition */}
       <section className="py-6 md:py-8 px-4 bg-muted/20">
