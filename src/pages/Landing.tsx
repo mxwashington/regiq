@@ -268,11 +268,13 @@ const Landing = () => {
         <div className="container mx-auto max-w-4xl">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">The Hidden Federal Compliance Crisis</h2>
           <ul className="text-muted-foreground grid gap-2 text-sm md:text-base leading-relaxed list-disc pl-5">
-            <li>Pet food manufacturers lose 217 hours annually navigating FDA/USDA dual jurisdiction</li>
+            <li>Failed searches cost $34,487 per compliance professional annually</li>
             <li>Cross-agency confusion costs companies 195 hours per professional searching for answers</li>
-            <li>60% of compliance decisions happen on plant floors—but existing tools aren't mobile-optimized</li>
-            <li>Current regulatory databases have 30-70% failure rates for food-specific searches</li>
+            <li>Pet food manufacturers lose 217 hours annually navigating FDA/USDA dual jurisdiction</li>
+            <li>Current regulatory databases have 30–70% failure rates for food‑specific searches</li>
+            <li>60% of compliance decisions happen on plant floors—but existing tools aren't mobile‑optimized</li>
           </ul>
+          <p className="text-muted-foreground text-sm md:text-base mt-3">The current system is broken. RegIQ fixes it.</p>
         </div>
       </section>
 
