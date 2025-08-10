@@ -139,7 +139,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
   if (isDismissed) return null;
 
   return (
-    <Card className={`border border-blue-200 hover:shadow-md transition-shadow bg-blue-50/30 overflow-hidden ${isMobile ? 'mx-2' : ''}`}>
+    <Card className={`border border-blue-200 hover:shadow-md transition-shadow bg-blue-50/30 ${isMobile ? 'mx-2' : ''}`}>
       <CardHeader className={isMobile ? "px-3 py-3" : "pb-3"}>
         <div className="flex items-start justify-between space-x-3">
           <div className="flex-1 min-w-0">
@@ -195,7 +195,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
           </div>
           <div className="text-xs text-blue-800 space-y-1">
             <div><strong>Search Status:</strong> {hasValidUrl ? '✅ Source Available' : '❌ Missing Source'}</div>
-            <div><strong>Keywords:</strong> <Badge variant="outline" className="text-xs bg-blue-50 border-blue-300 text-blue-800">{keywords}</Badge></div>
+            <div><strong>Keywords:</strong> <Badge variant="outline" className="text-xs bg-blue-50 border-blue-300 text-blue-800 break-words whitespace-normal max-w-full">{keywords}</Badge></div>
           </div>
         </div>
 
