@@ -506,6 +506,36 @@ export type Database = {
         }
         Relationships: []
       }
+      facilities: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          facility_type: string | null
+          id: string
+          name: string
+          organization_user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          facility_type?: string | null
+          id?: string
+          name: string
+          organization_user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          facility_type?: string | null
+          id?: string
+          name?: string
+          organization_user_id?: string
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           created_at: string
