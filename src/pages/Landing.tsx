@@ -259,10 +259,10 @@ const Landing = () => {
       <section id="problem" className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Regulatory search is broken for food manufacturing</h2>
-          <ul className="text-muted-foreground grid gap-3 text-base">
-            <li>• 95% of food companies struggle with FDA/USDA jurisdiction overlap.</li>
-            <li>• 195 hours lost annually per professional to regulatory search inefficiency.</li>
-            <li>• 60% of decisions happen on plant floors—but tools aren’t mobile-first.</li>
+          <ul className="text-muted-foreground grid gap-2 text-sm md:text-base leading-relaxed list-disc pl-5">
+            <li>95% of food companies struggle with FDA/USDA jurisdiction overlap.</li>
+            <li>195 hours lost annually per professional to regulatory search inefficiency.</li>
+            <li>60% of decisions happen on plant floors—but tools aren’t mobile-first.</li>
           </ul>
         </div>
       </section>
@@ -274,19 +274,19 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <article className="border rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-2">Food-specific search that understands your terms</h3>
-              <p className="text-muted-foreground">Ask “organic pasta labeling” and get the right CFR and guidance—no legal-code guessing.</p>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Ask “organic pasta labeling” and get the right CFR and guidance—no legal-code guessing.</p>
             </article>
             <article className="border rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-2">Cross‑agency clarity</h3>
-              <p className="text-muted-foreground">Unified FDA/USDA/EPA results with clear jurisdiction and next steps.</p>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Unified FDA/USDA/EPA results with clear jurisdiction and next steps.</p>
             </article>
             <article className="border rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-2">Built for plant floors</h3>
-              <p className="text-muted-foreground">Mobile-first UI, scannable views, and fast summaries your team can use on the line.</p>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Mobile-first UI, scannable views, and fast summaries your team can use on the line.</p>
             </article>
             <article className="border rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-2">Actionable signal, not noise</h3>
-              <p className="text-muted-foreground">Relevance-ranked results, urgency scoring, and citations ready for audits.</p>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Relevance-ranked results, urgency scoring, and citations ready for audits.</p>
             </article>
           </div>
         </div>
@@ -688,7 +688,7 @@ const Landing = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">How it works</h2>
-            <p className="text-muted-foreground text-base md:text-lg">Three steps to faster, confident decisions on the plant floor</p>
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed">Three steps to faster, confident decisions on the plant floor</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -697,21 +697,21 @@ const Landing = () => {
                 <Search className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
               <h3 className="text-lg md:text-xl font-semibold mb-3">1. Ask in plain language</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Use product or process terms—no “21 CFR” expertise required.</p>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Use product or process terms—no “21 CFR” expertise required.</p>
             </div>
             <div className="text-center">
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Brain className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
               <h3 className="text-lg md:text-xl font-semibold mb-3">2. We normalize across agencies</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Unified FDA/USDA/EPA results with the right authority, guidance, and HACCP implications.</p>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Unified FDA/USDA/EPA results with the right authority, guidance, and HACCP implications.</p>
             </div>
             <div className="text-center">
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Bell className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
               <h3 className="text-lg md:text-xl font-semibold mb-3">3. You act with confidence</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Prioritized actions with citations, summaries, and next steps you can share with QA and operations.</p>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Prioritized actions with citations, summaries, and next steps you can share with QA and operations.</p>
             </div>
           </div>
         </div>
@@ -722,13 +722,13 @@ const Landing = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <Card className="p-4 md:p-6 lg:p-8">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Stop wasting 195 hours on broken regulatory search</h2>
-            <p className="text-muted-foreground text-base md:text-lg mb-6">Purpose‑built for food manufacturing—mobile‑first, cross‑agency clarity.</p>
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6">Purpose‑built for food manufacturing—mobile‑first, cross‑agency clarity.</p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" asChild>
+              <Button size="lg" className="w-full sm:w-auto" asChild>
                 <Link to="/pricing">Start your 14-day free trial</Link>
               </Button>
-              <Button variant="outline" size="lg" asChild>
+              <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
                 <a href="#food-alerts">See live FDA/USDA/EPA alerts now</a>
               </Button>
             </div>

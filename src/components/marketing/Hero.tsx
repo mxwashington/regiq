@@ -12,7 +12,7 @@ export const Hero: React.FC = () => {
         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
           Regulatory Intelligence Built for Food Manufacturing
         </h1>
-        <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto px-4">
+        <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed mb-6 md:mb-8 max-w-3xl mx-auto px-4">
           Your team is losing 195 hours a year to broken regulatory search. RegIQ unifies FDA/USDA/EPA and translates plant-floor questions into clear, food-specific answers.
         </p>
 
