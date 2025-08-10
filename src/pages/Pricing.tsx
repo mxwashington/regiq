@@ -268,24 +268,24 @@ const Pricing = () => {
           <div className="space-y-6">
             {[
               {
-                q: "Why is everything free right now?",
-                a: "We're building our community and want to provide maximum value while we develop new features. Only API access for enterprise integrations requires payment."
+                q: "Do you offer a free trial?",
+                a: "Yes. Try Premium free for 14 days. Cancel anytime in the portal."
               },
               {
-                q: "Will free features stay free forever?",
-                a: "We're committed to keeping core regulatory monitoring features accessible. When we introduce paid plans, existing users will have generous grandfathering options."
+                q: "What's included in the Free plan?",
+                a: "Core monitoring: FDA/USDA/EPA alerts and a mobile dashboard."
               },
               {
-                q: "What does API access include?",
-                a: "Enterprise API access allows you to integrate RegIQ data into your own systems, pull alerts programmatically, and build custom applications on top of our regulatory data."
+                q: "What's included in Premium ($799/month)?",
+                a: "AI summaries with urgency scoring, supplier watch (25 suppliers), daily email digests, CSV/PDF export, and more."
               },
               {
-                q: "When will paid features be introduced?",
-                a: "We're focused on perfecting the free experience first. Paid features will likely include advanced analytics, team collaboration tools, and premium integrations."
+                q: "Do you have API access?",
+                a: "Yes. Enterprise includes API access with custom limits and SSO options."
               },
               {
-                q: "How do I get API access?",
-                a: "Contact our sales team to discuss your API needs. We'll work with you to create a custom solution for your organization."
+                q: "Can I cancel anytime?",
+                a: "Yes. Manage or cancel your subscription from the billing portal at any time."
               }
             ].map((faq, index) => (
               <Card key={index}>
