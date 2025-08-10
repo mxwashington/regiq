@@ -118,8 +118,8 @@ const PWAApp = () => {
               <Route path="/auth/callback" element={<AuthCallback />} />
               
               {/* Main user pages */}
-              <Route path="/dashboard" element={<UserDashboard />} />
-              <Route path="/search" element={<SearchPage />} />
+              <Route path="/dashboard" element={<AuthGuard><UserDashboard /></AuthGuard>} />
+              <Route path="/search" element={<AuthGuard><SearchPage /></AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<Account />} />
               <Route path="/onboarding" element={<Onboarding />} />
@@ -127,8 +127,8 @@ const PWAApp = () => {
               <Route path="/cancel" element={<PaymentCanceled />} />
               
               {/* SEO-optimized alert pages */}
-              <Route path="/alerts" element={<AllAlertsPage />} />
-              <Route path="/alerts/:agency" element={<AgencyPage />} />
+              <Route path="/alerts" element={<AuthGuard><AllAlertsPage /></AuthGuard>} />
+              <Route path="/alerts/:agency" element={<AuthGuard><AgencyPage /></AuthGuard>} />
               
               {/* Industry-specific pages */}
               <Route path="/food-safety" element={<FoodSafetyPage />} />
