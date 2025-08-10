@@ -8,10 +8,6 @@ export const Hero: React.FC = () => {
   return (
     <section id="hero" className="py-8 md:py-12 px-4">
       <div className="container mx-auto text-center max-w-6xl">
-        <div className="mb-4 md:mb-6 flex items-center justify-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-primary" />
-          <Badge variant="secondary" className="text-xs md:text-sm">Premium SaaS • $799/month</Badge>
-        </div>
 
         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
           Stop Missing Critical FDA Recalls & USDA Alerts
