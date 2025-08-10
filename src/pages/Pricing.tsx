@@ -14,14 +14,16 @@ const Pricing = () => {
   const navigate = (path: string) => { window.location.href = path; };
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleStartTrial = async () => {
+  const handleStartTrial = async (tier: 'starter' | 'professional' | 'enterprise') => {
     if (!user) {
       navigate('/auth');
       return;
     }
-    setLoading('premium');
+    setLoading(tier);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { tier }
+      });
       if (error) throw error;
       if (data?.url) window.open(data.url, '_blank');
     } catch (error) {
@@ -49,73 +51,66 @@ const Pricing = () => {
 
   const plans = [
     {
-      name: "Free",
-      price: "$0",
-      period: "forever",
-      description: "Everything you need for regulatory monitoring",
+      id: 'starter',
+      name: 'Starter',
+      price: 99,
+      description: 'Perfect for small teams monitoring single facilities',
       features: [
-        "Unlimited AI searches",
-        "Real-time FDA, USDA, EPA alerts",
-        "Mobile-optimized dashboard",
-        "Advanced filtering & personalization",
-        "Priority email alerts",
-        "Export to PDF/Excel",
-        "Custom keyword tracking",
-        "30-day alert history",
-        "Email support"
+        '1 facility monitoring',
+        'Up to 3 users',
+        '5 supplier watches',
+        '200 AI queries/month',
+        '6-month alert history',
+        'Email support',
+        'Basic exports (10/month)'
       ],
-      buttonText: "Get Started Free",
-      popular: true,
-      tier: "free",
-      badge: "Everything Free!"
+      cta: 'Start Free Trial',
+      popular: false
     },
     {
-      name: "Professional",
-      price: "$49",
-      period: "per month",
-      description: "Advanced features for QA teams (Currently FREE!)",
+      id: 'professional',
+      name: 'Professional',
+      price: 299,
+      description: 'Ideal for growing compliance teams',
       features: [
-        "Everything in Free plan",
-        "All features currently included at no cost",
-        "Advanced analytics (coming soon)",
-        "Team collaboration tools (coming soon)",
-        "Priority feature requests",
-        "Phone support (coming soon)"
+        'Up to 3 facilities',
+        'Up to 10 users',
+        '25 supplier watches',
+        '1,000 AI queries/month',
+        '12-month alert history',
+        'Email + chat support',
+        'Unlimited exports',
+        'Basic API access'
       ],
-      buttonText: "Coming Soon",
-      popular: false,
-      tier: "professional",
-      badge: "Future Paid Plan",
-      disabled: true
+      cta: 'Start Free Trial',
+      popular: true
     },
     {
-      name: "Enterprise",
-      price: "$149",
-      period: "per month",
-      description: "For organizations needing API access",
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: 799,
+      description: 'For large organizations with complex needs',
       features: [
-        "Everything in Free plan",
-        "API access for integrations",
-        "Custom reporting & analytics",
-        "Unlimited team members",
-        "90-day alert history",
-        "Dedicated account manager",
-        "SSO integration",
-        "Priority feature requests",
-        "24/7 phone support"
+        'Unlimited facilities',
+        'Unlimited users',
+        'Unlimited supplier watches',
+        'Unlimited AI queries',
+        'Complete alert archive',
+        'Phone + email + chat support',
+        'Full API + webhooks',
+        'SSO integration',
+        '99.9% uptime SLA'
       ],
-      buttonText: "Contact Sales",
-      popular: false,
-      tier: "enterprise",
-      badge: "API Access Only"
+      cta: 'Contact Sales',
+      popular: false
     }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Pricing - RegIQ | Regulatory Intelligence Plans</title>
-        <meta name="description" content="Start a 14-day free trial of RegIQ Premium. Compare Free vs Premium and Enterprise API access." />
+        <title>Pricing - RegIQ Plans: Starter, Professional, Enterprise</title>
+        <meta name="description" content="Flexible pricing for compliance teams. Starter $99, Professional $299, Enterprise $799. 14-day free trial on Starter and Professional." />
       </Helmet>
 
       {/* Header */}
@@ -147,59 +142,69 @@ const Pricing = () => {
       <section className="py-12 px-4">
         <div className="container mx-auto text-center max-w-4xl">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            <span className="text-primary">RegIQ Premium</span> — 14-day Free Trial
+            Choose Your Plan
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Enterprise-grade regulatory intelligence for QA teams. $799/month after trial.
+            Flexible pricing that scales from single facilities to enterprise-wide deployments. 14-day free trial on Starter and Professional.
           </p>
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <Button size="lg" onClick={handleStartTrial} disabled={loading === 'premium'}>
-              {loading === 'premium' ? 'Starting trial...' : 'Start Free Trial ($799/mo)'}
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <Button size="lg" onClick={() => handleStartTrial('professional')}>
+              Start Professional Trial
             </Button>
             {user && (
-              <>
-                <Button size="lg" variant="outline" onClick={handleManageBilling}>
-                  Manage Billing
-                </Button>
-                <Button size="lg" variant="secondary" asChild>
-                  <Link to="/onboarding">Start Onboarding</Link>
-                </Button>
-              </>
+              <Button size="lg" variant="outline" onClick={handleManageBilling}>
+                Manage Billing
+              </Button>
             )}
           </div>
         </div>
       </section>
 
-      {/* Pricing Cards (simplified to Premium) */}
-      <section className="py-8 px-4">
-        <div className="container mx-auto max-w-5xl">
-          <Card className="relative border-primary shadow-lg">
-            <CardHeader className="text-center pb-6">
-              <CardTitle className="text-2xl">RegIQ Premium</CardTitle>
-              <div className="mb-2">
-                <span className="text-4xl font-bold">$799</span>
-                <span className="text-muted-foreground ml-2">/month</span>
-              </div>
-              <CardDescription className="text-base">
-                14-day free trial. Cancel anytime in the portal.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                {["Real-time FDA/USDA/EPA alerts","AI summaries & advanced filtering","Mobile dashboard","CSV/PDF export","Priority email digests","Admin & team controls (roadmap)"].map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="pt-2">
-                <Button className="w-full" size="lg" onClick={handleStartTrial} disabled={loading === 'premium'}>
-                  {loading === 'premium' ? 'Starting trial...' : 'Start 14-day Free Trial'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Pricing Cards */}
+      <section className="py-8 px-4" id="pricing">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {plans.map((plan) => (
+              <Card key={plan.id} className={`relative ${plan.popular ? 'border-primary' : ''}`}>
+                <CardHeader className="text-center pb-6">
+                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <div className="mb-2">
+                    <span className="text-4xl font-bold">${plan.price}</span>
+                    <span className="text-muted-foreground ml-2">/month</span>
+                  </div>
+                  <CardDescription className="text-base">
+                    {plan.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="pt-2">
+                    {plan.id === 'enterprise' ? (
+                      <Button className="w-full" size="lg" asChild>
+                        <Link to="/contact">Contact Sales</Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-full"
+                        size="lg"
+                        onClick={() => handleStartTrial(plan.id as 'starter' | 'professional')}
+                        disabled={loading === plan.id}
+                      >
+                        {loading === plan.id ? 'Starting trial...' : plan.cta}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 

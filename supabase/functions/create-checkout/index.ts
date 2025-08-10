@@ -34,7 +34,7 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Body is optional; handle gracefully
+    // Parse optional plan tier from body
     let tier: string | undefined = undefined;
     try {
       if (req.headers.get("content-type")?.includes("application/json")) {
@@ -50,9 +50,15 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Define single premium pricing for RegIQ
-    const selectedPlan = { amount: 79900, name: "RegIQ Premium" };
-    logStep("Premium plan selected", { amount_cents: selectedPlan.amount, trial_days: 14 });
+    // Map tier to pricing (cents)
+    const normalized = (tier || 'professional').toLowerCase();
+    const planMap: Record<string, { amount: number; name: string }> = {
+      starter: { amount: 9900, name: "RegIQ Starter" },
+      professional: { amount: 29900, name: "RegIQ Professional" },
+      enterprise: { amount: 79900, name: "RegIQ Enterprise" },
+    };
+    const selectedPlan = planMap[normalized] || planMap.professional;
+    logStep("Plan selected", { amount_cents: selectedPlan.amount, name: selectedPlan.name, trial_days: 14 });
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;

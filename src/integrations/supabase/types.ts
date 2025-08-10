@@ -631,8 +631,10 @@ export type Database = {
           is_admin: boolean | null
           last_ip_address: unknown | null
           last_seen_at: string | null
+          plan_limits: Json | null
           role: string | null
           session_extended_until: string | null
+          subscription_plan: string | null
           trusted_ips: unknown[] | null
           updated_at: string
           user_id: string | null
@@ -647,8 +649,10 @@ export type Database = {
           is_admin?: boolean | null
           last_ip_address?: unknown | null
           last_seen_at?: string | null
+          plan_limits?: Json | null
           role?: string | null
           session_extended_until?: string | null
+          subscription_plan?: string | null
           trusted_ips?: unknown[] | null
           updated_at?: string
           user_id?: string | null
@@ -663,8 +667,10 @@ export type Database = {
           is_admin?: boolean | null
           last_ip_address?: unknown | null
           last_seen_at?: string | null
+          plan_limits?: Json | null
           role?: string | null
           session_extended_until?: string | null
+          subscription_plan?: string | null
           trusted_ips?: unknown[] | null
           updated_at?: string
           user_id?: string | null
