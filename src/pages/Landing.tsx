@@ -187,8 +187,9 @@ const Landing = () => {
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
               "offers": {
-                "@type": "Offer",
-                "price": "799",
+                "@type": "AggregateOffer",
+                "lowPrice": "99",
+                "highPrice": "799",
                 "priceCurrency": "USD"
               }
             }
