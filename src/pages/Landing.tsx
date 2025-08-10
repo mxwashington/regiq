@@ -163,9 +163,9 @@ const Landing = () => {
   return (
     <MobileLayout showNavigation={false}>
       <Helmet>
-        <title>Stop Missing Critical FDA & USDA Alerts | RegIQ</title>
-        <meta name="description" content="AI-powered regulatory monitoring that saves compliance teams 10+ hours/week. Real-time FDA, USDA, EPA alerts with summaries and urgency scoring." />
-        <meta name="keywords" content="FDA recalls, USDA alerts, EPA enforcement, regulatory monitoring, food safety compliance" />
+        <title>RegIQ | Food manufacturing regulatory intelligence</title>
+        <meta name="description" content="Cut 195 hours/year per compliance pro. Food-specific regulatory intelligence unifying FDA/USDA/EPA with mobile-first, plant-floor workflows." />
+        <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory intelligence" />
         <link rel="canonical" href="https://regiq.com" />
         
         {/* Dynamic structured data for homepage */}
@@ -254,6 +254,43 @@ const Landing = () => {
       <Hero />
 
       
+
+      {/* Problem Section */}
+      <section id="problem" className="py-8 md:py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Regulatory search is broken for food manufacturing</h2>
+          <ul className="text-muted-foreground grid gap-3 text-base">
+            <li>• 95% of food companies struggle with FDA/USDA jurisdiction overlap.</li>
+            <li>• 195 hours lost annually per professional to regulatory search inefficiency.</li>
+            <li>• 60% of decisions happen on plant floors—but tools aren’t mobile-first.</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* Solution Section */}
+      <section id="solution" className="py-8 md:py-12 px-4 bg-muted/20">
+        <div className="container mx-auto max-w-6xl">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6">Purpose-built for food manufacturing</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <article className="border rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-2">Food-specific search that understands your terms</h3>
+              <p className="text-muted-foreground">Ask “organic pasta labeling” and get the right CFR and guidance—no legal-code guessing.</p>
+            </article>
+            <article className="border rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-2">Cross‑agency clarity</h3>
+              <p className="text-muted-foreground">Unified FDA/USDA/EPA results with clear jurisdiction and next steps.</p>
+            </article>
+            <article className="border rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-2">Built for plant floors</h3>
+              <p className="text-muted-foreground">Mobile-first UI, scannable views, and fast summaries your team can use on the line.</p>
+            </article>
+            <article className="border rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-2">Actionable signal, not noise</h3>
+              <p className="text-muted-foreground">Relevance-ranked results, urgency scoring, and citations ready for audits.</p>
+            </article>
+          </div>
+        </div>
+      </section>
 
       <FeatureComparison />
 
@@ -650,8 +687,8 @@ const Landing = () => {
       <section id="how-it-works" className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Built for Food Industry Professionals</h2>
-            <p className="text-muted-foreground text-base md:text-lg">Three simple steps to smarter food safety monitoring</p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">How it works</h2>
+            <p className="text-muted-foreground text-base md:text-lg">Three steps to faster, confident decisions on the plant floor</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -659,22 +696,22 @@ const Landing = () => {
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Search className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
-              <h3 className="text-lg md:text-xl font-semibold mb-3">1. We Monitor Food Agencies</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Real-time tracking of FDA, USDA, EPA, CDC feeds for food safety alerts and regulatory changes</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-3">1. Ask in plain language</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Use product or process terms—no “21 CFR” expertise required.</p>
             </div>
             <div className="text-center">
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Brain className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
-              <h3 className="text-lg md:text-xl font-semibold mb-3">2. AI Enhances with Live Sources</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Perplexity AI analyzes alerts, verifies sources, and provides regulatory context with official citations</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-3">2. We normalize across agencies</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Unified FDA/USDA/EPA results with the right authority, guidance, and HACCP implications.</p>
             </div>
             <div className="text-center">
               <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <Bell className="h-6 w-6 md:h-8 md:w-8 text-primary" />
               </div>
-              <h3 className="text-lg md:text-xl font-semibold mb-3">3. You Stay Compliant</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Get food safety alerts that matter to your business, when they matter - before they impact operations</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-3">3. You act with confidence</h3>
+              <p className="text-sm md:text-base text-muted-foreground">Prioritized actions with citations, summaries, and next steps you can share with QA and operations.</p>
             </div>
           </div>
         </div>
@@ -684,36 +721,26 @@ const Landing = () => {
       <section className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <Card className="p-4 md:p-6 lg:p-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Get Critical Food Safety Alerts + AI Search</h2>
-            <p className="text-muted-foreground text-base md:text-lg mb-6">
-              Free regulatory intelligence for food industry professionals
-            </p>
-            
-            <form onSubmit={handleEmailSignup} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto mb-4">
-              <Input
-                type="email"
-                placeholder="Enter your work email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1"
-                required
-              />
-              <Button type="submit" className="w-full sm:w-auto whitespace-nowrap">Get Free Food Safety Alerts</Button>
-            </form>
-            
-            <div className="text-xs md:text-sm text-muted-foreground mb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 max-w-2xl mx-auto">
-                <span>✅ AI-powered regulatory intelligence (Perplexity)</span>
-                <span>✅ FDA/USDA recalls & safety alerts</span>
-                <span>✅ Plain English summaries, no jargon</span>
-                <span>✅ Mobile notifications for plant floor</span>
-              </div>
-              <p className="mt-2">Always free for food industry professionals</p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Stop wasting 195 hours on broken regulatory search</h2>
+            <p className="text-muted-foreground text-base md:text-lg mb-6">Purpose‑built for food manufacturing—mobile‑first, cross‑agency clarity.</p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" asChild>
+                <Link to="/pricing">Start your 14-day free trial</Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <a href="#food-alerts">See live FDA/USDA/EPA alerts now</a>
+              </Button>
             </div>
-            
-            <Button variant="outline" asChild>
-              <Link to="/search">Browse all food safety alerts →</Link>
-            </Button>
+
+            <div className="text-xs md:text-sm text-muted-foreground mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 max-w-2xl mx-auto">
+                <span>✅ Food-specific, not generic compliance</span>
+                <span>✅ Mobile-first for plant floors</span>
+                <span>✅ Unified FDA/USDA/EPA search</span>
+                <span>✅ SMB-accessible pricing</span>
+              </div>
+            </div>
           </Card>
         </div>
       </section>

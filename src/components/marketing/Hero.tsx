@@ -10,10 +10,10 @@ export const Hero: React.FC = () => {
       <div className="container mx-auto text-center max-w-6xl">
 
         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
-          Stop Missing Critical FDA Recalls & USDA Alerts
+          Regulatory intelligence built for food manufacturing
         </h1>
         <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto px-4">
-          AI-powered regulatory monitoring that saves compliance teams 10+ hours per week.
+          Your team is losing 195 hours a year to broken regulatory search. RegIQ unifies FDA/USDA/EPA and translates plant-floor questions into clear, food-specific answers.
         </p>
 
         <div className="flex flex-col gap-3 md:gap-4 justify-center items-center mb-6 md:mb-8 px-4">
@@ -24,7 +24,7 @@ export const Hero: React.FC = () => {
           </Button>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
             <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
-              <a href="#how-it-works">See How It Works</a>
+              <a href="#food-alerts">See live FDA/USDA/EPA alerts now</a>
             </Button>
             <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
               <Link to="/pricing">Compare Plans</Link>

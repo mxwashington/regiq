@@ -10,7 +10,7 @@ export const PricingSection: React.FC = () => {
         <Card className="border-2 border-primary/20">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl">Premium</CardTitle>
-            <CardDescription>All-in-one regulatory monitoring for food & life sciences</CardDescription>
+            <CardDescription>Mid‑market friendly. Transparent pricing that scales with your team.</CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <div className="flex items-end justify-center gap-2">
