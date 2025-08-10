@@ -163,9 +163,9 @@ const Landing = () => {
   return (
     <MobileLayout showNavigation={false}>
       <Helmet>
-        <title>RegIQ | Food Manufacturing Regulatory Intelligence</title>
-        <meta name="description" content="Cut 195 hours/year per compliance pro. Food-specific regulatory intelligence unifying FDA/USDA/EPA with mobile-first, plant-floor workflows." />
-        <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory intelligence" />
+        <title>Stop Wasting 195 Hours on Regulatory Search | RegIQ</title>
+        <meta name="description" content="Cut 195 hours/year. Regulatory search for food manufacturers with unified FDA/USDA/EPA alerts and instant mobile answers." />
+        <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory search" />
         <link rel="canonical" href="https://regiq.com" />
         
         {/* Dynamic structured data for homepage */}
@@ -724,13 +724,11 @@ const Landing = () => {
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Stop wasting 195 hours on broken regulatory search</h2>
             <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6">Purpose‑built for food manufacturing—mobile‑first, cross‑agency clarity.</p>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col gap-3 justify-center items-center">
               <Button size="lg" className="w-full sm:w-auto" asChild>
                 <Link to="/pricing">Start your 14-day free trial</Link>
               </Button>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
-                <a href="#food-alerts">See live alerts</a>
-              </Button>
+              <a href="#food-alerts" className="text-sm text-primary underline hover:opacity-90">See live alerts</a>
             </div>
 
             <div className="text-xs md:text-sm text-muted-foreground mt-6">

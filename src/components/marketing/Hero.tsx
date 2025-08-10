@@ -10,25 +10,22 @@ export const Hero: React.FC = () => {
       <div className="container mx-auto text-center max-w-6xl">
 
         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
-          Regulatory Intelligence Built for Food Manufacturing
+          Stop Wasting 195 Hours Per Year on Regulatory Search
         </h1>
         <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed mb-6 md:mb-8 max-w-3xl mx-auto px-4">
-          Your team is losing 195 hours a year to broken regulatory search. RegIQ unifies FDA/USDA/EPA and translates plant-floor questions into clear, food-specific answers.
+          RegIQ unifies FDA/USDA/EPA alerts for food manufacturers. Get instant answers to plant-floor questions.
         </p>
 
         <div className="flex flex-col gap-3 md:gap-4 justify-center items-center mb-6 md:mb-8 px-4">
           <Button size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
             <Link to="/pricing">
-              Start 14-Day Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+              Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
-              <a href="#food-alerts">See live alerts</a>
-            </Button>
-            <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
-              <Link to="/pricing">Compare Plans</Link>
-            </Button>
+          <div className="flex flex-col items-center gap-2">
+            <a href="#food-alerts" className="text-sm underline text-primary hover:opacity-90">See live alerts</a>
+            <p className="text-xs text-muted-foreground">Join 50+ food manufacturers already using RegIQ</p>
+            <p className="text-xs text-muted-foreground">Every month you wait = $3,600 in wasted compliance time</p>
           </div>
         </div>
       </div>
