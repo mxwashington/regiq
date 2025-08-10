@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Shield, Zap, Crown, ArrowRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { Helmet } from 'react-helmet-async';
 
 const Pricing = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const navigate = (path: string) => { window.location.href = path; };
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleStartTrial = async () => {
