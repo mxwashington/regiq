@@ -14,6 +14,7 @@ import { usePWA } from "@/hooks/usePWA";
 import { useCacheBuster } from "@/hooks/useCacheBuster";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import SupportWidget from "@/components/account/SupportWidget";
+import { AppFrame } from "@/components/AppFrame";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
@@ -118,17 +119,17 @@ const PWAApp = () => {
               <Route path="/auth/callback" element={<AuthCallback />} />
               
               {/* Main user pages */}
-              <Route path="/dashboard" element={<AuthGuard><UserDashboard /></AuthGuard>} />
-              <Route path="/search" element={<AuthGuard><SearchPage /></AuthGuard>} />
+              <Route path="/dashboard" element={<AuthGuard><AppFrame><UserDashboard /></AppFrame></AuthGuard>} />
+              <Route path="/search" element={<AuthGuard><AppFrame><SearchPage /></AppFrame></AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
-              <Route path="/account" element={<Account />} />
+              <Route path="/account" element={<AppFrame><Account /></AppFrame>} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/success" element={<PaymentSuccess />} />
               <Route path="/cancel" element={<PaymentCanceled />} />
               
               {/* SEO-optimized alert pages */}
-              <Route path="/alerts" element={<AuthGuard><AllAlertsPage /></AuthGuard>} />
-              <Route path="/alerts/:agency" element={<AuthGuard><AgencyPage /></AuthGuard>} />
+              <Route path="/alerts" element={<AuthGuard><AppFrame><AllAlertsPage /></AppFrame></AuthGuard>} />
+              <Route path="/alerts/:agency" element={<AuthGuard><AppFrame><AgencyPage /></AppFrame></AuthGuard>} />
               
               {/* Industry-specific pages */}
               <Route path="/food-safety" element={<FoodSafetyPage />} />
@@ -136,8 +137,8 @@ const PWAApp = () => {
               <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
               
               {/* Risk Intelligence pages */}
-              <Route path="/risk-predictor" element={<RiskPredictorPage />} />
-              <Route path="/risk-dashboard" element={<RiskDashboardPage />} />
+              <Route path="/risk-predictor" element={<AppFrame><RiskPredictorPage /></AppFrame>} />
+              <Route path="/risk-dashboard" element={<AppFrame><RiskDashboardPage /></AppFrame>} />
               
               {/* Admin routes */}
               <Route path="/admin/*" element={
