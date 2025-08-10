@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { AlertTriangle, CheckCircle, Info, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 interface RiskResult {
   score: number;
@@ -16,6 +17,7 @@ interface RiskResult {
 }
 
 const RiskPredictorPage: React.FC = () => {
+  useAuthGuard();
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [result, setResult] = useState<RiskResult | null>(null);

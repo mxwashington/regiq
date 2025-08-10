@@ -137,8 +137,8 @@ const PWAApp = () => {
               <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
               
               {/* Risk Intelligence pages */}
-              <Route path="/risk-predictor" element={<AppFrame><RiskPredictorPage /></AppFrame>} />
-              <Route path="/risk-dashboard" element={<AppFrame><RiskDashboardPage /></AppFrame>} />
+              <Route path="/risk-predictor" element={<AuthGuard><AppFrame><RiskPredictorPage /></AppFrame></AuthGuard>} />
+              <Route path="/risk-dashboard" element={<AuthGuard><AppFrame><RiskDashboardPage /></AppFrame></AuthGuard>} />
               
               {/* Admin routes */}
               <Route path="/admin/*" element={

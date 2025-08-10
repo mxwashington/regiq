@@ -4,8 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, AlertTriangle, Shield, Activity } from 'lucide-react';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 const RiskDashboardPage: React.FC = () => {
+  useAuthGuard();
   // Sample data for the chart
   const categoryRiskData = [
     { category: 'Vegetables', avgRisk: 2.4, color: '#ef4444' },
