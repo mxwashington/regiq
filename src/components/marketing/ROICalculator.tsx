@@ -7,9 +7,9 @@ import { Slider } from "@/components/ui/slider";
 export const ROICalculator: React.FC = () => {
   const [teamSize, setTeamSize] = useState(3);
   const [hourlyRate, setHourlyRate] = useState(60);
-  const [hoursSaved, setHoursSaved] = useState(10);
+  const [hoursSaved, setHoursSaved] = useState(15);
 
-  const monthlySavings = useMemo(() => teamSize * hourlyRate * hoursSaved, [teamSize, hourlyRate, hoursSaved]);
+  const monthlySavings = useMemo(() => teamSize * hourlyRate * hoursSaved * 4, [teamSize, hourlyRate, hoursSaved]);
   const price = 799;
   const roi = useMemo(() => ((monthlySavings - price) / price) * 100, [monthlySavings]);
 
@@ -33,9 +33,9 @@ export const ROICalculator: React.FC = () => {
               <div>
                 <Label>Hours saved per person per week</Label>
                 <div className="pt-4">
-                  <Slider value={[hoursSaved]} min={1} max={20} step={1} onValueChange={(v) => setHoursSaved(v[0])} />
+                  <Slider value={[hoursSaved]} min={10} max={30} step={1} onValueChange={(v) => setHoursSaved(v[0])} />
                 </div>
-                <div className="text-sm text-muted-foreground mt-2">Currently: {hoursSaved} hours</div>
+                <div className="text-sm text-muted-foreground mt-2">Currently: {hoursSaved} hours/week</div>
               </div>
             </div>
             <div className="space-y-3">

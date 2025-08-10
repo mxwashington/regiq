@@ -10,10 +10,10 @@ export const Hero: React.FC = () => {
       <div className="container mx-auto text-center max-w-6xl">
 
         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
-          Stop Wasting 195 Hours Per Year on Regulatory Search
+          Regulatory search is broken for food manufacturing
         </h1>
         <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed mb-6 md:mb-8 max-w-3xl mx-auto px-4">
-          RegIQ unifies FDA/USDA/EPA alerts for food manufacturers. Get instant answers to plant-floor questions.
+          Purpose-built for food manufacturing—mobile-first, cross-agency clarity
         </p>
 
         <div className="flex flex-col gap-3 md:gap-4 justify-center items-center mb-6 md:mb-8 px-4">
@@ -23,7 +23,7 @@ export const Hero: React.FC = () => {
             </Link>
           </Button>
           <div className="flex flex-col items-center gap-2">
-            <a href="#food-alerts" className="text-sm underline text-primary hover:opacity-90">See live alerts</a>
+            <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime</p>
             <p className="text-xs text-muted-foreground">Join 50+ food manufacturers already using RegIQ</p>
             <p className="text-xs text-muted-foreground">Every month you wait = $3,600 in wasted compliance time</p>
           </div>

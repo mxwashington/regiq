@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -10,7 +11,7 @@ export const PricingSection: React.FC = () => {
       name: 'Starter',
       price: 99,
       desc: 'Perfect for small teams monitoring a single facility',
-      cta: 'Start 14-Day Free Trial',
+      cta: 'Start Free Trial',
       to: '/pricing?plan=starter',
       features: [
         '1 facility',
@@ -25,7 +26,7 @@ export const PricingSection: React.FC = () => {
       name: 'Professional',
       price: 299,
       desc: 'Ideal for growing compliance teams (most popular)',
-      cta: 'Start 14-Day Free Trial',
+      cta: 'Start Free Trial',
       to: '/pricing?plan=professional',
       features: [
         'Up to 3 facilities',
@@ -63,6 +64,11 @@ export const PricingSection: React.FC = () => {
           {plans.map((p) => (
             <Card key={p.id} className={`border-2 ${p.id === 'professional' ? 'border-primary/40' : 'border-primary/20'}`}>
               <CardHeader className="text-center">
+                {p.id === 'professional' && (
+                  <div className="mb-2 flex justify-center">
+                    <Badge variant="secondary">Most Popular</Badge>
+                  </div>
+                )}
                 <CardTitle className="text-2xl">{p.name}</CardTitle>
                 <CardDescription>{p.desc}</CardDescription>
               </CardHeader>

@@ -51,10 +51,14 @@ const Landing = () => {
 
   // Get featured alert (highest priority)
   const featuredAlert = useMemo(() => {
-    const highPriorityAlerts = alerts.filter(alert => 
-      alert.urgency?.toLowerCase() === 'high' || alert.urgency?.toLowerCase() === 'critical'
-    );
-    return highPriorityAlerts[0] || alerts[0];
+    const sorted = [...alerts].sort((a, b) => {
+      const aFDARecall = (a.source?.toLowerCase().includes('fda') && /recall/i.test(a.title || ''));
+      const bFDARecall = (b.source?.toLowerCase().includes('fda') && /recall/i.test(b.title || ''));
+      if (aFDARecall !== bFDARecall) return aFDARecall ? -1 : 1;
+      const rank = (u: string | undefined) => ({ critical: 3, high: 2, medium: 1, low: 0 }[u?.toLowerCase() as any] ?? 0);
+      return rank(b.urgency) - rank(a.urgency);
+    });
+    return sorted[0] || alerts[0];
   }, [alerts]);
 
   // Get filtered alerts for display - Default to food agencies
@@ -68,10 +72,15 @@ const Landing = () => {
     if (!selectedAgency) {
       // Default to food agencies only (FDA, USDA, EPA, CDC)
       const foodAgencies = ['FDA', 'USDA', 'EPA', 'CDC'];
-      const filtered = alerts.filter(alert => 
-        foodAgencies.includes(alert.source)
-      ).slice(0, 5);
-      return filtered;
+      const filtered = alerts.filter(alert => foodAgencies.includes(alert.source));
+      const sorted = filtered.sort((a, b) => {
+        const aFDARecall = (a.source?.toLowerCase().includes('fda') && /recall/i.test(a.title || ''));
+        const bFDARecall = (b.source?.toLowerCase().includes('fda') && /recall/i.test(b.title || ''));
+        if (aFDARecall !== bFDARecall) return aFDARecall ? -1 : 1;
+        const rank = (u: string | undefined) => ({ critical: 3, high: 2, medium: 1, low: 0 }[u?.toLowerCase() as any] ?? 0);
+        return rank(b.urgency) - rank(a.urgency);
+      });
+      return sorted.slice(0, 5);
     }
     
     if (selectedAgency === 'ALL') {
@@ -80,21 +89,23 @@ const Landing = () => {
     
     const filtered = alerts.filter(alert => {
       const sourceMatch = alert.source.toLowerCase() === selectedAgency.toLowerCase();
-      console.log('Filter check:', { 
-        alertSource: alert.source, 
-        selectedAgency, 
-        match: sourceMatch 
-      });
+      console.log('Filter check:', { alertSource: alert.source, selectedAgency, match: sourceMatch });
       return sourceMatch;
-    }).slice(0, 5);
-    
+    });
+    const sorted = filtered.sort((a, b) => {
+      const aFDARecall = (a.source?.toLowerCase().includes('fda') && /recall/i.test(a.title || ''));
+      const bFDARecall = (b.source?.toLowerCase().includes('fda') && /recall/i.test(b.title || ''));
+      if (aFDARecall !== bFDARecall) return aFDARecall ? -1 : 1;
+      const rank = (u: string | undefined) => ({ critical: 3, high: 2, medium: 1, low: 0 }[u?.toLowerCase() as any] ?? 0);
+      return rank(b.urgency) - rank(a.urgency);
+    });
     console.log('Filtered results:', { 
       originalCount: alerts.length, 
-      filteredCount: filtered.length,
+      filteredCount: sorted.length,
       selectedAgency 
     });
     
-    return filtered;
+    return sorted.slice(0, 5);
   }, [alerts, selectedAgency]);
 
   const getAgencyColor = (source: string) => {
@@ -160,8 +171,8 @@ const Landing = () => {
   return (
     <MobileLayout showNavigation={false}>
       <Helmet>
-        <title>Stop Wasting 195 Hours on Regulatory Search | RegIQ</title>
-        <meta name="description" content="Cut 195 hours/year. Regulatory search for food manufacturers with unified FDA/USDA/EPA alerts and instant mobile answers." />
+        <title>Regulatory search is broken for food manufacturing | RegIQ</title>
+        <meta name="description" content="Purpose-built for food manufacturing—mobile-first, cross-agency clarity. 14-day free trial. Cancel anytime." />
         <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory search" />
         <link rel="canonical" href="https://regiq.com" />
         
@@ -237,7 +248,7 @@ const Landing = () => {
                   <Link to="/auth">Sign In</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/auth">Get Started</Link>
+                  <Link to="/auth">Start Free Trial</Link>
                 </Button>
               </>
             )}
@@ -341,21 +352,13 @@ const Landing = () => {
             </div>
             
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 gap-3 text-sm">
                 <div>
                   <strong className="text-green-800">✅ What's New:</strong>
                   <ul className="text-green-700 space-y-1 mt-1">
                     <li>• AI analyzes alerts with regulatory context</li>
                     <li>• Real-time source verification & citations</li>
                     <li>• Enhanced summaries with urgency scoring</li>
-                  </ul>
-                </div>
-                <div>
-                  <strong className="text-green-800">🎯 AI Enhancement:</strong>
-                  <ul className="text-green-700 space-y-1 mt-1">
-                    <li>• Powered by Perplexity AI</li>
-                    <li>• Official source verification</li>
-                    <li>• Context-aware regulatory insights</li>
                   </ul>
                 </div>
               </div>
@@ -620,7 +623,7 @@ const Landing = () => {
           {!user && (
             <div className="text-center mt-8">
               <Button asChild>
-                <Link to="/auth">Get Personalized Alerts - Free</Link>
+                <Link to="/auth">Get Personalized Alerts</Link>
               </Button>
             </div>
           )}
@@ -659,7 +662,7 @@ const Landing = () => {
           <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground flex-wrap">
             <span>✅ Real-time Government Data</span>
             <span>✅ Built by Food Industry Professionals</span>
-            <span>✅ Always Free for Food Safety Teams</span>
+            <span>✅ 14-day free trial • Cancel anytime</span>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
             Monitoring {alerts.length.toLocaleString()}+ food safety alerts this month
@@ -708,11 +711,11 @@ const Landing = () => {
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Stop wasting 195 hours on broken regulatory search</h2>
             <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6">Purpose‑built for food manufacturing—mobile‑first, cross‑agency clarity.</p>
 
-            <div className="flex flex-col gap-3 justify-center items-center">
+            <div className="flex flex-col gap-2 justify-center items-center">
               <Button size="lg" className="w-full sm:w-auto" asChild>
-                <Link to="/pricing">Start your 14-day free trial</Link>
+                <Link to="/pricing">Start Free Trial</Link>
               </Button>
-              <a href="#food-alerts" className="text-sm text-primary underline hover:opacity-90">See live alerts</a>
+              <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime</p>
             </div>
 
             <div className="text-xs md:text-sm text-muted-foreground mt-6">
@@ -745,7 +748,7 @@ const Landing = () => {
         </div>
         <div className="container mx-auto text-center mt-4">
           <p className="text-sm text-muted-foreground">
-            Regulatory intelligence for food manufacturers, suppliers & safety teams
+            Built for food industry professionals by food industry experts
           </p>
         </div>
       </footer>
