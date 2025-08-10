@@ -299,7 +299,7 @@ const Landing = () => {
       {/* Value Proposition */}
       <section className="py-6 md:py-8 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Brain className="h-6 w-6 text-primary" />
@@ -320,13 +320,6 @@ const Landing = () => {
               </div>
               <h3 className="font-semibold text-base md:text-lg mb-2">Plain English summaries</h3>
               <p className="text-sm md:text-base text-muted-foreground">No regulatory jargon, food-focused</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-base md:text-lg mb-2">Free for food professionals</h3>
-              <p className="text-sm md:text-base text-muted-foreground">Mobile-optimized for plant floor access</p>
             </div>
           </div>
         </div>
