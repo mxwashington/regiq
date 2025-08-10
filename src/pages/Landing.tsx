@@ -16,7 +16,7 @@ import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
 import { useSavedAlerts } from "@/hooks/useSavedAlerts";
 import { formatDistanceToNow } from "date-fns";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
-import { CookieConsent } from "@/components/CookieConsent";
+
 import { DataRefreshButton } from "@/components/DataRefreshButton";
 import PerplexityAlertCard from "@/components/PerplexityAlertCard";
 import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
@@ -763,8 +763,6 @@ const Landing = () => {
         onToggle={() => setIsChatOpen(!isChatOpen)} 
       />
 
-      {/* Cookie Consent */}
-      <CookieConsent />
     </MobileLayout>
   );
 };
