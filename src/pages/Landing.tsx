@@ -163,7 +163,7 @@ const Landing = () => {
   return (
     <MobileLayout showNavigation={false}>
       <Helmet>
-        <title>RegIQ | Food manufacturing regulatory intelligence</title>
+        <title>RegIQ | Food Manufacturing Regulatory Intelligence</title>
         <meta name="description" content="Cut 195 hours/year per compliance pro. Food-specific regulatory intelligence unifying FDA/USDA/EPA with mobile-first, plant-floor workflows." />
         <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory intelligence" />
         <link rel="canonical" href="https://regiq.com" />
