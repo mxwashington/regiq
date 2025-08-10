@@ -18,8 +18,6 @@ import { formatDistanceToNow } from "date-fns";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { CookieConsent } from "@/components/CookieConsent";
 import { DataRefreshButton } from "@/components/DataRefreshButton";
-import { TestDataRunner } from "@/components/TestDataRunner";
-import { AlertSourceFinder } from "@/components/AlertSourceFinder";
 import PerplexityAlertCard from "@/components/PerplexityAlertCard";
 import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
 import { KeywordExtractionDemo } from "@/components/KeywordExtractionDemo";
@@ -512,13 +510,6 @@ const Landing = () => {
             </div>
           </div>
         
-        {/* Admin Tools - Temporary */}
-        {isAdmin && (
-          <div className="mb-8 space-y-4">
-            <TestDataRunner />
-            <AlertSourceFinder />
-          </div>
-        )}
 
         {/* Search Demo */}
         {featuredAlert && (
