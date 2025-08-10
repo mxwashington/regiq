@@ -298,3 +298,12 @@
     overflow: hidden;
   }
 }
+
+/* Avoid Support button overlapping AI chat on portrait screens */
+@media (orientation: portrait) {
+  .support-widget {
+    left: 1rem;
+    right: auto;
+    bottom: 1rem;
+  }
+}
