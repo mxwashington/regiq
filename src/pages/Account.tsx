@@ -40,7 +40,7 @@ const Account: React.FC = () => {
     if (!user) return;
     setLoading(true);
     try {
-      await supabase.from('profiles').upsert({ user_id: user.id, company });
+      await supabase.from('profiles').upsert({ user_id: user.id, email: user.email as string, company });
       await supabase.from('user_preferences').upsert({ user_id: user.id, email_notifications: emailNotifications, urgency_threshold: urgency });
       toast.success('Settings saved');
     } catch (e) {
