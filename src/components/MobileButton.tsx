@@ -11,14 +11,14 @@ interface MobileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   asChild?: boolean;
 }
 
-export const MobileButton: React.FC<MobileButtonProps> = ({
+export const MobileButton = React.forwardRef<HTMLButtonElement, MobileButtonProps>(({
   className,
   variant = 'ghost',
   size = 'sm',
   children,
   onClick,
   ...props
-}) => {
+}, ref) => {
   const isMobile = useIsMobile();
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -33,6 +33,7 @@ export const MobileButton: React.FC<MobileButtonProps> = ({
 
   return (
     <Button
+      ref={ref}
       variant={variant}
       size={size}
       className={cn(
@@ -54,4 +55,6 @@ export const MobileButton: React.FC<MobileButtonProps> = ({
       {children}
     </Button>
   );
-};
+});
+
+MobileButton.displayName = 'MobileButton';
