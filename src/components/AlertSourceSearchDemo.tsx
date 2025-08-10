@@ -139,7 +139,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
   if (isDismissed) return null;
 
   return (
-    <Card className={`border border-blue-200 hover:shadow-md transition-shadow bg-blue-50/30 ${isMobile ? 'mx-2' : ''}`}>
+    <Card className={`border border-blue-200 hover:shadow-md transition-shadow bg-blue-50/30 overflow-hidden ${isMobile ? 'mx-2' : ''}`}>
       <CardHeader className={isMobile ? "px-3 py-3" : "pb-3"}>
         <div className="flex items-start justify-between space-x-3">
           <div className="flex-1 min-w-0">
@@ -200,7 +200,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
         </div>
 
         {/* Actions */}
-        <div className={`flex items-center ${isMobile ? 'justify-end' : 'justify-between'} mb-3`}>
+        <div className={`flex items-center flex-wrap gap-2 ${isMobile ? 'justify-between' : 'justify-between'} mb-3`}>
           {!isMobile && (
             <div className="text-xs text-blue-700">
               Enhanced source discovery demo
@@ -210,7 +210,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
             {hasValidUrl ? (
               <MobileButton
                 onClick={() => window.open(alert.external_url, '_blank', 'noopener,noreferrer')}
-                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white"
+                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white shrink-0"
               >
                 <ExternalLink className="h-3 w-3" />
                 <span className={isMobile ? 'text-xs' : 'text-xs'}>Original</span>
@@ -218,7 +218,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
             ) : (
               <MobileButton
                 disabled
-                className="flex items-center gap-1 bg-gray-400 text-white cursor-not-allowed"
+                className="flex items-center gap-1 bg-gray-400 text-white cursor-not-allowed shrink-0"
               >
                 <Search className="h-3 w-3" />
                 <span className={isMobile ? 'text-xs' : 'text-xs'}>No Source</span>
@@ -227,13 +227,13 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <MobileButton className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white">
+                <MobileButton className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white shrink-0">
                   <Globe className="w-3 h-3" />
                   <span className={isMobile ? 'text-xs' : 'text-xs'}>Find Sources</span>
                   <ChevronDown className="w-2 h-2" />
                 </MobileButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64">
+              <DropdownMenuContent align="start" className="w-64 z-50 bg-popover text-foreground border border-border shadow-md">
                 {searchOptions.map((option, index) => (
                   <DropdownMenuItem 
                     key={option.type}
