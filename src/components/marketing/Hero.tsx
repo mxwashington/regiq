@@ -24,7 +24,7 @@ export const Hero: React.FC = () => {
           </Button>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
             <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
-              <a href="#food-alerts">See live FDA/USDA/EPA alerts now</a>
+              <a href="#food-alerts">See live alerts</a>
             </Button>
             <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
               <Link to="/pricing">Compare Plans</Link>

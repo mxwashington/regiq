@@ -729,7 +729,7 @@ const Landing = () => {
                 <Link to="/pricing">Start your 14-day free trial</Link>
               </Button>
               <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
-                <a href="#food-alerts">See live FDA/USDA/EPA alerts now</a>
+                <a href="#food-alerts">See live alerts</a>
               </Button>
             </div>
 
