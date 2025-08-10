@@ -30,7 +30,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Hero } from "@/components/marketing/Hero";
-import { SocialProof } from "@/components/marketing/SocialProof";
+
 import { FeatureComparison } from "@/components/marketing/FeatureComparison";
 import { PricingSection } from "@/components/marketing/PricingSection";
 import { ROICalculator } from "@/components/marketing/ROICalculator";
@@ -253,7 +253,7 @@ const Landing = () => {
       {/* Marketing Hero */}
       <Hero />
 
-      <SocialProof />
+      
 
       <FeatureComparison />
 
