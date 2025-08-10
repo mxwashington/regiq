@@ -94,7 +94,7 @@ export default function UnifiedAuth() {
     setLoading('signup');
     
     try {
-      const redirectUrl = `${window.location.origin}/auth/callback`;
+      const redirectUrl = `${window.location.origin}/auth/callback?onboarding=1`;
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -136,7 +136,7 @@ export default function UnifiedAuth() {
         if (profile?.is_admin) {
           navigate('/admin/dashboard');
         } else {
-          navigate('/dashboard');
+          navigate('/onboarding');
         }
       }
     } catch (error) {

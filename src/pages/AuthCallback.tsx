@@ -143,7 +143,8 @@ export default function AuthCallback() {
             if (profile?.is_admin) {
               navigateTo('/admin/dashboard');
             } else {
-              navigateTo('/dashboard');
+              const onboarding = searchParams.get('onboarding') === '1';
+              navigateTo(onboarding ? '/onboarding' : '/dashboard');
             }
           }, 2000);
         } else {

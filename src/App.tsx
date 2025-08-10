@@ -13,6 +13,7 @@ import { UpdateNotification } from "@/components/UpdateNotification";
 import { usePWA } from "@/hooks/usePWA";
 import { useCacheBuster } from "@/hooks/useCacheBuster";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import SupportWidget from "@/components/account/SupportWidget";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
@@ -41,6 +42,8 @@ const Account = React.lazy(() => import("./pages/Account").catch(() => ({ defaul
 const MobileNavigation = React.lazy(() => import("./components/MobileNavigation").catch(() => ({ default: () => null })));
 const Onboarding = React.lazy(() => import("./pages/Onboarding").catch(() => ({ default: () => <div>Onboarding unavailable</div> })));
 const AdminAnalytics = React.lazy(() => import("./pages/AdminAnalytics").catch(() => ({ default: () => <div>Admin Analytics unavailable</div> })));
+const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch(() => ({ default: () => <div>Success page unavailable</div> })));
+const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
 
 
 const queryClient = new QueryClient({
@@ -120,6 +123,8 @@ const PWAApp = () => {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<Account />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/success" element={<PaymentSuccess />} />
+              <Route path="/cancel" element={<PaymentCanceled />} />
               
               {/* SEO-optimized alert pages */}
               <Route path="/alerts" element={<AllAlertsPage />} />
@@ -153,6 +158,7 @@ const PWAApp = () => {
             </Routes>
             <MobileNavigation />
           </Suspense>
+          <SupportWidget />
         </BrowserRouter>
       </AIAccessProvider>
     </>

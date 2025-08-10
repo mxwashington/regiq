@@ -35,7 +35,12 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const dryRun = url.searchParams.get("dryRun") === "1";
+    let dryRun = url.searchParams.get("dryRun") === "1";
+    // Also accept JSON body for invoke() calls
+    try {
+      const body = await req.json();
+      if (typeof body?.dryRun === 'boolean') dryRun = body.dryRun;
+    } catch (_e) {/* no body */}
 
     // Determine yesterday in UTC (approx; adjust for ET if needed)
     const now = new Date();

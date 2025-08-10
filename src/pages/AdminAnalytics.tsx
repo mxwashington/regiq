@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 const StatCard = ({ title, value, hint }: { title: string; value: string | number; hint?: string }) => (
   <Card>
@@ -15,11 +16,15 @@ const StatCard = ({ title, value, hint }: { title: string; value: string | numbe
 
 const AdminAnalytics: React.FC = () => {
   const [overview, setOverview] = useState<any | null>(null);
+  const [subStats, setSubStats] = useState<{ active: number; mrr: number }>({ active: 0, mrr: 0 });
 
   useEffect(()=>{
     const load = async ()=>{
       const { data } = await supabase.rpc('get_analytics_overview', { days_back: 30 });
       setOverview(data?.[0] || null);
+      const { data: subs } = await (supabase as any).from('subscribers').select('subscribed').eq('subscribed', true);
+      const active = subs?.length || 0;
+      setSubStats({ active, mrr: active * 799 });
     };
     load();
   },[]);
@@ -33,12 +38,24 @@ const AdminAnalytics: React.FC = () => {
       </Helmet>
 
       <section className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="text-3xl font-bold mb-6">Admin Analytics</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <h1 className="text-3xl font-bold mb-4">Admin Analytics</h1>
+        <div className="mb-6">
+          <Button onClick={async ()=>{
+            try {
+              const { data, error } = await (supabase as any).functions.invoke('send-daily-digest', { body: { dryRun: true } });
+              alert(error ? `Digest dry run failed: ${error.message}` : `Digest dry run OK. Recipients: ${data?.recipients ?? 'n/a'}`);
+            } catch (e:any) {
+              alert(`Digest dry run error: ${e?.message || e}`);
+            }
+          }}>Test Daily Digest (dry run)</Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <StatCard title="Page Views (30d)" value={overview?.total_page_views ?? '—'} />
           <StatCard title="Unique Visitors (30d)" value={overview?.unique_visitors ?? '—'} />
           <StatCard title="Avg Session (s)" value={Math.round(overview?.avg_session_duration || 0)} />
           <StatCard title="Bounce Rate" value={`${overview?.bounce_rate ?? '—'}%`} />
+          <StatCard title="Active Subs" value={subStats.active} hint="Current paying customers" />
+          <StatCard title="MRR" value={`$${subStats.mrr}`} hint="Estimated @ $799" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

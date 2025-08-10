@@ -79,9 +79,11 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
       console.log('Session established, updating profile data...');
       // Use timeout to prevent blocking auth state changes
       setTimeout(() => {
-        if (sessionManager.session?.user) {
-          userProfile.checkAdminStatus(sessionManager.session);
-          userProfile.updateUserActivity(sessionManager.session.user.id);
+        const s = sessionManager.session;
+        if (s?.user) {
+          userProfile.checkAdminStatus(s);
+          userProfile.checkSubscription(s);
+          userProfile.updateUserActivity(s.user.id);
         }
       }, 0);
     } else {
@@ -118,7 +120,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
     signInWithMagicLink,
     signOut,
     checkAdminStatus,
-  };
+  } as const;
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
