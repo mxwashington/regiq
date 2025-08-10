@@ -14,28 +14,36 @@ const Pricing = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleUpgrade = async (tier: string) => {
+  const handleStartTrial = async () => {
     if (!user) {
       navigate('/auth');
       return;
     }
-
-    setLoading(tier);
+    setLoading('premium');
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { tier }
-      });
-
+      const { data, error } = await supabase.functions.invoke('create-checkout');
       if (error) throw error;
-
-      if (data.url) {
-        window.open(data.url, '_blank');
-      }
+      if (data?.url) window.open(data.url, '_blank');
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error('Failed to start checkout process. Please try again.');
+      toast.error('Failed to start free trial. Please try again.');
     } finally {
       setLoading(null);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) window.open(data.url, '_blank');
+    } catch (error) {
+      console.error('Billing portal error:', error);
+      toast.error('Could not open billing portal.');
     }
   };
 
@@ -139,92 +147,54 @@ const Pricing = () => {
       <section className="py-12 px-4">
         <div className="container mx-auto text-center max-w-4xl">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            <span className="text-primary">Everything Free</span> for Now!
+            <span className="text-primary">RegIQ Premium</span> — 14-day Free Trial
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            We're keeping all RegIQ features free while we build our community. Only API access requires an Enterprise plan.
+            Enterprise-grade regulatory intelligence for QA teams. $799/month after trial.
           </p>
-          
           <div className="flex items-center justify-center gap-4 mb-8">
-            <Badge variant="secondary" className="text-sm bg-green-100 text-green-800">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-              All features currently free!
-            </Badge>
-            <Badge variant="outline" className="text-sm">
-              API access available
-            </Badge>
+            <Button size="lg" onClick={handleStartTrial} disabled={loading === 'premium'}>
+              {loading === 'premium' ? 'Starting trial...' : 'Start Free Trial ($799/mo)'}
+            </Button>
+            {user && (
+              <Button size="lg" variant="outline" onClick={handleManageBilling}>
+                Manage Billing
+              </Button>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Pricing Cards */}
+      {/* Pricing Cards (simplified to Premium) */}
       <section className="py-8 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {plans.map((plan) => (
-              <Card 
-                key={plan.name} 
-                className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : ''} ${plan.disabled ? 'opacity-75' : ''}`}
-              >
-                {plan.badge && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className={`px-4 py-1 ${
-                      plan.popular ? 'bg-primary text-primary-foreground' : 
-                      plan.disabled ? 'bg-muted text-muted-foreground' :
-                      'bg-secondary text-secondary-foreground'
-                    }`}>
-                      {plan.badge === 'Everything Free!' && <Crown className="w-3 h-3 mr-1" />}
-                      {plan.badge}
-                    </Badge>
-                  </div>
-                )}
-                
-                <CardHeader className="text-center pb-8">
-                  <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground ml-2">/{plan.period}</span>
-                  </div>
-                  <CardDescription className="text-base">
-                    {plan.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="pt-4">
-                    {plan.tier === 'free' ? (
-                      <Button className="w-full" asChild>
-                        <Link to={user ? "/dashboard" : "/auth"}>
-                          {plan.buttonText}
-                        </Link>
-                      </Button>
-                    ) : plan.tier === 'enterprise' ? (
-                      <Button className="w-full" variant="outline">
-                        {plan.buttonText}
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="w-full" 
-                        variant="outline"
-                        disabled={plan.disabled}
-                      >
-                        {plan.buttonText}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <div className="container mx-auto max-w-5xl">
+          <Card className="relative border-primary shadow-lg">
+            <CardHeader className="text-center pb-6">
+              <CardTitle className="text-2xl">RegIQ Premium</CardTitle>
+              <div className="mb-2">
+                <span className="text-4xl font-bold">$799</span>
+                <span className="text-muted-foreground ml-2">/month</span>
+              </div>
+              <CardDescription className="text-base">
+                14-day free trial. Cancel anytime in the portal.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-3">
+                {["Real-time FDA/USDA/EPA alerts","AI summaries & advanced filtering","Mobile dashboard","CSV/PDF export","Priority email digests","Admin & team controls (roadmap)"].map((feature, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="pt-2">
+                <Button className="w-full" size="lg" onClick={handleStartTrial} disabled={loading === 'premium'}>
+                  {loading === 'premium' ? 'Starting trial...' : 'Start 14-day Free Trial'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

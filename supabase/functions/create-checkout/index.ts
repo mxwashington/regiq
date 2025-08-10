@@ -41,18 +41,9 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Define pricing
-    const pricing = {
-      starter: { amount: 4900, name: "Starter Plan" }, // $49/month
-      professional: { amount: 14900, name: "Professional Plan" }, // $149/month  
-      enterprise: { amount: 49900, name: "Enterprise Plan" } // $499/month
-    };
-
-    if (!pricing[tier as keyof typeof pricing]) {
-      throw new Error("Invalid pricing tier");
-    }
-
-    const selectedPlan = pricing[tier as keyof typeof pricing];
+    // Define single premium pricing for RegIQ
+    const selectedPlan = { amount: 79900, name: "RegIQ Premium" };
+    logStep("Premium plan selected", { amount_cents: selectedPlan.amount, trial_days: 14 });
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
@@ -76,8 +67,9 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/dashboard?success=true`,
-      cancel_url: `${req.headers.get("origin")}/dashboard?canceled=true`,
+      subscription_data: { trial_period_days: 14 },
+      success_url: `${req.headers.get("origin")}/pricing?success=true`,
+      cancel_url: `${req.headers.get("origin")}/pricing?canceled=true`,
     });
 
     logStep("Checkout session created", { sessionId: session.id });

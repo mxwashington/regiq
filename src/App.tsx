@@ -37,6 +37,7 @@ const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage").catch((
 const RiskPredictorPage = React.lazy(() => import("./pages/RiskPredictorPage").catch(() => ({ default: () => <div>Risk Predictor unavailable</div> })));
 const RiskDashboardPage = React.lazy(() => import("./pages/RiskDashboardPage").catch(() => ({ default: () => <div>Risk Dashboard unavailable</div> })));
 const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ default: () => <div>Pricing unavailable</div> })));
+const Account = React.lazy(() => import("./pages/Account").catch(() => ({ default: () => <div>Account unavailable</div> })));
 const MobileNavigation = React.lazy(() => import("./components/MobileNavigation").catch(() => ({ default: () => null })));
 
 
@@ -115,6 +116,7 @@ const PWAApp = () => {
               <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/account" element={<Account />} />
               
               {/* SEO-optimized alert pages */}
               <Route path="/alerts" element={<AllAlertsPage />} />
