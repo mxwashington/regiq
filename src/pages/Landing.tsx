@@ -237,7 +237,7 @@ const Landing = () => {
                   <Link to="/auth">Sign In</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/auth">Get Started Free</Link>
+                  <Link to="/auth">Get Started</Link>
                 </Button>
               </>
             )}
@@ -745,7 +745,7 @@ const Landing = () => {
         </div>
         <div className="container mx-auto text-center mt-4">
           <p className="text-sm text-muted-foreground">
-            Free regulatory intelligence for food manufacturers, suppliers & safety teams
+            Regulatory intelligence for food manufacturers, suppliers & safety teams
           </p>
         </div>
       </footer>
