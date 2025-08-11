@@ -40,6 +40,7 @@ const RiskPredictorPage = React.lazy(() => import("./pages/RiskPredictorPage").c
 const RiskDashboardPage = React.lazy(() => import("./pages/RiskDashboardPage").catch(() => ({ default: () => <div>Risk Dashboard unavailable</div> })));
 const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ default: () => <div>Pricing unavailable</div> })));
 const Account = React.lazy(() => import("./pages/Account").catch(() => ({ default: () => <div>Account unavailable</div> })));
+const Suppliers = React.lazy(() => import("./pages/Suppliers").catch(() => ({ default: () => <div>Suppliers unavailable</div> })));
 const MobileNavigation = React.lazy(() => import("./components/MobileNavigation").catch(() => ({ default: () => null })));
 const Onboarding = React.lazy(() => import("./pages/Onboarding").catch(() => ({ default: () => <div>Onboarding unavailable</div> })));
 const AdminAnalytics = React.lazy(() => import("./pages/AdminAnalytics").catch(() => ({ default: () => <div>Admin Analytics unavailable</div> })));
@@ -123,6 +124,7 @@ const PWAApp = () => {
               <Route path="/search" element={<AuthGuard><AppFrame><SearchPage /></AppFrame></AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<AppFrame><Account /></AppFrame>} />
+              <Route path="/suppliers" element={<AuthGuard><AppFrame><Suppliers /></AppFrame></AuthGuard>} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/success" element={<PaymentSuccess />} />
               <Route path="/cancel" element={<PaymentCanceled />} />

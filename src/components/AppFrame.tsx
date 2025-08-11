@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Home, Search, Bell, TrendingUp, User, LogOut } from "lucide-react";
+import { Home, Search, Bell, TrendingUp, User, LogOut, Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AppFrameProps {
@@ -29,6 +29,7 @@ const nav = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
   { to: "/search", label: "Advanced Search", icon: Search },
   { to: "/alerts", label: "Alerts", icon: Bell },
+  { to: "/suppliers", label: "Suppliers", icon: Building2 },
   { to: "/risk-dashboard", label: "Risk", icon: TrendingUp },
   { to: "/account", label: "Account", icon: User },
 ];
