@@ -156,6 +156,8 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
         onClick={onToggle}
         className="fixed right-6 h-14 w-14 rounded-full shadow-lg z-50 chat-bubble"
         size="icon"
+        aria-label="AI Assistant"
+        title="AI Assistant"
       >
         <MessageCircle className="h-6 w-6" />
       </Button>

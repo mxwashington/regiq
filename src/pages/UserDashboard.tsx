@@ -200,7 +200,7 @@ const UserDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
-              Chat
+              AI Assistant
             </TabsTrigger>
             <TabsTrigger value="advanced-search" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
@@ -442,7 +442,7 @@ const UserDashboard = () => {
           <TabsContent value="chat" className="space-y-6">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-4">Chat with RegIQ</h2>
+                <h2 className="text-3xl font-bold mb-4">AI Assistant</h2>
                 <p className="text-muted-foreground text-lg">
                   Ask questions about FDA, USDA, EPA regulations in plain English. Get fast answers with sources.
                 </p>
@@ -451,7 +451,7 @@ const UserDashboard = () => {
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <MessageCircle className="h-6 w-6 text-primary" />
-                  <h3 className="text-xl font-semibold">RegIQ Chat</h3>
+                  <h3 className="text-xl font-semibold">AI Assistant</h3>
                   <Badge variant="secondary">GPT-4.1 + Live Data</Badge>
                 </div>
                 
@@ -480,7 +480,7 @@ const UserDashboard = () => {
                   size="lg"
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
-                  Start Chat
+                  Open AI Assistant
                 </Button>
                 
                 <p className="text-xs text-muted-foreground text-center mt-4">

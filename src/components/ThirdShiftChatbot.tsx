@@ -146,6 +146,8 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
           onClick={onToggle}
           className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
           size="lg"
+          aria-label="AI Assistant"
+          title="AI Assistant"
         >
           <MessageCircle className="h-6 w-6" />
         </Button>
