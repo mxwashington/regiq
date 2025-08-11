@@ -20,6 +20,7 @@ import PerplexityAlertCard from '@/components/PerplexityAlertCard';
 import { ExportManager } from '@/components/ExportManager';
 import RiskPredictorPage from './RiskPredictorPage';
 import RiskDashboardPage from './RiskDashboardPage';
+import { RegulatorySearch } from '@/components/RegulatorySearch';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -164,9 +165,7 @@ const UserDashboard = () => {
             >
               <Link to="/search" className="flex items-center gap-1.5 md:gap-2">
                 <Search className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Advanced</span>
-                <span className="sm:hidden">AI</span>
-                <span className="hidden md:inline">Search</span>
+                <span>Advanced Search</span>
                 <Badge variant="secondary" className="bg-white/20 text-white text-xs px-1.5 py-0.5 shrink-0">
                   PRO
                 </Badge>
@@ -184,13 +183,13 @@ const UserDashboard = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Your Regulatory Dashboard</h1>
           <p className="text-muted-foreground">
-            Stay up to date with the latest regulatory alerts, use AI search, and manage your saved items.
+            Stay up to date with the latest regulatory alerts, chat with AI, and run advanced searches.
           </p>
         </div>
 
         {/* Main Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="alerts" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Live Alerts
@@ -199,9 +198,13 @@ const UserDashboard = () => {
               <TrendingUp className="h-4 w-4" />
               Risk Intel
             </TabsTrigger>
-            <TabsTrigger value="ai-search" className="flex items-center gap-2">
-              <Bot className="h-4 w-4" />
-              AI Search
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="advanced-search" className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              Advanced Search
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -435,40 +438,38 @@ const UserDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* AI Search Tab */}
-          <TabsContent value="ai-search" className="space-y-6">
+          {/* Chat Tab */}
+          <TabsContent value="chat" className="space-y-6">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-4">AI-Powered Regulatory Search</h2>
+                <h2 className="text-3xl font-bold mb-4">Chat with RegIQ</h2>
                 <p className="text-muted-foreground text-lg">
-                  Ask questions about FDA, USDA, EPA regulations in plain English. Our AI searches your live dashboard data first, then the web.
+                  Ask questions about FDA, USDA, EPA regulations in plain English. Get fast answers with sources.
                 </p>
               </div>
               
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <Bot className="h-6 w-6 text-primary" />
-                  <h3 className="text-xl font-semibold">RegIQ AI Assistant</h3>
-                  <Badge variant="secondary">GPT-4.1 + Live Data + Web Search</Badge>
+                  <MessageCircle className="h-6 w-6 text-primary" />
+                  <h3 className="text-xl font-semibold">RegIQ Chat</h3>
+                  <Badge variant="secondary">GPT-4.1 + Live Data</Badge>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="space-y-2">
-                    <h4 className="font-medium">🎯 What's New:</h4>
+                    <h4 className="font-medium">Tips</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Prioritizes your live dashboard alerts</li>
-                      <li>• Shows exact timestamps (hours ago)</li>
-                      <li>• Real-time FDA, USDA, EPA data first</li>
-                      <li>• Plain text responses (no markdown)</li>
+                      <li>• “Most recent FDA recalls”</li>
+                      <li>• “USDA labeling rules for poultry”</li>
+                      <li>• “EPA pesticide MRL updates this week”</li>
                     </ul>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="font-medium">💡 Try asking:</h4>
+                    <h4 className="font-medium">Behavior</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• "Most recent FDA food recalls?"</li>
-                      <li>• "Latest USDA meat safety alerts"</li>
-                      <li>• "EPA pesticide violations this week"</li>
-                      <li>• "Current listeria outbreak status"</li>
+                      <li>• Prioritizes your live dashboard alerts</li>
+                      <li>• Shows timestamps and sources</li>
+                      <li>• Plain-English answers</li>
                     </ul>
                   </div>
                 </div>
@@ -479,13 +480,20 @@ const UserDashboard = () => {
                   size="lg"
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
-                  Start AI Search Conversation
+                  Start Chat
                 </Button>
                 
                 <p className="text-xs text-muted-foreground text-center mt-4">
-                  AI responses use your live dashboard data first • Real-time regulatory monitoring • Plain English answers
+                  Answers cite sources and use your live dashboard first.
                 </p>
               </Card>
+            </div>
+          </TabsContent>
+
+          {/* Advanced Search Tab */}
+          <TabsContent value="advanced-search" className="space-y-6">
+            <div className="max-w-6xl mx-auto">
+              <RegulatorySearch />
             </div>
           </TabsContent>
 

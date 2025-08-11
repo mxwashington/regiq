@@ -17,7 +17,7 @@ const MobileNavigation: React.FC = () => {
 
   const navItems: NavItem[] = [
     { path: '/', icon: Home, label: 'Home' },
-    { path: '/search', icon: Search, label: 'Search', badge: 'PRO' },
+    { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
     { path: '/risk-predictor', icon: TrendingUp, label: 'Risk' },
     { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },

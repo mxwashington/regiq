@@ -27,7 +27,7 @@ interface AppFrameProps {
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
-  { to: "/search", label: "Search", icon: Search },
+  { to: "/search", label: "Advanced Search", icon: Search },
   { to: "/alerts", label: "Alerts", icon: Bell },
   { to: "/risk-dashboard", label: "Risk", icon: TrendingUp },
   { to: "/account", label: "Account", icon: User },
