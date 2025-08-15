@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1220,25 +1220,25 @@ export type Database = {
       get_analytics_overview: {
         Args: { days_back?: number }
         Returns: {
-          total_page_views: number
-          unique_visitors: number
           avg_session_duration: number
           bounce_rate: number
-          top_pages: Json
-          user_growth: Json
           device_breakdown: Json
+          top_pages: Json
+          total_page_views: number
+          unique_visitors: number
+          user_growth: Json
         }[]
       }
       get_feature_usage: {
-        Args: { user_id_param: string; feature_name_param: string }
+        Args: { feature_name_param: string; user_id_param: string }
         Returns: {
           current_usage: number
-          usage_limit: number
           is_unlimited: boolean
+          usage_limit: number
         }[]
       }
       has_enterprise_feature: {
-        Args: { user_id_param: string; feature_name_param: string }
+        Args: { feature_name_param: string; user_id_param: string }
         Returns: boolean
       }
       is_admin: {
@@ -1247,10 +1247,10 @@ export type Database = {
       }
       log_source_finder_result: {
         Args: {
-          processed_count: number
-          updated_count: number
-          status_text: string
           error_text?: string
+          processed_count: number
+          status_text: string
+          updated_count: number
         }
         Returns: undefined
       }
@@ -1259,18 +1259,18 @@ export type Database = {
         Returns: undefined
       }
       should_extend_session: {
-        Args: { user_id_param: string; current_ip?: unknown }
+        Args: { current_ip?: unknown; user_id_param: string }
         Returns: boolean
       }
       update_user_activity: {
-        Args: { user_id_param: string; ip_address_param?: unknown }
+        Args: { ip_address_param?: unknown; user_id_param: string }
         Returns: undefined
       }
       upsert_system_setting: {
         Args: {
+          description_param?: string
           key_param: string
           value_param: Json
-          description_param?: string
         }
         Returns: undefined
       }

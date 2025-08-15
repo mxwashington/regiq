@@ -4,12 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 interface DashboardMetrics {
   totalUsers: number;
   activeUsers: number;
+  monthlyUsers: number;
   totalAlerts: number;
   alertEngagement: number;
   userGrowthPercent: number;
   alertsBySource: { source: string; count: number }[];
   userSignupsOverTime: { date: string; signups: number }[];
   dailyActiveUsers: { date: string; users: number }[];
+  monthlyActiveUsers: { date: string; users: number }[];
 }
 
 export const useDashboardMetrics = () => {
@@ -36,6 +38,16 @@ export const useDashboardMetrics = () => {
           .from('profiles')
           .select('*', { count: 'exact', head: true })
           .gte('last_seen_at', thirtyDaysAgo.toISOString());
+
+        // Fetch monthly users (users who logged in this month)
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const { count: monthlyUsers } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .gte('last_seen_at', startOfMonth.toISOString());
 
         // Fetch total alerts
         const { count: totalAlerts } = await supabase
@@ -120,15 +132,41 @@ export const useDashboardMetrics = () => {
           })
         );
 
+        // Get monthly active users over time
+        const last6Months = Array.from({ length: 6 }, (_, i) => {
+          const date = new Date();
+          date.setMonth(date.getMonth() - (5 - i));
+          date.setDate(1);
+          return date.toISOString().split('T')[0].substring(0, 7); // YYYY-MM format
+        });
+
+        const monthlyActiveUsers = await Promise.all(
+          last6Months.map(async (monthStr) => {
+            const startOfMonth = new Date(monthStr + '-01');
+            const endOfMonth = new Date(startOfMonth);
+            endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+            
+            const { count } = await supabase
+              .from('profiles')
+              .select('*', { count: 'exact', head: true })
+              .gte('last_seen_at', startOfMonth.toISOString())
+              .lt('last_seen_at', endOfMonth.toISOString());
+            
+            return { date: monthStr, users: count || 0 };
+          })
+        );
+
         setMetrics({
           totalUsers: totalUsers || 0,
           activeUsers: activeUsers || 0,
+          monthlyUsers: monthlyUsers || 0,
           totalAlerts: totalAlerts || 0,
           alertEngagement: analyticsData?.length || 0,
           userGrowthPercent,
           alertsBySource,
           userSignupsOverTime,
-          dailyActiveUsers
+          dailyActiveUsers,
+          monthlyActiveUsers
         });
 
       } catch (err) {

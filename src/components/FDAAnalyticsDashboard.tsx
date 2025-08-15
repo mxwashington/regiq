@@ -33,7 +33,7 @@ export const FDAAnalyticsDashboard = () => {
           Analytics Dashboard
         </h2>
         
-        <div className="grid md:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -46,11 +46,12 @@ export const FDAAnalyticsDashboard = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Monthly Users</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics?.activeUsers || 0}</div>
+              <div className="text-2xl font-bold">{metrics?.monthlyUsers || 0}</div>
+              <p className="text-xs text-muted-foreground">This month</p>
             </CardContent>
           </Card>
           
@@ -71,6 +72,7 @@ export const FDAAnalyticsDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{metrics?.alertEngagement || 0}</div>
+              <p className="text-xs text-muted-foreground">Alert views</p>
             </CardContent>
           </Card>
         </div>
