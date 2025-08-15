@@ -824,6 +824,36 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       source_finder_logs: {
         Row: {
           created_at: string | null
@@ -1283,6 +1313,10 @@ export type Database = {
           target_id?: string
           target_type?: string
         }
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: { event_type_param: string; metadata_param?: Json }
         Returns: undefined
       }
       log_source_finder_result: {
