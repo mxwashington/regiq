@@ -142,11 +142,11 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
   };
 
   return (
-    <Card className={`hover:shadow-md transition-shadow ${isMobile ? 'mx-2 mb-3' : ''}`}>
+    <Card className={`mobile-alert-card mobile-container-safe mobile-card-content hover:shadow-md transition-shadow ${isMobile ? 'mx-2 mb-3 p-4' : ''}`}>
       <CardHeader className={isMobile ? "pb-2 px-3 pt-3" : "pb-3"}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className={`font-semibold leading-tight line-clamp-2 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+            <h3 className={`font-semibold leading-tight line-clamp-2 mb-2 mobile-text-content alert-title break-words-mobile ${isMobile ? 'text-xs' : 'text-sm'}`}>
               {alert.title}
             </h3>
             <div className={`flex items-center gap-2 text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>
@@ -173,7 +173,7 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
       </CardHeader>
 
       <CardContent className={isMobile ? "pt-0 px-3 pb-3" : "pt-0"}>
-        <p className={`text-muted-foreground mb-3 ${isMobile ? 'text-xs line-clamp-2' : 'text-sm line-clamp-3'}`}>
+        <p className={`text-muted-foreground mb-3 mobile-text-content break-words-mobile ${isMobile ? 'text-xs line-clamp-2' : 'text-sm line-clamp-3'}`}>
           {alert.summary}
         </p>
 

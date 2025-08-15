@@ -654,25 +654,25 @@ const Landing = () => {
             <h3 className="text-xl font-semibold mb-4">Official Government Data • No Delays, No Filtering</h3>
             <p className="text-muted-foreground mb-6">Direct agency feeds monitored continuously for food safety teams</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-blue-500">
+              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-blue-500 mobile-container-safe center-mobile">
                 <div className="text-2xl mb-2">🛡️</div>
-                <div className="font-medium text-blue-700">FDA</div>
-                <div className="text-sm text-muted-foreground">Food Safety Authority</div>
+                <div className="font-medium text-blue-700 mobile-text-content break-words-mobile">FDA</div>
+                <div className="text-sm text-muted-foreground mobile-text-content break-words-mobile">Food Safety Authority</div>
               </div>
-              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-green-500">
+              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-green-500 mobile-container-safe center-mobile">
                 <div className="text-2xl mb-2">🌾</div>
-                <div className="font-medium text-green-700">USDA</div>
-                <div className="text-sm text-muted-foreground">Agriculture & Meat Safety</div>
+                <div className="font-medium text-green-700 mobile-text-content break-words-mobile">USDA</div>
+                <div className="text-sm text-muted-foreground mobile-text-content break-words-mobile">Agriculture & Meat Safety</div>
               </div>
-              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-emerald-500">
+              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-emerald-500 mobile-container-safe center-mobile">
                 <div className="text-2xl mb-2">🌿</div>
-                <div className="font-medium text-emerald-700">EPA</div>
-                <div className="text-sm text-muted-foreground">Environmental Protection</div>
+                <div className="font-medium text-emerald-700 mobile-text-content break-words-mobile">EPA</div>
+                <div className="text-sm text-muted-foreground mobile-text-content break-words-mobile">Environmental Protection</div>
               </div>
-              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-red-500">
+              <div className="bg-background border rounded-lg p-4 border-l-4 border-l-red-500 mobile-container-safe center-mobile">
                 <div className="text-2xl mb-2">⚕️</div>
-                <div className="font-medium text-red-700">CDC</div>
-                <div className="text-sm text-muted-foreground">Public Health Alerts</div>
+                <div className="font-medium text-red-700 mobile-text-content break-words-mobile">CDC</div>
+                <div className="text-sm text-muted-foreground mobile-text-content break-words-mobile">Public Health Alerts</div>
               </div>
             </div>
           </div>
@@ -724,9 +724,9 @@ const Landing = () => {
       {/* Email Signup Section */}
       <section className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl text-center">
-          <Card className="p-4 md:p-6 lg:p-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Stop wasting 195 hours on broken regulatory search</h2>
-            <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6">Purpose‑built for food manufacturing—mobile‑first, cross‑agency clarity.</p>
+          <Card className="p-4 md:p-6 lg:p-8 mobile-container-safe mobile-card-content">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 mobile-text-content break-words-mobile center-mobile">Stop wasting 195 hours on broken regulatory search</h2>
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6 mobile-text-content break-words-mobile center-mobile">Purpose‑built for food manufacturing—mobile‑first, cross‑agency clarity.</p>
 
             <div className="flex flex-col gap-2 justify-center items-center">
               <Button size="lg" className="w-full sm:w-auto" asChild>

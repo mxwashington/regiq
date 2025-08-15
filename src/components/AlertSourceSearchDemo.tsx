@@ -139,11 +139,11 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
   if (isDismissed) return null;
 
   return (
-    <Card className={`border border-blue-200 hover:shadow-md transition-shadow bg-blue-50/30 ${isMobile ? 'mx-2' : ''}`}>
+    <Card className={`mobile-container-safe mobile-card-content border border-blue-200 hover:shadow-md transition-shadow bg-blue-50/30 ${isMobile ? 'mx-2 p-4' : ''}`}>
       <CardHeader className={isMobile ? "px-3 py-3" : "pb-3"}>
         <div className="flex items-start justify-between space-x-3">
           <div className="flex-1 min-w-0">
-            <h3 className={`font-semibold text-blue-900 leading-tight ${isMobile ? 'text-sm' : 'text-base'}`}>
+            <h3 className={`font-semibold text-blue-900 leading-tight mobile-text-content alert-title break-words-mobile ${isMobile ? 'text-sm' : 'text-base'}`}>
               {alert.title}
             </h3>
             <div className={`flex items-center gap-2 text-blue-700 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>
@@ -183,7 +183,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
 
       <CardContent className={isMobile ? "pt-0 px-3 pb-3" : "pt-0"}>
         {alert.summary && (
-          <p className={`text-blue-800 mb-3 ${isMobile ? 'text-xs line-clamp-2' : 'text-sm line-clamp-3'}`}>
+          <p className={`text-blue-800 mb-3 mobile-text-content break-words-mobile ${isMobile ? 'text-xs line-clamp-2' : 'text-sm line-clamp-3'}`}>
             {alert.summary}
           </p>
         )}
@@ -195,7 +195,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
           </div>
           <div className="text-xs text-blue-800 space-y-1">
             <div><strong>Search Status:</strong> {hasValidUrl ? '✅ Source Available' : '❌ Missing Source'}</div>
-            <div><strong>Keywords:</strong> <Badge variant="outline" className="text-xs bg-blue-50 border-blue-300 text-blue-800 break-words whitespace-normal max-w-full">{keywords}</Badge></div>
+            <div><strong>Keywords:</strong> <Badge variant="outline" className="text-xs bg-blue-50 border-blue-300 text-blue-800 break-words-mobile mobile-text-content">{keywords}</Badge></div>
           </div>
         </div>
 

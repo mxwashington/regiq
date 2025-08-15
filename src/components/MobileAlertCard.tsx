@@ -101,10 +101,10 @@ export const MobileAlertCard: React.FC<MobileAlertCardProps> = ({
     <Card 
       ref={cardRef}
       className={cn(
-        'mobile-alert-card transition-all duration-200 ease-out',
+        'mobile-alert-card mobile-container-safe mobile-card-content transition-all duration-200 ease-out',
         'border border-border/50 shadow-sm hover:shadow-md',
         'active:scale-[0.98] active:shadow-sm',
-        isMobile && 'mx-2 mb-3 rounded-lg',
+        isMobile && 'mx-2 mb-3 rounded-lg p-4',
         className
       )}
     >
@@ -135,7 +135,7 @@ export const MobileAlertCard: React.FC<MobileAlertCardProps> = ({
 
         {/* Title */}
         <h3 className={cn(
-          'font-semibold leading-tight text-foreground',
+          'font-semibold leading-tight text-foreground mobile-text-content alert-title',
           isMobile ? 'text-base line-clamp-3' : 'text-lg line-clamp-2'
         )}>
           {alert.title}
@@ -145,7 +145,7 @@ export const MobileAlertCard: React.FC<MobileAlertCardProps> = ({
       <CardContent className="pt-0 space-y-4">
         {/* Summary */}
         <p className={cn(
-          'text-muted-foreground leading-relaxed',
+          'text-muted-foreground leading-relaxed mobile-text-content break-words-mobile',
           isMobile ? 'text-sm line-clamp-4' : 'text-base line-clamp-3'
         )}>
           {alert.summary}

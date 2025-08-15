@@ -132,8 +132,25 @@
   }
 }
 
-/* Mobile Optimization Styles */
+/* Mobile Optimization Styles - Enhanced for RegIQ */
 @layer components {
+  /* Universal Text Wrapping for Mobile */
+  .mobile-text-wrap {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    white-space: normal;
+    max-width: 100%;
+  }
+  
+  /* Mobile Container Constraints */
+  .mobile-container-safe {
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0; /* Allow flex items to shrink */
+    box-sizing: border-box;
+  }
+  
   /* Touch-friendly button sizing */
   .btn-mobile {
     @apply min-h-[44px] min-w-[44px] touch-manipulation;
@@ -144,10 +161,33 @@
     @apply transform transition-transform duration-150 ease-out;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    /* Ensure proper containment */
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
   
   .mobile-alert-card:active {
     @apply scale-[0.98];
+  }
+  
+  /* Mobile card content fixes */
+  .mobile-card-content {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Mobile text content fixes */
+  .mobile-text-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    white-space: normal;
+    max-width: 100%;
+    overflow: hidden;
   }
   
   /* Mobile navigation optimizations */
@@ -220,18 +260,85 @@
     }
     
     /* Improve readability on mobile */
-    h1 { @apply text-2xl font-bold; }
-    h2 { @apply text-xl font-semibold; }
-    h3 { @apply text-lg font-medium; }
+    h1 { 
+      @apply text-2xl font-bold;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+    h2 { 
+      @apply text-xl font-semibold;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+    h3 { 
+      @apply text-lg font-medium;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+    
+    /* Universal text wrapping for all elements */
+    * {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
+    }
     
     /* Prevent horizontal scroll */
     .container {
       @apply px-4;
+      max-width: 100vw;
+    }
+    
+    /* Card constraints for mobile */
+    .card, .mobile-alert-card {
+      width: 100%;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      overflow: hidden;
+    }
+    
+    /* Text content constraints */
+    p, span, div {
+      max-width: 100%;
+      overflow: hidden;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+    
+    /* Alert title specific fixes */
+    .alert-title {
+      max-width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      line-height: 1.3;
+    }
+    
+    /* Feature card content fixes */
+    .feature-card-content {
+      max-width: 100%;
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    
+    /* Button text fixes */
+    button span, .btn span {
+      max-width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     
     /* Mobile-friendly forms */
     input, textarea, select {
       @apply text-base; /* Prevent zoom on iOS */
+      max-width: 100%;
+      box-sizing: border-box;
     }
   }
   
@@ -276,12 +383,15 @@
     @apply text-center py-12 px-4 text-muted-foreground;
   }
   
-  /* Text truncation utilities */
+  /* Text truncation utilities with proper word wrapping */
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   
   .line-clamp-3 {
@@ -289,6 +399,9 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   
   .line-clamp-4 {
@@ -296,6 +409,37 @@
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  /* Mobile-specific text break utilities */
+  .break-words-mobile {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+  }
+  
+  /* Mobile centering utilities */
+  .center-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+  }
+  
+  /* Mobile flex utilities */
+  .flex-mobile-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    max-width: 100%;
   }
 }
 
