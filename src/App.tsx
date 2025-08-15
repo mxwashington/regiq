@@ -9,7 +9,7 @@ import { AIAccessProvider } from "@/components/AIAccessProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { UpdateNotification } from "@/components/UpdateNotification";
+
 import { usePWA } from "@/hooks/usePWA";
 import { useCacheBuster } from "@/hooks/useCacheBuster";
 import { useAnalytics } from "@/hooks/useAnalytics";
@@ -106,7 +106,7 @@ const PWAApp = () => {
     <>
       <Toaster />
       <Sonner />
-      <UpdateNotification />
+      
       <PWAInstallPrompt />
       <AIAccessProvider>
         <BrowserRouter>

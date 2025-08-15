@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { useMobileOptimization } from '@/hooks/useMobileOptimization';
 import MobileNavigation from '@/components/MobileNavigation';
-import { UpdateNotification } from '@/components/UpdateNotification';
+
 import { cn } from '@/lib/utils';
 
 interface MobileLayoutProps {
@@ -38,8 +38,6 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
       isMobile && 'mobile-optimized',
       className
     )}>
-      {/* Update notification */}
-      <UpdateNotification />
       
       {/* Mobile header with navigation */}
       {showNavigation && (
