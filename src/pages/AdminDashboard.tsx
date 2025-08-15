@@ -2,7 +2,7 @@ import React from "react";
 import { Helmet } from "react-helmet-async";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { EnterpriseAdminDashboard } from "@/components/EnterpriseAdminDashboard";
+import { AdminDashboard as AdminDashboardComponent } from "@/components/AdminDashboard";
 import { FDAAnalyticsDashboard } from "@/components/FDAAnalyticsDashboard";
 import { SourceLinkManager } from "@/components/SourceLinkManager";
 import { AdminNavigation } from "@/components/AdminNavigation";
@@ -39,8 +39,8 @@ const AdminDashboard: React.FC = () => {
 
           <main className="mt-6">
             <Routes>
-              <Route index element={<EnterpriseAdminDashboard />} />
-              <Route path="dashboard" element={<EnterpriseAdminDashboard />} />
+              <Route index element={<AdminDashboardComponent />} />
+              <Route path="dashboard" element={<AdminDashboardComponent />} />
               <Route path="analytics" element={<FDAAnalyticsDashboard />} />
               <Route path="source-links" element={<SourceLinkManager />} />
               <Route path="*" element={<Navigate to="/admin" replace />} />

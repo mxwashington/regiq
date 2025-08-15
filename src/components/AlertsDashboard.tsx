@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,7 +49,7 @@ export function AlertsDashboard() {
     retryLoad: retryTagged
   } = useTaggedAlerts({ 
     filters: activeFilters,
-    limit: 100 
+    limit: 25 
   });
   
   // Always load simple alerts as fallback
@@ -59,7 +59,7 @@ export function AlertsDashboard() {
     error: simpleAlertsError,
     retryCount: simpleRetryCount,
     retryLoad: retrySimple
-  } = useSimpleAlerts(100);
+  } = useSimpleAlerts(25);
   
   // Smart fallback logic
   const useSimpleFallback = !!taggedAlertsError || taggedAlerts.length === 0;
@@ -550,7 +550,7 @@ interface AlertsListProps {
   onDismissAlert: (alertId: string) => void;
 }
 
-function AlertsList({ alerts, onTagClick, hasTaggedAlertsError, onDismissAlert }: AlertsListProps) {
+const AlertsList = memo(function AlertsList({ alerts, onTagClick, hasTaggedAlertsError, onDismissAlert }: AlertsListProps) {
   if (alerts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -591,4 +591,4 @@ function AlertsList({ alerts, onTagClick, hasTaggedAlertsError, onDismissAlert }
       })}
     </div>
   );
-}
+});
