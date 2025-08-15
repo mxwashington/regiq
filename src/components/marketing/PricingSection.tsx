@@ -1,10 +1,38 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export const PricingSection: React.FC = () => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleSubscribe = async (planId: string) => {
+    if (!user) {
+      toast.error("Please sign in to subscribe");
+      return;
+    }
+
+    setLoading(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { tier: planId }
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to start checkout");
+    } finally {
+      setLoading(null);
+    }
+  };
   const plans = [
     {
       id: 'starter',
@@ -82,8 +110,12 @@ export const PricingSection: React.FC = () => {
                     <li key={idx}>• {f}</li>
                   ))}
                 </ul>
-                <Button size="lg" asChild>
-                  <Link to={p.to}>{p.cta}</Link>
+                <Button 
+                  size="lg" 
+                  onClick={() => handleSubscribe(p.id)}
+                  disabled={loading === p.id}
+                >
+                  {loading === p.id ? "Starting..." : p.cta}
                 </Button>
               </CardContent>
             </Card>

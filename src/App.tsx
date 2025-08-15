@@ -46,6 +46,7 @@ const Onboarding = React.lazy(() => import("./pages/Onboarding").catch(() => ({ 
 const AdminAnalytics = React.lazy(() => import("./pages/AdminAnalytics").catch(() => ({ default: () => <div>Admin Analytics unavailable</div> })));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch(() => ({ default: () => <div>Success page unavailable</div> })));
 const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
+const Help = React.lazy(() => import("./pages/Help").catch(() => ({ default: () => <div>Help unavailable</div> })));
 
 
 const queryClient = new QueryClient({
@@ -126,8 +127,9 @@ const PWAApp = () => {
               <Route path="/account" element={<AppFrame><Account /></AppFrame>} />
               <Route path="/suppliers" element={<AuthGuard><AppFrame><Suppliers /></AppFrame></AuthGuard>} />
               <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/success" element={<PaymentSuccess />} />
-              <Route path="/cancel" element={<PaymentCanceled />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-canceled" element={<PaymentCanceled />} />
+              <Route path="/help" element={<Help />} />
               
               {/* SEO-optimized alert pages */}
               <Route path="/alerts" element={<AuthGuard><AppFrame><AllAlertsPage /></AppFrame></AuthGuard>} />
