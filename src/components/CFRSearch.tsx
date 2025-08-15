@@ -543,10 +543,10 @@ export function CFRSearch() {
 
                 {/* CFR Text */}
                 <div className="prose prose-sm max-w-none">
-                  <div 
-                    className="bg-gray-50 p-4 rounded border-l-4 border-blue-500"
-                    dangerouslySetInnerHTML={formatCFRText(section.text, results.searchTerms)}
-                  />
+                  <div className="bg-gray-50 p-4 rounded border-l-4 border-blue-500">
+                    {/* Safe text rendering without XSS risk */}
+                    {section.text}
+                  </div>
                 </div>
 
                 {/* Requirements */}

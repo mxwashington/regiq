@@ -108,13 +108,21 @@ export const useSecurityValidation = () => {
   }, [toast]);
 
   const sanitizeHtml = useCallback((html: string): string => {
-    // Basic HTML sanitization - remove dangerous tags and attributes
+    // Enhanced HTML sanitization - remove all dangerous elements
     return html
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+      .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+      .replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '')
+      .replace(/<input\b[^>]*>/gi, '')
+      .replace(/<textarea\b[^<]*(?:(?!<\/textarea>)<[^<]*)*<\/textarea>/gi, '')
       .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
       .replace(/on\w+\s*=\s*'[^']*'/gi, '')
-      .replace(/javascript:[^"']*/gi, '')
+      .replace(/javascript:[^"'\s]*/gi, '')
+      .replace(/data:[^"'\s]*/gi, '')
+      .replace(/vbscript:[^"'\s]*/gi, '')
+      .replace(/expression\s*\([^)]*\)/gi, '')
       .trim();
   }, []);
 

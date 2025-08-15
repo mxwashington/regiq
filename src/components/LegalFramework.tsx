@@ -130,10 +130,10 @@ export function LegalFramework() {
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[600px] w-full">
-                  <div 
-                    className="prose prose-sm max-w-none text-foreground"
-                    dangerouslySetInnerHTML={{ __html: formatMarkdown(doc.content) }}
-                  />
+                  <div className="prose prose-sm max-w-none text-foreground">
+                    {/* Safe text rendering - use react-markdown for safe markdown parsing */}
+                    <pre className="whitespace-pre-wrap">{doc.content}</pre>
+                  </div>
                 </ScrollArea>
               </CardContent>
             </Card>

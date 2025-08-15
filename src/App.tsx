@@ -8,6 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AIAccessProvider } from "@/components/AIAccessProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
+import { SecurityProvider } from "@/components/SecurityProvider";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 import { usePWA } from "@/hooks/usePWA";
@@ -175,11 +176,13 @@ const App = () => (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <DemoProvider>
-            <TooltipProvider>
-              <PWAApp />
-            </TooltipProvider>
-          </DemoProvider>
+          <SecurityProvider>
+            <DemoProvider>
+              <TooltipProvider>
+                <PWAApp />
+              </TooltipProvider>
+            </DemoProvider>
+          </SecurityProvider>
         </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
