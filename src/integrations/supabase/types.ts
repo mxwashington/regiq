@@ -201,6 +201,7 @@ export type Database = {
         Row: {
           agency: string | null
           created_at: string
+          data_classification: string | null
           dismissed_by: string[] | null
           external_url: string | null
           full_content: string | null
@@ -216,6 +217,7 @@ export type Database = {
         Insert: {
           agency?: string | null
           created_at?: string
+          data_classification?: string | null
           dismissed_by?: string[] | null
           external_url?: string | null
           full_content?: string | null
@@ -231,6 +233,7 @@ export type Database = {
         Update: {
           agency?: string | null
           created_at?: string
+          data_classification?: string | null
           dismissed_by?: string[] | null
           external_url?: string | null
           full_content?: string | null
@@ -314,6 +317,36 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
           visitor_id?: string | null
+        }
+        Relationships: []
+      }
+      data_access_logs: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          operation: string
+          record_count: number | null
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operation: string
+          record_count?: number | null
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operation?: string
+          record_count?: number | null
+          table_name?: string
+          user_id?: string | null
         }
         Relationships: []
       }
