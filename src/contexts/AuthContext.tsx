@@ -1,10 +1,6 @@
-
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
-import { useSessionManager } from '@/hooks/useSessionManager';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { useMagicLinkAuth } from '@/hooks/useMagicLinkAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
@@ -22,90 +18,262 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Create a simple auth error boundary component
+class AuthErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    console.error('AuthErrorBoundary caught error:', error);
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('AuthProvider error details:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return <AuthProviderInner>{children}</AuthProviderInner>;
+  return (
+    <AuthErrorBoundary 
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-lg font-semibold mb-2">Authentication Initializing...</h2>
+            <p className="text-sm text-muted-foreground">Please wait while we set up your session.</p>
+          </div>
+        </div>
+      }
+    >
+      <AuthProviderInner>{children}</AuthProviderInner>
+    </AuthErrorBoundary>
+  );
 }
 
 function AuthProviderInner({ children }: { children: React.ReactNode }) {
-  const [isMounted, setIsMounted] = useState(false);
+  console.log('AuthProviderInner rendering...');
   
-  const sessionManager = useSessionManager();
-  const userProfile = useUserProfile();
-  const { signInWithMagicLink } = useMagicLinkAuth();
-  const { toast } = useToast();
-  
-  // Ensure component is fully mounted before using effects
-  useEffect(() => {
-    setIsMounted(true);
+  // Basic state management without complex hooks initially
+  const [state, setState] = useState({
+    user: null as User | null,
+    session: null as Session | null,
+    loading: true,
+    isHealthy: true,
+    lastError: null as string | null,
+    isAdmin: false,
+    adminRole: null as string | null,
+    adminPermissions: [] as string[],
+    subscribed: false,
+    subscriptionTier: null as string | null,
+    subscriptionEnd: null as string | null,
+  });
+
+  // Enhanced sign in with magic link
+  const signInWithMagicLink = useCallback(async (email: string) => {
+    try {
+      console.log('Sending magic link to:', email);
+      
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        console.error('Magic link error:', error);
+        return { error };
+      }
+
+      console.log('Magic link sent successfully');
+      return { error: null };
+    } catch (error) {
+      console.error('Magic link error:', error);
+      return { error };
+    }
   }, []);
 
   // Enhanced sign out with proper cleanup
-  const signOut = async () => {
-    console.log('Signing out user...');
-    await sessionManager.signOut();
-    userProfile.clearProfile();
-    if (isMounted) {
-      toast({
-        title: "Signed out",
-        description: "You have been signed out successfully.",
+  const signOut = useCallback(async () => {
+    try {
+      console.log('Signing out user...');
+      await supabase.auth.signOut();
+      setState(prev => ({
+        ...prev,
+        user: null,
+        session: null,
+        isAdmin: false,
+        adminRole: null,
+        adminPermissions: [],
+        subscribed: false,
+        subscriptionTier: null,
+        subscriptionEnd: null,
+      }));
+    } catch (error) {
+      console.error('Error during sign out:', error);
+    }
+  }, []);
+
+  const checkAdminStatus = useCallback(async () => {
+    if (!state.session?.access_token) {
+      return;
+    }
+    
+    try {
+      console.log('Checking admin status...');
+      const { data, error } = await supabase.functions.invoke('check-admin-status', {
+        headers: {
+          Authorization: `Bearer ${state.session.access_token}`,
+        },
       });
-    }
-  };
-
-  const checkAdminStatus = async () => {
-    if (sessionManager.session) {
-      await userProfile.checkAdminStatus(sessionManager.session);
-    }
-  };
-
-  // Handle session changes and update profile data
-  useEffect(() => {
-    if (sessionManager.session?.user) {
-      console.log('Session established, updating profile data...');
-      // Use timeout to prevent blocking auth state changes
-      setTimeout(() => {
-        const s = sessionManager.session;
-        if (s?.user) {
-          userProfile.checkAdminStatus(s);
-          userProfile.checkSubscription(s);
-          userProfile.updateUserActivity(s.user.id);
-        }
-      }, 0);
-    } else {
-      console.log('No session, clearing profile data...');
-      userProfile.clearProfile();
-    }
-  }, [sessionManager.session?.user?.id]); // Only depend on user ID to prevent multiple calls
-
-  // Session health monitoring
-  useEffect(() => {
-    if (!sessionManager.isHealthy && sessionManager.lastError && isMounted) {
-      console.error('Session health issue detected:', sessionManager.lastError);
       
-      // Show user-friendly error for session issues
-      if (sessionManager.lastError.includes('refresh') || sessionManager.lastError.includes('token')) {
-        toast({
-          title: "Session expired",
-          description: "Please sign in again to continue.",
-          variant: "destructive",
-        });
-      }
+      if (error) throw error;
+      
+      setState(prev => ({
+        ...prev,
+        isAdmin: data.isAdmin || false,
+        adminRole: data.role || null,
+        adminPermissions: data.permissions || []
+      }));
+    } catch (error) {
+      console.error('Error checking admin status:', error);
     }
-  }, [sessionManager.isHealthy, sessionManager.lastError, toast, isMounted]);
+  }, [state.session?.access_token]);
 
-  const value = {
-    user: sessionManager.user,
-    session: sessionManager.session,
-    isAdmin: userProfile.isAdmin,
-    adminRole: userProfile.adminRole,
-    adminPermissions: userProfile.adminPermissions,
-    loading: sessionManager.loading,
-    isHealthy: sessionManager.isHealthy,
-    lastError: sessionManager.lastError,
+  const checkSubscription = useCallback(async () => {
+    if (!state.session?.access_token) {
+      return;
+    }
+    
+    try {
+      console.log('Checking subscription status...');
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        headers: {
+          Authorization: `Bearer ${state.session.access_token}`,
+        },
+      });
+      
+      if (error) throw error;
+      
+      setState(prev => ({
+        ...prev,
+        subscribed: data.subscribed || false,
+        subscriptionTier: data.subscription_tier || null,
+        subscriptionEnd: data.subscription_end || null
+      }));
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  }, [state.session?.access_token]);
+
+  const updateUserActivity = useCallback(async (userId: string) => {
+    try {
+      console.log('Updating user activity for:', userId);
+      
+      await supabase.rpc('update_user_activity', {
+        user_id_param: userId,
+        ip_address_param: null
+      });
+      
+      console.log('Updated user activity');
+    } catch (error) {
+      console.error('Error updating user activity:', error);
+    }
+  }, []);
+
+  // Handle auth state changes
+  useEffect(() => {
+    console.log('=== AUTH CONTEXT INITIALIZATION ===');
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', { event, hasSession: !!session });
+      
+      setState(prev => ({
+        ...prev,
+        session,
+        user: session?.user ?? null,
+        loading: false,
+        isHealthy: true,
+        lastError: null
+      }));
+
+      if (session?.user) {
+        // Check additional user data
+        setTimeout(() => {
+          checkAdminStatus();
+          checkSubscription();
+          updateUserActivity(session.user.id);
+        }, 100);
+      } else {
+        // Clear user data on sign out
+        setState(prev => ({
+          ...prev,
+          isAdmin: false,
+          adminRole: null,
+          adminPermissions: [],
+          subscribed: false,
+          subscriptionTier: null,
+          subscriptionEnd: null,
+        }));
+      }
+    });
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting initial session:', error);
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          isHealthy: false,
+          lastError: error.message
+        }));
+      } else {
+        setState(prev => ({
+          ...prev,
+          session,
+          user: session?.user ?? null,
+          loading: false,
+          isHealthy: true,
+          lastError: null
+        }));
+
+        if (session?.user) {
+          checkAdminStatus();
+          checkSubscription();
+          updateUserActivity(session.user.id);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const value: AuthContextType = {
+    user: state.user,
+    session: state.session,
+    isAdmin: state.isAdmin,
+    adminRole: state.adminRole,
+    adminPermissions: state.adminPermissions,
+    loading: state.loading,
+    isHealthy: state.isHealthy,
+    lastError: state.lastError,
     signInWithMagicLink,
     signOut,
     checkAdminStatus,
-  } as const;
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
