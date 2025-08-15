@@ -677,6 +677,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          requests_count: number | null
+          user_id: string | null
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          requests_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          requests_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       regulatory_data_sources: {
         Row: {
           agency: string
@@ -1209,6 +1236,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_old_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       clear_all_alerts_for_user: {
         Args: { user_id: string }
         Returns: undefined
@@ -1245,6 +1276,15 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      log_admin_action: {
+        Args: {
+          action_type: string
+          details?: Json
+          target_id?: string
+          target_type?: string
+        }
+        Returns: undefined
+      }
       log_source_finder_result: {
         Args: {
           error_text?: string
@@ -1264,6 +1304,15 @@ export type Database = {
       }
       update_user_activity: {
         Args: { ip_address_param?: unknown; user_id_param: string }
+        Returns: undefined
+      }
+      update_user_profile: {
+        Args: {
+          new_company?: string
+          new_email?: string
+          new_full_name?: string
+          profile_user_id: string
+        }
         Returns: undefined
       }
       upsert_system_setting: {

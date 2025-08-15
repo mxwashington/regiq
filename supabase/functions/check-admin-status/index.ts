@@ -29,52 +29,8 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    // Check if user should be granted admin access
-    const adminEmails = ["marcus@fsqahelp.org"];
-    const shouldBeAdmin = adminEmails.includes(user.email);
-
-    if (shouldBeAdmin) {
-      // Grant admin access
-      await supabaseClient
-        .from("profiles")
-        .upsert({
-          user_id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.email.split('@')[0],
-          role: "super_admin",
-          is_admin: true,
-          admin_permissions: [
-            "user_management",
-            "system_settings",
-            "analytics",
-            "billing"
-          ],
-          updated_at: new Date().toISOString()
-        }, { 
-          onConflict: 'user_id',
-          ignoreDuplicates: false 
-        });
-
-      // Log admin access grant
-      await supabaseClient
-        .from("admin_activities")
-        .insert({
-          admin_user_id: user.id,
-          action: "admin_access_granted",
-          target_type: "user",
-          target_id: user.id,
-          details: { email: user.email, granted_permissions: ["user_management", "system_settings", "analytics", "billing"] }
-        });
-
-      return new Response(JSON.stringify({ 
-        success: true, 
-        isAdmin: true,
-        message: "Admin access granted" 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
+    // Admin access should only be granted through database directly or by existing admins
+    // No automatic admin access based on email patterns for security
 
     // Check current admin status
     const { data: profile } = await supabaseClient
