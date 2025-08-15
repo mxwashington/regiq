@@ -1337,6 +1337,10 @@ export type Database = {
           usage_limit: number
         }[]
       }
+      grant_admin_permission: {
+        Args: { permission_name: string; target_user_id: string }
+        Returns: undefined
+      }
       has_enterprise_feature: {
         Args: { feature_name_param: string; user_id_param: string }
         Returns: boolean
@@ -1369,6 +1373,10 @@ export type Database = {
       }
       reset_data_pipeline_timestamps: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      revoke_admin_permission: {
+        Args: { permission_name: string; target_user_id: string }
         Returns: undefined
       }
       should_extend_session: {

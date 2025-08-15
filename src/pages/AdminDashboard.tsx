@@ -6,6 +6,8 @@ import { AdminDashboard as AdminDashboardComponent } from "@/components/AdminDas
 import { FDAAnalyticsDashboard } from "@/components/FDAAnalyticsDashboard";
 import { SourceLinkManager } from "@/components/SourceLinkManager";
 import { AdminNavigation } from "@/components/AdminNavigation";
+import { AdminSecurityManager } from "@/components/AdminSecurityManager";
+import { SecurityMonitoringDashboard } from "@/components/SecurityMonitoringDashboard";
 
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -45,6 +47,8 @@ const AdminDashboard: React.FC = () => {
               <Route path="dashboard" element={<AdminDashboardComponent />} />
               <Route path="analytics" element={<FDAAnalyticsDashboard />} />
               <Route path="source-links" element={<SourceLinkManager />} />
+              <Route path="security" element={<AdminSecurityManager />} />
+              <Route path="security-monitoring" element={<SecurityMonitoringDashboard />} />
               <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>
           </main>

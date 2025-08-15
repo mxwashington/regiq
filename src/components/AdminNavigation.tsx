@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart3, Users, Settings, Shield, ArrowLeft, MonitorSpeaker, Link as LinkIcon } from 'lucide-react';
+import { BarChart3, Users, Settings, Shield, ArrowLeft, MonitorSpeaker, Link as LinkIcon, Eye } from 'lucide-react';
+
 const adminNavItems = [{
   title: 'Analytics',
   path: '/admin/analytics',
@@ -19,6 +20,16 @@ const adminNavItems = [{
   path: '/admin/source-links',
   icon: LinkIcon,
   description: 'Manage web scraping and source links'
+}, {
+  title: 'Security Management',
+  path: '/admin/security',
+  icon: Shield,
+  description: 'Admin permissions and security'
+}, {
+  title: 'Security Monitoring',
+  path: '/admin/security-monitoring',
+  icon: Eye,
+  description: 'Security events and monitoring'
 }, {
   title: 'Settings',
   path: '/admin/settings',
@@ -57,7 +68,7 @@ export const AdminNavigation = () => {
       </div>
 
       {/* Navigation Cards */}
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
         {adminNavItems.map(item => {
         const Icon = item.icon;
         const isActive = location.pathname === item.path;
