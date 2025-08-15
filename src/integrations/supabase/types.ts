@@ -581,6 +581,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_logs: {
+        Row: {
+          action_type: string
+          amount_cents: number | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          stripe_session_id: string | null
+          success: boolean | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          amount_cents?: number | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          stripe_session_id?: string | null
+          success?: boolean | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          amount_cents?: number | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          stripe_session_id?: string | null
+          success?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       perplexity_searches: {
         Row: {
           agencies: string[] | null
