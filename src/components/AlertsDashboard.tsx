@@ -79,7 +79,8 @@ export function AlertsDashboard() {
       simpleAlertsError,
       alertsLoading,
       taggedRetryCount,
-      simpleRetryCount
+      simpleRetryCount,
+      user: user ? { id: user.id, email: user.email } : null
     });
   }, [
     taggedAlertsError, 
@@ -91,7 +92,8 @@ export function AlertsDashboard() {
     simpleAlertsError,
     alertsLoading,
     taggedRetryCount,
-    simpleRetryCount
+    simpleRetryCount,
+    user
   ]);
 
   // Filter alerts by search term and dismissed status

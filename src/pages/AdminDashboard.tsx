@@ -17,7 +17,9 @@ const LoadingScreen = () => (
 );
 
 const AdminDashboard: React.FC = () => {
-  const { loading } = useAuthGuard(true); // require admin
+  const { loading, isAuthenticated, isAdmin } = useAuthGuard(true); // require admin
+
+  console.log('[AdminDashboard] Auth state:', { loading, isAuthenticated, isAdmin });
 
   if (loading) return <LoadingScreen />;
 
