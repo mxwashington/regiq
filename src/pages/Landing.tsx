@@ -747,14 +747,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Sticky Mobile CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-40 md:hidden bg-background/90 border-t backdrop-blur">
-        <div className="container mx-auto px-4 py-3">
-          <Button className="w-full" asChild>
-            <Link to="/pricing">Start Free Trial — No credit card required</Link>
-          </Button>
-        </div>
-      </div>
       {/* Footer */}
       <footer className="border-t py-8 px-4">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
