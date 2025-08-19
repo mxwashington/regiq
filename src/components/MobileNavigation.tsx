@@ -31,8 +31,11 @@ const MobileNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border md:hidden">
-      <div className="flex items-center justify-around px-2 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-[1000] w-full bg-background/95 backdrop-blur-md border-t border-border md:hidden">
+      <div 
+        className="flex items-center justify-around w-full px-4 py-2" 
+        style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}
+      >
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -41,24 +44,24 @@ const MobileNavigation: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[60px] max-w-[80px] flex-1 min-h-[44px] px-1 py-1 rounded-lg transition-colors touch-manipulation ${
                 active 
                   ? 'text-primary bg-primary/10' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
               }`}
             >
-              <div className="relative">
+              <div className="relative flex items-center justify-center mb-1">
                 <Icon className={`h-5 w-5 ${active ? 'text-primary' : ''}`} />
                 {item.badge && (
                   <Badge 
                     variant="secondary" 
-                    className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs px-1 py-0 min-w-0 h-4"
+                    className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] px-1 py-0 min-w-0 h-3 leading-none"
                   >
                     {item.badge}
                   </Badge>
                 )}
               </div>
-              <span className={`text-xs mt-1 ${active ? 'font-medium' : ''}`}>
+              <span className={`text-[10px] leading-tight text-center truncate w-full ${active ? 'font-medium' : ''}`}>
                 {item.label}
               </span>
             </Link>
