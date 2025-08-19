@@ -85,7 +85,7 @@ export const PricingSection: React.FC = () => {
     <section id="pricing" className="py-8 md:py-12 px-4 bg-muted/20">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold hyphens-none">Simple, <span className="whitespace-nowrap">Transparent Pricing</span></h2>
+          <h2 className="text-3xl font-bold hyphens-none break-words">Simple, Transparent Pricing</h2>
           <p className="text-muted-foreground hyphens-none">Plans that scale with your compliance needs</p>
         </div>
         <div className="grid gap-6 lg:grid-cols-3">
