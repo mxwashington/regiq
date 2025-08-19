@@ -266,15 +266,15 @@ const Landing = () => {
       {/* Pain Points Section */}
       <section id="pain-points" className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">The Hidden Federal Compliance Crisis</h2>
-          <ul className="text-muted-foreground grid gap-2 text-sm md:text-base leading-relaxed list-disc pl-5">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 hyphens-none">The Hidden Federal Compliance Crisis</h2>
+          <ul className="text-muted-foreground grid gap-2 text-sm md:text-base leading-relaxed list-disc pl-5 hyphens-none">
             <li>Failed searches cost $34,487 per compliance professional annually</li>
-            <li>Cross-agency confusion costs companies 195 hours per professional searching for answers</li>
-            <li>Pet food manufacturers lose 217 hours annually navigating FDA/USDA dual jurisdiction</li>
-            <li>Current regulatory databases have 30–70% failure rates for food‑specific searches</li>
-            <li>60% of compliance decisions happen on plant floors—but existing tools aren't mobile‑optimized</li>
+            <li><span className="whitespace-nowrap">Cross-agency confusion</span> costs companies 195 hours per professional searching for answers</li>
+            <li><span className="whitespace-nowrap">Pet food manufacturers</span> lose 217 hours annually navigating FDA/USDA dual jurisdiction</li>
+            <li>Current regulatory databases have <span className="whitespace-nowrap">30–70% failure rates</span> for <span className="whitespace-nowrap">food‑specific searches</span></li>
+            <li>60% of compliance decisions happen on plant floors—but existing tools aren't <span className="whitespace-nowrap">mobile‑optimized</span></li>
           </ul>
-          <p className="text-muted-foreground text-sm md:text-base mt-3">The current system is broken. RegIQ fixes it.</p>
+          <p className="text-muted-foreground text-sm md:text-base mt-3 hyphens-none">The current system is broken. RegIQ fixes it.</p>
         </div>
       </section>
 
@@ -283,19 +283,19 @@ const Landing = () => {
       {/* Solution Section */}
       <section id="solution" className="py-8 md:py-12 px-4 bg-muted/20">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6">Purpose-built for food manufacturing</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 hyphens-none">Purpose-built for food manufacturing</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <article className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Natural language search that actually works</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Ask "pet food salmonella testing" instead of memorizing "21 CFR 501"—get results that make sense to food professionals, not lawyers.</p>
+              <h3 className="font-semibold text-lg mb-2 hyphens-none">Natural language search that actually works</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed hyphens-none">Ask <span className="whitespace-nowrap">"pet food salmonella testing"</span> instead of memorizing "21 CFR 501"—get results that make sense to food professionals, not lawyers.</p>
             </article>
             <article className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Cross-agency jurisdiction clarity</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">Navigate FDA vs USDA oversight confusion—know instantly whether pizza falls under FDA but pizza with pepperoni requires FSIS compliance.</p>
+              <h3 className="font-semibold text-lg mb-2 hyphens-none"><span className="whitespace-nowrap">Cross-agency</span> jurisdiction clarity</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed hyphens-none">Navigate FDA vs USDA oversight confusion—know instantly whether pizza falls under FDA but pizza with pepperoni requires FSIS compliance.</p>
             </article>
             <article className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Plain English regulatory summaries</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">AI converts complex CFR requirements into actionable guidance your team can actually use.</p>
+              <h3 className="font-semibold text-lg mb-2 hyphens-none">Plain English regulatory summaries</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed hyphens-none">AI converts complex CFR requirements into actionable guidance your team can actually use.</p>
             </article>
             <article className="border rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-2">Import/export federal compliance</h3>
@@ -308,12 +308,12 @@ const Landing = () => {
       {/* Competitive Differentiation */}
       <section id="competitive" className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Why Generic Compliance Tools Fail Food Manufacturing</h2>
-          <div className="space-y-2 text-sm md:text-base text-muted-foreground">
-            <p>❌ LexisNexis: Healthcare-focused, requires legal expertise, $75K+ annually</p>
-            <p>❌ Thomson Reuters: Banking regulations, complex UI, no mobile access</p>
-            <p>❌ Government websites: 30-70% search failure rate, no cross-referencing</p>
-            <p>✅ RegIQ: Purpose-built for food manufacturing, mobile-first, starts at $99/month</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 hyphens-none">Why Generic Compliance Tools Fail Food Manufacturing</h2>
+          <div className="space-y-2 text-sm md:text-base text-muted-foreground hyphens-none">
+            <p>❌ LexisNexis: <span className="whitespace-nowrap">Healthcare-focused</span>, requires legal expertise, $75K+ annually</p>
+            <p>❌ Thomson Reuters: Banking regulations, complex UI, <span className="whitespace-nowrap">no mobile access</span></p>
+            <p>❌ Government websites: <span className="whitespace-nowrap">30-70% search failure rate</span>, <span className="whitespace-nowrap">no cross-referencing</span></p>
+            <p>✅ RegIQ: <span className="whitespace-nowrap">Purpose-built</span> for food manufacturing, <span className="whitespace-nowrap">mobile-first</span>, starts at $99/month</p>
           </div>
         </div>
       </section>
@@ -339,8 +339,8 @@ const Landing = () => {
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-base md:text-lg mb-2">Cross-agency food monitoring</h3>
-              <p className="text-sm md:text-base text-muted-foreground">FDA, USDA, EPA, CDC in one place</p>
+              <h3 className="font-semibold text-base md:text-lg mb-2 hyphens-none"><span className="whitespace-nowrap">Cross-agency</span> food monitoring</h3>
+              <p className="text-sm md:text-base text-muted-foreground hyphens-none">FDA, USDA, EPA, CDC in one place</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
