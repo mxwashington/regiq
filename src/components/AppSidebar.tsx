@@ -1,0 +1,97 @@
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Home, Search, Bell, Building2, TrendingUp, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
+} from '@/components/ui/sidebar';
+
+interface NavItem {
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  badge?: string;
+}
+
+export function AppSidebar() {
+  const location = useLocation();
+  const { user } = useAuth();
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
+
+  const navItems: NavItem[] = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
+    { path: '/dashboard', icon: Bell, label: 'Alerts' },
+    { path: '/suppliers', icon: Building2, label: 'Suppliers' },
+    { path: '/risk-predictor', icon: TrendingUp, label: 'Risk' },
+    { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
+  ];
+
+  const isActive = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
+  return (
+    <Sidebar
+      className="border-r border-border bg-background"
+      collapsible="icon"
+    >
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel className={isCollapsed ? 'sr-only' : ''}>
+            Navigation
+          </SidebarGroupLabel>
+
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.path}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                          active
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                        }`}
+                      >
+                        <div className="relative">
+                          <Icon className="h-5 w-5" />
+                          {item.badge && (
+                            <Badge
+                              variant="secondary"
+                              className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] px-1 py-0 min-w-0 h-3 leading-none"
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </div>
+                        {!isCollapsed && <span>{item.label}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+}

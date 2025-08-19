@@ -15,7 +15,8 @@ import { usePWA } from "@/hooks/usePWA";
 import { useCacheBuster } from "@/hooks/useCacheBuster";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import SupportWidget from "@/components/account/SupportWidget";
-import { AppFrame } from "@/components/AppFrame";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
@@ -42,7 +43,7 @@ const RiskDashboardPage = React.lazy(() => import("./pages/RiskDashboardPage").c
 const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ default: () => <div>Pricing unavailable</div> })));
 const Account = React.lazy(() => import("./pages/Account").catch(() => ({ default: () => <div>Account unavailable</div> })));
 const Suppliers = React.lazy(() => import("./pages/Suppliers").catch(() => ({ default: () => <div>Suppliers unavailable</div> })));
-const MobileNavigation = React.lazy(() => import("./components/MobileNavigation").catch(() => ({ default: () => null })));
+
 const Onboarding = React.lazy(() => import("./pages/Onboarding").catch(() => ({ default: () => <div>Onboarding unavailable</div> })));
 const AdminAnalytics = React.lazy(() => import("./pages/AdminAnalytics").catch(() => ({ default: () => <div>Admin Analytics unavailable</div> })));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch(() => ({ default: () => <div>Success page unavailable</div> })));
@@ -111,9 +112,20 @@ const PWAApp = () => {
       <PWAInstallPrompt />
       <AIAccessProvider>
         <BrowserRouter>
-            <AnalyticsInitializer />
-            <Suspense fallback={<PageLoadingFallback />}>
-            <Routes>
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <AppSidebar />
+              
+              <div className="flex-1 flex flex-col">
+                <header className="h-12 flex items-center border-b bg-background px-4">
+                  <SidebarTrigger className="mr-4" />
+                  <h1 className="font-semibold">RegIQ</h1>
+                </header>
+                
+                <main className="flex-1">
+                  <AnalyticsInitializer />
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<UnifiedAuth />} />
               <Route path="/login" element={<UnifiedAuth />} />
@@ -122,19 +134,19 @@ const PWAApp = () => {
               <Route path="/auth/callback" element={<AuthCallback />} />
               
               {/* Main user pages */}
-              <Route path="/dashboard" element={<AuthGuard><AppFrame><UserDashboard /></AppFrame></AuthGuard>} />
-              <Route path="/search" element={<AuthGuard><AppFrame><SearchPage /></AppFrame></AuthGuard>} />
+              <Route path="/dashboard" element={<AuthGuard><UserDashboard /></AuthGuard>} />
+              <Route path="/search" element={<AuthGuard><SearchPage /></AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
-              <Route path="/account" element={<AppFrame><Account /></AppFrame>} />
-              <Route path="/suppliers" element={<AuthGuard><AppFrame><Suppliers /></AppFrame></AuthGuard>} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/suppliers" element={<AuthGuard><Suppliers /></AuthGuard>} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-canceled" element={<PaymentCanceled />} />
               <Route path="/help" element={<Help />} />
               
               {/* SEO-optimized alert pages */}
-              <Route path="/alerts" element={<AuthGuard><AppFrame><AllAlertsPage /></AppFrame></AuthGuard>} />
-              <Route path="/alerts/:agency" element={<AuthGuard><AppFrame><AgencyPage /></AppFrame></AuthGuard>} />
+              <Route path="/alerts" element={<AuthGuard><AllAlertsPage /></AuthGuard>} />
+              <Route path="/alerts/:agency" element={<AuthGuard><AgencyPage /></AuthGuard>} />
               
               {/* Industry-specific pages */}
               <Route path="/food-safety" element={<FoodSafetyPage />} />
@@ -142,8 +154,8 @@ const PWAApp = () => {
               <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
               
               {/* Risk Intelligence pages */}
-              <Route path="/risk-predictor" element={<AuthGuard><AppFrame><RiskPredictorPage /></AppFrame></AuthGuard>} />
-              <Route path="/risk-dashboard" element={<AuthGuard><AppFrame><RiskDashboardPage /></AppFrame></AuthGuard>} />
+              <Route path="/risk-predictor" element={<AuthGuard><RiskPredictorPage /></AuthGuard>} />
+              <Route path="/risk-dashboard" element={<AuthGuard><RiskDashboardPage /></AuthGuard>} />
               
               {/* Admin routes */}
               <Route path="/admin/*" element={
@@ -161,10 +173,13 @@ const PWAApp = () => {
               <Route path="/legal" element={<LegalFramework />} />
               <Route path="/debug" element={<Debug />} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-            <MobileNavigation />
-          </Suspense>
-          <SupportWidget />
+                    </Routes>
+                  </Suspense>
+                </main>
+              </div>
+            </div>
+            <SupportWidget />
+          </SidebarProvider>
         </BrowserRouter>
       </AIAccessProvider>
     </>
