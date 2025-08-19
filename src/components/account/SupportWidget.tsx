@@ -6,7 +6,7 @@ export const SupportWidget: React.FC = () => {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button onClick={()=>setOpen(true)} className="fixed bottom-4 right-4 z-40 support-widget">Support</Button>
+      <Button onClick={()=>setOpen(true)} className="fixed bottom-4 left-4 z-40 support-widget">Support</Button>
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerContent>
           <DrawerHeader>

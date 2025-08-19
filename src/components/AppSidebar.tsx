@@ -71,12 +71,20 @@ export function AppSidebar() {
                             : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                         }`}
                       >
-                        <div className="relative">
+                        <div className="relative flex items-center">
                           <Icon className="h-5 w-5" />
-                          {item.badge && (
+                          {item.badge && !isCollapsed && (
                             <Badge
                               variant="secondary"
-                              className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] px-1 py-0 min-w-0 h-3 leading-none"
+                              className="ml-2 bg-primary text-primary-foreground text-[10px] px-2 py-0.5 h-5 leading-none"
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
+                          {item.badge && isCollapsed && (
+                            <Badge
+                              variant="secondary"
+                              className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[8px] px-1 py-0 min-w-0 h-3 leading-none"
                             >
                               {item.badge}
                             </Badge>
