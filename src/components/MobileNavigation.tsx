@@ -33,8 +33,8 @@ const MobileNavigation: React.FC = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-[1000] w-full bg-background/95 backdrop-blur-md border-t border-border md:hidden">
       <div 
-        className="flex items-center justify-around w-full px-4 py-2" 
-        style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}
+        className="flex items-end justify-around w-full px-4 pt-2 pb-3 min-h-[70px]" 
+        style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
       >
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -44,24 +44,27 @@ const MobileNavigation: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[60px] max-w-[80px] flex-1 min-h-[44px] px-1 py-1 rounded-lg transition-colors touch-manipulation ${
+              className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[60px] max-w-[80px] flex-1 min-h-[60px] px-1 py-1 rounded-lg transition-colors touch-manipulation ${
                 active 
                   ? 'text-primary bg-primary/10' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
               }`}
             >
-              <div className="relative flex items-center justify-center mb-1">
+              <div className="relative flex items-center justify-center">
                 <Icon className={`h-5 w-5 ${active ? 'text-primary' : ''}`} />
                 {item.badge && (
                   <Badge 
                     variant="secondary" 
-                    className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] px-1 py-0 min-w-0 h-3 leading-none"
+                    className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] px-1 py-0 min-w-0 h-3 leading-none"
                   >
                     {item.badge}
                   </Badge>
                 )}
               </div>
-              <span className={`text-[10px] leading-tight text-center truncate w-full ${active ? 'font-medium' : ''}`}>
+              <span 
+                className={`text-[10px] leading-[1.2] text-center w-full mt-1 whitespace-nowrap overflow-visible ${active ? 'font-medium' : ''}`}
+                style={{ maxWidth: 'none' }}
+              >
                 {item.label}
               </span>
             </Link>
