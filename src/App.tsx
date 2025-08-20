@@ -117,10 +117,6 @@ const PWAApp = () => {
               <AppSidebar />
               
               <div className="flex-1 flex flex-col">
-                <header className="h-12 flex items-center border-b bg-background px-4">
-                  <SidebarTrigger className="mr-4" />
-                </header>
-                
                 <main className="flex-1">
                   <AnalyticsInitializer />
                   <Suspense fallback={<PageLoadingFallback />}>
