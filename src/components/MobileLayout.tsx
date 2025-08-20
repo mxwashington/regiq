@@ -46,23 +46,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
           isMobile ? 'h-14 px-4' : 'h-16 px-6'
         )}>
           <div className="flex items-center justify-between h-full">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <img 
-                src="/lovable-uploads/869131e3-58af-4f2a-8695-33e9e20d5b45.png" 
-                alt="RegIQ Logo" 
-                className={cn(
-                  'rounded-md',
-                  isMobile ? 'h-8 w-8' : 'h-10 w-10'
-                )}
-              />
-              <h1 className={cn(
-                'font-bold text-primary',
-                isMobile ? 'text-lg' : 'text-xl'
-              )}>
-                RegIQ
-              </h1>
-            </div>
+            {/* Logo - removed to avoid duplicate with Hero component */}
 
             {/* Connection status indicator */}
             {!isOnline && (
