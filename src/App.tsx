@@ -117,6 +117,12 @@ const PWAApp = () => {
               <AppSidebar />
               
               <div className="flex-1 flex flex-col">
+                {/* Mobile header with sidebar trigger */}
+                <header className="flex md:hidden items-center h-12 px-4 border-b bg-background">
+                  <SidebarTrigger className="mr-4" />
+                  <h1 className="font-semibold">RegIQ</h1>
+                </header>
+                
                 <main className="flex-1">
                   <AnalyticsInitializer />
                   <Suspense fallback={<PageLoadingFallback />}>

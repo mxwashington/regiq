@@ -47,6 +47,7 @@ export function AppSidebar() {
     <Sidebar
       className="border-r border-border bg-background"
       collapsible="icon"
+      variant="sidebar"
     >
       <SidebarContent>
         <SidebarGroup>
