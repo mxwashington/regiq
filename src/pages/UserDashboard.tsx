@@ -21,6 +21,7 @@ import { ExportManager } from '@/components/ExportManager';
 import RiskPredictorPage from './RiskPredictorPage';
 import RiskDashboardPage from './RiskDashboardPage';
 import { RegulatorySearch } from '@/components/RegulatorySearch';
+import SupportWidget from '@/components/account/SupportWidget';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -624,6 +625,9 @@ const UserDashboard = () => {
         isOpen={isChatOpen} 
         onToggle={() => setIsChatOpen(!isChatOpen)} 
       />
+
+      {/* Support Widget */}
+      <SupportWidget />
     </div>
   );
 };

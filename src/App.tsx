@@ -14,7 +14,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { usePWA } from "@/hooks/usePWA";
 import { useCacheBuster } from "@/hooks/useCacheBuster";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import SupportWidget from "@/components/account/SupportWidget";
+
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 
@@ -173,7 +173,7 @@ const PWAApp = () => {
                 </main>
               </div>
             </div>
-            <SupportWidget />
+            
           </SidebarProvider>
         </BrowserRouter>
       </AIAccessProvider>

@@ -11,7 +11,7 @@ import UsageStats from '@/components/account/UsageStats';
 import BillingHistory from '@/components/account/BillingHistory';
 import TeamManagement from '@/components/account/TeamManagement';
 import CancellationFlow from '@/components/account/CancellationFlow';
-import SupportWidget from '@/components/account/SupportWidget';
+
 
 const Account: React.FC = () => {
   const { user } = useAuth();
@@ -123,7 +123,7 @@ const Account: React.FC = () => {
         <TeamManagement />
         <CancellationFlow />
       </section>
-      <SupportWidget />
+      
     </div>
   );
 };
