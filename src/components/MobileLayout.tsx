@@ -46,10 +46,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
           isMobile ? 'h-14 px-4' : 'h-16 px-6'
         )}>
           <div className="flex items-center justify-between h-full">
-            {/* Menu only - no text */}
-            <div className="flex items-center gap-3">
-              {/* Menu icon will be handled by navigation component */}
-            </div>
+            {/* Navigation handled by individual pages */}
 
             {/* Connection status indicator */}
             {!isOnline && (
