@@ -12,7 +12,6 @@ export const Hero: React.FC = () => {
         {/* Navigation */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-2">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <Shield className="h-8 w-8 text-primary" />
             <span className="font-bold text-2xl text-primary">RegIQ</span>
           </div>
