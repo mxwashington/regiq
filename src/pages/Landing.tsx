@@ -223,47 +223,7 @@ const Landing = () => {
           })}
         </script>
       </Helmet>
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <span className="font-bold text-2xl text-primary">RegIQ</span>
-            </div>
-          </div>
-          <nav className="hidden md:flex items-center space-x-6">
-            <a href="#food-alerts" className="text-muted-foreground hover:text-foreground transition-colors">Food Safety Alerts</a>
-            <a href="#ai-search" className="text-muted-foreground hover:text-foreground transition-colors">Food Regulation Search</a>
-            <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
-            <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How it Works</a>
-            {user ? (
-              <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={getDashboardUrl()}>Dashboard</Link>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={signOut}>
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/auth">Sign In</Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link to="/pricing">Start Free Trial</Link>
-                </Button>
-              </>
-            )}
-          </nav>
-          <div className="md:hidden">
-            {/* Mobile navigation is handled by MobileLayout */}
-          </div>
-        </div>
-      </header>
-
+      
       {/* Marketing Hero */}
       <Hero />
 
