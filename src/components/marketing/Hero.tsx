@@ -11,12 +11,10 @@ export const Hero: React.FC = () => {
       <div className="container mx-auto text-center max-w-6xl">
         {/* Navigation */}
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <span className="font-bold text-2xl text-primary">RegIQ</span>
-            </div>
+            <Shield className="h-8 w-8 text-primary" />
+            <span className="font-bold text-2xl text-primary">RegIQ</span>
           </div>
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
