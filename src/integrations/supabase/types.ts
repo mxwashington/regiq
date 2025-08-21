@@ -248,6 +248,48 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          api_key: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          key_name: string
+          last_used_at: string | null
+          rate_limit_per_hour: number | null
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_name: string
+          last_used_at?: string | null
+          rate_limit_per_hour?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_name?: string
+          last_used_at?: string | null
+          rate_limit_per_hour?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           description: string | null
@@ -1350,6 +1392,10 @@ export type Database = {
         Args: { alert_id: string; user_id: string }
         Returns: undefined
       }
+      generate_api_key: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_analytics_overview: {
         Args: { days_back?: number }
         Returns: {
@@ -1404,6 +1450,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      provision_enterprise_api_key: {
+        Args: { target_user_id: string }
+        Returns: string
+      }
       reset_data_pipeline_timestamps: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1411,6 +1461,10 @@ export type Database = {
       revoke_admin_permission: {
         Args: { permission_name: string; target_user_id: string }
         Returns: undefined
+      }
+      revoke_user_api_keys: {
+        Args: { target_user_id: string }
+        Returns: number
       }
       should_extend_session: {
         Args: { current_ip?: unknown; user_id_param: string }
