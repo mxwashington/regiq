@@ -1491,6 +1491,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      validate_enterprise_api_key: {
+        Args: { api_key_input: string }
+        Returns: {
+          is_valid: boolean
+          rate_limit: number
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

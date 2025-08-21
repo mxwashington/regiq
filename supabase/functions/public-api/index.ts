@@ -27,20 +27,38 @@ serve(async (req) => {
       { global: { headers: { "x-client-info": "public-api" } } }
     );
 
-    // Enforce API key if configured (Enterprise access)
-    const allowedKeys = (Deno.env.get("PUBLIC_API_KEY") || "")
-      .split(",")
-      .map((k) => k.trim())
-      .filter(Boolean);
-    if (allowedKeys.length > 0) {
-      const provided = req.headers.get("x-api-key") || url.searchParams.get("api_key");
-      if (!provided || !allowedKeys.includes(provided)) {
-        return new Response(JSON.stringify({ error: "Unauthorized: missing or invalid API key" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    // Validate enterprise API key from database
+    const providedApiKey = req.headers.get("x-api-key") || url.searchParams.get("api_key");
+    if (!providedApiKey) {
+      return new Response(JSON.stringify({ error: "Unauthorized: API key required. Enterprise subscription needed for API access." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
+    // Validate API key against database
+    const { data: validationResult, error: validationError } = await supabase
+      .rpc('validate_enterprise_api_key', { api_key_input: providedApiKey });
+
+    if (validationError) {
+      console.error("API key validation error:", validationError);
+      return new Response(JSON.stringify({ error: "API validation failed" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!validationResult || validationResult.length === 0 || !validationResult[0].is_valid) {
+      return new Response(JSON.stringify({ 
+        error: "Unauthorized: Invalid API key or subscription not active. Enterprise subscription required." 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const validatedUser = validationResult[0];
+    console.log(`API access granted to user: ${validatedUser.user_id}`);
 
     // Helpers
     const cap = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));

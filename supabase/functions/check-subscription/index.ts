@@ -107,6 +107,27 @@ serve(async (req) => {
       updated_at: new Date().toISOString(),
     }, { onConflict: 'email' });
 
+    // Auto-provision API key for new enterprise users
+    if (hasActiveSub && subscriptionTier === 'enterprise') {
+      const { data: existingKeys } = await supabaseClient
+        .from('api_keys')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .limit(1);
+
+      if (!existingKeys || existingKeys.length === 0) {
+        try {
+          await supabaseClient.rpc('provision_enterprise_api_key', { 
+            target_user_id: user.id 
+          });
+          logStep("Auto-provisioned API key for new enterprise user");
+        } catch (apiKeyError) {
+          logStep("Failed to auto-provision API key", { error: apiKeyError });
+        }
+      }
+    }
+
     logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
