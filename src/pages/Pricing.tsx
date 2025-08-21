@@ -208,56 +208,70 @@ const Pricing = () => {
         </div>
       </section>
 
-      {/* Feature Comparison */}
+      {/* Plan Comparison */}
       <section className="py-12 px-4 bg-muted/20">
-        <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-center mb-4">Free vs Premium</h2>
-          <p className="text-center text-muted-foreground mb-8">Compare the core Free plan with Premium ($799/month).</p>
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-3xl font-bold text-center mb-4">Plan Comparison</h2>
+          <p className="text-center text-muted-foreground mb-8">Compare features across all tiers</p>
           
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-border rounded-lg">
               <thead>
                 <tr className="bg-muted">
                   <th className="border border-border p-4 text-left">Feature</th>
-                  <th className="border border-border p-4 text-center">Free</th>
-                  <th className="border border-border p-4 text-center bg-primary/5">Premium ($799/mo)</th>
+                  <th className="border border-border p-4 text-center">Starter ($99/mo)</th>
+                  <th className="border border-border p-4 text-center bg-primary/5">Professional ($299/mo)</th>
+                  <th className="border border-border p-4 text-center">Enterprise ($799/mo)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">FDA/USDA/EPA alerts</td>
+                  <td className="border border-border p-4 font-medium">Facilities</td>
+                  <td className="border border-border p-4 text-center">1</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Up to 3</td>
+                  <td className="border border-border p-4 text-center">Unlimited</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Users</td>
+                  <td className="border border-border p-4 text-center">Up to 3</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Up to 10</td>
+                  <td className="border border-border p-4 text-center">Unlimited</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Supplier watches</td>
+                  <td className="border border-border p-4 text-center">5</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">25</td>
+                  <td className="border border-border p-4 text-center">Unlimited</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">AI queries/month</td>
+                  <td className="border border-border p-4 text-center">200</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">1,000</td>
+                  <td className="border border-border p-4 text-center">Unlimited</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Alert history</td>
+                  <td className="border border-border p-4 text-center">6 months</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">12 months</td>
+                  <td className="border border-border p-4 text-center">Complete archive</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Support</td>
+                  <td className="border border-border p-4 text-center">Email</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Email + chat</td>
+                  <td className="border border-border p-4 text-center">Phone + email + chat</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">API access</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Basic</td>
+                  <td className="border border-border p-4 text-center">Full API + webhooks</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">SSO integration</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✗</td>
                   <td className="border border-border p-4 text-center">✓</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">AI summaries + urgency scoring</td>
-                  <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                </tr>
-                <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">Supplier watch (25 suppliers)</td>
-                  <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">Daily email digest</td>
-                  <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                </tr>
-                <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">Mobile dashboard</td>
-                  <td className="border border-border p-4 text-center">✓</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">CSV/PDF export</td>
-                  <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                </tr>
-                <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">Team controls (Coming soon)</td>
-                  <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Coming soon</td>
                 </tr>
               </tbody>
             </table>
@@ -274,23 +288,23 @@ const Pricing = () => {
             {[
               {
                 q: "Do you offer a free trial?",
-                a: "Yes. Try Premium free for 14 days. Cancel anytime in the portal."
+                a: "Yes. Try Starter or Professional free for 14 days. Cancel anytime in the portal."
               },
               {
-                q: "What's included in the Free plan?",
-                a: "Core monitoring: FDA/USDA/EPA alerts and a mobile dashboard."
-              },
-              {
-                q: "What's included in Premium ($799/month)?",
-                a: "AI summaries with urgency scoring, supplier watch (25 suppliers), daily email digests, CSV/PDF export, and more."
+                q: "What's the difference between plans?",
+                a: "Starter ($99) is for single facilities with up to 3 users. Professional ($299) supports up to 3 facilities and 10 users. Enterprise ($799) offers unlimited scale with API access and SSO."
               },
               {
                 q: "Do you have API access?",
-                a: "Yes. Enterprise includes API access with custom limits and SSO options."
+                a: "Professional includes basic API access. Enterprise includes full API + webhooks with custom limits and SSO options."
               },
               {
-                q: "Can I cancel anytime?",
-                a: "Yes. Manage or cancel your subscription from the billing portal at any time."
+                q: "Can I upgrade or downgrade anytime?",
+                a: "Yes. Change plans or cancel your subscription from the billing portal at any time."
+              },
+              {
+                q: "Is there setup help available?",
+                a: "Yes. All plans include email support. Professional adds chat support, and Enterprise includes phone support for faster assistance."
               }
             ].map((faq, index) => (
               <Card key={index}>
