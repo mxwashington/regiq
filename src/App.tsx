@@ -50,6 +50,8 @@ const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch((
 const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
 const Help = React.lazy(() => import("./pages/Help").catch(() => ({ default: () => <div>Help unavailable</div> })));
 const ApiDocs = React.lazy(() => import("./pages/ApiDocs").catch(() => ({ default: () => <div>API Docs unavailable</div> })));
+const Blog = React.lazy(() => import("./pages/Blog").catch(() => ({ default: () => <div>Blog unavailable</div> })));
+const BlogPost = React.lazy(() => import("./pages/BlogPost").catch(() => ({ default: () => <div>Blog post unavailable</div> })));
 
 
 const queryClient = new QueryClient({
@@ -146,6 +148,8 @@ const PWAApp = () => {
                <Route path="/payment-canceled" element={<PaymentCanceled />} />
                <Route path="/help" element={<Help />} />
                <Route path="/api-docs" element={<AuthGuard><ApiDocs /></AuthGuard>} />
+               <Route path="/blog" element={<Blog />} />
+               <Route path="/blog/:slug" element={<BlogPost />} />
               
               {/* SEO-optimized alert pages */}
               <Route path="/alerts" element={<AuthGuard><AllAlertsPage /></AuthGuard>} />

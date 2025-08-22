@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Search, Bell, Building2, TrendingUp, User } from 'lucide-react';
+import { Home, Search, Bell, Building2, TrendingUp, User, BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -34,6 +34,7 @@ export function AppSidebar() {
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
     { path: '/suppliers', icon: Building2, label: 'Suppliers' },
     { path: '/risk-predictor', icon: TrendingUp, label: 'Risk' },
+    { path: '/blog', icon: BookOpen, label: 'Blog' },
     { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
   ];
 
