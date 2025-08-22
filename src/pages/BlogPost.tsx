@@ -219,6 +219,19 @@ export default function BlogPost() {
 
   const post = blogPosts[slug];
 
+  // Enhanced markdown parser
+  const parseInlineFormatting = (text: string): React.ReactNode => {
+    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
+      } else if (part.startsWith('*') && part.endsWith('*')) {
+        return <em key={index} className="italic">{part.slice(1, -1)}</em>;
+      }
+      return part;
+    });
+  };
+
   // Convert markdown-style content to JSX
   const renderContent = (content: string) => {
     const lines = content.trim().split('\n');
@@ -231,44 +244,39 @@ export default function BlogPost() {
       if (line.startsWith('## ')) {
         elements.push(
           <h2 key={currentIndex} className="text-2xl font-bold mt-8 mb-4 text-foreground">
-            {line.replace('## ', '')}
+            {parseInlineFormatting(line.replace('## ', ''))}
           </h2>
         );
       } else if (line.startsWith('### ')) {
         elements.push(
           <h3 key={currentIndex} className="text-xl font-semibold mt-6 mb-3 text-foreground">
-            {line.replace('### ', '')}
+            {parseInlineFormatting(line.replace('### ', ''))}
           </h3>
-        );
-      } else if (line.startsWith('**') && line.endsWith('**')) {
-        elements.push(
-          <p key={currentIndex} className="font-semibold mb-2 text-foreground">
-            {line.replace(/\*\*/g, '')}
-          </p>
         );
       } else if (line.startsWith('- ')) {
         // Handle action items as checkable lists
         elements.push(
           <div key={currentIndex} className="flex items-start gap-2 mb-2">
             <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-            <span className="text-muted-foreground">{line.replace('- ', '')}</span>
+            <span className="text-muted-foreground">{parseInlineFormatting(line.replace('- ', ''))}</span>
           </div>
         );
       } else if (line.startsWith('---')) {
         elements.push(<hr key={currentIndex} className="my-8 border-border" />);
       } else if (line.length > 0) {
-        // Regular paragraphs
-        if (line.startsWith('*') && line.endsWith('*')) {
+        // Check for special formatting patterns
+        if (line.startsWith('*') && line.endsWith('*') && !line.includes('**')) {
           // Italic text (like the closing CTA)
           elements.push(
             <p key={currentIndex} className="italic text-muted-foreground mb-4 bg-muted/30 p-4 rounded-lg border-l-4 border-primary">
-              {line.replace(/\*/g, '')}
+              {line.replace(/^\*|\*$/g, '')}
             </p>
           );
         } else {
+          // Regular paragraphs with inline formatting
           elements.push(
             <p key={currentIndex} className="mb-4 leading-relaxed text-muted-foreground">
-              {line}
+              {parseInlineFormatting(line)}
             </p>
           );
         }
