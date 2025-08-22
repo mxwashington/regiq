@@ -21,7 +21,7 @@ const blogPosts: BlogPost[] = [
     title: 'The Essential 2025 Food Compliance Checklist: What Every Food Manufacturer Needs to Prepare For Right Now',
     excerpt: 'The regulatory landscape for food manufacturers has never been more complex—or more urgent. With major compliance deadlines approaching in the next six months and significant policy shifts already underway, food companies must act quickly to avoid costly violations.',
     publishDate: '2025-01-22',  
-    readTime: '12 min read',
+    readTime: '4 min read',
     category: 'Compliance',
     slug: '2025-food-compliance-checklist'
   },
@@ -30,7 +30,7 @@ const blogPosts: BlogPost[] = [
     title: 'PFAS in Food Packaging: Complete 2025 Compliance Guide for Food Manufacturers',
     excerpt: 'Per- and polyfluoroalkyl substances (PFAS) in food packaging represent one of the most significant compliance challenges facing food manufacturers in 2025. With the FDA revoking 35 PFAS food contact substance notifications and multiple states implementing outright bans, companies must act decisively.',
     publishDate: '2025-01-20',
-    readTime: '14 min read',
+    readTime: '5 min read',
     category: 'Regulatory',
     slug: 'pfas-food-packaging-compliance-2025'
   },
@@ -39,7 +39,7 @@ const blogPosts: BlogPost[] = [
     title: 'FSMA Rule 204 Food Traceability: 2026 Compliance Roadmap for Enhanced Supply Chain Visibility',
     excerpt: 'The FDA\'s Food Safety Modernization Act (FSMA) Rule 204 represents the most significant advancement in food traceability requirements in decades. With the compliance deadline extended to July 20, 2028, food manufacturers have a critical 36-month window to implement enhanced traceability systems.',
     publishDate: '2025-01-18',
-    readTime: '15 min read',
+    readTime: '5 min read',
     category: 'Food Safety',
     slug: 'fsma-rule-204-traceability-2026'
   }
