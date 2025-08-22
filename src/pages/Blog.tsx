@@ -42,6 +42,69 @@ const blogPosts: BlogPost[] = [
     readTime: '5 min read',
     category: 'Food Safety',
     slug: 'fsma-rule-204-traceability-2026'
+  },
+  {
+    id: '4',
+    title: 'Ultra-Processed Foods Definition: Federal Impact on Product Strategy and Market Positioning',
+    excerpt: 'The development of a federal ultra-processed foods (UPF) definition by FDA and USDA represents a potential paradigm shift for the food industry. Expected by fall 2025, this definition could trigger new labeling requirements, marketing restrictions, and consumer perception challenges.',
+    publishDate: '2025-01-16',
+    readTime: '4 min read',
+    category: 'Market Strategy',
+    slug: 'ultra-processed-foods-federal-definition-2025'
+  },
+  {
+    id: '5',
+    title: 'AI and Blockchain in Food Traceability: 2025 Technology Revolution Transforming Supply Chain Management',
+    excerpt: 'The convergence of artificial intelligence and blockchain technology is revolutionizing food traceability, creating unprecedented opportunities for supply chain transparency, food safety enhancement, and operational efficiency.',
+    publishDate: '2025-01-14',
+    readTime: '5 min read',
+    category: 'Technology',
+    slug: 'ai-blockchain-food-traceability-2025'
+  },
+  {
+    id: '6',
+    title: 'Global Food Safety Standards Convergence: International Compliance Strategy for Multi-Market Operations',
+    excerpt: 'The global food safety landscape is experiencing unprecedented convergence as international standards harmonize and digital requirements emerge. With the EU\'s Farm to Fork Strategy advancing, GFSI updating benchmarking criteria, and Asia-Pacific markets aligning regulatory frameworks.',
+    publishDate: '2025-01-12',
+    readTime: '4 min read',
+    category: 'International',
+    slug: 'global-food-safety-standards-convergence-2025'
+  },
+  {
+    id: '7',
+    title: 'Climate Risk and Food Safety: New Integration Requirements for Resilient Operations',
+    excerpt: 'Climate change is fundamentally altering food safety risk profiles, requiring food manufacturers to integrate climate considerations into every aspect of their operations. With ISO 22000 now mandating climate risk assessments.',
+    publishDate: '2025-01-10',
+    readTime: '5 min read',
+    category: 'Risk Management',
+    slug: 'climate-risk-food-safety-integration-2025'
+  },
+  {
+    id: '8',
+    title: 'FDA Standards of Identity Modernization: 52 Revoked Regulations Create Innovation Opportunities',
+    excerpt: 'The FDA\'s July 2025 revocation of 52 Standards of Identity regulations represents the most significant deregulation of food manufacturing in decades. This modernization effort eliminates outdated compositional requirements.',
+    publishDate: '2025-01-08',
+    readTime: '4 min read',
+    category: 'Innovation',
+    slug: 'fda-standards-identity-modernization-2025'
+  },
+  {
+    id: '9',
+    title: 'Allergen Management Revolution: Beyond Cross-Contact Prevention to Predictive Safety Systems',
+    excerpt: 'Allergen management is undergoing a technological revolution that extends far beyond traditional cross-contact prevention. With sesame established as the ninth major allergen and advanced detection technologies becoming accessible.',
+    publishDate: '2025-01-06',
+    readTime: '4 min read',
+    category: 'Food Safety',
+    slug: 'allergen-management-revolution-2025'
+  },
+  {
+    id: '10',
+    title: 'Global Food Export Compliance: 2025\'s Changing International Requirements and Market Access Strategies',
+    excerpt: 'Global food export compliance is experiencing unprecedented transformation as major markets implement digital verification systems, enhanced traceability requirements, and sustainability mandates.',
+    publishDate: '2025-01-04',
+    readTime: '5 min read',
+    category: 'International Trade',
+    slug: 'global-food-export-compliance-2025'
   }
 ];
 
