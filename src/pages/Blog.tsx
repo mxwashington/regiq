@@ -24,6 +24,24 @@ const blogPosts: BlogPost[] = [
     readTime: '12 min read',
     category: 'Compliance',
     slug: '2025-food-compliance-checklist'
+  },
+  {
+    id: '2',
+    title: 'PFAS in Food Packaging: Complete 2025 Compliance Guide for Food Manufacturers',
+    excerpt: 'Per- and polyfluoroalkyl substances (PFAS) in food packaging represent one of the most significant compliance challenges facing food manufacturers in 2025. With the FDA revoking 35 PFAS food contact substance notifications and multiple states implementing outright bans, companies must act decisively.',
+    publishDate: '2025-01-20',
+    readTime: '14 min read',
+    category: 'Regulatory',
+    slug: 'pfas-food-packaging-compliance-2025'
+  },
+  {
+    id: '3',
+    title: 'FSMA Rule 204 Food Traceability: 2026 Compliance Roadmap for Enhanced Supply Chain Visibility',
+    excerpt: 'The FDA\'s Food Safety Modernization Act (FSMA) Rule 204 represents the most significant advancement in food traceability requirements in decades. With the compliance deadline extended to July 20, 2028, food manufacturers have a critical 36-month window to implement enhanced traceability systems.',
+    publishDate: '2025-01-18',
+    readTime: '15 min read',
+    category: 'Food Safety',
+    slug: 'fsma-rule-204-traceability-2026'
   }
 ];
 
