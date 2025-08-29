@@ -20,7 +20,6 @@ import PerplexityAlertCard from '@/components/PerplexityAlertCard';
 import { ExportManager } from '@/components/ExportManager';
 import RiskPredictorPage from './RiskPredictorPage';
 import RiskDashboardPage from './RiskDashboardPage';
-import { RegulatorySearch } from '@/components/RegulatorySearch';
 import SupportWidget from '@/components/account/SupportWidget';
 
 const UserDashboard = () => {
@@ -190,18 +189,18 @@ const UserDashboard = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 gap-1 h-auto p-2">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1 h-auto p-2">
             <TabsTrigger value="alerts" className="flex items-center gap-1 px-2 py-2 text-sm">
               <Bell className="h-4 w-4 shrink-0" />
               <span>Alerts</span>
             </TabsTrigger>
-            <TabsTrigger value="search" className="flex items-center gap-1 px-2 py-2 text-sm">
+            <TabsTrigger 
+              value="search" 
+              className="flex items-center gap-1 px-2 py-2 text-sm cursor-pointer"
+              onClick={() => navigate('/search')}
+            >
               <Search className="h-4 w-4 shrink-0" />
               <span>Search</span>
-            </TabsTrigger>
-            <TabsTrigger value="recalls" className="flex items-center gap-1 px-2 py-2 text-sm">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>Recalls</span>
             </TabsTrigger>
             <TabsTrigger value="risk" className="flex items-center gap-1 px-2 py-2 text-sm">
               <TrendingUp className="h-4 w-4 shrink-0" />
@@ -373,20 +372,6 @@ const UserDashboard = () => {
                   ))
                 )}
               </div>
-            </div>
-          </TabsContent>
-
-          {/* Search Tab - General Search */}
-          <TabsContent value="search" className="space-y-6">
-            <div className="max-w-6xl mx-auto">
-              <RegulatorySearch />
-            </div>
-          </TabsContent>
-
-          {/* Recalls Tab - Recalls Search */}
-          <TabsContent value="recalls" className="space-y-6">
-            <div className="max-w-6xl mx-auto">
-              <RegulatorySearch />
             </div>
           </TabsContent>
 
