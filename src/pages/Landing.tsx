@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { Helmet } from 'react-helmet-async';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,13 +18,14 @@ import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
 import { useSavedAlerts } from "@/hooks/useSavedAlerts";
 import { formatDistanceToNow } from "date-fns";
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
+import { SEOHead } from '@/components/SEO/SEOHead';
+import { SchemaMarkup } from '@/components/SEO/SchemaMarkup';
 
 import { DataRefreshButton } from "@/components/DataRefreshButton";
 import PerplexityAlertCard from "@/components/PerplexityAlertCard";
 import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
 import { KeywordExtractionDemo } from "@/components/KeywordExtractionDemo";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
-import { Helmet } from 'react-helmet-async';
 import { cn } from "@/lib/utils";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';

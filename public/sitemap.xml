@@ -1,44 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
   <url>
     <loc>https://regiq.org/</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>daily</changefreq>
+    <lastmod>2024-08-29</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+  
+  <!-- Main Pages -->
   <url>
-    <loc>https://regiq.org/search</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://regiq.org/pricing</loc>
+    <lastmod>2024-08-29</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  
   <url>
-    <loc>https://regiq.org/all-alerts</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>daily</changefreq>
+    <loc>https://regiq.org/search</loc>
+    <lastmod>2024-08-29</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  
+  <!-- Solution Pages -->
   <url>
-    <loc>https://regiq.org/food-safety</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://regiq.org/solutions/food-safety-compliance</loc>
+    <lastmod>2024-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
   </url>
+  
+  <!-- Industry Pages -->
   <url>
-    <loc>https://regiq.org/agency/fda</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://regiq.org/industries/dairy-manufacturing</loc>
+    <lastmod>2024-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
+  
+  <!-- Blog -->
   <url>
-    <loc>https://regiq.org/agency/usda</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://regiq.org/agency/epa</loc>
-    <lastmod>2024-01-01</lastmod>
+    <loc>https://regiq.org/blog</loc>
+    <lastmod>2024-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

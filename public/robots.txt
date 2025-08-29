@@ -1,6 +1,11 @@
 # Allow all AI crawlers and bots
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /debug/
 
 # Specific AI crawlers
 User-agent: GPTBot

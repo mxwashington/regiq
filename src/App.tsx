@@ -50,6 +50,10 @@ const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch((
 const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
 const Help = React.lazy(() => import("./pages/Help").catch(() => ({ default: () => <div>Help unavailable</div> })));
 const ApiDocs = React.lazy(() => import("./pages/ApiDocs").catch(() => ({ default: () => <div>API Docs unavailable</div> })));
+// New SEO pages
+const FoodSafetyCompliancePage = React.lazy(() => import("./pages/solutions/FoodSafetyCompliancePage").catch(() => ({ default: () => <div>Food Safety Compliance unavailable</div> })));
+const DairyManufacturingPage = React.lazy(() => import("./pages/industries/DairyManufacturingPage").catch(() => ({ default: () => <div>Dairy Manufacturing unavailable</div> })));
+
 const Blog = React.lazy(() => import("./pages/Blog").catch(() => ({ default: () => <div>Blog unavailable</div> })));
 const BlogPost = React.lazy(() => import("./pages/BlogPost").catch(() => ({ default: () => <div>Blog post unavailable</div> })));
 
@@ -150,6 +154,25 @@ const PWAApp = () => {
                <Route path="/api-docs" element={<AuthGuard><ApiDocs /></AuthGuard>} />
                <Route path="/blog" element={<Blog />} />
                <Route path="/blog/:slug" element={<BlogPost />} />
+              
+              {/* Solution Pages - SEO Optimized */}
+              <Route path="/solutions/food-safety-compliance" element={<FoodSafetyCompliancePage />} />
+              <Route path="/solutions/fda-alerts" element={<FoodSafetyCompliancePage />} />
+              <Route path="/solutions/usda-monitoring" element={<FoodSafetyCompliancePage />} />
+              <Route path="/solutions/haccp-automation" element={<FoodSafetyCompliancePage />} />
+              <Route path="/solutions/fsma-compliance" element={<FoodSafetyCompliancePage />} />
+              
+              {/* Industry Pages - SEO Optimized */}
+              <Route path="/industries/dairy-manufacturing" element={<DairyManufacturingPage />} />
+              <Route path="/industries/meat-poultry" element={<DairyManufacturingPage />} />
+              <Route path="/industries/packaged-foods" element={<DairyManufacturingPage />} />
+              <Route path="/industries/beverage-production" element={<DairyManufacturingPage />} />
+              
+              {/* Feature Pages - SEO Optimized */}
+              <Route path="/features/recall-monitoring" element={<FoodSafetyCompliancePage />} />
+              <Route path="/features/inspection-readiness" element={<FoodSafetyCompliancePage />} />
+              <Route path="/features/supplier-verification" element={<FoodSafetyCompliancePage />} />
+              <Route path="/features/allergen-management" element={<FoodSafetyCompliancePage />} />
               
               {/* SEO-optimized alert pages */}
               <Route path="/alerts" element={<AuthGuard><AllAlertsPage /></AuthGuard>} />
