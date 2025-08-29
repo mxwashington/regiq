@@ -187,22 +187,26 @@ export function RegulatorySearch() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Tabs value={filters.searchType} onValueChange={(value) => setFilters(prev => ({ ...prev, searchType: value }))}>
-            <TabsList className="grid w-full grid-cols-4 h-12">
-              <TabsTrigger value="general" className="flex items-center gap-2">
-                <Search className="h-4 w-4" />
-                <span>General</span>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-2">
+              <TabsTrigger value="general" className="flex items-center gap-2 px-3 py-2 text-sm">
+                <Search className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">General</span>
+                <span className="sm:hidden">Gen</span>
               </TabsTrigger>
-              <TabsTrigger value="recalls" className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                <span>Recalls</span>
+              <TabsTrigger value="recalls" className="flex items-center gap-2 px-3 py-2 text-sm">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Recalls</span>
+                <span className="sm:hidden">Recalls</span>
               </TabsTrigger>
-              <TabsTrigger value="deadlines" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>Deadlines</span>
+              <TabsTrigger value="deadlines" className="flex items-center gap-2 px-3 py-2 text-sm">
+                <Calendar className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Deadlines</span>
+                <span className="sm:hidden">Dead</span>
               </TabsTrigger>
-              <TabsTrigger value="guidance" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                <span>Guidance</span>
+              <TabsTrigger value="guidance" className="flex items-center gap-2 px-3 py-2 text-sm">
+                <FileText className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Guidance</span>
+                <span className="sm:hidden">Guide</span>
               </TabsTrigger>
             </TabsList>
 
