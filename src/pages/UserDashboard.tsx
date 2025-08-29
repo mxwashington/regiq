@@ -190,26 +190,31 @@ const UserDashboard = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="alerts" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Live Alerts
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2 h-auto p-2">
+            <TabsTrigger value="alerts" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <Bell className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Live Alerts</span>
+              <span className="sm:hidden">Alerts</span>
             </TabsTrigger>
-            <TabsTrigger value="risk" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Risk Intel
+            <TabsTrigger value="risk" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <TrendingUp className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Risk Intel</span>
+              <span className="sm:hidden">Risk</span>
             </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
-              AI Assistant
+            <TabsTrigger value="chat" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <MessageCircle className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">AI Assistant</span>
+              <span className="sm:hidden">AI</span>
             </TabsTrigger>
-            <TabsTrigger value="advanced-search" className="flex items-center gap-2">
-              <Search className="h-4 w-4" />
-              Advanced Search
+            <TabsTrigger value="advanced-search" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <Search className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Advanced Search</span>
+              <span className="sm:hidden">Search</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
+            <TabsTrigger value="settings" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <Settings className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Settings</span>
+              <span className="sm:hidden">Settings</span>
             </TabsTrigger>
           </TabsList>
 
