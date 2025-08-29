@@ -190,23 +190,19 @@ export function RegulatorySearch() {
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-2">
               <TabsTrigger value="general" className="flex items-center gap-2 px-3 py-2 text-sm">
                 <Search className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">General</span>
-                <span className="sm:hidden">Gen</span>
+                <span>General</span>
               </TabsTrigger>
               <TabsTrigger value="recalls" className="flex items-center gap-2 px-3 py-2 text-sm">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Recalls</span>
-                <span className="sm:hidden">Recalls</span>
+                <span>Recalls</span>
               </TabsTrigger>
               <TabsTrigger value="deadlines" className="flex items-center gap-2 px-3 py-2 text-sm">
                 <Calendar className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Deadlines</span>
-                <span className="sm:hidden">Dead</span>
+                <span>Deadlines</span>
               </TabsTrigger>
               <TabsTrigger value="guidance" className="flex items-center gap-2 px-3 py-2 text-sm">
                 <FileText className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Guidance</span>
-                <span className="sm:hidden">Guide</span>
+                <span>Guidance</span>
               </TabsTrigger>
             </TabsList>
 
