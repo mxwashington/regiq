@@ -53,6 +53,9 @@ const ApiDocs = React.lazy(() => import("./pages/ApiDocs").catch(() => ({ defaul
 // New SEO pages
 const FoodSafetyCompliancePage = React.lazy(() => import("./pages/solutions/FoodSafetyCompliancePage").catch(() => ({ default: () => <div>Food Safety Compliance unavailable</div> })));
 const DairyManufacturingPage = React.lazy(() => import("./pages/industries/DairyManufacturingPage").catch(() => ({ default: () => <div>Dairy Manufacturing unavailable</div> })));
+const MeatPoultryPage = React.lazy(() => import("./pages/industries/MeatPoultryPage").catch(() => ({ default: () => <div>Meat & Poultry unavailable</div> })));
+const PackagedFoodsPage = React.lazy(() => import("./pages/industries/PackagedFoodsPage").catch(() => ({ default: () => <div>Packaged Foods unavailable</div> })));
+const BeverageProductionPage = React.lazy(() => import("./pages/industries/BeverageProductionPage").catch(() => ({ default: () => <div>Beverage Production unavailable</div> })));
 
 const Blog = React.lazy(() => import("./pages/Blog").catch(() => ({ default: () => <div>Blog unavailable</div> })));
 const BlogPost = React.lazy(() => import("./pages/BlogPost").catch(() => ({ default: () => <div>Blog post unavailable</div> })));
@@ -164,9 +167,9 @@ const PWAApp = () => {
               
               {/* Industry Pages - SEO Optimized */}
               <Route path="/industries/dairy-manufacturing" element={<DairyManufacturingPage />} />
-              <Route path="/industries/meat-poultry" element={<DairyManufacturingPage />} />
-              <Route path="/industries/packaged-foods" element={<DairyManufacturingPage />} />
-              <Route path="/industries/beverage-production" element={<DairyManufacturingPage />} />
+              <Route path="/industries/meat-poultry" element={<MeatPoultryPage />} />
+              <Route path="/industries/packaged-foods" element={<PackagedFoodsPage />} />
+              <Route path="/industries/beverage-production" element={<BeverageProductionPage />} />
               
               {/* Feature Pages - SEO Optimized */}
               <Route path="/features/recall-monitoring" element={<FoodSafetyCompliancePage />} />

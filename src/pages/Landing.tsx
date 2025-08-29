@@ -392,6 +392,117 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Industry Solutions Section */}
+      <section className="py-16 px-4 bg-muted/50">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <Badge variant="outline" className="mb-4">Industry Solutions</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Specialized Compliance for Every Food Manufacturing Segment
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+              Each food industry has unique regulatory requirements. RegIQ provides tailored 
+              compliance monitoring for your specific manufacturing segment.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Link to="/industries/dairy-manufacturing" className="group hover:no-underline">
+              <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    🥛
+                  </div>
+                  <CardTitle className="text-lg">Dairy Manufacturing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Grade A PMO compliance, pasteurization standards, and 21 CFR 131 dairy regulations.
+                  </p>
+                  <ul className="text-xs space-y-1">
+                    <li>✓ Grade A PMO monitoring</li>
+                    <li>✓ Pasteurization alerts</li>
+                    <li>✓ Dairy standards tracking</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/industries/meat-poultry" className="group hover:no-underline">
+              <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    🥩
+                  </div>
+                  <CardTitle className="text-lg">Meat & Poultry</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    USDA FSIS regulations, HACCP requirements, and pathogen testing compliance.
+                  </p>
+                  <ul className="text-xs space-y-1">
+                    <li>✓ USDA FSIS alerts</li>
+                    <li>✓ Pathogen monitoring</li>
+                    <li>✓ HACCP compliance</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/industries/packaged-foods" className="group hover:no-underline">
+              <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    📦
+                  </div>
+                  <CardTitle className="text-lg">Packaged Foods</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    FSMA Preventive Controls, allergen management, and nutritional labeling.
+                  </p>
+                  <ul className="text-xs space-y-1">
+                    <li>✓ FSMA compliance</li>
+                    <li>✓ Allergen tracking</li>
+                    <li>✓ Label requirements</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/industries/beverage-production" className="group hover:no-underline">
+              <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    🧃
+                  </div>
+                  <CardTitle className="text-lg">Beverage Production</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Juice HACCP, bottled water standards, and acidified foods requirements.
+                  </p>
+                  <ul className="text-xs space-y-1">
+                    <li>✓ Juice HACCP</li>
+                    <li>✓ Water standards</li>
+                    <li>✓ Acidified foods</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+
+          <div className="text-center">
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/solutions/food-safety-compliance">
+                View All Solutions
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Live Dashboard Preview */}
       <section id="food-alerts" className="py-12 px-4">
         <div className="container mx-auto max-w-6xl">
