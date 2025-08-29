@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle, Bot, MessageCircle, Download } from 'lucide-react';
+import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle, Bot, MessageCircle, Download, Bookmark } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
@@ -190,31 +190,37 @@ const UserDashboard = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2 h-auto p-2">
-            <TabsTrigger value="alerts" className="flex items-center gap-2 px-3 py-2 text-sm">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 gap-1 h-auto p-2">
+            <TabsTrigger value="alerts" className="flex items-center gap-1 px-2 py-2 text-sm">
               <Bell className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">Live Alerts</span>
-              <span className="sm:hidden">Alerts</span>
+              <span>Alerts</span>
             </TabsTrigger>
-            <TabsTrigger value="risk" className="flex items-center gap-2 px-3 py-2 text-sm">
+            <TabsTrigger value="search" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <Search className="h-4 w-4 shrink-0" />
+              <span>Search</span>
+            </TabsTrigger>
+            <TabsTrigger value="recalls" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>Recalls</span>
+            </TabsTrigger>
+            <TabsTrigger value="risk" className="flex items-center gap-1 px-2 py-2 text-sm">
               <TrendingUp className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">Risk Intel</span>
+              <span className="hidden sm:inline">Risk</span>
               <span className="sm:hidden">Risk</span>
             </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2 px-3 py-2 text-sm">
+            <TabsTrigger value="saved" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <Bookmark className="h-4 w-4 shrink-0" />
+              <span>Saved</span>
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="flex items-center gap-1 px-2 py-2 text-sm">
               <MessageCircle className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">AI Assistant</span>
+              <span className="hidden sm:inline">AI</span>
               <span className="sm:hidden">AI</span>
             </TabsTrigger>
-            <TabsTrigger value="advanced-search" className="flex items-center gap-2 px-3 py-2 text-sm">
-              <Search className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">Advanced Search</span>
-              <span className="sm:hidden">Search</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2 px-3 py-2 text-sm">
+            <TabsTrigger value="settings" className="flex items-center gap-1 px-2 py-2 text-sm">
               <Settings className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Settings</span>
-              <span className="sm:hidden">Settings</span>
+              <span className="sm:hidden">Set</span>
             </TabsTrigger>
           </TabsList>
 
@@ -370,6 +376,71 @@ const UserDashboard = () => {
             </div>
           </TabsContent>
 
+          {/* Search Tab - General Search */}
+          <TabsContent value="search" className="space-y-6">
+            <div className="max-w-6xl mx-auto">
+              <RegulatorySearch />
+            </div>
+          </TabsContent>
+
+          {/* Recalls Tab - Recalls Search */}
+          <TabsContent value="recalls" className="space-y-6">
+            <div className="max-w-6xl mx-auto">
+              <RegulatorySearch />
+            </div>
+          </TabsContent>
+
+          {/* Saved Items Tab */}
+          <TabsContent value="saved" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bookmark className="h-5 w-5" />
+                  Saved Alerts
+                </CardTitle>
+                <CardDescription>
+                  View and manage your saved regulatory alerts
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {savedAlerts.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Bookmark className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Saved Alerts</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Save important alerts to access them quickly later.
+                    </p>
+                    <Button variant="outline" onClick={() => setActiveTab('alerts')}>
+                      Browse Alerts
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        {savedAlerts.length} saved alert{savedAlerts.length !== 1 ? 's' : ''}
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Clear all saved alerts - TODO: Implement this functionality
+                          console.log('Clear all saved alerts');
+                        }}
+                      >
+                        Clear All
+                      </Button>
+                    </div>
+                    {/* TODO: Display saved alerts using PerplexityAlertCard */}
+                    <div className="text-center py-4 text-muted-foreground">
+                      Saved alerts will be displayed here
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Risk Intelligence Tab */}
           <TabsContent value="risk" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
@@ -493,13 +564,6 @@ const UserDashboard = () => {
                   Answers cite sources and use your live dashboard first.
                 </p>
               </Card>
-            </div>
-          </TabsContent>
-
-          {/* Advanced Search Tab */}
-          <TabsContent value="advanced-search" className="space-y-6">
-            <div className="max-w-6xl mx-auto">
-              <RegulatorySearch />
             </div>
           </TabsContent>
 
