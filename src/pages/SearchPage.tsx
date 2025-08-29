@@ -90,62 +90,62 @@ export default function SearchPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Introduction */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">AI-Powered Regulatory Intelligence</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">AI-Powered Regulatory Intelligence</h1>
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl">
             Search for real-time regulatory information from FDA, USDA, EPA, and other government sources using advanced AI. 
             Get instant answers with official citations and urgency scoring.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <Card className="text-center">
-            <CardHeader className="pb-2">
-              <Zap className="h-8 w-8 text-primary mx-auto mb-2" />
-              <CardTitle className="text-lg">Real-Time Search</CardTitle>
+            <CardHeader className="pb-2 px-3 sm:px-6">
+              <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
+              <CardTitle className="text-sm sm:text-lg">Real-Time Search</CardTitle>
             </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Access the latest regulatory updates as they happen
+            <CardContent className="px-3 sm:px-6">
+              <CardDescription className="text-xs sm:text-sm">
+                Latest regulatory updates
               </CardDescription>
             </CardContent>
           </Card>
 
           <Card className="text-center">
-            <CardHeader className="pb-2">
-              <Shield className="h-8 w-8 text-primary mx-auto mb-2" />
-              <CardTitle className="text-lg">Official Sources</CardTitle>
+            <CardHeader className="pb-2 px-3 sm:px-6">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
+              <CardTitle className="text-sm sm:text-lg">Official Sources</CardTitle>
             </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Results cite official government websites and documents
+            <CardContent className="px-3 sm:px-6">
+              <CardDescription className="text-xs sm:text-sm">
+                Government citations
               </CardDescription>
             </CardContent>
           </Card>
 
           <Card className="text-center">
-            <CardHeader className="pb-2">
-              <Target className="h-8 w-8 text-primary mx-auto mb-2" />
-              <CardTitle className="text-lg">Urgency Scoring</CardTitle>
+            <CardHeader className="pb-2 px-3 sm:px-6">
+              <Target className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
+              <CardTitle className="text-sm sm:text-lg">Urgency Scoring</CardTitle>
             </CardHeader>
-            <CardContent>
-              <CardDescription>
-                AI-powered priority scoring for regulatory updates
+            <CardContent className="px-3 sm:px-6">
+              <CardDescription className="text-xs sm:text-sm">
+                AI priority scoring
               </CardDescription>
             </CardContent>
           </Card>
 
           <Card className="text-center">
-            <CardHeader className="pb-2">
-              <Clock className="h-8 w-8 text-primary mx-auto mb-2" />
-              <CardTitle className="text-lg">Smart Caching</CardTitle>
+            <CardHeader className="pb-2 px-3 sm:px-6">
+              <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-2" />
+              <CardTitle className="text-sm sm:text-lg">Smart Caching</CardTitle>
             </CardHeader>
-            <CardContent>
-              <CardDescription>
-                1-hour caching for faster results and cost efficiency
+            <CardContent className="px-3 sm:px-6">
+              <CardDescription className="text-xs sm:text-sm">
+                Faster results
               </CardDescription>
             </CardContent>
           </Card>
@@ -153,26 +153,31 @@ export default function SearchPage() {
 
         {/* Comprehensive FDA Search System */}
         <Tabs defaultValue="web-intelligence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="web-intelligence" className="flex items-center space-x-1">
-              <Globe className="h-4 w-4" />
-              <span>Web Intel</span>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 h-auto p-2">
+            <TabsTrigger value="web-intelligence" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <Globe className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Web Intel</span>
+              <span className="sm:hidden">Web</span>
             </TabsTrigger>
-            <TabsTrigger value="fda-database" className="flex items-center space-x-1">
-              <Database className="h-4 w-4" />
-              <span>FDA API</span>
+            <TabsTrigger value="fda-database" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <Database className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">FDA API</span>
+              <span className="sm:hidden">FDA</span>
             </TabsTrigger>
-            <TabsTrigger value="cfr-regulations" className="flex items-center space-x-1">
-              <BookOpen className="h-4 w-4" />
-              <span>CFR</span>
+            <TabsTrigger value="cfr-regulations" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <BookOpen className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">CFR</span>
+              <span className="sm:hidden">CFR</span>
             </TabsTrigger>
-            <TabsTrigger value="combined-search" className="flex items-center space-x-1">
-              <Activity className="h-4 w-4" />
-              <span>Combined</span>
+            <TabsTrigger value="combined-search" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <Activity className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Combined</span>
+              <span className="sm:hidden">Multi</span>
             </TabsTrigger>
-            <TabsTrigger value="professional" className="flex items-center space-x-1">
-              <Settings className="h-4 w-4" />
-              <span>Pro Tools</span>
+            <TabsTrigger value="professional" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <Settings className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Pro Tools</span>
+              <span className="sm:hidden">Pro</span>
             </TabsTrigger>
           </TabsList>
 
