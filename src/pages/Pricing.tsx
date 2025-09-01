@@ -13,6 +13,7 @@ const Pricing = () => {
   const { user } = useAuth();
   const navigate = (path: string) => { window.location.href = path; };
   const [loading, setLoading] = useState<string | null>(null);
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const handleStartTrial = async (tier: 'starter' | 'professional' | 'enterprise') => {
     if (!user) {
@@ -53,7 +54,8 @@ const Pricing = () => {
     {
       id: 'starter',
       name: 'Starter',
-      price: 99,
+      monthlyPrice: 99,
+      annualPrice: 79,
       description: 'Perfect for small teams monitoring single facilities',
       features: [
         '1 facility monitoring',
@@ -70,7 +72,8 @@ const Pricing = () => {
     {
       id: 'professional',
       name: 'Professional',
-      price: 299,
+      monthlyPrice: 399,
+      annualPrice: 319,
       description: 'Ideal for growing compliance teams',
       features: [
         'Up to 3 facilities',
@@ -88,7 +91,8 @@ const Pricing = () => {
     {
       id: 'enterprise',
       name: 'Enterprise',
-      price: 799,
+      monthlyPrice: 999,
+      annualPrice: 799,
       description: 'For large organizations with complex needs',
       features: [
         'Unlimited facilities',
@@ -110,7 +114,7 @@ const Pricing = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Pricing - RegIQ Plans: Starter, Professional, Enterprise</title>
-        <meta name="description" content="Flexible pricing for compliance teams. Starter $99, Professional $299, Enterprise $799. 14-day free trial on Starter and Professional." />
+        <meta name="description" content="Flexible pricing for compliance teams. Starter $99, Professional $399, Enterprise $999. 14-day free trial on Starter and Professional." />
       </Helmet>
 
       {/* Header */}
@@ -144,9 +148,31 @@ const Pricing = () => {
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
             Choose Your Plan
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Flexible pricing that scales from single facilities to enterprise-wide deployments. 14-day free trial on Starter and Professional.
-          </p>
+          <div className="space-y-4 mb-8">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground">• Save 195 hours annually on regulatory searches</p>
+              <p className="text-sm text-muted-foreground">• Reduce compliance costs by $40,000+ per year</p>
+              <p className="text-sm text-muted-foreground">• ROI in 30 days or money back</p>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <span className={`text-sm ${!isAnnual ? 'font-semibold' : 'text-muted-foreground'}`}>Monthly</span>
+              <button
+                onClick={() => setIsAnnual(!isAnnual)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isAnnual ? 'bg-primary' : 'bg-muted'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-colors ${
+                    isAnnual ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`text-sm ${isAnnual ? 'font-semibold' : 'text-muted-foreground'}`}>
+                Annual <span className="text-primary">(Save 20%)</span>
+              </span>
+            </div>
+          </div>
           <div className="flex items-center justify-center gap-4 mb-2">
             <Button size="lg" onClick={() => handleStartTrial('professional')}>
               Start Professional Trial
@@ -165,13 +191,23 @@ const Pricing = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="grid lg:grid-cols-3 gap-8">
             {plans.map((plan) => (
-              <Card key={plan.id} className={`relative ${plan.popular ? 'border-primary' : ''}`}>
+              <Card key={plan.id} className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : 'border-border'}`}>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-primary text-primary-foreground px-3 py-1">MOST POPULAR</Badge>
+                  </div>
+                )}
                 <CardHeader className="text-center pb-6">
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <div className="mb-2">
-                    <span className="text-4xl font-bold">${plan.price}</span>
+                    <span className="text-4xl font-bold">${isAnnual ? plan.annualPrice : plan.monthlyPrice}</span>
                     <span className="text-muted-foreground ml-2">/month</span>
                   </div>
+                  {isAnnual && (
+                    <div className="text-sm text-primary font-medium mb-2">
+                      Save ${(plan.monthlyPrice - plan.annualPrice) * 12}/year
+                    </div>
+                  )}
                   <CardDescription className="text-base">
                     {plan.description}
                   </CardDescription>
@@ -187,13 +223,14 @@ const Pricing = () => {
                   </ul>
                   <div className="pt-2">
                     {plan.id === 'enterprise' ? (
-                      <Button className="w-full" size="lg" asChild>
+                      <Button className="w-full" size="lg" variant="secondary" asChild>
                         <Link to="/contact">Contact Sales</Link>
                       </Button>
                     ) : (
                       <Button
                         className="w-full"
                         size="lg"
+                        variant={plan.popular ? "default" : "secondary"}
                         onClick={() => handleStartTrial(plan.id as 'starter' | 'professional')}
                         disabled={loading === plan.id}
                       >
@@ -220,8 +257,8 @@ const Pricing = () => {
                 <tr className="bg-muted">
                   <th className="border border-border p-4 text-left">Feature</th>
                   <th className="border border-border p-4 text-center">Starter ($99/mo)</th>
-                  <th className="border border-border p-4 text-center bg-primary/5">Professional ($299/mo)</th>
-                  <th className="border border-border p-4 text-center">Enterprise ($799/mo)</th>
+                  <th className="border border-border p-4 text-center bg-primary/5">Professional ($399/mo)</th>
+                  <th className="border border-border p-4 text-center">Enterprise ($999/mo)</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,7 +329,7 @@ const Pricing = () => {
               },
               {
                 q: "What's the difference between plans?",
-                a: "Starter ($99) is for single facilities with up to 3 users. Professional ($299) supports up to 3 facilities and 10 users. Enterprise ($799) offers unlimited scale with API access and SSO."
+                a: "Starter ($99) is for single facilities with up to 3 users. Professional ($399) supports up to 3 facilities and 10 users. Enterprise ($999) offers unlimited scale with API access and SSO."
               },
               {
                 q: "Do you have API access?",
