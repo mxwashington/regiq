@@ -5,9 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ExternalLink, Clock, AlertTriangle, Loader2, Sparkles } from 'lucide-react';
+import { Search, ExternalLink, Clock, AlertTriangle, Loader2, Sparkles, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
+import { PlanGating } from '@/components/PlanGating';
+import { Link } from 'react-router-dom';
 
 interface SearchResult {
   content: string;
@@ -34,6 +37,7 @@ export default function GPTSearch() {
   const [error, setError] = useState<string | null>(null);
   const [lastSearchTime, setLastSearchTime] = useState<number>(0);
   const { toast } = useToast();
+  const { checkUsageLimit, checkFeatureAccess } = usePlanRestrictions();
 
   const availableAgencies = ['FDA', 'USDA', 'EPA', 'FSIS', 'CDC', 'OSHA', 'FTC', 'EFSA', 'Health Canada'];
   const industries = ['Food & Beverage', 'Pharmaceuticals', 'Medical Devices', 'Chemicals', 'Agriculture', 'Cosmetics'];
@@ -46,6 +50,12 @@ export default function GPTSearch() {
         variant: "destructive",
       });
       return;
+    }
+
+    // Check usage limits before proceeding
+    const usageCheck = await checkUsageLimit('queries');
+    if (usageCheck && !usageCheck.allowed) {
+      return; // Toast is shown in checkUsageLimit
     }
 
     // Rate limiting: prevent searches within 3 seconds of each other
@@ -99,7 +109,7 @@ export default function GPTSearch() {
       setResult(data);
       toast({
         title: "Search Complete",
-        description: data.cached ? "Results from cache" : "Fresh AI analysis retrieved",
+        description: `${data.cached ? "Results from cache" : "Fresh AI analysis retrieved"} (${usageCheck?.current_usage || 0}/${usageCheck?.limit || 'unlimited'} searches used)`,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
@@ -170,16 +180,18 @@ export default function GPTSearch() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Search Type</label>
-              <Select value={searchType} onValueChange={setSearchType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="smart_search">Smart Analysis</SelectItem>
-                  <SelectItem value="enhanced_keywords">Keyword Extraction</SelectItem>
-                  <SelectItem value="summary_generation">Summary Generation</SelectItem>
-                </SelectContent>
-              </Select>
+              <PlanGating requiredPlan="premium" feature="advanced_search_types">
+                <Select value={searchType} onValueChange={setSearchType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="smart_search">Smart Analysis</SelectItem>
+                    <SelectItem value="enhanced_keywords">Keyword Extraction</SelectItem>
+                    <SelectItem value="summary_generation">Summary Generation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </PlanGating>
             </div>
 
             <div>
@@ -200,33 +212,37 @@ export default function GPTSearch() {
 
           <div>
             <label className="text-sm font-medium mb-2 block">Filter by Agencies</label>
-            <div className="flex flex-wrap gap-2">
-              {availableAgencies.map(agency => (
-                <Badge
-                  key={agency}
-                  variant={agencies.includes(agency) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => toggleAgency(agency)}
-                >
-                  {agency}
-                </Badge>
-              ))}
-            </div>
+            <PlanGating requiredPlan="premium" feature="advanced_filters">
+              <div className="flex flex-wrap gap-2">
+                {availableAgencies.map(agency => (
+                  <Badge
+                    key={agency}
+                    variant={agencies.includes(agency) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => toggleAgency(agency)}
+                  >
+                    {agency}
+                  </Badge>
+                ))}
+              </div>
+            </PlanGating>
           </div>
 
           <div>
             <label className="text-sm font-medium mb-2 block">Industry (Optional)</label>
-            <Select value={industry} onValueChange={setIndustry}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select industry" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Industries</SelectItem>
-                {industries.map(ind => (
-                  <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <PlanGating requiredPlan="premium" feature="industry_filtering">
+              <Select value={industry} onValueChange={setIndustry}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Industries</SelectItem>
+                  {industries.map(ind => (
+                    <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </PlanGating>
           </div>
 
           <Button 

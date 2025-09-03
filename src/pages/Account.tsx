@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
+import { UsageDashboard } from '@/components/UsageDashboard';
 import UsageStats from '@/components/account/UsageStats';
 import BillingHistory from '@/components/account/BillingHistory';
 import TeamManagement from '@/components/account/TeamManagement';
@@ -118,6 +119,9 @@ const Account: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        <UsageDashboard />
+        
         <UsageStats />
         <BillingHistory />
         <TeamManagement />
