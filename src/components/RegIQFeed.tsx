@@ -31,6 +31,7 @@ interface RegIQAlert {
   id: string;
   title: string;
   source: string;
+  agency?: string; // Add agency field to match database
   published_date: string;
   summary: string;
   urgency: string;
@@ -96,6 +97,7 @@ const convertToRegIQAlert = (alert: any): RegIQAlert => {
     id: alert.id,
     title: alert.title,
     source: alert.source,
+    agency: alert.agency, // Include agency field from database
     published_date: alert.published_date,
     summary: alert.summary,
     urgency: alert.urgency,
@@ -267,17 +269,33 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
     filtered = filterByTimePeriod(filtered, filters.timePeriod);
     console.log('[RegIQFeed] After time filter:', filtered.length);
 
-    // Agency filter
+    // Agency filter - Enhanced to handle all agencies dynamically
     if (filters.agencies.length > 0) {
       filtered = filtered.filter(alert => {
         const source = alert.source.toLowerCase();
-        return filters.agencies.some(agency => {
-          const agencyLower = agency.toLowerCase();
-          return source.includes(agencyLower) || 
-                 (agency === 'FDA' && source.includes('food and drug')) ||
-                 (agency === 'USDA' && (source.includes('agriculture') || source.includes('fsis'))) ||
-                 (agency === 'EPA' && source.includes('environmental')) ||
-                 (agency === 'CDC' && source.includes('disease control'));
+        const agency = alert.agency?.toLowerCase() || '';
+        
+        return filters.agencies.some(selectedAgency => {
+          const selectedLower = selectedAgency.toLowerCase();
+          
+          // Direct match with source or agency field
+          if (source === selectedLower || agency === selectedLower) return true;
+          
+          // Partial match for source
+          if (source.includes(selectedLower)) return true;
+          
+          // Special mappings for known agencies
+          if (selectedAgency === 'USDA' && (source.includes('usda') || source.includes('fsis'))) return true;
+          if (selectedAgency === 'FSIS' && source.includes('fsis')) return true;
+          if (selectedAgency === 'FDA' && source.includes('fda')) return true;
+          if (selectedAgency === 'CDC' && source.includes('cdc')) return true;
+          if (selectedAgency === 'EPA' && source.includes('epa')) return true;
+          if (selectedAgency === 'MHRA' && source.includes('mhra')) return true;
+          if (selectedAgency === 'WHO' && source.includes('who')) return true;
+          if (selectedAgency === 'Federal_Register' && source.includes('federal')) return true;
+          if (selectedAgency === 'Health_Canada' && source.includes('health_canada')) return true;
+          
+          return false;
         });
       });
       console.log('[RegIQFeed] After agency filter:', filtered.length);

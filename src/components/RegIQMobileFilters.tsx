@@ -5,7 +5,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { X, ChevronDown, ChevronRight } from "lucide-react";
-import { AVAILABLE_AGENCIES, getAgencyDisplayName } from "@/lib/agencies";
+import { getAgencyDisplayName } from "@/lib/agencies";
+import { useDynamicAgencies } from "@/hooks/useDynamicAgencies";
 
 interface RegIQFilters {
   timePeriod: string;
@@ -61,6 +62,7 @@ export function RegIQMobileFilters({
   onFiltersChange 
 }: RegIQMobileFiltersProps) {
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(['time']));
+  const { agencies: dynamicAgencies, loading: agenciesLoading } = useDynamicAgencies();
 
   const toggleSection = (section: string) => {
     const newOpenSections = new Set(openSections);
@@ -192,21 +194,30 @@ export function RegIQMobileFilters({
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3">
-              <div className="space-y-2">
-                {AVAILABLE_AGENCIES.map((agency) => (
-                  <div key={agency} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`agency-${agency}`}
-                      checked={filters.agencies.includes(agency)}
-                      onCheckedChange={(checked) => 
-                        updateCheckboxFilter('agencies', agency, !!checked)
-                      }
-                    />
-                    <Label htmlFor={`agency-${agency}`} className="text-sm">
-                      {getAgencyDisplayName(agency)}
-                    </Label>
-                  </div>
-                ))}
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {agenciesLoading ? (
+                  <div className="text-sm text-muted-foreground">Loading agencies...</div>
+                ) : (
+                  dynamicAgencies.map((agencyData) => (
+                    <div key={agencyData.name} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`mobile-agency-${agencyData.name}`}
+                        checked={filters.agencies.includes(agencyData.name)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            onFiltersChange({ ...filters, agencies: [...filters.agencies, agencyData.name] });
+                          } else {
+                            onFiltersChange({ ...filters, agencies: filters.agencies.filter(a => a !== agencyData.name) });
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`mobile-agency-${agencyData.name}`} className="text-sm cursor-pointer flex items-center justify-between w-full">
+                        <span>{agencyData.displayName}</span>
+                        <span className="text-xs text-muted-foreground">({agencyData.count})</span>
+                      </Label>
+                    </div>
+                  ))
+                )}
               </div>
             </CollapsibleContent>
           </Collapsible>

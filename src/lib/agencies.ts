@@ -1,10 +1,12 @@
-// Available agencies with actual API endpoints
+// Dynamic agencies fetched from actual database alerts
 export const AVAILABLE_AGENCIES = [
   "FDA",
   "USDA", 
   "FSIS",
   "EPA",
   "CDC",
+  "MHRA",
+  "WHO",
   "Federal_Register",
   "Health_Canada"
 ] as const;
@@ -18,6 +20,10 @@ export const getAgencyDisplayName = (agency: string): string => {
       return 'Fed Register';
     case 'Health_Canada':
       return 'Health Canada';
+    case 'MHRA':
+      return 'MHRA';
+    case 'WHO':
+      return 'WHO';
     default:
       return agency;
   }
@@ -33,6 +39,8 @@ export const doesSourceMatchAgency = (source: string, agency: string): boolean =
   if (agency === 'FSIS' && sourceLower.includes('fsis')) return true;
   if (agency === 'Federal_Register' && sourceLower.includes('federal')) return true;
   if (agency === 'Health_Canada' && sourceLower.includes('health_canada')) return true;
+  if (agency === 'MHRA' && sourceLower.includes('mhra')) return true;
+  if (agency === 'WHO' && sourceLower.includes('who')) return true;
   
   return sourceLower.includes(agencyLower) || sourceLower === agency;
 };

@@ -6,7 +6,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronDown, X } from "lucide-react";
-import { AVAILABLE_AGENCIES, getAgencyDisplayName } from "@/lib/agencies";
+import { getAgencyDisplayName } from "@/lib/agencies";
+import { useDynamicAgencies } from "@/hooks/useDynamicAgencies";
 
 interface RegIQFilters {
   timePeriod: string;
@@ -54,12 +55,16 @@ const SIGNAL_TYPES = [
   "Market Signal"
 ];
 
-export function RegIQDesktopFilters({ 
-  filters, 
-  onFiltersChange, 
-  onClearAll 
-}: RegIQDesktopFiltersProps) {
+export const RegIQDesktopFilters = ({ filters, onFiltersChange, onClearAll }: RegIQDesktopFiltersProps) => {
+  const { agencies: dynamicAgencies, loading: agenciesLoading } = useDynamicAgencies();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const handleFilterChange = (type: keyof RegIQFilters, value: string | string[]) => {
+    onFiltersChange({
+      ...filters,
+      [type]: value
+    });
+  };
 
   const updateTimePeriod = (value: string) => {
     onFiltersChange({ ...filters, timePeriod: value });
@@ -161,21 +166,30 @@ export function RegIQDesktopFilters({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-56" align="start">
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {AVAILABLE_AGENCIES.map((agency) => (
-                  <div key={agency} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`agency-${agency}`}
-                      checked={filters.agencies.includes(agency)}
-                      onCheckedChange={(checked) => 
-                        updateCheckboxFilter('agencies', agency, !!checked)
-                      }
-                    />
-                    <Label htmlFor={`agency-${agency}`} className="text-sm">
-                      {getAgencyDisplayName(agency)}
-                    </Label>
-                  </div>
-                ))}
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {agenciesLoading ? (
+                  <div className="text-sm text-muted-foreground">Loading agencies...</div>
+                ) : (
+                  dynamicAgencies.map((agencyData) => (
+                    <div key={agencyData.name} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`agency-${agencyData.name}`}
+                        checked={filters.agencies.includes(agencyData.name)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleFilterChange('agencies', [...filters.agencies, agencyData.name]);
+                          } else {
+                            handleFilterChange('agencies', filters.agencies.filter(a => a !== agencyData.name));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`agency-${agencyData.name}`} className="text-sm cursor-pointer flex items-center justify-between w-full">
+                        <span>{agencyData.displayName}</span>
+                        <span className="text-xs text-muted-foreground">({agencyData.count})</span>
+                      </Label>
+                    </div>
+                  ))
+                )}
               </div>
             </PopoverContent>
           </Popover>
@@ -337,21 +351,25 @@ export function RegIQDesktopFilters({
             )}
             
             {/* Agency Filter Tags */}
-            {filters.agencies.map((agency) => (
-              <Badge key={agency} variant="secondary" className="flex items-center gap-1">
-                <span className="text-xs">
-                  {getAgencyDisplayName(agency)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 w-4 h-4 hover:bg-transparent"
-                  onClick={() => removeFilter('agencies', agency)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
+            {filters.agencies.map((agency) => {
+              const agencyData = dynamicAgencies.find(a => a.name === agency);
+              return (
+                <Badge key={agency} variant="secondary" className="flex items-center gap-1">
+                  <span className="text-xs">
+                    {agencyData?.displayName || getAgencyDisplayName(agency)}
+                    {agencyData?.count && ` (${agencyData.count})`}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 w-4 h-4 hover:bg-transparent"
+                    onClick={() => handleFilterChange('agencies', filters.agencies.filter(a => a !== agency))}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              );
+            })}
             
             {/* Industry Filter Tags */}
             {filters.industries.map((industry) => (
