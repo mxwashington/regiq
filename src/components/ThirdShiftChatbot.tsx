@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -197,7 +199,11 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
                     {message.type === 'bot' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     {message.type === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     <div className="flex-1">
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <div className="prose prose-sm max-w-none text-sm">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
                       
                       {/* Sources */}
                       {message.sources && message.sources.length > 0 && (
