@@ -14,18 +14,12 @@ import { MobileAlertCard } from "@/components/MobileAlertCard";
 import { MobileSearchInterface } from "@/components/MobileSearchInterface";
 import { MobileButton } from "@/components/MobileButton";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
-import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
-import { useSavedAlerts } from "@/hooks/useSavedAlerts";
-import { formatDistanceToNow } from "date-fns";
+// Removed alert-related imports
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { SchemaMarkup } from '@/components/SEO/SchemaMarkup';
 
-import { DataRefreshButton } from "@/components/DataRefreshButton";
-import PerplexityAlertCard from "@/components/PerplexityAlertCard";
-import { AlertSourceSearchDemo } from "@/components/AlertSourceSearchDemo";
-import { KeywordExtractionDemo } from "@/components/KeywordExtractionDemo";
-import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
+// Removed alert component imports
 import { cn } from "@/lib/utils";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -43,105 +37,16 @@ const Landing = () => {
   const { toast } = useToast();
   const { trackInteraction } = useAnalytics();
   const [email, setEmail] = useState('');
-  const [selectedAgency, setSelectedAgency] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const { alerts, loading } = useSimpleAlerts();
-  const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
   const { isMobile, isTablet } = useMobileOptimization();
   
   const getDashboardUrl = () => {
     return isAdmin ? "/admin/dashboard" : "/dashboard";
   };
 
-  // Get featured alert (highest priority)
-  const featuredAlert = useMemo(() => {
-    const sorted = [...alerts].sort((a, b) => {
-      const aFDARecall = (a.source?.toLowerCase().includes('fda') && /recall/i.test(a.title || ''));
-      const bFDARecall = (b.source?.toLowerCase().includes('fda') && /recall/i.test(b.title || ''));
-      if (aFDARecall !== bFDARecall) return aFDARecall ? -1 : 1;
-      const rank = (u: string | undefined) => ({ critical: 3, high: 2, medium: 1, low: 0 }[u?.toLowerCase() as any] ?? 0);
-      return rank(b.urgency) - rank(a.urgency);
-    });
-    return sorted[0] || alerts[0];
-  }, [alerts]);
+  // Removed alert filtering logic
 
-  // Get filtered alerts for display - Default to food agencies
-  const displayAlerts = useMemo(() => {
-    console.log('Filtering alerts:', { 
-      totalAlerts: alerts.length, 
-      selectedAgency, 
-      sampleSources: alerts.slice(0, 3).map(a => a.source) 
-    });
-    
-    if (!selectedAgency) {
-      // Default to food agencies only (FDA, USDA, EPA, CDC)
-      const foodAgencies = ['FDA', 'USDA', 'EPA', 'CDC'];
-      const filtered = alerts.filter(alert => foodAgencies.includes(alert.source));
-      const sorted = filtered.sort((a, b) => {
-        const aFDARecall = (a.source?.toLowerCase().includes('fda') && /recall/i.test(a.title || ''));
-        const bFDARecall = (b.source?.toLowerCase().includes('fda') && /recall/i.test(b.title || ''));
-        if (aFDARecall !== bFDARecall) return aFDARecall ? -1 : 1;
-        const rank = (u: string | undefined) => ({ critical: 3, high: 2, medium: 1, low: 0 }[u?.toLowerCase() as any] ?? 0);
-        return rank(b.urgency) - rank(a.urgency);
-      });
-      return sorted.slice(0, 5);
-    }
-    
-    if (selectedAgency === 'ALL') {
-      return alerts.slice(0, 5);
-    }
-    
-    const filtered = alerts.filter(alert => {
-      const sourceMatch = alert.source.toLowerCase() === selectedAgency.toLowerCase();
-      console.log('Filter check:', { alertSource: alert.source, selectedAgency, match: sourceMatch });
-      return sourceMatch;
-    });
-    const sorted = filtered.sort((a, b) => {
-      const aFDARecall = (a.source?.toLowerCase().includes('fda') && /recall/i.test(a.title || ''));
-      const bFDARecall = (b.source?.toLowerCase().includes('fda') && /recall/i.test(b.title || ''));
-      if (aFDARecall !== bFDARecall) return aFDARecall ? -1 : 1;
-      const rank = (u: string | undefined) => ({ critical: 3, high: 2, medium: 1, low: 0 }[u?.toLowerCase() as any] ?? 0);
-      return rank(b.urgency) - rank(a.urgency);
-    });
-    console.log('Filtered results:', { 
-      originalCount: alerts.length, 
-      filteredCount: sorted.length,
-      selectedAgency 
-    });
-    
-    return sorted.slice(0, 5);
-  }, [alerts, selectedAgency]);
-
-  const getAgencyColor = (source: string) => {
-    const sourceLower = source.toLowerCase();
-    if (sourceLower.includes('fda')) return 'text-blue-700 bg-blue-50 border-blue-200';
-    if (sourceLower.includes('usda')) return 'text-green-700 bg-green-50 border-green-200';
-    if (sourceLower.includes('epa')) return 'text-emerald-700 bg-emerald-50 border-emerald-200';
-    if (sourceLower.includes('cdc')) return 'text-red-700 bg-red-50 border-red-200';
-    return 'text-gray-600 bg-gray-50 border-gray-200';
-  };
-
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency?.toLowerCase()) {
-      case 'high':
-      case 'critical':
-        return 'bg-red-100 text-red-800 border-red-300';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-300';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-    } catch {
-      return 'Recently';
-    }
-  };
+  // Removed alert utility functions
 
   const handleEmailSignup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,27 +54,7 @@ const Landing = () => {
     console.log('Signup with email:', email);
   };
 
-  const handleSearchClick = (alert: any) => {
-    console.log('Landing page search button clicked for:', alert.title);
-    searchForAlert(alert.title, alert.source);
-  };
-
-  const handleExternalClick = (alert: any) => {
-    console.log('Landing page external link clicked for:', alert.title);
-    if (alert.external_url) {
-      // Decode HTML entities in the URL
-      const decodedUrl = alert.external_url
-        ?.replace(/&amp;/g, '&')
-        ?.replace(/&lt;/g, '<')
-        ?.replace(/&gt;/g, '>')
-        ?.replace(/&quot;/g, '"')
-        ?.replace(/&#39;/g, "'");
-      
-      if (decodedUrl) {
-        window.open(decodedUrl, '_blank', 'noopener,noreferrer');
-      }
-    }
-  };
+  // Removed alert interaction handlers
 
 
   return (
@@ -503,226 +388,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Live Dashboard Preview */}
-      <section id="food-alerts" className="py-12 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col gap-6 mb-6 md:mb-8">
-            <div className="text-center lg:text-left">
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">Live Food Safety Alerts</h2>
-              <p className="text-muted-foreground text-sm md:text-base">Real-time updates from FDA, USDA, EPA, and CDC</p>
-            </div>
-            
-            {/* Enhanced Agency Filter */}
-            <div className="flex flex-col gap-4 w-full">
-              <DataRefreshButton showFindSources={false} />
-              
-              <div className="bg-background border rounded-lg p-3 md:p-4">
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <label className="text-sm font-medium text-muted-foreground">Food Agency Focus:</label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedAgency('ALL')}
-                      className="text-xs text-muted-foreground hover:text-foreground self-start sm:self-auto"
-                    >
-                      Show All Agencies
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                    {[
-                      { 
-                        name: 'FDA', 
-                        color: 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100', 
-                        icon: '🛡️',
-                        fullName: 'FDA Food Safety',
-                        priority: 1
-                      },
-                      { 
-                        name: 'USDA', 
-                        color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100', 
-                        icon: '🌾',
-                        fullName: 'USDA Agriculture',
-                        priority: 2
-                      },
-                      { 
-                        name: 'EPA', 
-                        color: 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100', 
-                        icon: '🌿',
-                        fullName: 'EPA Environment',
-                        priority: 3
-                      },
-                      { 
-                        name: 'CDC', 
-                        color: 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100', 
-                        icon: '⚕️',
-                        fullName: 'CDC Public Health',
-                        priority: 4
-                      }
-                    ].map(agency => {
-                      const count = alerts.filter(alert => alert.source === agency.name).length;
-                      const isSelected = selectedAgency.toUpperCase() === agency.name;
-                      return (
-                        <Button
-                          key={agency.name}
-                          variant={isSelected ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedAgency(agency.name)}
-                          className={cn(
-                            "justify-start gap-2 h-10 md:h-12 text-xs md:text-sm flex-col p-2",
-                            !isSelected && agency.color,
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}
-                        >
-                          <div className="flex items-center gap-1 w-full">
-                            <span className="text-base">{agency.icon}</span>
-                            <div className="flex flex-col items-start min-w-0 flex-1">
-                              <span className="font-medium truncate">{agency.name}</span>
-                              <span className="text-xs opacity-70">{count} alerts</span>
-                            </div>
-                          </div>
-                        </Button>
-                      );
-                    })}
-                  </div>
-                  
-                  <Button
-                    variant={selectedAgency === 'ALL' ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setSelectedAgency('ALL')}
-                    className="mt-2 w-full sm:w-auto text-xs md:text-sm"
-                  >
-                    All Agencies ({alerts.length})
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        
-
-        {/* Search Demo */}
-        {featuredAlert && (
-          <div className="mb-8 space-y-4">
-            <AlertSourceSearchDemo alert={featuredAlert} />
-            <KeywordExtractionDemo />
-          </div>
-        )}
-
-        {/* Featured Alert */}
-          {featuredAlert && (
-            <Card className="mb-8 border-2 border-red-200 bg-red-50/50">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <Badge className={getAgencyColor(featuredAlert.source)}>
-                        {featuredAlert.source}
-                      </Badge>
-                      <Badge className={getUrgencyColor(featuredAlert.urgency)}>
-                        <AlertCircle className="w-3 h-3 mr-1" />
-                        {featuredAlert.urgency} Priority
-                      </Badge>
-                      {featuredAlert.urgency?.toLowerCase() === 'high' || featuredAlert.urgency?.toLowerCase() === 'critical' ? (
-                        <Badge className="bg-red-100 text-red-800 border-red-300">
-                          🍎 FOOD SAFETY
-                        </Badge>
-                      ) : null}
-                      <span className="text-sm text-muted-foreground">
-                        {formatDate(featuredAlert.published_date)}
-                      </span>
-                    </div>
-                    <CardTitle className="text-xl leading-tight mb-3">
-                      {featuredAlert.title}
-                    </CardTitle>
-                    <CardDescription className="text-base leading-relaxed">
-                      {featuredAlert.summary}
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {isValidSourceUrl(featuredAlert.external_url) ? (
-                    <>
-                      <MobileButton 
-                        variant="outline" 
-                        onClick={() => handleExternalClick(featuredAlert)}
-                        className="flex items-center gap-2"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        Read Full Alert
-                      </MobileButton>
-                      <MobileButton 
-                        variant="secondary" 
-                        className="flex items-center gap-2"
-                        disabled
-                      >
-                        <Bot className="w-4 h-4" />
-                        AI Enhanced Sources Available
-                      </MobileButton>
-                    </>
-                  ) : (
-                    <>
-                    <MobileButton 
-                      variant="secondary" 
-                      className="flex items-center gap-2"
-                      disabled
-                    >
-                      <Bot className="w-4 h-4" />
-                      AI Enhanced Sources Available
-                    </MobileButton>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Alert Feed */}
-          <div className="grid gap-4">
-            {loading ? (
-              // Loading skeletons
-              Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader>
-                    <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
-                    <div className="h-5 bg-muted rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-full"></div>
-                  </CardHeader>
-                </Card>
-              ))
-            ) : displayAlerts.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    No alerts available. Debug: total alerts = {alerts.length}, filtered = {displayAlerts.length}
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              displayAlerts.map((alert) => (
-                <PerplexityAlertCard
-                  key={alert.id}
-                  alert={alert}
-                  onDismissAlert={() => {}} // No dismiss functionality on landing page
-                  onSaveAlert={(alert) => toggleSaveAlert(alert.id)}
-                  savedAlerts={[]} // Saved alerts not applicable on landing page
-                  showEnhancedDetails={true}
-                />
-              ))
-            )}
-          </div>
-
-          {!user && (
-            <div className="text-center mt-8">
-              <Button asChild>
-                <Link to="/pricing">Start Free Trial</Link>
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
+      {/* Live Dashboard Preview section removed */}
 
       {/* Food Industry Trust Section */}
       <section className="py-8 px-4 bg-muted/20">
@@ -759,7 +425,7 @@ const Landing = () => {
             <span>✅ 14-day free trial • Cancel anytime</span>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
-            Monitoring {alerts.length.toLocaleString()}+ food safety alerts this month
+            Direct government data feeds for food safety compliance
           </p>
         </div>
       </section>
