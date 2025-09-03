@@ -469,7 +469,7 @@ const Landing = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <Card className="p-4 md:p-6 lg:p-8 mobile-container-safe mobile-card-content">
             <h2 className="text-2xl md:text-3xl font-bold mb-4 mobile-text-content break-words-mobile center-mobile hyphens-none">Stop wasting 195 hours on <span className="whitespace-nowrap">broken regulatory</span> search</h2>
-            <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6 mobile-text-content break-words-mobile center-mobile hyphens-none"><span className="whitespace-nowrap">Purpose‑built</span> for food manufacturing—<span className="whitespace-nowrap">mobile‑first</span>, <span className="whitespace-nowrap">cross‑agency clarity</span>.</p>
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6 mobile-text-content break-words-mobile center-mobile hyphens-none">Purpose-built for food manufacturing—mobile-first, cross-agency clarity.</p>
 
             <div className="flex flex-col gap-2 justify-center items-center">
               <Button size="lg" className="w-full sm:w-auto" asChild>
