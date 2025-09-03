@@ -263,6 +263,35 @@ export function FDASearch() {
     return endpointData?.name || endpoint;
   };
 
+  const formatFDADate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Unknown date';
+    
+    try {
+      // FDA API sometimes returns dates in YYYYMMDD format or other formats
+      let dateToFormat: Date;
+      
+      // Handle YYYYMMDD format (common in FDA API)
+      if (typeof dateString === 'string' && /^\d{8}$/.test(dateString)) {
+        const year = dateString.substring(0, 4);
+        const month = dateString.substring(4, 6);
+        const day = dateString.substring(6, 8);
+        dateToFormat = new Date(`${year}-${month}-${day}`);
+      } else {
+        // Try standard date parsing
+        dateToFormat = new Date(dateString);
+      }
+      
+      // Check if date is valid
+      if (isNaN(dateToFormat.getTime())) {
+        return 'Unknown date';
+      }
+      
+      return dateToFormat.toLocaleDateString();
+    } catch {
+      return 'Unknown date';
+    }
+  };
+
   const handleEndpointToggle = (endpointId: string, checked: boolean) => {
     setSelectedEndpoints(prev => 
       checked 
@@ -745,7 +774,7 @@ export function FDASearch() {
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                                <span>{new Date(item.recall_initiation_date).toLocaleDateString()}</span>
+                                <span>{formatFDADate(item.recall_initiation_date)}</span>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <MapPin className="w-4 h-4 text-muted-foreground" />
@@ -784,7 +813,7 @@ export function FDASearch() {
                               <strong>Reason:</strong> {item.reason}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              <strong>Last Updated:</strong> {new Date(item.revision_date).toLocaleDateString()}
+                              <strong>Last Updated:</strong> {formatFDADate(item.revision_date)}
                             </p>
                           </div>
                         )}
@@ -800,7 +829,7 @@ export function FDASearch() {
                               <Badge variant="destructive">Serious Event</Badge>
                             )}
                             <p className="text-sm text-muted-foreground">
-                              <strong>Received:</strong> {item.receivedate}
+                              <strong>Received:</strong> {formatFDADate(item.receivedate)}
                             </p>
                           </div>
                         )}
