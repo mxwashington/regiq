@@ -34,12 +34,19 @@ export const Hero: React.FC = () => {
         </p>
 
         <div className="flex flex-col gap-3 md:gap-4 justify-center items-center mb-6 md:mb-8 px-4">
-          <Button size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
-            <Link to="/pricing">
-              Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-            <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime • No credit card required</p>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <Button size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
+              <Link to="/pricing">
+                Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
+              <a href="https://calendly.com/marcus-regiq" target="_blank" rel="noopener noreferrer">
+                Schedule a Demo
+              </a>
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime • No credit card required</p>
         </div>
       </div>
     </section>
