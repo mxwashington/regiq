@@ -1293,6 +1293,39 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_tracking: {
+        Row: {
+          created_at: string | null
+          id: string
+          period_end: string
+          period_start: string
+          updated_at: string | null
+          usage_count: number | null
+          usage_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_analytics: {
         Row: {
           created_at: string
