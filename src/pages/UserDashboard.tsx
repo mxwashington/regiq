@@ -21,6 +21,7 @@ import { ExportManager } from '@/components/ExportManager';
 import RiskPredictorPage from './RiskPredictorPage';
 import RiskDashboardPage from './RiskDashboardPage';
 import SupportWidget from '@/components/account/SupportWidget';
+import { AVAILABLE_AGENCIES, getAgencyDisplayName, doesSourceMatchAgency } from '@/lib/agencies';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -68,10 +69,9 @@ const UserDashboard = () => {
     
     // Apply agency filter
     if (selectedAgency) {
-      filtered = filtered.filter(alert => {
-        const sourceMatch = alert.source.toLowerCase() === selectedAgency.toLowerCase();
-        return sourceMatch;
-      });
+      filtered = filtered.filter(alert => 
+        doesSourceMatchAgency(alert.source, selectedAgency)
+      );
       console.log('[UserDashboard] After agency filter:', filtered.length);
     }
     
@@ -85,11 +85,13 @@ const UserDashboard = () => {
     return result;
   }, [alerts, selectedAgency, searchQuery, loading]);
 
-  // Agency filter counts (same as landing page)
+  // Agency filter counts - based on actual APIs we have
   const agencyCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    ['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'].forEach(agency => {
-      counts[agency] = alerts.filter(alert => alert.source === agency).length;
+    AVAILABLE_AGENCIES.forEach(agency => {
+      counts[agency] = alerts.filter(alert => 
+        doesSourceMatchAgency(alert.source, agency)
+      ).length;
     });
     return counts;
   }, [alerts]);
@@ -292,9 +294,12 @@ const UserDashboard = () => {
                   >
                     All ({alerts.length})
                   </Button>
-                  {['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'].map(agency => {
+                  {AVAILABLE_AGENCIES.map(agency => {
                     const count = agencyCounts[agency] || 0;
                     if (count === 0) return null;
+                    
+                    const displayName = getAgencyDisplayName(agency);
+                    
                     return (
                       <Button
                         key={agency}
@@ -303,7 +308,7 @@ const UserDashboard = () => {
                         onClick={() => setSelectedAgency(agency)}
                         className="text-xs"
                       >
-                        {agency} ({count})
+                        {displayName} ({count})
                       </Button>
                     );
                   })}

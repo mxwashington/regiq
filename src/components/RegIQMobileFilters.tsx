@@ -5,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { X, ChevronDown, ChevronRight } from "lucide-react";
+import { AVAILABLE_AGENCIES, getAgencyDisplayName } from "@/lib/agencies";
 
 interface RegIQFilters {
   timePeriod: string;
@@ -29,18 +30,7 @@ const TIME_PERIODS = [
   "All time"
 ];
 
-const AGENCIES = [
-  "FDA",
-  "USDA", 
-  "EPA",
-  "FSIS",
-  "CDC",
-  "OSHA",
-  "FTC",
-  "EMA",
-  "EFSA",
-  "Health Canada"
-];
+// Remove the hardcoded AGENCIES array since we're importing it
 
 const INDUSTRIES = [
   "Food Safety",
@@ -203,7 +193,7 @@ export function RegIQMobileFilters({
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3">
               <div className="space-y-2">
-                {AGENCIES.map((agency) => (
+                {AVAILABLE_AGENCIES.map((agency) => (
                   <div key={agency} className="flex items-center space-x-2">
                     <Checkbox
                       id={`agency-${agency}`}
@@ -213,7 +203,7 @@ export function RegIQMobileFilters({
                       }
                     />
                     <Label htmlFor={`agency-${agency}`} className="text-sm">
-                      {agency}
+                      {getAgencyDisplayName(agency)}
                     </Label>
                   </div>
                 ))}

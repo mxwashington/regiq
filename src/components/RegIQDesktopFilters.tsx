@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronDown, X } from "lucide-react";
+import { AVAILABLE_AGENCIES, getAgencyDisplayName } from "@/lib/agencies";
 
 interface RegIQFilters {
   timePeriod: string;
@@ -29,18 +30,7 @@ const TIME_PERIODS = [
   "All time"
 ];
 
-const AGENCIES = [
-  "FDA",
-  "USDA", 
-  "EPA",
-  "FSIS",
-  "CDC",
-  "OSHA",
-  "FTC",
-  "EMA",
-  "EFSA",
-  "Health Canada"
-];
+// Remove the hardcoded AGENCIES array since we're importing it
 
 const INDUSTRIES = [
   "Food Safety",
@@ -172,7 +162,7 @@ export function RegIQDesktopFilters({
             </PopoverTrigger>
             <PopoverContent className="w-56" align="start">
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                {AGENCIES.map((agency) => (
+                {AVAILABLE_AGENCIES.map((agency) => (
                   <div key={agency} className="flex items-center space-x-2">
                     <Checkbox
                       id={`agency-${agency}`}
@@ -182,7 +172,7 @@ export function RegIQDesktopFilters({
                       }
                     />
                     <Label htmlFor={`agency-${agency}`} className="text-sm">
-                      {agency}
+                      {getAgencyDisplayName(agency)}
                     </Label>
                   </div>
                 ))}
@@ -349,7 +339,9 @@ export function RegIQDesktopFilters({
             {/* Agency Filter Tags */}
             {filters.agencies.map((agency) => (
               <Badge key={agency} variant="secondary" className="flex items-center gap-1">
-                <span className="text-xs">{agency}</span>
+                <span className="text-xs">
+                  {getAgencyDisplayName(agency)}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
