@@ -1437,6 +1437,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_critical_data_access: {
+        Args: {
+          additional_metadata?: Json
+          operation_param: string
+          record_count_param?: number
+          table_name_param: string
+        }
+        Returns: undefined
+      }
       log_data_access_attempt: {
         Args: {
           operation_param: string
