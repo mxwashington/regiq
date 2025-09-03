@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
+import SecurityHeaders from "@/components/SecurityHeaders";
+import { EnhancedAuthHandler } from "@/components/EnhancedAuthHandler";
 import { AIAccessProvider } from "@/components/AIAccessProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
@@ -46,6 +48,7 @@ const Suppliers = React.lazy(() => import("./pages/Suppliers").catch(() => ({ de
 
 const Onboarding = React.lazy(() => import("./pages/Onboarding").catch(() => ({ default: () => <div>Onboarding unavailable</div> })));
 const AdminAnalytics = React.lazy(() => import("./pages/AdminAnalytics").catch(() => ({ default: () => <div>Admin Analytics unavailable</div> })));
+const SecurityDashboard = React.lazy(() => import("@/components/SecurityDashboard").catch(() => ({ default: () => <div>Security Dashboard unavailable</div> })));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch(() => ({ default: () => <div>Success page unavailable</div> })));
 const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
 const Help = React.lazy(() => import("./pages/Help").catch(() => ({ default: () => <div>Help unavailable</div> })));
@@ -118,6 +121,7 @@ const PWAApp = () => {
     <>
       <Toaster />
       <Sonner />
+      <EnhancedAuthHandler />
       
       <PWAInstallPrompt />
       <AIAccessProvider>
@@ -201,6 +205,11 @@ const PWAApp = () => {
                   <AdminAnalytics />
                 </AuthGuard>
               } />
+              <Route path="/admin/security" element={
+                <AuthGuard>
+                  <SecurityDashboard />
+                </AuthGuard>
+              } />
               
               {/* Other pages */}
               <Route path="/legal" element={<LegalFramework />} />
@@ -222,6 +231,7 @@ const PWAApp = () => {
 const App = () => (
   <ErrorBoundary>
     <HelmetProvider>
+      <SecurityHeaders />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SecurityProvider>

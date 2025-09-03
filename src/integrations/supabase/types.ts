@@ -611,6 +611,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ip_rate_limits: {
+        Row: {
+          blocked_until: string | null
+          created_at: string | null
+          endpoint: string
+          id: string
+          ip_address: unknown
+          is_blocked: boolean | null
+          requests_count: number | null
+          window_start: string | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          ip_address: unknown
+          is_blocked?: boolean | null
+          requests_count?: number | null
+          window_start?: string | null
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          ip_address?: unknown
+          is_blocked?: boolean | null
+          requests_count?: number | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           created_at: string
@@ -935,6 +968,48 @@ export type Database = {
           id?: string
           query?: string
           result_data?: Json
+        }
+        Relationships: []
+      }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          description: string
+          id: string
+          is_resolved: boolean | null
+          metadata: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          description: string
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1376,6 +1451,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_enhanced_rate_limit: {
+        Args: {
+          endpoint_param: string
+          ip_address_param?: unknown
+          ip_rate_limit?: number
+          user_rate_limit?: number
+        }
+        Returns: Json
+      }
       clean_expired_cache: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1387,6 +1471,16 @@ export type Database = {
       clear_all_alerts_for_user: {
         Args: { user_id: string }
         Returns: undefined
+      }
+      create_security_alert: {
+        Args: {
+          alert_type_param: string
+          description_param: string
+          metadata_param?: Json
+          severity_param: string
+          title_param: string
+        }
+        Returns: string
       }
       dismiss_alert_for_user: {
         Args: { alert_id: string; user_id: string }
@@ -1420,6 +1514,10 @@ export type Database = {
         Args: { permission_name: string; target_user_id: string }
         Returns: undefined
       }
+      has_admin_permission: {
+        Args: { permission_name_param: string; user_id_param: string }
+        Returns: boolean
+      }
       has_enterprise_feature: {
         Args: { feature_name_param: string; user_id_param: string }
         Returns: boolean
@@ -1432,6 +1530,16 @@ export type Database = {
         Args: {
           action_type: string
           details?: Json
+          target_id?: string
+          target_type?: string
+        }
+        Returns: undefined
+      }
+      log_admin_action_enhanced: {
+        Args: {
+          action_type: string
+          details?: Json
+          require_admin?: boolean
           target_id?: string
           target_type?: string
         }
@@ -1456,6 +1564,23 @@ export type Database = {
       }
       log_security_event: {
         Args: { event_type_param: string; metadata_param?: Json }
+        Returns: undefined
+      }
+      log_security_event_enhanced: {
+        Args: {
+          event_type_param: string
+          metadata_param?: Json
+          threat_level_param?: string
+        }
+        Returns: undefined
+      }
+      log_sensitive_data_access: {
+        Args: {
+          operation_param: string
+          record_count_param?: number
+          sensitive_fields?: Json
+          table_name_param: string
+        }
         Returns: undefined
       }
       log_source_finder_result: {

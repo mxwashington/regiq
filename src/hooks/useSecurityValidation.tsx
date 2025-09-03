@@ -59,46 +59,33 @@ export const useSecurityValidation = () => {
 
   const checkRateLimit = useCallback(async (endpoint: string): Promise<boolean> => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return false;
+      // Use enhanced rate limiting function
+      const { data, error } = await supabase.rpc('check_enhanced_rate_limit', {
+        endpoint_param: endpoint,
+        user_rate_limit: 60,
+        ip_rate_limit: 100
+      });
 
-      // Check current rate limit status
-      const { data: rateLimits } = await supabase
-        .from('rate_limits')
-        .select('*')
-        .eq('user_id', user.user.id)
-        .eq('endpoint', endpoint)
-        .gte('window_start', new Date(Date.now() - 60000).toISOString()) // Last minute
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (rateLimits && rateLimits.length > 0) {
-        const latestLimit = rateLimits[0];
-        if (latestLimit.requests_count >= 60) { // 60 requests per minute limit
-          setRateLimitState({
-            isRateLimited: true,
-            retryAfter: 60,
-            attempts: latestLimit.requests_count
-          });
-
-          toast({
-            title: "Rate Limit Exceeded",
-            description: "Too many requests. Please wait a minute before trying again.",
-            variant: "destructive"
-          });
-          return false;
-        }
+      if (error) {
+        console.error('Rate limit check failed:', error);
+        return true; // Allow on error to prevent blocking legitimate users
       }
 
-      // Update rate limit counter
-      await supabase
-        .from('rate_limits')
-        .insert({
-          user_id: user.user.id,
-          endpoint,
-          requests_count: 1,
-          window_start: new Date().toISOString()
+      // Type assertion for the RPC result
+      if (!(data as any).allowed) {
+        setRateLimitState({
+          isRateLimited: true,
+          retryAfter: (data as any).retry_after,
+          attempts: (data as any).user_requests + (data as any).ip_requests
         });
+
+        toast({
+          title: "Rate Limit Exceeded",
+          description: `Too many requests (${(data as any).limit_type} limit). Please wait ${(data as any).retry_after} seconds.`,
+          variant: "destructive"
+        });
+        return false;
+      }
 
       return true;
     } catch (error) {
