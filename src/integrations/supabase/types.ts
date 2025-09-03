@@ -1437,6 +1437,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_data_access_attempt: {
+        Args: {
+          operation_param: string
+          record_count_param?: number
+          table_name_param: string
+        }
+        Returns: undefined
+      }
       log_security_event: {
         Args: { event_type_param: string; metadata_param?: Json }
         Returns: undefined
