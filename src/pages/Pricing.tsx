@@ -187,9 +187,11 @@ const Pricing = () => {
       </section>
 
       {/* Pricing Cards */}
-      <section className="pt-12 pb-8 px-4" id="pricing">
+      <section className="pt-20 pb-8 px-4" id="pricing">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid lg:grid-cols-3 gap-8 mt-8">
+          <div className="grid lg:grid-cols-3 gap-8 relative">
+            {/* Add top spacing specifically for badges */}
+            <div className="absolute -top-6 w-full h-6"></div>
             {plans.map((plan) => (
               <Card key={plan.id} className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : 'border-border'}`}>
                 {plan.popular && (
