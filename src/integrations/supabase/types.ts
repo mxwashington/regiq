@@ -255,9 +255,12 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean | null
+          key_hash: string | null
           key_name: string
+          key_prefix: string | null
           last_used_at: string | null
           rate_limit_per_hour: number | null
+          security_metadata: Json | null
           updated_at: string | null
           usage_count: number | null
           user_id: string
@@ -268,9 +271,12 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          key_hash?: string | null
           key_name: string
+          key_prefix?: string | null
           last_used_at?: string | null
           rate_limit_per_hour?: number | null
+          security_metadata?: Json | null
           updated_at?: string | null
           usage_count?: number | null
           user_id: string
@@ -281,9 +287,12 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          key_hash?: string | null
           key_name?: string
+          key_prefix?: string | null
           last_used_at?: string | null
           rate_limit_per_hour?: number | null
+          security_metadata?: Json | null
           updated_at?: string | null
           usage_count?: number | null
           user_id?: string
@@ -695,8 +704,10 @@ export type Database = {
           amount_cents: number | null
           created_at: string | null
           currency: string | null
+          encryption_version: string | null
           id: string
           ip_address: unknown | null
+          is_encrypted: boolean | null
           metadata: Json | null
           stripe_session_id: string | null
           success: boolean | null
@@ -707,8 +718,10 @@ export type Database = {
           amount_cents?: number | null
           created_at?: string | null
           currency?: string | null
+          encryption_version?: string | null
           id?: string
           ip_address?: unknown | null
+          is_encrypted?: boolean | null
           metadata?: Json | null
           stripe_session_id?: string | null
           success?: boolean | null
@@ -719,8 +732,10 @@ export type Database = {
           amount_cents?: number | null
           created_at?: string | null
           currency?: string | null
+          encryption_version?: string | null
           id?: string
           ip_address?: unknown | null
+          is_encrypted?: boolean | null
           metadata?: Json | null
           stripe_session_id?: string | null
           success?: boolean | null
@@ -1038,6 +1053,48 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      sensitive_data_access_log: {
+        Row: {
+          access_reason: string | null
+          created_at: string | null
+          field_names: string[] | null
+          id: string
+          ip_address: unknown | null
+          operation: string
+          record_count: number | null
+          session_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          created_at?: string | null
+          field_names?: string[] | null
+          id?: string
+          ip_address?: unknown | null
+          operation: string
+          record_count?: number | null
+          session_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          created_at?: string | null
+          field_names?: string[] | null
+          id?: string
+          ip_address?: unknown | null
+          operation?: string
+          record_count?: number | null
+          session_id?: string | null
+          table_name?: string
           user_agent?: string | null
           user_id?: string | null
         }
@@ -1505,6 +1562,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: undefined
       }
+      create_secure_api_key: {
+        Args: { key_name_param: string; rate_limit_param?: number }
+        Returns: Json
+      }
       create_security_alert: {
         Args: {
           alert_type_param: string
@@ -1616,13 +1677,20 @@ export type Database = {
         Returns: undefined
       }
       log_sensitive_data_access: {
-        Args: {
-          operation_param: string
-          record_count_param?: number
-          sensitive_fields?: Json
-          table_name_param: string
-        }
-        Returns: undefined
+        Args:
+          | {
+              operation_param: string
+              record_count_param?: number
+              sensitive_fields?: Json
+              table_name_param: string
+            }
+          | {
+              operation_param: string
+              record_count_param?: number
+              sensitive_fields_param?: string[]
+              table_name_param: string
+            }
+        Returns: boolean
       }
       log_source_finder_result: {
         Args: {
@@ -1677,6 +1745,15 @@ export type Database = {
           value_param: Json
         }
         Returns: undefined
+      }
+      validate_api_key_secure: {
+        Args: { api_key_input: string }
+        Returns: {
+          is_valid: boolean
+          key_metadata: Json
+          rate_limit: number
+          user_id: string
+        }[]
       }
       validate_enterprise_api_key: {
         Args: { api_key_input: string }
