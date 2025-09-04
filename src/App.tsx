@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
-import SecurityHeaders from "@/components/SecurityHeaders";
+import { EnhancedSecurityHeaders } from "@/components/EnhancedSecurityHeaders";
 import { EnhancedAuthHandler } from "@/components/EnhancedAuthHandler";
 import { AIAccessProvider } from "@/components/AIAccessProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -231,7 +231,7 @@ const PWAApp = () => {
 const App = () => (
   <ErrorBoundary>
     <HelmetProvider>
-      <SecurityHeaders />
+      <EnhancedSecurityHeaders />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SecurityProvider>
