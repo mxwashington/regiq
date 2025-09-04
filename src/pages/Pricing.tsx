@@ -189,7 +189,7 @@ const Pricing = () => {
       {/* Pricing Cards */}
       <section className="pt-12 pb-8 px-4" id="pricing">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid lg:grid-cols-3 gap-8 mt-4">
+          <div className="grid lg:grid-cols-3 gap-8 mt-8">
             {plans.map((plan) => (
               <Card key={plan.id} className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : 'border-border'}`}>
                 {plan.popular && (
