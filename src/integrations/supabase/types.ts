@@ -248,6 +248,45 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_reports: {
+        Row: {
+          created_at: string
+          date_range_end: string | null
+          date_range_start: string | null
+          filters: Json | null
+          generated_at: string
+          id: string
+          report_data: Json
+          report_name: string
+          report_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          filters?: Json | null
+          generated_at?: string
+          id?: string
+          report_data: Json
+          report_name: string
+          report_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          filters?: Json | null
+          generated_at?: string
+          id?: string
+          report_data?: Json
+          report_name?: string
+          report_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           api_key: string
@@ -326,6 +365,42 @@ export type Database = {
         }
         Relationships: []
       }
+      benchmark_data: {
+        Row: {
+          created_at: string
+          data_source: string | null
+          id: string
+          industry_sector: string
+          metric_type: string
+          metric_value: number
+          percentile_rank: number | null
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_source?: string | null
+          id?: string
+          industry_sector: string
+          metric_type: string
+          metric_value: number
+          percentile_rank?: number | null
+          valid_from: string
+          valid_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_source?: string | null
+          id?: string
+          industry_sector?: string
+          metric_type?: string
+          metric_value?: number
+          percentile_rank?: number | null
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: []
+      }
       compliance_deadlines: {
         Row: {
           agency: string
@@ -391,6 +466,45 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      compliance_metrics: {
+        Row: {
+          agency: string | null
+          category: string | null
+          created_at: string
+          facility_id: string | null
+          id: string
+          metadata: Json | null
+          metric_date: string
+          metric_type: string
+          metric_value: number
+          user_id: string
+        }
+        Insert: {
+          agency?: string | null
+          category?: string | null
+          created_at?: string
+          facility_id?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_date: string
+          metric_type: string
+          metric_value: number
+          user_id: string
+        }
+        Update: {
+          agency?: string | null
+          category?: string | null
+          created_at?: string
+          facility_id?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_type?: string
+          metric_value?: number
           user_id?: string
         }
         Relationships: []
