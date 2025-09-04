@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +60,6 @@ export const PricingSection: React.FC = () => {
       desc: 'Ideal for growing compliance teams',
       cta: 'Start Free Trial',
       to: '/pricing?plan=professional',
-      mostPopular: true,
       features: [
         'Everything in Starter, plus:',
         'Up to 3 facilities',
@@ -131,12 +129,7 @@ export const PricingSection: React.FC = () => {
         </div>
         <div className="grid gap-6 lg:grid-cols-3">
           {plans.map((p) => (
-            <Card key={p.id} className={`relative border-2 ${p.mostPopular ? 'border-primary shadow-lg scale-105' : 'border-primary/20'}`}>
-              {p.mostPopular && (
-                <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground">
-                  Most Popular
-                </Badge>
-              )}
+            <Card key={p.id} className="relative border-2 border-primary/20">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">{p.name}</CardTitle>
                 <CardDescription>{p.desc}</CardDescription>
@@ -158,7 +151,7 @@ export const PricingSection: React.FC = () => {
                 </ul>
                 <Button 
                   size="lg" 
-                  variant={p.mostPopular ? "default" : "secondary"}
+                  variant="secondary"
                   onClick={() => handleSubscribe(p.id)}
                   disabled={loading === p.id}
                 >
