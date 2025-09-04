@@ -61,7 +61,7 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>195 hours lost to broken regulatory search | RegIQ</title>
-        <meta name="description" content="95% can't find answers. $34,487 wasted per professional. FDA/USDA confusion. Mobile-first. 14-day free trial — no credit card." />
+        <meta name="description" content="95% can't find answers. $34,487 wasted per professional. FDA/USDA confusion. Mobile-first. 7-day free trial — no credit card." />
         <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory search" />
         <link rel="canonical" href="https://regiq.com" />
         
@@ -516,7 +516,7 @@ const Landing = () => {
           <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground flex-wrap">
             <span>✅ Real-time Government Data</span>
             <span>✅ Built by Food Industry Professionals</span>
-            <span>✅ 14-day free trial • Cancel anytime</span>
+            <span>✅ 7-day free trial • Cancel anytime</span>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
             Direct government data feeds for food safety compliance
@@ -569,7 +569,7 @@ const Landing = () => {
               <Button size="lg" className="w-full sm:w-auto" asChild>
                 <Link to="/pricing">Start Free Trial</Link>
               </Button>
-              <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime • No credit card required</p>
+              <p className="text-sm text-muted-foreground">7-day free trial • Cancel anytime • No credit card required</p>
             </div>
 
             <div className="text-xs md:text-sm text-muted-foreground mt-6">

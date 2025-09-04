@@ -54,7 +54,7 @@ const PaymentSuccess: React.FC = () => {
         </div>
         
         <p className="text-xs text-muted-foreground mt-4">
-          Your 14-day free trial has started. No charges until trial ends.
+          Your 7-day free trial has started. No charges until trial ends.
         </p>
       </div>
     </div>
