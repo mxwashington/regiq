@@ -1515,6 +1515,10 @@ export type Database = {
         }
         Returns: string
       }
+      detect_suspicious_activity: {
+        Args: { user_id_param: string }
+        Returns: Json
+      }
       dismiss_alert_for_user: {
         Args: { alert_id: string; user_id: string }
         Returns: undefined
@@ -1647,6 +1651,10 @@ export type Database = {
       }
       update_user_activity: {
         Args: { ip_address_param?: unknown; user_id_param: string }
+        Returns: undefined
+      }
+      update_user_admin_permissions: {
+        Args: { new_permissions: string[]; target_user_id: string }
         Returns: undefined
       }
       update_user_profile: {
