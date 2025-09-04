@@ -31,6 +31,7 @@ const Auth = React.lazy(() => import("./pages/Auth").catch(() => ({ default: () 
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback").catch(() => ({ default: () => <div>Callback unavailable</div> })));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard").catch(() => ({ default: () => <div>Admin unavailable</div> })));
 const SearchPage = React.lazy(() => import("./pages/SearchPage").catch(() => ({ default: () => <div>Search unavailable</div> })));
+const ComplianceAssistantPage = React.lazy(() => import("./pages/ComplianceAssistant").catch(() => ({ default: () => <div>Compliance Assistant unavailable</div> })));
 const NotFound = React.lazy(() => import("./pages/NotFound").catch(() => ({ default: () => <div>Page not found</div> })));
 const LegalFramework = React.lazy(() => import("./components/LegalFramework").then(m => ({ default: m.LegalFramework })).catch(() => ({ default: () => <div>Legal unavailable</div> })));
 const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth").catch(() => ({ default: () => <div>Auth component unavailable</div> })));
@@ -151,6 +152,7 @@ const PWAApp = () => {
               {/* Main user pages */}
               <Route path="/dashboard" element={<AuthGuard><UserDashboard /></AuthGuard>} />
               <Route path="/search" element={<AuthGuard><SearchPage /></AuthGuard>} />
+              <Route path="/compliance-assistant" element={<AuthGuard><ComplianceAssistantPage /></AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<Account />} />
               <Route path="/suppliers" element={<AuthGuard><Suppliers /></AuthGuard>} />
