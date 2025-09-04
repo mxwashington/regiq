@@ -187,62 +187,123 @@ const Pricing = () => {
       </section>
 
       {/* Pricing Cards */}
-      <section className="pt-20 pb-8 px-4" id="pricing">
+      <section className="pt-16 pb-8 px-2 sm:px-4" id="pricing">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid lg:grid-cols-3 gap-8 relative">
-            {/* Add top spacing specifically for badges */}
-            <div className="absolute -top-6 w-full h-6"></div>
-            {plans.map((plan) => (
-              <Card key={plan.id} className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : 'border-border'}`}>
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground px-3 py-1">MOST POPULAR</Badge>
-                  </div>
-                )}
-                <CardHeader className="text-center pb-6">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <div className="mb-2">
-                    <span className="text-4xl font-bold">${isAnnual ? plan.annualPrice : plan.monthlyPrice}</span>
-                    <span className="text-muted-foreground ml-2">/month</span>
-                  </div>
-                  {isAnnual && (
-                    <div className="text-sm text-primary font-medium mb-2">
-                      Save ${(plan.monthlyPrice - plan.annualPrice) * 12}/year
+          {/* Mobile: Horizontal scroll, Desktop: Grid */}
+          <div className="lg:grid lg:grid-cols-3 lg:gap-8 relative">
+            
+            {/* Mobile horizontal scroll container */}
+            <div className="lg:hidden overflow-x-auto pb-4 mt-8">
+              <div className="flex gap-4 w-max">
+                {plans.map((plan) => (
+                  <Card key={plan.id} className={`relative w-[280px] flex-shrink-0 ${plan.popular ? 'border-primary shadow-lg' : 'border-border'}`}>
+                    {plan.popular && (
+                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
+                        <Badge className="bg-primary text-primary-foreground px-2 py-1 text-xs whitespace-nowrap">MOST POPULAR</Badge>
+                      </div>
+                    )}
+                    <CardHeader className="text-center pb-4 pt-6 px-4">
+                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                      <div className="mb-2">
+                        <span className="text-3xl font-bold">${isAnnual ? plan.annualPrice : plan.monthlyPrice}</span>
+                        <span className="text-muted-foreground ml-2">/month</span>
+                      </div>
+                      {isAnnual && (
+                        <div className="text-xs text-primary font-medium mb-2">
+                          Save ${(plan.monthlyPrice - plan.annualPrice) * 12}/year
+                        </div>
+                      )}
+                      <CardDescription className="text-sm">
+                        {plan.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 px-4 pb-4">
+                      <ul className="space-y-2">
+                        {plan.features.map((feature, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                            <span className="text-xs">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="pt-2">
+                        {plan.id === 'enterprise' ? (
+                          <Button className="w-full" size="sm" variant="secondary" asChild>
+                            <Link to="/contact">Contact Sales</Link>
+                          </Button>
+                        ) : (
+                          <Button
+                            className="w-full"
+                            size="sm"
+                            variant={plan.popular ? "default" : "secondary"}
+                            onClick={() => handleStartTrial(plan.id as 'starter' | 'professional')}
+                            disabled={loading === plan.id}
+                          >
+                            {loading === plan.id ? 'Starting...' : plan.cta}
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop grid layout */}
+            <div className="hidden lg:contents mt-8">
+              {plans.map((plan) => (
+                <Card key={plan.id} className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : 'border-border'}`}>
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                      <Badge className="bg-primary text-primary-foreground px-3 py-1">MOST POPULAR</Badge>
                     </div>
                   )}
-                  <CardDescription className="text-base">
-                    {plan.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="pt-2">
-                    {plan.id === 'enterprise' ? (
-                      <Button className="w-full" size="lg" variant="secondary" asChild>
-                        <Link to="/contact">Contact Sales</Link>
-                      </Button>
-                    ) : (
-                      <Button
-                        className="w-full"
-                        size="lg"
-                        variant={plan.popular ? "default" : "secondary"}
-                        onClick={() => handleStartTrial(plan.id as 'starter' | 'professional')}
-                        disabled={loading === plan.id}
-                      >
-                        {loading === plan.id ? 'Starting trial...' : plan.cta}
-                      </Button>
+                  <CardHeader className="text-center pb-6">
+                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                    <div className="mb-2">
+                      <span className="text-4xl font-bold">${isAnnual ? plan.annualPrice : plan.monthlyPrice}</span>
+                      <span className="text-muted-foreground ml-2">/month</span>
+                    </div>
+                    {isAnnual && (
+                      <div className="text-sm text-primary font-medium mb-2">
+                        Save ${(plan.monthlyPrice - plan.annualPrice) * 12}/year
+                      </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <CardDescription className="text-base">
+                      {plan.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="pt-2">
+                      {plan.id === 'enterprise' ? (
+                        <Button className="w-full" size="lg" variant="secondary" asChild>
+                          <Link to="/contact">Contact Sales</Link>
+                        </Button>
+                      ) : (
+                        <Button
+                          className="w-full"
+                          size="lg"
+                          variant={plan.popular ? "default" : "secondary"}
+                          onClick={() => handleStartTrial(plan.id as 'starter' | 'professional')}
+                          disabled={loading === plan.id}
+                        >
+                          {loading === plan.id ? 'Starting trial...' : plan.cta}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
           </div>
         </div>
       </section>
