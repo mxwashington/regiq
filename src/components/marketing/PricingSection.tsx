@@ -121,11 +121,6 @@ export const PricingSection: React.FC = () => {
           {plans.map((p) => (
             <Card key={p.id} className={`relative border-2 ${p.mostPopular ? 'border-primary shadow-lg scale-105' : 'border-primary/20'}`}>
               <CardHeader className="text-center">
-                {p.mostPopular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground px-3 py-1">MOST POPULAR</Badge>
-                  </div>
-                )}
                 <CardTitle className="text-2xl">{p.name}</CardTitle>
                 <CardDescription>{p.desc}</CardDescription>
               </CardHeader>
