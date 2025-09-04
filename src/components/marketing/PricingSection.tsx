@@ -156,7 +156,7 @@ export const PricingSection: React.FC = () => {
             </Card>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground text-center mt-4">7-day free trial on Starter and Professional. Cancel anytime.</p>
+        <p className="text-xs text-muted-foreground text-center mt-4">7-day free trial • Cancel before trial ends to avoid charges</p>
       </div>
     </section>
   );

@@ -114,7 +114,7 @@ const Pricing = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Pricing - RegIQ Plans: Starter, Professional, Enterprise</title>
-        <meta name="description" content="Flexible pricing for compliance teams. Starter $99, Professional $399, Enterprise $999. 7-day free trial on Starter and Professional." />
+        <meta name="description" content="Flexible pricing for compliance teams. Starter $99, Professional $399, Enterprise $999. 7-day free trial requires credit card." />
       </Helmet>
 
       {/* Header */}
@@ -325,7 +325,7 @@ const Pricing = () => {
             {[
               {
                 q: "Do you offer a free trial?",
-                a: "Yes. Try Starter or Professional free for 7 days. Cancel anytime in the portal."
+                a: "Yes. Try Starter or Professional free for 7 days. Credit card required - cancel before trial ends to avoid charges."
               },
               {
                 q: "What's the difference between plans?",
