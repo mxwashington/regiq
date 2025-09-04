@@ -193,13 +193,6 @@ const Pricing = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-8">
             {plans.map((plan) => (
               <Card key={plan.id} className={`relative w-full max-w-sm mx-auto ${plan.popular ? 'border-primary shadow-lg md:scale-105' : 'border-border'}`}>
-                {plan.popular && (
-                  <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
-                    <Badge className="bg-primary text-primary-foreground px-2 py-1 text-xs font-medium whitespace-nowrap">
-                      MOST POPULAR
-                    </Badge>
-                  </div>
-                )}
                 <CardHeader className="text-center pb-4 pt-6 px-4">
                   <CardTitle className="text-xl lg:text-2xl">{plan.name}</CardTitle>
                   <div className="mb-2">
