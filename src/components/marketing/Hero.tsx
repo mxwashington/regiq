@@ -46,7 +46,7 @@ export const Hero: React.FC = () => {
               </a>
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">14-day free trial • Cancel anytime • No credit card required</p>
+          <p className="text-sm text-muted-foreground">7-day free trial • Cancel anytime • No credit card required</p>
         </div>
       </div>
     </section>

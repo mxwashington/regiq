@@ -58,7 +58,7 @@ serve(async (req) => {
       enterprise: { amount: 79900, name: "RegIQ Enterprise" },
     };
     const selectedPlan = planMap[normalized] || planMap.professional;
-    logStep("Plan selected", { amount_cents: selectedPlan.amount, name: selectedPlan.name, trial_days: 14 });
+    logStep("Plan selected", { amount_cents: selectedPlan.amount, name: selectedPlan.name, trial_days: 7 });
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
@@ -82,7 +82,7 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      subscription_data: { trial_period_days: 14 },
+      subscription_data: { trial_period_days: 7 },
       success_url: `${req.headers.get("origin")}/payment-success`,
       cancel_url: `${req.headers.get("origin")}/payment-canceled`,
     });
