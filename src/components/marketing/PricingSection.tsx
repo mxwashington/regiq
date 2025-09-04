@@ -49,6 +49,8 @@ export const PricingSection: React.FC = () => {
         '5 supplier watches',
         '200 AI queries/month',
         '6-month history',
+        'Task Management',
+        'Compliance Calendar',
       ],
     },
     {
@@ -61,11 +63,16 @@ export const PricingSection: React.FC = () => {
       to: '/pricing?plan=professional',
       mostPopular: true,
       features: [
+        'Everything in Starter, plus:',
         'Up to 3 facilities',
         'Up to 10 users',
         '25 supplier watches',
         '1,000 AI queries/month',
         '12-month history',
+        'AI Compliance Assistant',
+        'Enhanced Analytics',
+        'Supplier Risk Monitoring',
+        'Regulatory Impact Analysis',
       ],
     },
     {
@@ -77,8 +84,12 @@ export const PricingSection: React.FC = () => {
       cta: 'Contact Sales',
       to: '/pricing?plan=enterprise',
       features: [
+        'Everything in Professional, plus:',
         'Unlimited facilities/users',
         'Unlimited suppliers/queries',
+        'Advanced Workflows',
+        'Predictive Risk Modeling',
+        'Custom Data Sources',
         'Full API + webhooks',
         'SSO integration',
         '99.9% uptime SLA',
@@ -89,9 +100,10 @@ export const PricingSection: React.FC = () => {
   return (
     <section id="pricing" className="py-8 md:py-12 px-4 bg-muted/20">
       <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold hyphens-none break-words">Simple, Transparent Pricing</h2>
-          <div className="flex flex-col items-center gap-4 mt-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold hyphens-none break-words">Simple, Transparent Pricing</h2>
+            <p className="text-muted-foreground mt-2 mb-4">All plans include our new Task Management & Compliance Calendar features</p>
+            <div className="flex flex-col items-center gap-4 mt-4">
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground">• Save 195 hours annually on regulatory searches</p>
               <p className="text-sm text-muted-foreground">• Reduce compliance costs by $40,000+ per year</p>

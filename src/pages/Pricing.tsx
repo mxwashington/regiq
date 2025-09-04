@@ -63,6 +63,8 @@ const Pricing = () => {
         '5 supplier watches',
         '200 AI queries/month',
         '6-month alert history',
+        'Task Management System',
+        'Compliance Calendar',
         'Email support',
         'Basic exports (10/month)'
       ],
@@ -76,11 +78,16 @@ const Pricing = () => {
       annualPrice: 319,
       description: 'Ideal for growing compliance teams',
       features: [
+        'Everything in Starter, plus:',
         'Up to 3 facilities',
         'Up to 10 users',
         '25 supplier watches',
         '1,000 AI queries/month',
         '12-month alert history',
+        'AI Compliance Assistant',
+        'Enhanced Analytics Dashboard',
+        'Supplier Risk Monitoring',
+        'Regulatory Impact Analysis',
         'Email + chat support',
         'Unlimited exports',
         'Basic API access'
@@ -95,11 +102,15 @@ const Pricing = () => {
       annualPrice: 799,
       description: 'For large organizations with complex needs',
       features: [
+        'Everything in Professional, plus:',
         'Unlimited facilities',
         'Unlimited users',
         'Unlimited supplier watches',
         'Unlimited AI queries',
         'Complete alert archive',
+        'Advanced Compliance Workflows',
+        'Predictive Risk Modeling',
+        'Custom Data Sources',
         'Phone + email + chat support',
         'Full API + webhooks',
         'SSO integration',
@@ -259,6 +270,42 @@ const Pricing = () => {
               </thead>
               <tbody>
                 <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Task Management</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Compliance Calendar</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">AI Compliance Assistant</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Enhanced Analytics</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Supplier Risk Monitoring</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Regulatory Impact Analysis</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-background">
                   <td className="border border-border p-4 font-medium">Facilities</td>
                   <td className="border border-border p-4 text-center">1</td>
                   <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Up to 3</td>
@@ -324,8 +371,8 @@ const Pricing = () => {
                 a: "Yes. Try Starter or Professional free for 7 days. Credit card required - cancel before trial ends to avoid charges."
               },
               {
-                q: "What's the difference between plans?",
-                a: "Starter ($99) is for single facilities with up to 3 users. Professional ($399) supports up to 3 facilities and 10 users. Enterprise ($999) offers unlimited scale with API access and SSO."
+                q: "What features are included in each plan?",
+                a: "Starter ($99) includes Task Management and Compliance Calendar. Professional ($399) adds AI Assistant, Enhanced Analytics, Supplier Risk Monitoring, and Regulatory Impact Analysis. Enterprise ($999) includes all features plus advanced workflows and predictive modeling."
               },
               {
                 q: "Do you have API access?",

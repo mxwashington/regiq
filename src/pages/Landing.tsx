@@ -171,6 +171,100 @@ const Landing = () => {
 
       
 
+      {/* NEW FEATURES ANNOUNCEMENT */}
+      <section id="new-features" className="py-8 md:py-12 px-4 bg-gradient-to-r from-primary/10 to-secondary/10 border-y">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-6">
+            <Badge variant="default" className="mb-2">🚀 NEW FEATURES</Badge>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Just Launched: Complete Compliance Management Suite</h2>
+            <p className="text-muted-foreground text-base md:text-lg">Everything you need to manage regulatory compliance in one platform</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">ALL PLANS</Badge>
+                </div>
+                <CardTitle className="text-lg">Task Management System</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Create, assign, and track compliance tasks with deadlines and priority levels.</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">ALL PLANS</Badge>
+                </div>
+                <CardTitle className="text-lg">Compliance Calendar</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Never miss a deadline with automated reminders and recurring compliance tasks.</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                </div>
+                <CardTitle className="text-lg">AI Compliance Assistant</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Get instant answers to complex regulatory questions with AI-powered intelligence.</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                </div>
+                <CardTitle className="text-lg">Enhanced Analytics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Compliance maturity scoring, cost analysis, and industry benchmarking.</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                </div>
+                <CardTitle className="text-lg">Supplier Risk Monitoring</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Automated risk scoring for your suppliers based on regulatory alerts.</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                </div>
+                <CardTitle className="text-lg">Regulatory Impact Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">AI-powered business impact scoring with actionable recommendations.</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="text-center mt-6">
+            <Button size="lg" asChild>
+              <Link to="/pricing">
+                View All Features & Pricing
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
       <PricingSection />
 
       <ROICalculator />
