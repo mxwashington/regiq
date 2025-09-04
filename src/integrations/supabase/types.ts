@@ -326,6 +326,155 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_deadlines: {
+        Row: {
+          agency: string
+          completion_date: string | null
+          completion_notes: string | null
+          created_at: string
+          deadline_date: string
+          deadline_time: string | null
+          description: string | null
+          facility_id: string | null
+          id: string
+          next_occurrence: string | null
+          priority: string | null
+          recurrence_interval: number | null
+          recurrence_type: string | null
+          regulation_reference: string | null
+          reminder_days: number[] | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency: string
+          completion_date?: string | null
+          completion_notes?: string | null
+          created_at?: string
+          deadline_date: string
+          deadline_time?: string | null
+          description?: string | null
+          facility_id?: string | null
+          id?: string
+          next_occurrence?: string | null
+          priority?: string | null
+          recurrence_interval?: number | null
+          recurrence_type?: string | null
+          regulation_reference?: string | null
+          reminder_days?: number[] | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency?: string
+          completion_date?: string | null
+          completion_notes?: string | null
+          created_at?: string
+          deadline_date?: string
+          deadline_time?: string | null
+          description?: string | null
+          facility_id?: string | null
+          id?: string
+          next_occurrence?: string | null
+          priority?: string | null
+          recurrence_interval?: number | null
+          recurrence_type?: string | null
+          regulation_reference?: string | null
+          reminder_days?: number[] | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      compliance_reminders: {
+        Row: {
+          acknowledged_at: string | null
+          days_before: number
+          deadline_id: string
+          id: string
+          reminder_type: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          days_before: number
+          deadline_id: string
+          id?: string
+          reminder_type: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          days_before?: number
+          deadline_id?: string
+          id?: string
+          reminder_type?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_reminders_deadline_id_fkey"
+            columns: ["deadline_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_deadlines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_templates: {
+        Row: {
+          agency: string
+          category: string | null
+          created_at: string
+          default_priority: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          recurrence_type: string | null
+          regulation_reference: string | null
+          title: string
+          typical_deadline_months: number[] | null
+        }
+        Insert: {
+          agency: string
+          category?: string | null
+          created_at?: string
+          default_priority?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          recurrence_type?: string | null
+          regulation_reference?: string | null
+          title: string
+          typical_deadline_months?: number[] | null
+        }
+        Update: {
+          agency?: string
+          category?: string | null
+          created_at?: string
+          default_priority?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          recurrence_type?: string | null
+          regulation_reference?: string | null
+          title?: string
+          typical_deadline_months?: number[] | null
+        }
+        Relationships: []
+      }
       cookie_consents: {
         Row: {
           analytics: boolean

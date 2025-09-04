@@ -27,6 +27,7 @@ export const usePlanRestrictions = () => {
       regulatory_impact_analysis: ['professional', 'enterprise'], 
       supplier_risk_monitoring: ['professional', 'enterprise'],
       task_management: ['starter', 'professional', 'enterprise'],
+      compliance_calendar: ['starter', 'professional', 'enterprise'],
       compliance_workflows: ['enterprise'],
       predictive_risk_modeling: ['enterprise'],
       api_access: ['enterprise'],

@@ -154,6 +154,7 @@ const PWAApp = () => {
               <Route path="/search" element={<AuthGuard><SearchPage /></AuthGuard>} />
               <Route path="/compliance-assistant" element={<AuthGuard><ComplianceAssistantPage /></AuthGuard>} />
               <Route path="/tasks" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/TaskManagement")))}</AuthGuard>} />
+              <Route path="/calendar" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/ComplianceCalendar")))}</AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<Account />} />
               <Route path="/suppliers" element={<AuthGuard><Suppliers /></AuthGuard>} />
