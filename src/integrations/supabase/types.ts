@@ -1261,6 +1261,92 @@ export type Database = {
           },
         ]
       }
+      task_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          alert_id: string | null
+          assigned_by: string | null
+          assigned_to: string | null
+          category: string | null
+          completion_date: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_id?: string | null
+          assigned_by?: string | null
+          assigned_to?: string | null
+          category?: string | null
+          completion_date?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_id?: string | null
+          assigned_by?: string | null
+          assigned_to?: string | null
+          category?: string | null
+          completion_date?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       taxonomy_categories: {
         Row: {
           created_at: string
@@ -1322,6 +1408,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      team_members: {
+        Row: {
+          id: string
+          invited_at: string
+          joined_at: string | null
+          member_email: string
+          member_name: string | null
+          role: string | null
+          status: string | null
+          team_owner: string
+        }
+        Insert: {
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          member_email: string
+          member_name?: string | null
+          role?: string | null
+          status?: string | null
+          team_owner: string
+        }
+        Update: {
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          member_email?: string
+          member_name?: string | null
+          role?: string | null
+          status?: string | null
+          team_owner?: string
+        }
+        Relationships: []
       }
       usage_logs: {
         Row: {
