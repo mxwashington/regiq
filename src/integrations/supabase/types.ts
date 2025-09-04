@@ -1547,6 +1547,10 @@ export type Database = {
           usage_limit: number
         }[]
       }
+      get_security_status_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       grant_admin_permission: {
         Args: { permission_name: string; target_user_id: string }
         Returns: undefined
