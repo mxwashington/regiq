@@ -171,13 +171,13 @@ const Landing = () => {
 
       
 
-      {/* NEW FEATURES ANNOUNCEMENT */}
-      <section id="new-features" className="py-8 md:py-12 px-4 bg-gradient-to-r from-primary/10 to-secondary/10 border-y">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-6">
-            <Badge variant="default" className="mb-2">🚀 NEW FEATURES</Badge>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Just Launched: Complete Compliance Management Suite</h2>
-            <p className="text-muted-foreground text-base md:text-lg">Everything you need to manage regulatory compliance in one platform</p>
+      {/* NEW FEATURES ANNOUNCEMENT - MOVED UP FOR PROMINENCE */}
+      <section id="new-features" className="py-12 md:py-16 px-4 bg-gradient-to-br from-primary/20 via-secondary/10 to-primary/10 border-y-2 border-primary/20">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-8">
+            <Badge variant="default" className="mb-4 text-base px-4 py-2">🚀 NEW: Complete Compliance Suite</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">6 Powerful New Features Just Launched</h2>
+            <p className="text-muted-foreground text-lg md:text-xl">Task Management • Compliance Calendar • AI Assistant • Enhanced Analytics • Supplier Risk Monitoring • Regulatory Impact Analysis</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -254,13 +254,14 @@ const Landing = () => {
             </Card>
           </div>
           
-          <div className="text-center mt-6">
-            <Button size="lg" asChild>
+          <div className="text-center mt-8">
+            <Button size="lg" className="mb-2" asChild>
               <Link to="/pricing">
-                View All Features & Pricing
+                Start 7-Day Free Trial - All Features Included
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
+            <p className="text-sm text-muted-foreground">No credit card required • Cancel anytime</p>
           </div>
         </div>
       </section>
