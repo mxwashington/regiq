@@ -100,7 +100,7 @@ export const useComplianceAnalytics = () => {
         .limit(10);
 
       if (error) throw error;
-      setReports(data || []);
+      setReports((data || []) as AnalyticsReport[]);
     } catch (error) {
       console.error('Error fetching reports:', error);
     }
