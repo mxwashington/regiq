@@ -129,11 +129,11 @@ export const PricingSection: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3 pt-4">
           {plans.map((p) => (
             <Card key={p.id} className={`relative border-2 ${p.mostPopular ? 'border-primary shadow-lg scale-105' : 'border-primary/20'}`}>
               {p.mostPopular && (
-                <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground z-10">
                   Most Popular
                 </Badge>
               )}
