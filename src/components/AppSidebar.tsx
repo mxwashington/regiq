@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Search, Bell, Building2, TrendingUp, User, BookOpen, Brain, CheckSquare, Calendar, BarChart3 } from 'lucide-react';
+import { Home, Search, Bell, Building2, TrendingUp, User, BookOpen, Brain, CheckSquare, Calendar, BarChart3, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -36,6 +36,8 @@ export function AppSidebar() {
     { path: '/tasks', icon: CheckSquare, label: 'Task Management', badge: 'NEW' },
     { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
     { path: '/analytics', icon: BarChart3, label: 'Advanced Analytics', badge: 'PRO' },
+    { path: '/supplier-risk', icon: Shield, label: 'Supplier Risk', badge: 'PRO' },
+    { path: '/regulatory-impact', icon: TrendingUp, label: 'Regulatory Impact', badge: 'PRO' },
     { path: '/suppliers', icon: Building2, label: 'Suppliers' },
     { path: '/risk-predictor', icon: TrendingUp, label: 'Risk' },
     { path: '/blog', icon: BookOpen, label: 'Blog' },
