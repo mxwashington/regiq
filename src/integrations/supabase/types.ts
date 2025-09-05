@@ -2099,6 +2099,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: number
       }
+      secure_api_key_access: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       should_extend_session: {
         Args: { current_ip?: unknown; user_id_param: string }
         Returns: boolean
