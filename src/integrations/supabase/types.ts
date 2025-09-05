@@ -1923,6 +1923,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_current_security_status: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       check_enhanced_rate_limit: {
         Args: {
           endpoint_param: string
@@ -1995,6 +1999,10 @@ export type Database = {
         }[]
       }
       get_security_dashboard: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_security_implementation_summary: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
