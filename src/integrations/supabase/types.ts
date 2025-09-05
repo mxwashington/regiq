@@ -1982,6 +1982,10 @@ export type Database = {
           user_growth: Json
         }[]
       }
+      get_api_rate_limit: {
+        Args: { user_uuid: string }
+        Returns: number
+      }
       get_feature_usage: {
         Args: { feature_name_param: string; user_id_param: string }
         Returns: {
@@ -1989,6 +1993,10 @@ export type Database = {
           is_unlimited: boolean
           usage_limit: number
         }[]
+      }
+      get_security_dashboard: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_security_status_summary: {
         Args: Record<PropertyKey, never>
@@ -2004,6 +2012,10 @@ export type Database = {
       }
       has_enterprise_feature: {
         Args: { feature_name_param: string; user_id_param: string }
+        Returns: boolean
+      }
+      is_account_locked: {
+        Args: { user_email: string }
         Returns: boolean
       }
       is_admin: {
@@ -2081,6 +2093,10 @@ export type Database = {
           status_text: string
           updated_count: number
         }
+        Returns: undefined
+      }
+      log_suspicious_activity: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       provision_enterprise_api_key: {
