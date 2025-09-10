@@ -38,6 +38,7 @@ export const MobileFirstPricingSection: React.FC = () => {
       description: 'Real-time regulatory alerts for one facility',
       highlight: true,
       features: [
+        { name: '1 User', included: true },
         { name: '1 Facility', included: true },
         { name: 'Email Alerts', included: true },
         { name: 'Basic Categories (Critical/High/Medium/Low)', included: true },
@@ -58,6 +59,7 @@ export const MobileFirstPricingSection: React.FC = () => {
       description: 'AI-powered regulatory intelligence',
       popular: true,
       features: [
+        { name: '3 Users', included: true },
         { name: '3 Facilities', included: true },
         { name: 'Email + Mobile Alerts', included: true },
         { name: 'All Categories + Advanced Filters', included: true },
@@ -80,6 +82,7 @@ export const MobileFirstPricingSection: React.FC = () => {
       annualSavings: 798,
       description: 'Advanced analytics and compliance tools',
       features: [
+        { name: '10 Users', included: true },
         { name: 'Unlimited Facilities', included: true },
         { name: 'All Starter Features', included: true },
         { name: 'Advanced Analytics', included: true },
@@ -102,6 +105,7 @@ export const MobileFirstPricingSection: React.FC = () => {
       annualSavings: 1998,
       description: 'Full platform with API access',
       features: [
+        { name: 'Unlimited Users', included: true },
         { name: 'Everything in Professional', included: true },
         { name: 'Full API Access', included: true },
         { name: 'White-label Options', included: true },
