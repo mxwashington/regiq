@@ -38,9 +38,9 @@ export const TrialStatusIndicator: React.FC = () => {
   }
 
   return (
-    <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-      <CheckCircle className="h-3 w-3 mr-1" />
-      {daysRemaining} day trial
-    </Badge>
+      <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+        <CheckCircle className="h-3 w-3 mr-1" />
+        Trial: {daysRemaining}d left
+      </Badge>
   );
 };

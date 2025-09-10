@@ -10,7 +10,7 @@ export const Welcome: React.FC<{ onNext: () => void }>=({ onNext })=>{
         <CardDescription>
           Let's personalize your alerts. This takes under 2 minutes.
           <br />
-          <strong className="text-primary">Your 14-day free trial starts now!</strong>
+          <strong className="text-primary">Your 7-day free trial starts now!</strong>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

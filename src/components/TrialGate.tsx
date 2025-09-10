@@ -38,7 +38,7 @@ export const TrialGate: React.FC<TrialGateProps> = ({
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-muted-foreground">
-            Your 14-day free trial has ended. Upgrade to RegIQ Starter to continue accessing {feature} and all premium features.
+            Your 7-day free trial has ended. Upgrade to RegIQ Starter to continue accessing {feature} and all premium features.
           </p>
           
           <div className="bg-muted rounded-lg p-4">

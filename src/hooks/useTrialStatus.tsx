@@ -14,7 +14,7 @@ export const useTrialStatus = () => {
   const { user } = useAuth();
   const [trialStatus, setTrialStatus] = useState<TrialStatus>({
     isTrialExpired: false,
-    daysRemaining: 14,
+    daysRemaining: 7,
     trialEndsAt: null,
     subscriptionStatus: 'trial',
     loading: true
@@ -67,7 +67,7 @@ export const useTrialStatus = () => {
     try {
       const trialStartsAt = new Date();
       const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialStartsAt.getDate() + 14); // 14-day trial
+      trialEndsAt.setDate(trialStartsAt.getDate() + 7); // 7-day trial
 
       const { error } = await supabase
         .from('profiles')

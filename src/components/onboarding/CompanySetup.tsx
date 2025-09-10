@@ -19,7 +19,7 @@ export const CompanySetup: React.FC<{ onNext: () => void }>=({ onNext })=>{
       // Start trial period for new users
       const trialStartsAt = new Date();
       const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialStartsAt.getDate() + 14); // 14-day trial
+      trialEndsAt.setDate(trialStartsAt.getDate() + 7); // 7-day trial
 
       await supabase.from('profiles').upsert({ 
         user_id: user.id, 
@@ -29,7 +29,7 @@ export const CompanySetup: React.FC<{ onNext: () => void }>=({ onNext })=>{
         trial_ends_at: trialEndsAt.toISOString(),
         subscription_status: 'trial'
       });
-      toast.success('Company saved - Your 14-day trial has started!');
+      toast.success('Company saved - Your 7-day trial has started!');
       onNext();
     } catch (e) {
       console.error(e);
