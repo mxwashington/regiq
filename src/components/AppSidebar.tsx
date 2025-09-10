@@ -30,16 +30,16 @@ export function AppSidebar() {
 
   const navItems: NavItem[] = [
     { path: '/', icon: Home, label: 'Home' },
-    { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
-    { path: '/dashboard', icon: Bell, label: 'Alerts' },
-    { path: '/compliance-assistant', icon: Brain, label: 'AI Assistant', badge: 'ENT' },
-    { path: '/tasks', icon: CheckSquare, label: 'Task Management', badge: 'NEW' },
-    { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
     { path: '/analytics', icon: BarChart3, label: 'Advanced Analytics', badge: 'PRO' },
-    { path: '/supplier-risk', icon: Shield, label: 'Supplier Risk', badge: 'PRO' },
-    { path: '/regulatory-impact', icon: TrendingUp, label: 'Regulatory Impact', badge: 'PRO' },
-    { path: '/suppliers', icon: Building2, label: 'Suppliers' },
+    { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
+    { path: '/compliance-assistant', icon: Brain, label: 'AI Assistant', badge: 'ENT' },
+    { path: '/dashboard', icon: Bell, label: 'Alerts' },
     { path: '/blog', icon: BookOpen, label: 'Blog' },
+    { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
+    { path: '/regulatory-impact', icon: TrendingUp, label: 'Regulatory Impact', badge: 'PRO' },
+    { path: '/supplier-risk', icon: Shield, label: 'Supplier Risk', badge: 'PRO' },
+    { path: '/suppliers', icon: Building2, label: 'Suppliers' },
+    { path: '/tasks', icon: CheckSquare, label: 'Task Management', badge: 'NEW' },
     { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
   ];
 
