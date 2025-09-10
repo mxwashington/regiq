@@ -209,7 +209,7 @@ export const MobileFirstPricingSection: React.FC = () => {
             >
               {/* Popular Badge */}
               {tier.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
                   <Badge className="bg-primary text-primary-foreground px-4 py-1.5 shadow-md">
                     <Crown className="w-3 h-3 mr-1" />
                     Most Popular
@@ -219,7 +219,7 @@ export const MobileFirstPricingSection: React.FC = () => {
 
               {/* New Badge */}
               {tier.highlight && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
                   <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-700 px-4 py-1.5 shadow-md">
                     <Zap className="w-3 h-3 mr-1" />
                     New
@@ -227,7 +227,7 @@ export const MobileFirstPricingSection: React.FC = () => {
                 </div>
               )}
 
-              <CardHeader className="text-center pb-4 pt-8">
+              <CardHeader className="text-center pb-4 pt-12">
                 <CardTitle className="text-xl lg:text-2xl font-bold mb-3">
                   {tier.name}
                 </CardTitle>
