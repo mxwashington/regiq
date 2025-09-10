@@ -16,8 +16,20 @@ export const CompanySetup: React.FC<{ onNext: () => void }>=({ onNext })=>{
     if (!user) return onNext();
     setLoading(true);
     try {
-      await supabase.from('profiles').upsert({ user_id: user.id, email: user.email as string, company });
-      toast.success('Company saved');
+      // Start trial period for new users
+      const trialStartsAt = new Date();
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialStartsAt.getDate() + 14); // 14-day trial
+
+      await supabase.from('profiles').upsert({ 
+        user_id: user.id, 
+        email: user.email as string, 
+        company,
+        trial_starts_at: trialStartsAt.toISOString(),
+        trial_ends_at: trialEndsAt.toISOString(),
+        subscription_status: 'trial'
+      });
+      toast.success('Company saved - Your 14-day trial has started!');
       onNext();
     } catch (e) {
       console.error(e);

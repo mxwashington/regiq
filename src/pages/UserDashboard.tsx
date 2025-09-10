@@ -22,6 +22,9 @@ import RiskPredictorPage from './RiskPredictorPage';
 import RiskDashboardPage from './RiskDashboardPage';
 import SupportWidget from '@/components/account/SupportWidget';
 import { AVAILABLE_AGENCIES, getAgencyDisplayName, doesSourceMatchAgency } from '@/lib/agencies';
+import { TrialBanner } from '@/components/TrialBanner';
+import { TrialGate } from '@/components/TrialGate';
+import { TrialStatusIndicator } from '@/components/TrialStatusIndicator';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -139,48 +142,54 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/" className="flex items-center space-x-2">
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Home</span>
-              </Link>
-            </Button>
-            <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <span className="font-bold text-2xl">RegIQ</span>
+    <TrialGate feature="your dashboard and alerts">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5">
+        {/* Header */}
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/" className="flex items-center space-x-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Home</span>
+                </Link>
+              </Button>
+              <div className="flex items-center space-x-2">
+                <Shield className="h-8 w-8 text-primary" />
+                <span className="font-bold text-2xl">RegIQ</span>
+              </div>
             </div>
+        <nav className="flex items-center space-x-4">
+          <TrialStatusIndicator />
+          <Badge variant="secondary" className="hidden md:flex">
+            Welcome, {user?.email}
+          </Badge>
+              <Button 
+                variant="default" 
+                size="sm" 
+                asChild 
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md px-3 md:px-4"
+              >
+                <Link to="/search" className="flex items-center gap-1.5 md:gap-2">
+                  <Search className="h-4 w-4 shrink-0" />
+                  <span>Advanced Search</span>
+                  <Badge variant="secondary" className="bg-white/20 text-white text-xs px-1.5 py-0.5 shrink-0">
+                    PRO
+                  </Badge>
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                Sign Out
+              </Button>
+            </nav>
           </div>
-          <nav className="flex items-center space-x-4">
-            <Badge variant="secondary" className="hidden md:flex">
-              Welcome, {user?.email}
-            </Badge>
-            <Button 
-              variant="default" 
-              size="sm" 
-              asChild 
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md px-3 md:px-4"
-            >
-              <Link to="/search" className="flex items-center gap-1.5 md:gap-2">
-                <Search className="h-4 w-4 shrink-0" />
-                <span>Advanced Search</span>
-                <Badge variant="secondary" className="bg-white/20 text-white text-xs px-1.5 py-0.5 shrink-0">
-                  PRO
-                </Badge>
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              Sign Out
-            </Button>
-          </nav>
-        </div>
-      </header>
+        </header>
 
-      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">{/* Extra padding bottom for mobile nav */}
+        <div className="container mx-auto px-4 py-4">
+          <TrialBanner />
+        </div>
+
+        <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">{/* Extra padding bottom for mobile nav */}
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Your Regulatory Dashboard</h1>
@@ -688,7 +697,8 @@ const UserDashboard = () => {
       {/* Support Widget */}
       <SupportWidget />
     </div>
-  );
+  </TrialGate>
+);
 };
 
 export default UserDashboard;
