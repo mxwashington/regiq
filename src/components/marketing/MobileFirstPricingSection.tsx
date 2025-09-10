@@ -191,7 +191,7 @@ export const MobileFirstPricingSection: React.FC = () => {
         </div>
 
         {/* Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mt-16">
           {tiers.map((tier, index) => (
             <Card 
               key={tier.id}
