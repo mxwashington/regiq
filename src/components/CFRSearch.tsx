@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
 import { 
   Search, 
   Loader2, 
@@ -43,8 +45,17 @@ export function CFRSearch() {
   const [showCitationBuilder, setShowCitationBuilder] = useState(false);
 
   const { toast } = useToast();
+  const { getFeatureValue } = useEntitlements();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleQuickSearch = async (quickType: 'food_safety' | 'gmp' | 'haccp' | 'labeling' | 'medical_devices') => {
+    // Check if user has query access
+    const queryLimit = getFeatureValue('queries_per_month') || 0;
+    if (queryLimit === 0) {
+      setShowPaywall(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResults(null);
@@ -122,6 +133,13 @@ export function CFRSearch() {
         description: "Please enter a search query or CFR citation.",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Check if user has query access
+    const queryLimit = getFeatureValue('queries_per_month') || 0;
+    if (queryLimit === 0) {
+      setShowPaywall(true);
       return;
     }
 
@@ -624,6 +642,14 @@ export function CFRSearch() {
           ))}
         </div>
       )}
+
+      {/* Upgrade Paywall */}
+      <FeaturePaywall
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        feature="search_queries"
+        context="You need a paid plan to use search queries. Essential Alerts only includes alerts, not search functionality."
+      />
     </div>
   );
 }

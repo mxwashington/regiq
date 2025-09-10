@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
 import { 
   Search, 
   Loader2, 
@@ -59,6 +61,8 @@ export function CombinedSearch() {
 
   const { session } = useAuth();
   const { toast } = useToast();
+  const { getFeatureValue } = useEntitlements();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleCombinedSearch = async () => {
     if (!query.trim() || !session) {
@@ -67,6 +71,13 @@ export function CombinedSearch() {
         description: "Please enter a search query and ensure you're signed in.",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Check if user has query access
+    const queryLimit = getFeatureValue('queries_per_month') || 0;
+    if (queryLimit === 0) {
+      setShowPaywall(true);
       return;
     }
 
@@ -502,6 +513,14 @@ export function CombinedSearch() {
           </div>
         </div>
       )}
+
+      {/* Upgrade Paywall */}
+      <FeaturePaywall
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        feature="search_queries"
+        context="You need a paid plan to use search queries. Essential Alerts only includes alerts, not search functionality."
+      />
     </div>
   );
 }

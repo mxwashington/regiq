@@ -2,14 +2,14 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Sparkles, Smartphone, BarChart3, Building, Clock, ArrowRight } from 'lucide-react';
+import { X, Sparkles, Smartphone, BarChart3, Building, Clock, ArrowRight, Search } from 'lucide-react';
 import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface FeaturePaywallProps {
   isOpen: boolean;
   onClose: () => void;
-  feature: 'ai_assistant' | 'mobile_app' | 'advanced_analytics' | 'multi_facility' | 'unlimited_history' | 'advanced_filters';
+  feature: 'ai_assistant' | 'mobile_app' | 'advanced_analytics' | 'multi_facility' | 'unlimited_history' | 'advanced_filters' | 'search_queries';
   context?: string;
 }
 
@@ -78,6 +78,17 @@ const featureConfig = {
       'Saved filter presets',
       'Boolean search operators',
       'Custom date ranges'
+    ]
+  },
+  search_queries: {
+    icon: <Search className="w-6 h-6" />,
+    title: 'Search Queries',
+    description: 'Powerful regulatory database search with AI-enhanced results',
+    benefits: [
+      'Search FDA, USDA, EPA databases',
+      'AI-powered search suggestions',
+      'Real-time regulatory intelligence',
+      'Professional search tools'
     ]
   }
 };

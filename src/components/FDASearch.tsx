@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import { fdaApi, FDAResponse, FDAEnforcementResult, FDAEventResult, FDAShortageResult } from '@/lib/fda-api';
 import { fdaQueryHelper, QuerySuggestion, QueryValidation } from '@/lib/fda-query-helper';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
 
 interface FDASearchFilters {
   endpoint: string;
@@ -71,6 +73,8 @@ export function FDASearch() {
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
+  const { getFeatureValue } = useEntitlements();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const endpoints = [
     { id: 'all_enforcement', name: 'All Enforcement Actions', icon: Shield },
@@ -91,6 +95,13 @@ export function FDASearch() {
   ];
 
   const handleQuickSearch = async (quickType: 'recent' | 'classI' | 'listeria' | 'shortages') => {
+    // Check if user has query access
+    const queryLimit = getFeatureValue('queries_per_month') || 0;
+    if (queryLimit === 0) {
+      setShowPaywall(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResults([]);
@@ -159,6 +170,13 @@ export function FDASearch() {
         description: "Please enter a search query.",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Check if user has query access
+    const queryLimit = getFeatureValue('queries_per_month') || 0;
+    if (queryLimit === 0) {
+      setShowPaywall(true);
       return;
     }
 
@@ -854,6 +872,14 @@ export function FDASearch() {
           ))}
         </div>
       )}
+
+      {/* Upgrade Paywall */}
+      <FeaturePaywall
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        feature="search_queries"
+        context="You need a paid plan to use search queries. Essential Alerts only includes alerts, not search functionality."
+      />
     </div>
   );
 }
