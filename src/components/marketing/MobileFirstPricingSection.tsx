@@ -204,7 +204,7 @@ export const MobileFirstPricingSection: React.FC = () => {
                 "animate-fade-in pt-6",
                 tier.popular && "md:scale-105 lg:scale-110 shadow-lg ring-2 ring-primary/20",
                 tier.highlight && "border-orange-200 bg-gradient-to-br from-orange-50/50 to-background",
-                "hover:scale-[1.02] active:scale-95 touch-none"
+                "md:hover:scale-[1.02] transition-transform duration-200"
               )}
               style={{ 
                 animationDelay: `${index * 150}ms`,
