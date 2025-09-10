@@ -33,7 +33,7 @@ export const AlertsOnlyPricingSection: React.FC = () => {
       id: 'alerts_only',
       name: 'Essential Alerts',
       price: 10,
-      annualPrice: 99,
+      annualPrice: 100,
       description: 'Real-time regulatory alerts for one facility',
       highlight: true,
       features: [
@@ -55,7 +55,7 @@ export const AlertsOnlyPricingSection: React.FC = () => {
       id: 'starter',
       name: 'Starter',
       price: 99,
-      annualPrice: 999,
+      annualPrice: 990,
       description: 'AI-powered regulatory intelligence',
       popular: true,
       features: [
@@ -77,7 +77,7 @@ export const AlertsOnlyPricingSection: React.FC = () => {
       id: 'professional',
       name: 'Professional',
       price: 399,
-      annualPrice: 3999,
+      annualPrice: 3990,
       description: 'Advanced analytics and compliance tools',
       features: [
         { name: 'Unlimited Facilities', included: true },
@@ -98,7 +98,7 @@ export const AlertsOnlyPricingSection: React.FC = () => {
       id: 'enterprise',
       name: 'Enterprise',
       price: 999,
-      annualPrice: 9999,
+      annualPrice: 9990,
       description: 'Full platform with API access',
       features: [
         { name: 'Everything in Professional', included: true },
@@ -155,7 +155,7 @@ export const AlertsOnlyPricingSection: React.FC = () => {
               )} />
             </button>
             <span className={cn("text-sm", isAnnual && "font-semibold")}>
-              Annual <Badge variant="secondary" className="ml-1">Save 17%</Badge>
+              Annual <Badge variant="secondary" className="ml-1">2 months free</Badge>
             </span>
           </div>
         </div>

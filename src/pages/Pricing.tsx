@@ -55,7 +55,7 @@ const Pricing = () => {
       id: 'alerts_only',
       name: 'Essential Alerts',
       monthlyPrice: 10,
-      annualPrice: 99,
+      annualPrice: 100,
       description: 'Real-time regulatory alerts for one facility',
       features: [
         '1 Facility',
@@ -73,7 +73,7 @@ const Pricing = () => {
       id: 'starter',
       name: 'Starter',
       monthlyPrice: 99,
-      annualPrice: 79,
+      annualPrice: 990,
       description: 'Perfect for small teams monitoring single facilities',
       features: [
         '3 Facilities',
@@ -96,7 +96,7 @@ const Pricing = () => {
       id: 'professional',
       name: 'Professional',
       monthlyPrice: 399,
-      annualPrice: 319,
+      annualPrice: 3990,
       description: 'Advanced analytics and compliance tools',
       features: [
         'Everything in Starter, plus:',
@@ -121,7 +121,7 @@ const Pricing = () => {
       id: 'enterprise',
       name: 'Enterprise',
       monthlyPrice: 999,
-      annualPrice: 799,
+      annualPrice: 9990,
       description: 'Full platform with API access',
       features: [
         'Everything in Professional, plus:',
@@ -204,7 +204,7 @@ const Pricing = () => {
                 />
               </button>
               <span className={`text-sm ${isAnnual ? 'font-semibold' : 'text-muted-foreground'}`}>
-                Annual <span className="text-primary">(Save 20%)</span>
+                Annual <span className="text-primary">(2 months free)</span>
               </span>
             </div>
           </div>
