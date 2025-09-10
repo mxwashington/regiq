@@ -50,6 +50,42 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_delivery_queue: {
+        Row: {
+          alert_id: string
+          created_at: string
+          delivered_at: string | null
+          delivery_method: string
+          id: string
+          metadata: Json | null
+          scheduled_for: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          alert_id: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_method?: string
+          id?: string
+          metadata?: Json | null
+          scheduled_for?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          alert_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_method?: string
+          id?: string
+          metadata?: Json | null
+          scheduled_for?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       alert_interactions: {
         Row: {
           alert_id: string | null
@@ -119,6 +155,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      alert_preferences: {
+        Row: {
+          agencies: string[]
+          categories: string[]
+          created_at: string
+          delay_non_critical: boolean
+          email_frequency: string
+          id: string
+          max_daily_alerts: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agencies?: string[]
+          categories?: string[]
+          created_at?: string
+          delay_non_critical?: boolean
+          email_frequency?: string
+          id?: string
+          max_daily_alerts?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agencies?: string[]
+          categories?: string[]
+          created_at?: string
+          delay_non_critical?: boolean
+          email_frequency?: string
+          id?: string
+          max_daily_alerts?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       alert_reviews: {
         Row: {
@@ -362,6 +434,36 @@ export type Database = {
           setting_value?: Json
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      audit_events: {
+        Row: {
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1045,6 +1147,74 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_features: {
+        Row: {
+          created_at: string
+          feature_key: string
+          feature_value: Json
+          id: string
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          feature_value?: Json
+          id?: string
+          plan_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          feature_value?: Json
+          id?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_features_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["plan_id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          billing_interval: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          plan_id: string
+          price_cents: number
+          updated_at: string
+        }
+        Insert: {
+          billing_interval?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          plan_id: string
+          price_cents: number
+          updated_at?: string
+        }
+        Update: {
+          billing_interval?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          plan_id?: string
+          price_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           admin_permissions: string[] | null
@@ -1705,6 +1875,42 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_limits: {
+        Row: {
+          created_at: string
+          current_usage: number
+          feature_key: string
+          id: string
+          limit_value: number
+          period_end: string
+          period_start: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_usage?: number
+          feature_key: string
+          id?: string
+          limit_value: number
+          period_end?: string
+          period_start?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_usage?: number
+          feature_key?: string
+          id?: string
+          limit_value?: number
+          period_end?: string
+          period_start?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       usage_logs: {
         Row: {
           amount: number
@@ -1794,6 +2000,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_entitlements: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan_id: string
+          started_at: string
+          status: string
+          subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan_id: string
+          started_at?: string
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan_id?: string
+          started_at?: string
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_entitlements_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["plan_id"]
+          },
+        ]
       }
       user_interactions: {
         Row: {
@@ -1936,6 +2186,10 @@ export type Database = {
         }
         Returns: Json
       }
+      check_feature_access: {
+        Args: { feature: string; user_uuid: string }
+        Returns: boolean
+      }
       clean_expired_cache: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1969,6 +2223,10 @@ export type Database = {
       dismiss_alert_for_user: {
         Args: { alert_id: string; user_id: string }
         Returns: undefined
+      }
+      enforce_alert_limit: {
+        Args: { user_uuid: string }
+        Returns: boolean
       }
       generate_api_key: {
         Args: Record<PropertyKey, never>
@@ -2009,6 +2267,15 @@ export type Database = {
       get_security_status_summary: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_user_entitlements: {
+        Args: { user_uuid: string }
+        Returns: {
+          feature_key: string
+          feature_value: Json
+          plan_id: string
+          status: string
+        }[]
       }
       grant_admin_permission: {
         Args: { permission_name: string; target_user_id: string }
