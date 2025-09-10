@@ -26,7 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Hero } from "@/components/marketing/Hero";
 
-import { PricingSection } from "@/components/marketing/PricingSection";
+import { AlertsOnlyPricingSection } from "@/components/marketing/AlertsOnlyPricingSection";
 import { ROICalculator } from "@/components/marketing/ROICalculator";
 import { SocialProof } from "@/components/marketing/SocialProof";
 
@@ -266,7 +266,7 @@ const Landing = () => {
         </div>
       </section>
 
-      <PricingSection />
+      <AlertsOnlyPricingSection />
 
       <ROICalculator />
 

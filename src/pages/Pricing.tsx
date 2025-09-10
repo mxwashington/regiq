@@ -15,7 +15,7 @@ const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [isAnnual, setIsAnnual] = useState(false);
 
-  const handleStartTrial = async (tier: 'starter' | 'professional' | 'enterprise') => {
+  const handleStartTrial = async (tier: 'alerts_only' | 'starter' | 'professional' | 'enterprise') => {
     if (!user) {
       navigate('/auth');
       return;
@@ -52,55 +52,77 @@ const Pricing = () => {
 
   const plans = [
     {
+      id: 'alerts_only',
+      name: 'Essential Alerts',
+      monthlyPrice: 10,
+      annualPrice: 99,
+      description: 'Real-time regulatory alerts for one facility',
+      features: [
+        '1 Facility',
+        'Email Alerts',
+        'Basic Categories (Critical/High/Medium/Low)',
+        '30-day History',
+        '50 Alerts/day',
+        'Critical Alerts (Real-time)',
+        'Email support'
+      ],
+      cta: 'Start Essential Alerts',
+      popular: false
+    },
+    {
       id: 'starter',
       name: 'Starter',
       monthlyPrice: 99,
       annualPrice: 79,
       description: 'Perfect for small teams monitoring single facilities',
       features: [
-        '1 facility monitoring',
+        '3 Facilities',
         'Up to 3 users',
         '5 supplier watches',
         '200 AI queries/month',
         '6-month alert history',
         'Task Management System',
         'Compliance Calendar',
+        'AI Assistant',
+        'Mobile App',
+        'PDF Export',
         'Email support',
         'Basic exports (10/month)'
       ],
       cta: 'Start Free Trial',
-      popular: false
+      popular: true
     },
     {
       id: 'professional',
       name: 'Professional',
       monthlyPrice: 399,
       annualPrice: 319,
-      description: 'Ideal for growing compliance teams',
+      description: 'Advanced analytics and compliance tools',
       features: [
         'Everything in Starter, plus:',
-        'Up to 3 facilities',
+        'Unlimited Facilities',
         'Up to 10 users',
         '25 supplier watches',
         '1,000 AI queries/month',
         '12-month alert history',
-        'AI Compliance Assistant',
-        'Enhanced Analytics Dashboard',
+        'Advanced Analytics',
         'Supplier Risk Monitoring',
+        'Compliance Calendar',
+        'Team Collaboration',
         'Regulatory Impact Analysis',
         'Email + chat support',
         'Unlimited exports',
         'Basic API access'
       ],
-      cta: 'Start Free Trial',
-      popular: true
+      cta: 'Go Professional',
+      popular: false
     },
     {
       id: 'enterprise',
       name: 'Enterprise',
       monthlyPrice: 999,
       annualPrice: 799,
-      description: 'For large organizations with complex needs',
+      description: 'Full platform with API access',
       features: [
         'Everything in Professional, plus:',
         'Unlimited facilities',
@@ -108,13 +130,15 @@ const Pricing = () => {
         'Unlimited supplier watches',
         'Unlimited AI queries',
         'Complete alert archive',
-        'Advanced Compliance Workflows',
-        'Predictive Risk Modeling',
-        'Custom Data Sources',
-        'Phone + email + chat support',
-        'Full API + webhooks',
+        'Full API Access',
+        'White-label Options',
+        'Dedicated Success Manager',
+        'Custom SLAs',
+        'Advanced Security',
         'SSO integration',
-        '99.9% uptime SLA'
+        'Phone + email + chat support',
+        'Custom Reporting',
+        'Regulatory Consulting'
       ],
       cta: 'Contact Sales',
       popular: false
@@ -201,7 +225,7 @@ const Pricing = () => {
 <section className="pt-16 pb-8 px-4" id="pricing">
         <div className="container mx-auto max-w-6xl">
           {/* Mobile: Vertical stack, Desktop: Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mt-8">
             {plans.map((plan) => (
               <Card key={plan.id} className={`relative w-full max-w-sm mx-auto ${plan.popular ? 'border-primary shadow-lg md:scale-105' : 'border-border'}`}>
                 <CardHeader className="text-center pb-4 pt-6 px-4">
@@ -238,7 +262,7 @@ const Pricing = () => {
                         className="w-full"
                         size="sm"
                         variant={plan.popular ? "default" : "secondary"}
-                        onClick={() => handleStartTrial(plan.id as 'starter' | 'professional')}
+                        onClick={() => handleStartTrial(plan.id as 'alerts_only' | 'starter' | 'professional')}
                         disabled={loading === plan.id}
                       >
                         {loading === plan.id ? 'Starting...' : plan.cta}
@@ -263,94 +287,95 @@ const Pricing = () => {
               <thead>
                 <tr className="bg-muted">
                   <th className="border border-border p-4 text-left">Feature</th>
-                  <th className="border border-border p-4 text-center">Starter ($99/mo)</th>
-                  <th className="border border-border p-4 text-center bg-primary/5">Professional ($399/mo)</th>
+                  <th className="border border-border p-4 text-center">Essential ($10/mo)</th>
+                  <th className="border border-border p-4 text-center bg-primary/5">Starter ($99/mo)</th>
+                  <th className="border border-border p-4 text-center">Professional ($399/mo)</th>
                   <th className="border border-border p-4 text-center">Enterprise ($999/mo)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Email Alerts</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
                   <td className="border border-border p-4 font-medium">Task Management</td>
-                  <td className="border border-border p-4 text-center">✓</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                  <td className="border border-border p-4 text-center">✓</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">Compliance Calendar</td>
-                  <td className="border border-border p-4 text-center">✓</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
-                  <td className="border border-border p-4 text-center">✓</td>
-                </tr>
-                <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">AI Compliance Assistant</td>
                   <td className="border border-border p-4 text-center">✗</td>
                   <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
                   <td className="border border-border p-4 text-center">✓</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">Enhanced Analytics</td>
-                  <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
                   <td className="border border-border p-4 text-center">✓</td>
                 </tr>
                 <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">AI Assistant</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
+                  <td className="border border-border p-4 font-medium">Mobile App</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-background">
+                  <td className="border border-border p-4 font-medium">Advanced Analytics</td>
+                  <td className="border border-border p-4 text-center">✗</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✗</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                  <td className="border border-border p-4 text-center">✓</td>
+                </tr>
+                <tr className="bg-muted/50">
                   <td className="border border-border p-4 font-medium">Supplier Risk Monitoring</td>
                   <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✗</td>
                   <td className="border border-border p-4 text-center">✓</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">Regulatory Impact Analysis</td>
-                  <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✓</td>
                   <td className="border border-border p-4 text-center">✓</td>
                 </tr>
                 <tr className="bg-background">
                   <td className="border border-border p-4 font-medium">Facilities</td>
                   <td className="border border-border p-4 text-center">1</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Up to 3</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">3</td>
+                  <td className="border border-border p-4 text-center">Unlimited</td>
                   <td className="border border-border p-4 text-center">Unlimited</td>
                 </tr>
                 <tr className="bg-muted/50">
                   <td className="border border-border p-4 font-medium">Users</td>
-                  <td className="border border-border p-4 text-center">Up to 3</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Up to 10</td>
-                  <td className="border border-border p-4 text-center">Unlimited</td>
-                </tr>
-                <tr className="bg-background">
-                  <td className="border border-border p-4 font-medium">Supplier watches</td>
-                  <td className="border border-border p-4 text-center">5</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">25</td>
-                  <td className="border border-border p-4 text-center">Unlimited</td>
-                </tr>
-                <tr className="bg-muted/50">
-                  <td className="border border-border p-4 font-medium">AI queries/month</td>
-                  <td className="border border-border p-4 text-center">200</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">1,000</td>
+                  <td className="border border-border p-4 text-center">1</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Up to 3</td>
+                  <td className="border border-border p-4 text-center">Up to 10</td>
                   <td className="border border-border p-4 text-center">Unlimited</td>
                 </tr>
                 <tr className="bg-background">
                   <td className="border border-border p-4 font-medium">Alert history</td>
-                  <td className="border border-border p-4 text-center">6 months</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">12 months</td>
+                  <td className="border border-border p-4 text-center">30 days</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">6 months</td>
+                  <td className="border border-border p-4 text-center">12 months</td>
                   <td className="border border-border p-4 text-center">Complete archive</td>
                 </tr>
                 <tr className="bg-muted/50">
                   <td className="border border-border p-4 font-medium">Support</td>
                   <td className="border border-border p-4 text-center">Email</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Email + chat</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Email</td>
+                  <td className="border border-border p-4 text-center">Email + chat</td>
                   <td className="border border-border p-4 text-center">Phone + email + chat</td>
                 </tr>
                 <tr className="bg-background">
                   <td className="border border-border p-4 font-medium">API access</td>
                   <td className="border border-border p-4 text-center">✗</td>
-                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">Basic</td>
+                  <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✗</td>
+                  <td className="border border-border p-4 text-center">Basic</td>
                   <td className="border border-border p-4 text-center">Full API + webhooks</td>
                 </tr>
                 <tr className="bg-muted/50">
                   <td className="border border-border p-4 font-medium">SSO integration</td>
                   <td className="border border-border p-4 text-center">✗</td>
                   <td className="border border-border p-4 text-center bg-primary/5 font-semibold">✗</td>
+                  <td className="border border-border p-4 text-center">✗</td>
                   <td className="border border-border p-4 text-center">✓</td>
                 </tr>
               </tbody>
@@ -368,11 +393,11 @@ const Pricing = () => {
             {[
               {
                 q: "Do you offer a free trial?",
-                a: "Yes. Try Starter or Professional free for 7 days. Credit card required - cancel before trial ends to avoid charges."
+                a: "Yes. Try Starter or Professional free for 7 days. Essential Alerts ($10) starts immediately with no trial period. Credit card required for trial plans - cancel before trial ends to avoid charges."
               },
               {
                 q: "What features are included in each plan?",
-                a: "Starter ($99) includes Task Management and Compliance Calendar. Professional ($399) adds AI Assistant, Enhanced Analytics, Supplier Risk Monitoring, and Regulatory Impact Analysis. Enterprise ($999) includes all features plus advanced workflows and predictive modeling."
+                a: "Essential ($10) includes basic email alerts. Starter ($99) adds Task Management, AI Assistant, and Mobile App. Professional ($399) adds Advanced Analytics and Supplier Risk Monitoring. Enterprise ($999) includes all features plus advanced workflows and API access."
               },
               {
                 q: "Do you have API access?",
