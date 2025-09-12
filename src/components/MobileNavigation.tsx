@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Bell, User, Building2 } from 'lucide-react';
+import { Home, Search, Bell, User, Building2, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -17,8 +17,8 @@ const MobileNavigation: React.FC = () => {
 
   const navItems: NavItem[] = [
     { path: '/', icon: Home, label: 'Home' },
-    { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
+    { path: '/regulatory-gap-detection', icon: AlertTriangle, label: 'Gap Detection', badge: 'NEW' },
     { path: '/suppliers', icon: Building2, label: 'Suppliers' },
     { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
   ];
