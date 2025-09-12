@@ -2339,6 +2339,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_account_lockout_status: {
+        Args: { user_email_param: string }
+        Returns: Json
+      }
       check_current_security_status: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2394,6 +2398,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      extend_user_session_secure: {
+        Args: { hours_to_extend?: number }
+        Returns: Json
+      }
       generate_api_key: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2423,6 +2431,10 @@ export type Database = {
         }[]
       }
       get_security_dashboard: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_security_dashboard_enhanced: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
