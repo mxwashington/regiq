@@ -985,6 +985,62 @@ export type Database = {
         }
         Relationships: []
       }
+      import_compliance_gaps: {
+        Row: {
+          affected_facilities: Json | null
+          alert_id: string
+          compliance_requirements_missed: string[] | null
+          created_at: string
+          gap_type: string
+          id: string
+          importer_name: string | null
+          origin_country: string | null
+          potential_risk_level: string
+          product_type: string
+          remediation_needed: Json | null
+          timeline_to_fix: string | null
+          updated_at: string
+        }
+        Insert: {
+          affected_facilities?: Json | null
+          alert_id: string
+          compliance_requirements_missed?: string[] | null
+          created_at?: string
+          gap_type: string
+          id?: string
+          importer_name?: string | null
+          origin_country?: string | null
+          potential_risk_level?: string
+          product_type: string
+          remediation_needed?: Json | null
+          timeline_to_fix?: string | null
+          updated_at?: string
+        }
+        Update: {
+          affected_facilities?: Json | null
+          alert_id?: string
+          compliance_requirements_missed?: string[] | null
+          created_at?: string
+          gap_type?: string
+          id?: string
+          importer_name?: string | null
+          origin_country?: string | null
+          potential_risk_level?: string
+          product_type?: string
+          remediation_needed?: Json | null
+          timeline_to_fix?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_compliance_gaps_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ip_rate_limits: {
         Row: {
           blocked_until: string | null
@@ -1215,6 +1271,59 @@ export type Database = {
         }
         Relationships: []
       }
+      process_failure_patterns: {
+        Row: {
+          affected_systems: string[] | null
+          alert_id: string
+          created_at: string
+          failure_category: string
+          failure_type: string
+          id: string
+          regulatory_gaps: Json | null
+          root_cause_analysis: Json | null
+          severity_level: string
+          similar_pattern_count: number | null
+          trend_indicators: Json | null
+          updated_at: string
+        }
+        Insert: {
+          affected_systems?: string[] | null
+          alert_id: string
+          created_at?: string
+          failure_category: string
+          failure_type: string
+          id?: string
+          regulatory_gaps?: Json | null
+          root_cause_analysis?: Json | null
+          severity_level?: string
+          similar_pattern_count?: number | null
+          trend_indicators?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          affected_systems?: string[] | null
+          alert_id?: string
+          created_at?: string
+          failure_category?: string
+          failure_type?: string
+          id?: string
+          regulatory_gaps?: Json | null
+          root_cause_analysis?: Json | null
+          severity_level?: string
+          similar_pattern_count?: number | null
+          trend_indicators?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "process_failure_patterns_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           admin_permissions: string[] | null
@@ -1365,6 +1474,51 @@ export type Database = {
           rss_feeds?: Json | null
           source_type?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      regulatory_gap_indicators: {
+        Row: {
+          affected_areas: Json
+          created_at: string
+          evidence_alerts: string[] | null
+          gap_description: string
+          id: string
+          indicator_type: string
+          last_updated_at: string
+          priority_level: string
+          recommended_actions: Json | null
+          risk_score: number
+          trend_direction: string
+          user_id: string | null
+        }
+        Insert: {
+          affected_areas?: Json
+          created_at?: string
+          evidence_alerts?: string[] | null
+          gap_description: string
+          id?: string
+          indicator_type: string
+          last_updated_at?: string
+          priority_level?: string
+          recommended_actions?: Json | null
+          risk_score?: number
+          trend_direction?: string
+          user_id?: string | null
+        }
+        Update: {
+          affected_areas?: Json
+          created_at?: string
+          evidence_alerts?: string[] | null
+          gap_description?: string
+          id?: string
+          indicator_type?: string
+          last_updated_at?: string
+          priority_level?: string
+          recommended_actions?: Json | null
+          risk_score?: number
+          trend_direction?: string
+          user_id?: string | null
         }
         Relationships: []
       }
