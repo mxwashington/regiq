@@ -2422,6 +2422,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      get_current_security_posture: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_feature_usage: {
         Args: { feature_name_param: string; user_id_param: string }
         Returns: {

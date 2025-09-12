@@ -42,7 +42,7 @@ const SecurityHeaders: React.FC<SecurityHeadersProps> = ({ nonce }) => {
     };
   }, []);
 
-  // Content Security Policy
+  // Content Security Policy - Fixed frame-ancestors
   const cspPolicy = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.jsdelivr.net",
@@ -55,7 +55,7 @@ const SecurityHeaders: React.FC<SecurityHeadersProps> = ({ nonce }) => {
     "worker-src 'self' blob:",
     "base-uri 'self'",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    "frame-ancestors 'self'",
     "object-src 'none'",
     "upgrade-insecure-requests"
   ].join('; ');

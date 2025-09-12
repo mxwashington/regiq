@@ -176,6 +176,44 @@ export const useEnhancedSecurity = () => {
     }
   }, []);
 
+  // Account lockout check
+  const checkAccountLockout = useCallback(async (email: string) => {
+    try {
+      const { data, error } = await supabase.rpc('check_account_lockout_status', {
+        user_email_param: email
+      });
+
+      if (error) {
+        console.error('Account lockout check failed:', error);
+        return { is_locked: false, retry_after_seconds: 0 };
+      }
+
+      return data as { is_locked: boolean; retry_after_seconds: number; failed_attempts?: number };
+    } catch (error) {
+      console.error('Account lockout check error:', error);
+      return { is_locked: false, retry_after_seconds: 0 };
+    }
+  }, []);
+
+  // Extend user session securely
+  const extendUserSession = useCallback(async (hours: number = 2) => {
+    try {
+      const { data, error } = await supabase.rpc('extend_user_session_secure', {
+        hours_to_extend: hours
+      });
+
+      if (error) {
+        console.error('Session extension failed:', error);
+        return { success: false, error: error.message };
+      }
+
+      return data as { success: boolean; extended_until: string; hours_extended: number };
+    } catch (error) {
+      console.error('Session extension error:', error);  
+      return { success: false, error: 'Failed to extend session' };
+    }
+  }, []);
+
   // Monitor authentication events
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -203,13 +241,15 @@ export const useEnhancedSecurity = () => {
   }, [logSecurityEvent]);
 
   return {
-    securityAlerts,
-    loading,
+    checkAccountLockout,
+    extendUserSession,
     checkRateLimit,
     logSecurityEvent,
     logSensitiveDataAccess,
     fetchSecurityAlerts,
     resolveAlert,
-    logAdminAction
+    logAdminAction,
+    securityAlerts,
+    loading
   };
 };
