@@ -2580,6 +2580,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: number
       }
+      run_security_audit: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       secure_api_key_access: {
         Args: Record<PropertyKey, never>
         Returns: boolean
