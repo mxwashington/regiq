@@ -37,11 +37,11 @@ export function AppSidebar() {
     { path: '/blog', icon: BookOpen, label: 'Blog' },
     { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
     { path: '/regulatory-gap-detection', icon: AlertTriangle, label: 'Gap Detection', badge: 'NEW' },
+    { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
     { path: '/regulatory-impact', icon: TrendingUp, label: 'Regulatory Impact', badge: 'PRO' },
     { path: '/supplier-risk', icon: Shield, label: 'Supplier Risk', badge: 'PRO' },
     { path: '/suppliers', icon: Building2, label: 'Suppliers' },
     { path: '/tasks', icon: CheckSquare, label: 'Task Management', badge: 'NEW' },
-    { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
   ];
 
   const isActive = (path: string) => {
