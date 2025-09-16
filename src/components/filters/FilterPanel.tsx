@@ -69,6 +69,27 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     });
   }, []);
 
+  // Helper functions to convert between FilterValue and display values
+  const getDisplayValue = useCallback((filterValue: any): string => {
+    if (!filterValue || !filterValue.value) return '';
+    const value = filterValue.value;
+    
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return value.toString();
+    if (typeof value === 'boolean') return value.toString();
+    if (Array.isArray(value)) return value.join(', ');
+    if (typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
+      return `${value.min} - ${value.max}`;
+    }
+    
+    return '';
+  }, []);
+
+  const getSelectValue = useCallback((filterValue: any): string => {
+    if (!filterValue || !filterValue.value) return '';
+    return String(filterValue.value);
+  }, []);
+
   const updateSharedFilter = useCallback((key: string, value: any) => {
     const updated = {
       ...activeFilters,
@@ -239,14 +260,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     {field.type === 'text' && (
                       <Input
                         placeholder={`Enter ${field.label.toLowerCase()}...`}
-                        value={source?.filters[field.key]?.value || ''}
+                        value={getDisplayValue(source?.filters[field.key])}
                         onChange={(e) => updateSourceFilter(sourceType as SourceType, field.key, e.target.value)}
                         disabled={!isEnabled}
                       />
                     )}
                     {field.type === 'radio' && field.options && (
                       <Select
-                        value={source?.filters[field.key]?.value || ''}
+                        value={getSelectValue(source?.filters[field.key])}
                         onValueChange={(value) => updateSourceFilter(sourceType as SourceType, field.key, value)}
                         disabled={!isEnabled}
                       >
