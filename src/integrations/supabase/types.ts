@@ -2464,34 +2464,12 @@ export type Database = {
       }
     }
     Views: {
-      payment_security_audit: {
+      security_status_view: {
         Row: {
-          cmd: string | null
-          permissive: string | null
-          policy_condition: string | null
-          policyname: unknown | null
-          security_status: string | null
-          tablename: unknown | null
-        }
-        Relationships: []
-      }
-      regiq_security_status: {
-        Row: {
-          has_unrestricted_policy: boolean | null
-          has_user_isolation: boolean | null
           policy_count: number | null
           rls_enabled: boolean | null
           security_level: string | null
-          table_name: string | null
-        }
-        Relationships: []
-      }
-      security_monitoring: {
-        Row: {
-          check_type: string | null
-          details: string | null
-          status: string | null
-          table_name: string | null
+          table_name: unknown | null
         }
         Relationships: []
       }
@@ -2619,6 +2597,16 @@ export type Database = {
           usage_limit: number
         }[]
       }
+      get_payment_security_audit: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          command: string
+          policy_condition: string
+          policy_name: string
+          security_status: string
+          table_name: string
+        }[]
+      }
       get_security_dashboard: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -2640,6 +2628,10 @@ export type Database = {
         Returns: Json
       }
       get_security_status_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_system_security_summary: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
