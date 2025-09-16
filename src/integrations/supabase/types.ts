@@ -2504,6 +2504,15 @@ export type Database = {
           table_name: string
         }[]
       }
+      audit_extension_security: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          current_schema: unknown
+          extension_name: unknown
+          recommendation: string
+          security_status: string
+        }[]
+      }
       check_account_lockout_status: {
         Args: { user_email_param: string }
         Returns: Json
@@ -2639,6 +2648,10 @@ export type Database = {
         Returns: Json
       }
       get_security_health_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_security_implementation_final_report: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
