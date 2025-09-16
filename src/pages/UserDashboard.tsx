@@ -25,6 +25,8 @@ import { AVAILABLE_AGENCIES, getAgencyDisplayName, doesSourceMatchAgency } from 
 import { TrialBanner } from '@/components/TrialBanner';
 import { TrialGate } from '@/components/TrialGate';
 import { TrialStatusIndicator } from '@/components/TrialStatusIndicator';
+import { FilterPanel } from '@/components/filters/FilterPanel';
+import { useSourceFilters } from '@/hooks/useSourceFilters';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -39,6 +41,16 @@ const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('alerts');
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showExportManager, setShowExportManager] = useState(false);
+  const [showSourceFilters, setShowSourceFilters] = useState(false);
+  
+  // Source filters functionality
+  const { executeQuery, results: sourceFilterResults, loading: sourceFilterLoading, error: sourceFilterError } = useSourceFilters();
+  const [activeSourceFilters, setActiveSourceFilters] = useState<any>({
+    sources: [],
+    shared: {},
+    pagination: { limit: 50, offset: 0 },
+    sorting: { field: 'published_date', direction: 'desc' }
+  });
   
   // User preferences state
   const [preferences, setPreferences] = useState({
@@ -293,48 +305,111 @@ const UserDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 flex-wrap">
-                  <label className="text-sm font-medium">Filter:</label>
-                  <Button
-                    variant={selectedAgency === '' ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedAgency('')}
-                    className="text-xs"
-                  >
-                    All ({alerts.length})
-                  </Button>
-                  {AVAILABLE_AGENCIES.map(agency => {
-                    const count = agencyCounts[agency] || 0;
-                    if (count === 0) return null;
-                    
-                    const displayName = getAgencyDisplayName(agency);
-                    
-                    return (
-                      <Button
-                        key={agency}
-                        variant={selectedAgency === agency ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedAgency(agency)}
-                        className="text-xs"
-                      >
-                        {displayName} ({count})
-                      </Button>
-                    );
-                  })}
-                  
-                  {(searchQuery || selectedAgency) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="text-xs"
-                    >
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+                 <div className="flex items-center gap-2 flex-wrap">
+                   <label className="text-sm font-medium">Filter:</label>
+                   <Button
+                     variant={selectedAgency === '' ? "default" : "outline"}
+                     size="sm"
+                     onClick={() => setSelectedAgency('')}
+                     className="text-xs"
+                   >
+                     All ({alerts.length})
+                   </Button>
+                   {AVAILABLE_AGENCIES.map(agency => {
+                     const count = agencyCounts[agency] || 0;
+                     if (count === 0) return null;
+                     
+                     const displayName = getAgencyDisplayName(agency);
+                     
+                     return (
+                       <Button
+                         key={agency}
+                         variant={selectedAgency === agency ? "default" : "outline"}
+                         size="sm"
+                         onClick={() => setSelectedAgency(agency)}
+                         className="text-xs"
+                       >
+                         {displayName} ({count})
+                       </Button>
+                     );
+                   })}
+                   
+                   {(searchQuery || selectedAgency) && (
+                     <Button
+                       variant="ghost"
+                       size="sm"
+                       onClick={clearFilters}
+                       className="text-xs"
+                     >
+                       Clear Filters
+                     </Button>
+                   )}
+                   
+                   <Button
+                     variant={showSourceFilters ? "secondary" : "outline"}
+                     size="sm"
+                     onClick={() => setShowSourceFilters(!showSourceFilters)}
+                     className="text-xs flex items-center gap-1"
+                   >
+                     <Filter className="h-3 w-3" />
+                     {showSourceFilters ? 'Hide' : 'Source'} Filters
+                   </Button>
+                 </div>
+               </div>
+             </div>
+
+             {/* Source Filters Panel */}
+             {showSourceFilters && (
+               <Card className="border-dashed">
+                 <CardHeader>
+                   <CardTitle className="text-lg flex items-center gap-2">
+                     <Filter className="h-5 w-5" />
+                     Advanced Source Filters
+                   </CardTitle>
+                   <CardDescription>
+                     Filter results directly from regulatory agency APIs
+                   </CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                   <FilterPanel
+                     onFilterChange={(query) => {
+                       setActiveSourceFilters(query);
+                       executeQuery(query);
+                     }}
+                     activeFilters={activeSourceFilters}
+                     loading={sourceFilterLoading}
+                   />
+                 </CardContent>
+               </Card>
+             )}
+
+             {/* Source Filter Results */}
+             {sourceFilterResults.length > 0 && (
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Source Filter Results ({sourceFilterResults.length})</CardTitle>
+                   <CardDescription>
+                     Results from direct API queries
+                   </CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="grid gap-4">
+                     {sourceFilterResults.flatMap((result) => 
+                       result.data.map((item, index) => (
+                         <div key={`${result.source}-${index}`} className="border rounded-lg p-4">
+                           <h3 className="font-semibold">{item.title}</h3>
+                           <p className="text-sm text-muted-foreground mt-1">{item.summary}</p>
+                           <div className="flex items-center gap-2 mt-2">
+                             <Badge variant="outline">{item.source}</Badge>
+                             <Badge variant="secondary">{item.urgency}</Badge>
+                           </div>
+                         </div>
+                       ))
+                     )}
+                   </div>
+                 </CardContent>
+               </Card>
+             )}
 
             {/* Main Feed Section */}
             <div className="space-y-6">
