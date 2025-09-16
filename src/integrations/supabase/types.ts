@@ -2464,11 +2464,11 @@ export type Database = {
       }
     }
     Views: {
-      security_status_view: {
+      security_status_monitoring: {
         Row: {
           policy_count: number | null
-          rls_enabled: boolean | null
-          security_level: string | null
+          rls_status: string | null
+          security_assessment: string | null
           table_name: unknown | null
         }
         Relationships: []
@@ -2847,6 +2847,10 @@ export type Database = {
           rate_limit: number
           user_id: string
         }[]
+      }
+      validate_security_configuration: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
     }
     Enums: {
