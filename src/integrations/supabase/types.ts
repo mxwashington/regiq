@@ -2528,6 +2528,15 @@ export type Database = {
         }
         Returns: Json
       }
+      check_enhanced_rate_limit_v2: {
+        Args: {
+          endpoint_param: string
+          ip_address_param?: unknown
+          ip_rate_limit?: number
+          user_rate_limit?: number
+        }
+        Returns: Json
+      }
       check_feature_access: {
         Args: { feature: string; user_uuid: string }
         Returns: boolean
@@ -2619,6 +2628,10 @@ export type Database = {
         Returns: Json
       }
       get_security_hardening_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_security_health_status: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
