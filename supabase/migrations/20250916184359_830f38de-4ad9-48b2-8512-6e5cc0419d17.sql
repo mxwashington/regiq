@@ -1,0 +1,99 @@
+-- ================================================
+-- COMPREHENSIVE SECURITY AUDIT REPORT
+-- ================================================
+
+-- Audit financial data access - ensure no admin backdoors
+CREATE OR REPLACE VIEW payment_security_audit AS
+SELECT 
+  tablename,
+  policyname,
+  permissive,
+  cmd,
+  CASE 
+    WHEN qual LIKE '%user_id = auth.uid()%' THEN 'SECURE ✓'
+    WHEN qual IS NULL THEN 'VULNERABLE - No restrictions ❌'
+    WHEN qual LIKE '%admin%' OR qual LIKE '%service_role%' THEN 'ADMIN ACCESS - Review needed ⚠️'
+    ELSE 'CUSTOM - Manual review needed ⚠️'
+  END as security_status,
+  qual as policy_condition
+FROM pg_policies 
+WHERE schemaname = 'public'
+AND tablename IN ('payment_logs', 'user_entitlements', 'subscribers')
+ORDER BY tablename, security_status;
+
+CREATE OR REPLACE VIEW regiq_security_status AS
+WITH critical_tables AS (
+  SELECT unnest(ARRAY[
+    'profiles', 'payment_logs', 'api_keys', 'subscribers', 
+    'user_preferences', 'alert_preferences', 'security_events',
+    'admin_activities', 'user_entitlements'
+  ]) as table_name
+),
+table_security AS (
+  SELECT 
+    ct.table_name,
+    pg_tables.rowsecurity as rls_enabled,
+    COUNT(p.policyname) as policy_count,
+    bool_or(p.qual LIKE '%user_id = auth.uid()%') as has_user_isolation,
+    bool_or(p.qual IS NULL) as has_unrestricted_policy,
+    CASE 
+      WHEN NOT pg_tables.rowsecurity THEN 'CRITICAL - RLS DISABLED ❌'
+      WHEN bool_or(p.qual IS NULL) THEN 'HIGH RISK - Unrestricted access ❌'
+      WHEN NOT bool_or(p.qual LIKE '%user_id = auth.uid()%') THEN 'MEDIUM RISK - No user isolation ⚠️'
+      WHEN COUNT(p.policyname) = 0 THEN 'HIGH RISK - No policies ❌'
+      ELSE 'SECURE ✓'
+    END as security_level
+  FROM critical_tables ct
+  LEFT JOIN pg_tables ON pg_tables.tablename = ct.table_name AND pg_tables.schemaname = 'public'
+  LEFT JOIN pg_policies p ON p.tablename = ct.table_name AND p.schemaname = 'public'
+  GROUP BY ct.table_name, pg_tables.rowsecurity
+)
+SELECT 
+  table_name,
+  rls_enabled,
+  policy_count,
+  has_user_isolation,
+  has_unrestricted_policy,
+  security_level
+FROM table_security
+ORDER BY 
+  CASE security_level
+    WHEN 'CRITICAL - RLS DISABLED ❌' THEN 1
+    WHEN 'HIGH RISK - Unrestricted access ❌' THEN 2
+    WHEN 'HIGH RISK - No policies ❌' THEN 3
+    WHEN 'MEDIUM RISK - No user isolation ⚠️' THEN 4
+    ELSE 5
+  END,
+  table_name;
+
+-- ================================================
+-- POST-DEPLOYMENT MONITORING
+-- ================================================
+
+-- Create a monitoring view for ongoing security oversight
+CREATE OR REPLACE VIEW security_monitoring AS
+SELECT 
+  'RLS_STATUS' as check_type,
+  table_name,
+  CASE WHEN rls_enabled THEN 'PASS' ELSE 'FAIL' END as status,
+  security_level as details
+FROM regiq_security_status
+UNION ALL
+SELECT 
+  'EMAIL_EXPOSURE' as check_type,
+  table_name,
+  CASE WHEN security_status = 'SECURE' THEN 'PASS' ELSE 'FAIL' END as status,
+  recommendation as details
+FROM audit_email_exposure()
+WHERE has_email_column = true;
+
+-- ================================================
+-- EXECUTE SECURITY FUNCTIONS
+-- ================================================
+
+-- Execute all security functions to apply fixes
+SELECT check_profiles_security();
+SELECT secure_payment_logs();
+SELECT secure_api_keys();
+SELECT secure_security_events();
+SELECT secure_admin_activities();
