@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight, Filter, X } from 'lucide-react';
 import { FilterQuery, SourceFilter, SourceType } from '@/types/filter-engine';
+import { RegulatoryInputSanitizer } from '@/lib/security/input-sanitizer';
+import { toast } from 'sonner';
 
 interface FilterPanelProps {
   onFilterChange: (query: FilterQuery) => void;
@@ -91,17 +93,35 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   }, []);
 
   const updateSharedFilter = useCallback((key: string, value: any) => {
+    // Sanitize input before updating filter
+    const sanitizer = RegulatoryInputSanitizer;
+    const validation = sanitizer.sanitizeFilterValue(value, 'text');
+    
+    if (!validation.isValid) {
+      toast.error(`Invalid input: ${validation.errors.join(', ')}`);
+      return;
+    }
+
     const updated = {
       ...activeFilters,
       shared: {
         ...activeFilters.shared,
-        [key]: value
+        [key]: validation.sanitizedValue
       }
     };
     onFilterChange(updated);
   }, [activeFilters, onFilterChange]);
 
   const updateSourceFilter = useCallback((sourceType: SourceType, key: string, value: any) => {
+    // Sanitize input before updating filter  
+    const sanitizer = RegulatoryInputSanitizer;
+    const validation = sanitizer.sanitizeFilterValue(value, 'text');
+    
+    if (!validation.isValid) {
+      toast.error(`Invalid input: ${validation.errors.join(', ')}`);
+      return;
+    }
+
     const sources = [...activeFilters.sources];
     const sourceIndex = sources.findIndex(s => s.source_type === sourceType);
     
@@ -110,7 +130,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         ...sources[sourceIndex],
         filters: {
           ...sources[sourceIndex].filters,
-          [key]: { operator: 'eq', value }
+          [key]: { operator: 'eq', value: validation.sanitizedValue }
         }
       };
     } else {
@@ -118,7 +138,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         source_type: sourceType,
         enabled: true,
         filters: {
-          [key]: { operator: 'eq', value }
+          [key]: { operator: 'eq', value: validation.sanitizedValue }
         }
       });
     }
