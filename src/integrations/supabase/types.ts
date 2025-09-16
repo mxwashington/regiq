@@ -2467,6 +2467,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      audit_email_exposure: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          has_email_column: boolean
+          policy_name: string
+          recommendation: string
+          security_status: string
+          table_name: string
+        }[]
+      }
       check_account_lockout_status: {
         Args: { user_email_param: string }
         Returns: Json
@@ -2491,6 +2501,10 @@ export type Database = {
       check_feature_access: {
         Args: { feature: string; user_uuid: string }
         Returns: boolean
+      }
+      check_profiles_security: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       clean_expired_cache: {
         Args: Record<PropertyKey, never>
@@ -2733,9 +2747,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      secure_admin_activities: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       secure_api_key_access: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      secure_api_keys: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      secure_payment_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      secure_security_events: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       should_extend_session: {
         Args: { current_ip?: unknown; user_id_param: string }
