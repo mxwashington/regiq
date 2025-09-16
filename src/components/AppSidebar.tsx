@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Search, Bell, Building2, TrendingUp, User, BookOpen, Brain, CheckSquare, Calendar, BarChart3, Shield, AlertTriangle } from 'lucide-react';
+import { Home, Search, Bell, Building2, TrendingUp, User, BookOpen, Brain, CheckSquare, Calendar, BarChart3, Shield, AlertTriangle, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -37,6 +37,7 @@ export function AppSidebar() {
     { path: '/blog', icon: BookOpen, label: 'Blog' },
     { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
     { path: '/regulatory-gap-detection', icon: AlertTriangle, label: 'Gap Detection', badge: 'NEW' },
+    { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts', badge: 'NEW' },
     { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
     { path: '/regulatory-impact', icon: TrendingUp, label: 'Regulatory Impact', badge: 'PRO' },
     { path: '/supplier-risk', icon: Shield, label: 'Supplier Risk', badge: 'PRO' },
