@@ -63,6 +63,7 @@ const BeverageProductionPage = React.lazy(() => import("./pages/industries/Bever
 
 const Blog = React.lazy(() => import("./pages/Blog").catch(() => ({ default: () => <div>Blog unavailable</div> })));
 const BlogPost = React.lazy(() => import("./pages/BlogPost").catch(() => ({ default: () => <div>Blog post unavailable</div> })));
+const RegulatoryGapDetection = React.lazy(() => import("./pages/RegulatoryGapDetection").catch(() => ({ default: () => <div>Gap Detection unavailable</div> })));
 
 
 const queryClient = new QueryClient({
@@ -158,6 +159,7 @@ const PWAApp = () => {
               <Route path="/analytics" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/EnhancedAnalytics")))}</AuthGuard>} />
               <Route path="/supplier-risk" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/SupplierRiskMonitoring")))}</AuthGuard>} />
               <Route path="/regulatory-impact" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/RegulatoryImpactAnalysis")))}</AuthGuard>} />
+              <Route path="/regulatory-gap-detection" element={<AuthGuard><RegulatoryGapDetection /></AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<Account />} />
               <Route path="/suppliers" element={<AuthGuard><Suppliers /></AuthGuard>} />
