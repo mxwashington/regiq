@@ -227,6 +227,95 @@ export type Database = {
           },
         ]
       }
+      alert_rule_matches: {
+        Row: {
+          alert_id: string
+          alert_rule_id: string
+          id: string
+          matched_at: string
+          notification_status: string | null
+          notified_at: string | null
+        }
+        Insert: {
+          alert_id: string
+          alert_rule_id: string
+          id?: string
+          matched_at?: string
+          notification_status?: string | null
+          notified_at?: string | null
+        }
+        Update: {
+          alert_id?: string
+          alert_rule_id?: string
+          id?: string
+          matched_at?: string
+          notification_status?: string | null
+          notified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_rule_matches_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_rule_matches_alert_rule_id_fkey"
+            columns: ["alert_rule_id"]
+            isOneToOne: false
+            referencedRelation: "alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_rules: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          frequency: string
+          id: string
+          is_active: boolean
+          last_triggered_at: string | null
+          term: string
+          trigger_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          term: string
+          trigger_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          term?: string
+          trigger_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_rules_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       alert_tags: {
         Row: {
           alert_id: string
