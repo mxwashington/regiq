@@ -284,7 +284,7 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            admin_request: email === 'marcus@fsqahelp.org'
+            admin_request: email === 'marcus@regiq.org'
           }
         }
       });

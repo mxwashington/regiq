@@ -99,7 +99,7 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const isAdminEmail = email === 'marcus@fsqahelp.org';
+  const isAdminEmail = email === 'marcus@regiq.org';
 
   if (magicLinkSent) {
     return (

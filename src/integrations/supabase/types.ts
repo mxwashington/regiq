@@ -2483,6 +2483,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_regiq_admin: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
       is_trial_expired: {
         Args: { user_uuid: string }
         Returns: boolean

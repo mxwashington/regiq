@@ -157,12 +157,12 @@ const PWAApp = () => {
               <Route path="/tasks" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/TaskManagement")))}</AuthGuard>} />
               <Route path="/calendar" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/ComplianceCalendar")))}</AuthGuard>} />
               <Route path="/analytics" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/EnhancedAnalytics")))}</AuthGuard>} />
-              <Route path="/supplier-risk" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/SupplierRiskMonitoring")))}</AuthGuard>} />
+              <Route path="/supplier-risk" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/UnifiedSupplierDashboard")))}</AuthGuard>} />
               <Route path="/regulatory-impact" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/RegulatoryImpactAnalysis")))}</AuthGuard>} />
               <Route path="/regulatory-gap-detection" element={<AuthGuard><RegulatoryGapDetection /></AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<Account />} />
-              <Route path="/suppliers" element={<AuthGuard><Suppliers /></AuthGuard>} />
+              <Route path="/suppliers" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/UnifiedSupplierDashboard")))}</AuthGuard>} />
               <Route path="/onboarding" element={<Onboarding />} />
                <Route path="/payment-success" element={<PaymentSuccess />} />
                <Route path="/payment-canceled" element={<PaymentCanceled />} />

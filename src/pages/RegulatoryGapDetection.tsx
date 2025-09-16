@@ -1,6 +1,7 @@
 import React from 'react';
 import { RegulatoryGapDashboard } from '@/components/RegulatoryGapDashboard';
 import { SEOHead } from '@/components/SEO/SEOHead';
+import { BackButton } from '@/components/BackButton';
 
 const RegulatoryGapDetection: React.FC = () => {
   return (
@@ -11,6 +12,9 @@ const RegulatoryGapDetection: React.FC = () => {
         keywords="regulatory gaps, process failures, import compliance, food safety oversight, FDA reinspection, regulatory breakdown detection"
       />
       <div className="container mx-auto px-4 py-8">
+        <div className="mb-4">
+          <BackButton fallback="/dashboard" />
+        </div>
         <RegulatoryGapDashboard />
       </div>
     </>

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Trash2 } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
 
 const Suppliers: React.FC = () => {
   const { user } = useAuth();
@@ -83,6 +84,10 @@ const Suppliers: React.FC = () => {
         <meta name="description" content="Manage your supplier watch list to get recall alerts and regulatory updates." />
         <link rel="canonical" href="https://regiq.com/suppliers" />
       </Helmet>
+
+      <div className="mb-4">
+        <BackButton fallback="/dashboard" />
+      </div>
 
       <section className="mb-6">
         <h1 className="text-2xl font-bold mb-1">Supplier Watch</h1>
