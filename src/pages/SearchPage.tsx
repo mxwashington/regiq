@@ -27,13 +27,21 @@ import {
   BarChart3,
   Settings,
   GitMerge,
-  BookOpen
+  BookOpen,
+  Filter
 } from 'lucide-react';
+import { FilterPanel } from '@/components/filters/FilterPanel';
+import { SourceFilterResults } from '@/components/filters/SourceFilterResults';
+import { useSourceFilters } from '@/hooks/useSourceFilters';
+import { FilterQuery } from '@/types/filter-engine';
 
 export default function SearchPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { trackInteraction } = useAnalytics();
+  const { executeQuery, results, loading: filterLoading, error, totalResults } = useSourceFilters();
+  const [showFilters, setShowFilters] = React.useState(false);
+  const [activeQuery, setActiveQuery] = React.useState<FilterQuery | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -149,6 +157,83 @@ export default function SearchPage() {
               </CardDescription>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Source Filters */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Source Filters
+              {totalResults > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {totalResults}
+                </Badge>
+              )}
+            </Button>
+            {activeQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setActiveQuery(null);
+                  setShowFilters(false);
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
+          
+          {showFilters && (
+            <Card className="mb-4">
+              <CardHeader>
+                <CardTitle>Filter Regulatory Sources</CardTitle>
+                <CardDescription>
+                  Apply filters to search across FDA, USDA, WHO, and other regulatory sources
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FilterPanel 
+                  onFilterChange={(query) => {
+                    setActiveQuery(query);
+                    executeQuery(query);
+                    trackInteraction(
+                      'filter_applied', 
+                      'source-filters',
+                      'filter-panel',
+                      { 
+                        sources: query.sources.map(s => s.source_type),
+                        shared_filters: Object.keys(query.shared)
+                      }
+                    );
+                  }}
+                  activeFilters={activeQuery || {
+                    sources: [],
+                    shared: {},
+                    pagination: { limit: 20 },
+                    sorting: { field: 'published_date', direction: 'desc' }
+                  }}
+                  loading={filterLoading}
+                />
+              </CardContent>
+            </Card>
+          )}
+          
+          {results.length > 0 && (
+            <SourceFilterResults 
+              results={results}
+              loading={filterLoading}
+              error={error}
+              totalResults={totalResults}
+              executionTime={0}
+              cacheStats={{ hits: 0, misses: 0 }}
+            />
+          )}
         </div>
 
         {/* Comprehensive FDA Search System */}
