@@ -2464,7 +2464,37 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      payment_security_audit: {
+        Row: {
+          cmd: string | null
+          permissive: string | null
+          policy_condition: string | null
+          policyname: unknown | null
+          security_status: string | null
+          tablename: unknown | null
+        }
+        Relationships: []
+      }
+      regiq_security_status: {
+        Row: {
+          has_unrestricted_policy: boolean | null
+          has_user_isolation: boolean | null
+          policy_count: number | null
+          rls_enabled: boolean | null
+          security_level: string | null
+          table_name: string | null
+        }
+        Relationships: []
+      }
+      security_monitoring: {
+        Row: {
+          check_type: string | null
+          details: string | null
+          status: string | null
+          table_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       audit_email_exposure: {
