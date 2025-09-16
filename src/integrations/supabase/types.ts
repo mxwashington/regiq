@@ -1785,6 +1785,33 @@ export type Database = {
         }
         Relationships: []
       }
+      security_monitoring_cache: {
+        Row: {
+          id: string
+          last_updated: string | null
+          policy_count: number
+          rls_enabled: boolean
+          security_level: string
+          table_name: string
+        }
+        Insert: {
+          id?: string
+          last_updated?: string | null
+          policy_count: number
+          rls_enabled: boolean
+          security_level: string
+          table_name: string
+        }
+        Update: {
+          id?: string
+          last_updated?: string | null
+          policy_count?: number
+          rls_enabled?: boolean
+          security_level?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       sensitive_data_access_log: {
         Row: {
           access_reason: string | null
@@ -2464,15 +2491,7 @@ export type Database = {
       }
     }
     Views: {
-      security_status_monitoring: {
-        Row: {
-          policy_count: number | null
-          rls_status: string | null
-          security_assessment: string | null
-          table_name: unknown | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       audit_email_exposure: {
@@ -2765,6 +2784,10 @@ export type Database = {
       provision_enterprise_api_key: {
         Args: { target_user_id: string }
         Returns: string
+      }
+      refresh_security_monitoring: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       reset_data_pipeline_timestamps: {
         Args: Record<PropertyKey, never>
