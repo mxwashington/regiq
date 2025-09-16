@@ -31,18 +31,17 @@ export function AppSidebar() {
   const navItems: NavItem[] = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/analytics', icon: BarChart3, label: 'Advanced Analytics', badge: 'PRO' },
-    { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
-    { path: '/compliance-assistant', icon: Brain, label: 'AI Assistant', badge: 'ENT' },
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
     { path: '/blog', icon: BookOpen, label: 'Blog' },
+    { path: '/compliance-assistant', icon: Brain, label: 'AI Assistant', badge: 'ENT' },
     { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
+    { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts' },
     { path: '/regulatory-gap-detection', icon: AlertTriangle, label: 'Gap Detection', badge: 'NEW' },
-    { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts', badge: 'NEW' },
-    { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
     { path: '/regulatory-impact', icon: TrendingUp, label: 'Regulatory Impact', badge: 'PRO' },
-    { path: '/supplier-risk', icon: Shield, label: 'Supplier Risk', badge: 'PRO' },
+    { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
     { path: '/suppliers', icon: Building2, label: 'Suppliers' },
     { path: '/tasks', icon: CheckSquare, label: 'Task Management', badge: 'NEW' },
+    { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
   ];
 
   const isActive = (path: string) => {
