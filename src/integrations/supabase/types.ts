@@ -2471,6 +2471,10 @@ export type Database = {
         Args: { user_email_param: string }
         Returns: Json
       }
+      check_compliance_data_rate_limit: {
+        Args: { operation_type: string; user_uuid: string }
+        Returns: boolean
+      }
       check_current_security_status: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2570,6 +2574,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_security_hardening_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_security_implementation_summary: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -2635,6 +2643,15 @@ export type Database = {
           require_admin?: boolean
           target_id?: string
           target_type?: string
+        }
+        Returns: undefined
+      }
+      log_compliance_access: {
+        Args: {
+          additional_data?: Json
+          operation_type: string
+          record_count?: number
+          table_accessed: string
         }
         Returns: undefined
       }
