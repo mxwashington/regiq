@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { usePlanRestrictions } from "@/hooks/usePlanRestrictions";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Link } from "react-router-dom";
 
 export type PlanName = 'basic' | 'premium' | 'enterprise';
@@ -30,8 +31,14 @@ const mapSubscriberTierToLevel = (tier: string | null, subscribed: boolean): num
 export const PlanGating: React.FC<PlanGatingProps> = ({ requiredPlan, feature, children }) => {
   const { subscriptionTier, subscribed } = useUserProfile();
   const { checkFeatureAccess } = usePlanRestrictions();
+  const { isAdmin } = useAdminAuth();
   const userLevel = mapSubscriberTierToLevel(subscriptionTier, subscribed);
   const requiredLevel = planOrder[requiredPlan];
+
+  // Admins bypass all plan restrictions
+  if (isAdmin) {
+    return <>{children}</>;
+  }
 
   // Check specific feature access if feature is provided
   if (feature && !checkFeatureAccess(feature)) {

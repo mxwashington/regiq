@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CreditCard, Zap, CheckCircle } from 'lucide-react';
 import { useTrialStatus } from '@/hooks/useTrialStatus';
 import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface TrialGateProps {
   children: React.ReactNode;
@@ -17,9 +18,10 @@ export const TrialGate: React.FC<TrialGateProps> = ({
 }) => {
   const { isTrialExpired, daysRemaining, subscriptionStatus, loading } = useTrialStatus();
   const { upgradeToStarter, loading: upgradeLoading } = useSubscriptionUpgrade();
+  const { isAdmin } = useAdminAuth();
 
-  // Allow access if not expired or has paid subscription
-  if (loading || !isTrialExpired || subscriptionStatus === 'active' || subscriptionStatus === 'paid') {
+  // Allow access if admin, not expired, or has paid subscription
+  if (loading || isAdmin || !isTrialExpired || subscriptionStatus === 'active' || subscriptionStatus === 'paid' || subscriptionStatus === 'admin') {
     return <>{children}</>;
   }
 

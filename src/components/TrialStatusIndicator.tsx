@@ -2,9 +2,21 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Crown, CheckCircle } from 'lucide-react';
 import { useTrialStatus } from '@/hooks/useTrialStatus';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 export const TrialStatusIndicator: React.FC = () => {
   const { isTrialExpired, daysRemaining, subscriptionStatus, loading } = useTrialStatus();
+  const { isAdmin } = useAdminAuth();
+
+  // Show admin status in trial indicator
+  if (isAdmin) {
+    return (
+      <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+        <Crown className="h-3 w-3 mr-1" />
+        Admin Access
+      </Badge>
+    );
+  }
 
   if (loading) {
     return <Badge variant="outline">Loading...</Badge>;

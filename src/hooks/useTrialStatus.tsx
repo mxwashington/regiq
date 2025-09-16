@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminAuth } from './useAdminAuth';
 
 interface TrialStatus {
   isTrialExpired: boolean;
@@ -12,6 +13,7 @@ interface TrialStatus {
 
 export const useTrialStatus = () => {
   const { user } = useAuth();
+  const { isAdmin } = useAdminAuth();
   const [trialStatus, setTrialStatus] = useState<TrialStatus>({
     isTrialExpired: false,
     daysRemaining: 7,
@@ -49,10 +51,10 @@ export const useTrialStatus = () => {
       if (expiredError) throw expiredError;
 
       setTrialStatus({
-        isTrialExpired: expiredData || false,
-        daysRemaining: daysData || 0,
+        isTrialExpired: isAdmin ? false : (expiredData || false), // Admins never have expired trials
+        daysRemaining: isAdmin ? -1 : (daysData || 0), // -1 indicates unlimited for admins
         trialEndsAt: profile?.trial_ends_at || null,
-        subscriptionStatus: profile?.subscription_status || 'trial',
+        subscriptionStatus: isAdmin ? 'admin' : (profile?.subscription_status || 'trial'),
         loading: false
       });
     } catch (error) {
@@ -89,7 +91,7 @@ export const useTrialStatus = () => {
 
   useEffect(() => {
     checkTrialStatus();
-  }, [user]);
+  }, [user, isAdmin]);
 
   return {
     ...trialStatus,
