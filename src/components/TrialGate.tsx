@@ -17,7 +17,7 @@ export const TrialGate: React.FC<TrialGateProps> = ({
   feature = "this feature" 
 }) => {
   const { isTrialExpired, daysRemaining, subscriptionStatus, loading } = useTrialStatus();
-  const { upgradeToStarter, loading: upgradeLoading } = useSubscriptionUpgrade();
+  const { upgradeToCustomPlan, loading: upgradeLoading } = useSubscriptionUpgrade();
   const { isAdmin } = useAdminAuth();
 
   // Allow access if admin, not expired, or has paid subscription
@@ -40,13 +40,13 @@ export const TrialGate: React.FC<TrialGateProps> = ({
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-muted-foreground">
-            Your 7-day free trial has ended. Upgrade to RegIQ Starter to continue accessing {feature} and all premium features.
+            Your 7-day free trial has ended. Upgrade to RegIQ Professional to continue accessing {feature} and all premium features.
           </p>
           
           <div className="bg-muted rounded-lg p-4">
             <h4 className="font-semibold mb-2 flex items-center gap-2">
               <Zap className="h-4 w-4 text-primary" />
-              RegIQ Starter - $9/month
+              RegIQ Professional - $99/month
             </h4>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li className="flex items-center gap-2">
@@ -69,12 +69,12 @@ export const TrialGate: React.FC<TrialGateProps> = ({
           </div>
 
           <Button 
-            onClick={upgradeToStarter}
+            onClick={() => upgradeToCustomPlan({ targetPlan: 'professional' })}
             disabled={upgradeLoading}
             className="w-full"
             size="lg"
           >
-            {upgradeLoading ? 'Processing...' : 'Upgrade to Starter'}
+            {upgradeLoading ? 'Processing...' : 'Upgrade to Professional'}
           </Button>
           
           <p className="text-xs text-muted-foreground">
