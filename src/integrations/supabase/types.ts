@@ -3573,9 +3573,21 @@ export type Database = {
         Args: { feature: string; user_uuid: string }
         Returns: boolean
       }
+      check_plan_limits: {
+        Args: { limit_type: string; user_uuid: string }
+        Returns: Json
+      }
       check_profiles_security: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      check_security_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          recommendation: string
+          security_check: string
+          status: string
+        }[]
       }
       clean_expired_cache: {
         Args: Record<PropertyKey, never>
