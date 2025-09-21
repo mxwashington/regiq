@@ -1,280 +1,105 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, AlertCircle, Home, RefreshCw } from 'lucide-react';
-import { useNavigationHelper } from '@/components/NavigationHelper';
-
-interface AuthCallbackState {
-  status: 'loading' | 'success' | 'error';
-  message: string;
-  debugInfo: any;
-  retryCount: number;
-}
+import { useAuth } from '@/contexts/AuthContext';
+import { useSSO } from '@/hooks/useSSO';
+import { supabase } from '@/integrations/supabase/client';
+import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
-  const [state, setState] = useState<AuthCallbackState>({
-    status: 'loading',
-    message: 'Processing authentication...',
-    debugInfo: {},
-    retryCount: 0
-  });
-  const { user } = useAuth();
-  const { navigateTo } = useNavigationHelper();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { provisionSSOUser } = useSSO();
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [message, setMessage] = useState('');
 
-  const handleAuthCallback = async (retryAttempt = 0) => {
-    try {
-      console.log('=== AUTH CALLBACK DEBUG START ===', { retryAttempt });
-      
-      const fullUrl = window.location.href;
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const searchParamsObj = Object.fromEntries(searchParams.entries());
-      const hashParamsObj = Object.fromEntries(hashParams.entries());
-      
-      const debugData = {
-        timestamp: new Date().toISOString(),
-        retryAttempt,
-        fullUrl,
-        pathname: window.location.pathname,
-        search: window.location.search,
-        hash: window.location.hash,
-        searchParams: searchParamsObj,
-        hashParams: hashParamsObj,
-        userAgent: navigator.userAgent,
-        referrer: document.referrer
-      };
-      
-      console.log('URL Debug Info:', debugData);
-      setState(prev => ({ ...prev, debugInfo: debugData }));
-
-      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
-      const type = hashParams.get('type') || searchParams.get('type');
-      const error = hashParams.get('error') || searchParams.get('error');
-      const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
-      const errorCode = hashParams.get('error_code') || searchParams.get('error_code');
-
-      const tokenInfo = {
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-        type,
-        error,
-        errorDescription,
-        errorCode,
-        accessTokenLength: accessToken?.length || 0,
-        refreshTokenLength: refreshToken?.length || 0
-      };
-
-      console.log('Token Info:', tokenInfo);
-
-      if (error) {
-        console.error('Auth Error Details:', { error, errorDescription, errorCode });
-        setState(prev => ({
-          ...prev,
-          status: 'error',
-          message: `Authentication failed: ${errorDescription || error}`
-        }));
-        return;
-      }
-
-      if (type === 'magiclink' && accessToken && refreshToken) {
-        console.log('Processing magic link authentication...');
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      try {
+        // Handle the auth callback from Supabase
+        const { data, error } = await supabase.auth.getSession();
         
-        const { data: currentSession } = await supabase.auth.getSession();
-        console.log('Current session before setSession:', {
-          hasSession: !!currentSession.session,
-          userId: currentSession.session?.user?.id,
-          expires: currentSession.session?.expires_at
-        });
-
-        const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        console.log('setSession result:', {
-          hasData: !!data,
-          hasUser: !!data.user,
-          hasSession: !!data.session,
-          userId: data.user?.id,
-          userEmail: data.user?.email,
-          sessionExpiresAt: data.session?.expires_at,
-          error: sessionError
-        });
-
-        if (sessionError) {
-          console.error('Session Error Details:', sessionError);
-          setState(prev => ({
-            ...prev,
-            status: 'error',
-            message: `Session setup failed: ${sessionError.message}`
-          }));
+        if (error) {
+          console.error('Auth callback error:', error);
+          setStatus('error');
+          setMessage(error.message || 'Authentication failed');
           return;
         }
 
-        if (data.user) {
-          console.log('Successfully authenticated user:', {
-            id: data.user.id,
-            email: data.user.email,
-            emailConfirmed: data.user.email_confirmed_at,
-            lastSignIn: data.user.last_sign_in_at
-          });
+        if (data.session?.user) {
+          const user = data.session.user;
+          const provider = user.app_metadata?.provider;
           
-          setState(prev => ({
-            ...prev,
-            status: 'success',
-            message: 'Successfully authenticated! Redirecting...'
-          }));
+          // If this is an SSO login, provision the user
+          if (provider && provider !== 'email') {
+            const ssoUser = {
+              id: user.id,
+              email: user.email || '',
+              name: user.user_metadata?.full_name || user.email || '',
+              domain: user.email?.split('@')[1],
+              provider: provider,
+              providerId: user.app_metadata?.provider_id || user.id
+            };
+
+            await provisionSSOUser(ssoUser);
+          }
+
+          // Check if user is admin and redirect accordingly
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('user_id', user.id)
+            .single();
+
+          setStatus('success');
+          setMessage('Authentication successful! Redirecting...');
           
-          setTimeout(async () => {
-            console.log('Redirecting to dashboard...');
-            // Check if user is admin
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('is_admin')
-              .eq('user_id', data.user.id)
-              .single();
-            
+          setTimeout(() => {
             if (profile?.is_admin) {
-              navigateTo('/admin/dashboard');
+              navigate('/admin/dashboard');
             } else {
-              const onboarding = searchParams.get('onboarding') === '1';
-              navigateTo(onboarding ? '/onboarding' : '/dashboard');
+              navigate('/dashboard');
             }
           }, 2000);
         } else {
-          console.error('No user data received from setSession');
-          setState(prev => ({
-            ...prev,
-            status: 'error',
-            message: 'Authentication failed: No user data received'
-          }));
+          setStatus('error');
+          setMessage('No user session found. Please try signing in again.');
         }
-      } else if (type === 'recovery' && accessToken && refreshToken) {
-        console.log('Processing password recovery...');
-        
-        // Set the session for password recovery
-        const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (sessionError) {
-          console.error('Recovery Session Error:', sessionError);
-          setState(prev => ({
-            ...prev,
-            status: 'error',
-            message: `Recovery session setup failed: ${sessionError.message}`
-          }));
-          return;
-        }
-
-        console.log('Recovery session established successfully');
-        setState(prev => ({
-          ...prev,
-          status: 'success',
-          message: 'Password recovery link verified. Redirecting to reset form...'
-        }));
-        
-        setTimeout(() => {
-          navigate('/auth/reset-password');
-        }, 2000);
-      } else {
-        if (user) {
-          console.log('User already authenticated:', {
-            id: user.id,
-            email: user.email
-          });
-          setState(prev => ({
-            ...prev,
-            status: 'success',
-            message: 'Already authenticated! Redirecting...'
-          }));
-          setTimeout(async () => {
-            // Check if user is admin
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('is_admin')
-              .eq('user_id', user.id)
-              .single();
-            
-            if (profile?.is_admin) {
-              navigateTo('/admin/dashboard');
-            } else {
-              navigateTo('/dashboard');
-            }
-          }, 1000);
-        } else {
-          console.error('Invalid authentication parameters:', {
-            type,
-            hasAccessToken: !!accessToken,
-            hasRefreshToken: !!refreshToken
-          });
-          setState(prev => ({
-            ...prev,
-            status: 'error',
-            message: 'Invalid authentication link or link has expired.'
-          }));
-        }
+      } catch (error: any) {
+        console.error('Unexpected error in auth callback:', error);
+        setStatus('error');
+        setMessage('An unexpected error occurred. Please try again.');
       }
-    } catch (error) {
-      console.error('=== AUTH CALLBACK ERROR ===');
-      console.error('Error details:', error);
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
-      
-      setState(prev => ({
-        ...prev,
-        status: 'error',
-        message: `Authentication error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      }));
-    } finally {
-      console.log('=== AUTH CALLBACK DEBUG END ===');
-    }
-  };
+    };
+
+    handleAuthCallback();
+  }, [navigate, provisionSSOUser]);
 
   const handleRetry = () => {
-    setState(prev => ({ 
-      ...prev, 
-      status: 'loading', 
-      message: 'Retrying authentication...',
-      retryCount: prev.retryCount + 1
-    }));
-    handleAuthCallback(state.retryCount + 1);
+    navigate('/auth');
   };
-
-  const handleGoHome = () => {
-    console.log('Navigating to home from auth callback');
-    navigate('/');
-  };
-
-  useEffect(() => {
-    handleAuthCallback();
-  }, [searchParams, user, navigateTo]);
 
   const getIcon = () => {
-    switch (state.status) {
-      case 'loading':
-        return <Loader2 className="h-8 w-8 animate-spin text-primary" />;
+    switch (status) {
       case 'success':
         return <CheckCircle className="h-8 w-8 text-green-600" />;
       case 'error':
         return <AlertCircle className="h-8 w-8 text-red-600" />;
+      default:
+        return <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />;
     }
   };
 
-  const getStatusColor = () => {
-    switch (state.status) {
-      case 'loading':
-        return 'text-primary';
+  const getTitle = () => {
+    switch (status) {
       case 'success':
-        return 'text-green-600';
+        return 'Authentication Successful';
       case 'error':
-        return 'text-red-600';
+        return 'Authentication Failed';
+      default:
+        return 'Completing Sign In...';
     }
   };
 
@@ -282,53 +107,35 @@ export default function AuthCallback() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-background flex items-center justify-center border">
             {getIcon()}
           </div>
-          <CardTitle className={`text-xl font-bold ${getStatusColor()}`}>
-            {state.status === 'loading' && 'Authenticating...'}
-            {state.status === 'success' && 'Success!'}
-            {state.status === 'error' && 'Authentication Failed'}
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold">{getTitle()}</CardTitle>
+          <CardDescription>{message}</CardDescription>
         </CardHeader>
-        <CardContent className="text-center space-y-4">
-          <p className="text-muted-foreground">{state.message}</p>
-          
-          {state.status === 'error' && (
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                {state.retryCount < 3 && (
-                  <Button onClick={handleRetry} className="flex-1">
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Try Again ({3 - state.retryCount} left)
-                  </Button>
-                )}
-                <Button onClick={handleGoHome} variant="outline" className="flex-1">
-                  <Home className="mr-2 h-4 w-4" />
-                  Go Home
-                </Button>
-              </div>
-              
-              <button
-                onClick={() => navigateTo('/auth')}
-                className="text-primary hover:underline text-sm"
-              >
-                Return to sign in
-              </button>
-              
-              {process.env.NODE_ENV === 'development' && (
-                <details className="text-left text-xs bg-gray-100 p-2 rounded mt-4">
-                  <summary className="cursor-pointer font-medium">
-                    Debug Information (Attempt {state.retryCount + 1})
-                  </summary>
-                  <pre className="mt-2 overflow-auto max-h-40">
-                    {JSON.stringify(state.debugInfo, null, 2)}
-                  </pre>
-                </details>
-              )}
+        
+        {status === 'error' && (
+          <CardContent className="space-y-4">
+            <Button onClick={handleRetry} className="w-full">
+              Try Again
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/')} 
+              className="w-full"
+            >
+              Go Home
+            </Button>
+          </CardContent>
+        )}
+
+        {status === 'loading' && (
+          <CardContent>
+            <div className="text-center text-sm text-muted-foreground">
+              Please wait while we complete your authentication...
             </div>
-          )}
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
     </div>
   );

@@ -8,6 +8,11 @@ import { SourceLinkManager } from "@/components/SourceLinkManager";
 import { AdminNavigation } from "@/components/AdminNavigation";
 import { AdminSecurityManager } from "@/components/AdminSecurityManager";
 import { SecurityMonitoringDashboard } from "@/components/SecurityMonitoringDashboard";
+import { SSOConfiguration } from "@/components/SSOConfiguration";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminAlertManager } from "@/components/AdminAlertManager";
+import { UsageDashboard } from "@/components/UsageDashboard";
+import { SecurityDashboardEnhanced } from "@/components/SecurityDashboardEnhanced";
 
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -39,19 +44,46 @@ const AdminDashboard: React.FC = () => {
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Admin Dashboard</h1>
           </header>
 
-          <AdminNavigation />
+          <Tabs defaultValue="analytics" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
+              <TabsTrigger value="alerts">Alerts</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsTrigger value="sso">SSO</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList>
 
-          <main className="mt-6">
-            <Routes>
-              <Route index element={<AdminDashboardComponent />} />
-              <Route path="dashboard" element={<AdminDashboardComponent />} />
-              <Route path="analytics" element={<FDAAnalyticsDashboard />} />
-              <Route path="source-links" element={<SourceLinkManager />} />
-              <Route path="security" element={<AdminSecurityManager />} />
-              <Route path="security-monitoring" element={<SecurityMonitoringDashboard />} />
-              <Route path="*" element={<Navigate to="/admin" replace />} />
-            </Routes>
-          </main>
+            <TabsContent value="analytics">
+              <UsageDashboard />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <div className="text-center p-8">
+                <h3 className="text-lg font-medium">User Management</h3>
+                <p className="text-muted-foreground">Manage user accounts and permissions</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="alerts">
+              <AdminAlertManager />
+            </TabsContent>
+
+            <TabsContent value="security">
+              <SecurityDashboardEnhanced />
+            </TabsContent>
+
+            <TabsContent value="sso">
+              <SSOConfiguration />
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <div className="text-center p-8">
+                <h3 className="text-lg font-medium">System Settings</h3>
+                <p className="text-muted-foreground">Configure global application settings</p>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
     </>

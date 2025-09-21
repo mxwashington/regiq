@@ -10,6 +10,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, Home, Shield, CheckCircle, AlertCircle, Mail, Clock } from 'lucide-react';
 import { useNavigationHelper } from '@/components/NavigationHelper';
 import { useRateLimitHandler } from '@/hooks/useRateLimitHandler';
+import { SSOLoginButtons } from '@/components/SSOLoginButtons';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
@@ -176,6 +177,16 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <SSOLoginButtons 
+              onSuccess={() => {
+                if (email === 'marcus@regiq.org') {
+                  navigateTo('/admin/dashboard');
+                } else {
+                  navigateTo('/dashboard');
+                }
+              }} 
+            />
+            
             <form onSubmit={handleMagicLink} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
