@@ -189,10 +189,25 @@ export const NewPricingSection: React.FC = () => {
               )}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                  <Badge className="bg-primary text-primary-foreground px-4 py-1 text-xs font-semibold whitespace-nowrap">
+                <div 
+                  className="absolute z-10 left-1/2 transform -translate-x-1/2"
+                  style={{ top: '-16px' }}
+                >
+                  <div 
+                    className="px-6 py-2 text-white font-semibold uppercase text-xs rounded-full"
+                    style={{
+                      background: 'linear-gradient(135deg, #007AFF 0%, #5856D6 100%)',
+                      letterSpacing: '1.2px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      padding: '8px 24px',
+                      borderRadius: '20px',
+                      boxShadow: '0 4px 12px rgba(0, 122, 255, 0.3)',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     MOST POPULAR
-                  </Badge>
+                  </div>
                 </div>
               )}
 
