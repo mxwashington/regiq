@@ -179,13 +179,13 @@ export const NewPricingSection: React.FC = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 mt-20 overflow-visible">
           {plans.map((plan) => (
             <Card 
               key={plan.id}
               className={cn(
                 "relative transition-all duration-300 hover:shadow-xl",
-                plan.popular && "ring-2 ring-primary shadow-xl scale-105 lg:scale-110 mt-8"
+                plan.popular && "ring-2 ring-primary shadow-xl scale-105 lg:scale-110"
               )}
             >
               {plan.popular && (
