@@ -1,9 +1,9 @@
 /**
- * Optimized Alerts Hook - Prevents N+1 queries, implements smart caching
+ * Optimized Alerts Hook - Performance improvements without complex generics
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { apiClient } from '@/lib/api/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { fallbackAlerts } from '@/lib/debug-utils';
 
@@ -15,7 +15,6 @@ interface OptimizedAlert {
   source: string;
   published_date: string;
   external_url?: string;
-  tags?: string[];
   dismissed_by?: string[];
   isFallback?: boolean;
 }
@@ -28,83 +27,43 @@ interface UseOptimizedAlertsOptions {
     dateRange?: { start: string; end: string };
     excludeDismissed?: boolean;
   };
-  cache?: boolean;
-  cacheTTL?: number;
   realtime?: boolean;
 }
 
-interface AlertsState {
-  alerts: OptimizedAlert[];
-  loading: boolean;
-  error: string | null;
-  totalCount: number;
-  hasMore: boolean;
-  retryCount: number;
-}
-
 export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
-  const {
-    limit,
-    filters = {},
-    cache = true,
-    cacheTTL = 5 * 60 * 1000, // 5 minutes
-    realtime = false
-  } = options;
-
-  const [state, setState] = useState<AlertsState>({
-    alerts: [],
-    loading: true,
-    error: null,
-    totalCount: 0,
-    hasMore: false,
-    retryCount: 0
-  });
-
+  const { limit, filters = {}, realtime = false } = options;
+  
+  const [alerts, setAlerts] = useState<OptimizedAlert[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  
   const { toast } = useToast();
 
-  // Memoized filter object to prevent unnecessary re-renders
-  const memoizedFilters = useMemo(() => {
-    const dbFilters: Record<string, any> = {};
-
-    if (filters.source) {
-      dbFilters.source = Array.isArray(filters.source) ? filters.source : [filters.source];
-    }
-
-    if (filters.urgency) {
-      dbFilters.urgency = Array.isArray(filters.urgency) ? filters.urgency : [filters.urgency];
-    }
-
-    if (filters.dateRange) {
-      dbFilters.published_date = {
-        gte: filters.dateRange.start,
-        lte: filters.dateRange.end
-      };
-    }
-
-    return dbFilters;
-  }, [filters]);
-
-  // Load alerts with retry logic and fallback
-  const loadAlerts = useCallback(async (retryCount = 0) => {
+  // Load alerts with retry logic
+  const loadAlerts = useCallback(async (currentRetryCount = 0) => {
     const maxRetries = 3;
 
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setLoading(true);
+      setError(null);
 
-      // Test connection first
-      const { error: pingError } = await apiClient.query('alerts', {
-        select: 'count',
-        limit: 0,
-        cache: false
-      });
+      // Test connection
+      const { error: pingError } = await supabase
+        .from('alerts')
+        .select('count')
+        .limit(0);
 
       if (pingError) {
         throw new Error(`Database connection failed: ${pingError.message}`);
       }
 
-      // Build query options
-      const queryOptions = {
-        select: `
+      // Build query
+      let query = supabase
+        .from('alerts')
+        .select(`
           id,
           title,
           summary,
@@ -112,66 +71,82 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
           source,
           published_date,
           external_url,
-          tags,
           dismissed_by
-        `,
-        filters: memoizedFilters,
-        orderBy: { column: 'published_date', ascending: false },
-        limit,
-        cache,
-        cacheTTL
-      };
+        `, { count: 'exact' })
+        .order('published_date', { ascending: false });
 
-      const { data, error, count } = await apiClient.query<OptimizedAlert[]>('alerts', queryOptions);
+      // Apply source filter
+      if (filters.source) {
+        if (Array.isArray(filters.source)) {
+          query = query.in('source', filters.source);
+        } else {
+          query = query.eq('source', filters.source);
+        }
+      }
 
-      if (error) {
-        throw new Error(`Query failed: ${error.message}`);
+      // Apply urgency filter
+      if (filters.urgency) {
+        if (Array.isArray(filters.urgency)) {
+          query = query.in('urgency', filters.urgency);
+        } else {
+          query = query.eq('urgency', filters.urgency);
+        }
+      }
+
+      // Apply date range filter
+      if (filters.dateRange) {
+        query = query
+          .gte('published_date', filters.dateRange.start)
+          .lte('published_date', filters.dateRange.end);
+      }
+
+      if (limit) {
+        query = query.limit(limit);
+      }
+
+      const { data, error: fetchError, count } = await query;
+
+      if (fetchError) {
+        throw new Error(`Query failed: ${fetchError.message}`);
       }
 
       if (!data) {
         throw new Error('No data returned from query');
       }
 
-      // Filter out dismissed alerts if requested
-      let processedAlerts = data;
+      // Type cast urgency and filter dismissed if needed
+      let processedAlerts = data.map(alert => ({
+        ...alert,
+        urgency: (alert.urgency as OptimizedAlert['urgency']) || 'medium'
+      }));
+
       if (filters.excludeDismissed) {
-        // This would need user context to work properly
-        processedAlerts = data.filter(alert => 
+        processedAlerts = processedAlerts.filter(alert => 
           !alert.dismissed_by || alert.dismissed_by.length === 0
         );
       }
 
-      console.log('[useOptimizedAlerts] Successfully loaded alerts:', {
-        count: processedAlerts.length,
-        totalCount: count,
-        limit,
-        hasMore: limit ? processedAlerts.length >= limit : false
-      });
-
-      setState({
-        alerts: processedAlerts,
-        loading: false,
-        error: null,
-        totalCount: count || 0,
-        hasMore: limit ? processedAlerts.length >= limit : false,
-        retryCount: 0
-      });
+      setAlerts(processedAlerts);
+      setTotalCount(count || 0);
+      setHasMore(limit ? processedAlerts.length >= limit : false);
+      setRetryCount(0);
+      setLoading(false);
 
     } catch (err: any) {
-      console.error(`[useOptimizedAlerts] Attempt ${retryCount + 1} failed:`, err);
+      console.error(`[useOptimizedAlerts] Attempt ${currentRetryCount + 1} failed:`, err);
       
-      if (retryCount >= maxRetries) {
-        // All retries failed, use fallback
-        console.warn('[useOptimizedAlerts] All retries failed, using fallback data');
-        
-        setState({
-          alerts: fallbackAlerts.map(alert => ({ ...alert, urgency: alert.urgency as OptimizedAlert['urgency'], isFallback: true })),
-          loading: false,
-          error: err.message || 'Failed to load alerts',
-          totalCount: fallbackAlerts.length,
-          hasMore: false,
-          retryCount: retryCount + 1
-        });
+      if (currentRetryCount >= maxRetries) {
+        // Use fallback data
+        console.warn('[useOptimizedAlerts] Using fallback data');
+        setAlerts(fallbackAlerts.map(alert => ({ 
+          ...alert, 
+          urgency: alert.urgency as OptimizedAlert['urgency'], 
+          isFallback: true 
+        })));
+        setTotalCount(fallbackAlerts.length);
+        setError(err.message || 'Failed to load alerts');
+        setRetryCount(currentRetryCount + 1);
+        setLoading(false);
         
         toast({
           title: 'Connection Issue',
@@ -179,20 +154,24 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
           variant: 'destructive'
         });
       } else {
-        // Retry with exponential backoff
-        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
-        setTimeout(() => loadAlerts(retryCount + 1), delay);
+        // Retry with backoff
+        const delay = Math.min(1000 * Math.pow(2, currentRetryCount), 5000);
+        setTimeout(() => loadAlerts(currentRetryCount + 1), delay);
       }
     }
-  }, [memoizedFilters, limit, cache, cacheTTL, filters.excludeDismissed, toast]);
+  }, [filters, limit, toast]);
 
-  // Load more alerts for pagination
+  // Load more for pagination
   const loadMore = useCallback(async () => {
-    if (!state.hasMore || state.loading) return;
+    if (!hasMore || loading) return;
 
     try {
-      const queryOptions = {
-        select: `
+      const lastAlert = alerts[alerts.length - 1];
+      if (!lastAlert) return;
+
+      let query = supabase
+        .from('alerts')
+        .select(`
           id,
           title,
           summary,
@@ -200,35 +179,47 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
           source,
           published_date,
           external_url,
-          tags,
           dismissed_by
-        `,
-        filters: {
-          ...memoizedFilters,
-          published_date: {
-            ...memoizedFilters.published_date,
-            lt: state.alerts[state.alerts.length - 1]?.published_date
-          }
-        },
-        orderBy: { column: 'published_date', ascending: false },
-        limit,
-        cache: false // Don't cache pagination queries
-      };
+        `)
+        .order('published_date', { ascending: false })
+        .lt('published_date', lastAlert.published_date);
 
-      const { data, error } = await apiClient.query<OptimizedAlert[]>('alerts', queryOptions);
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setState(prev => ({
-          ...prev,
-          alerts: [...prev.alerts, ...data],
-          hasMore: limit ? data.length >= limit : false
-        }));
-      } else {
-        setState(prev => ({ ...prev, hasMore: false }));
+      // Apply existing filters
+      if (filters.source) {
+        if (Array.isArray(filters.source)) {
+          query = query.in('source', filters.source);
+        } else {
+          query = query.eq('source', filters.source);
+        }
       }
 
+      if (filters.urgency) {
+        if (Array.isArray(filters.urgency)) {
+          query = query.in('urgency', filters.urgency);
+        } else {
+          query = query.eq('urgency', filters.urgency);
+        }
+      }
+
+      if (limit) {
+        query = query.limit(limit);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) throw fetchError;
+
+      if (data && data.length > 0) {
+        const processedData = data.map(alert => ({
+          ...alert,
+          urgency: (alert.urgency as OptimizedAlert['urgency']) || 'medium'
+        }));
+
+        setAlerts(prev => [...prev, ...processedData]);
+        setHasMore(limit ? data.length >= limit : false);
+      } else {
+        setHasMore(false);
+      }
     } catch (err: any) {
       console.error('[useOptimizedAlerts] Load more failed:', err);
       toast({
@@ -237,45 +228,32 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
         variant: 'destructive'
       });
     }
-  }, [state.hasMore, state.loading, state.alerts, memoizedFilters, limit, toast]);
+  }, [hasMore, loading, alerts, filters, limit, toast]);
 
   // Dismiss alert optimistically
   const dismissAlert = useCallback(async (alertId: string, userId: string) => {
     try {
       // Optimistic update
-      setState(prev => ({
-        ...prev,
-        alerts: prev.alerts.map(alert =>
-          alert.id === alertId
-            ? {
-                ...alert,
-                dismissed_by: [...(alert.dismissed_by || []), userId]
-              }
-            : alert
-        )
-      }));
+      setAlerts(prev => prev.map(alert =>
+        alert.id === alertId
+          ? { ...alert, dismissed_by: [...(alert.dismissed_by || []), userId] }
+          : alert
+      ));
 
-      const { error } = await apiClient.rpc('dismiss_alert_for_user', {
+      const { error } = await supabase.rpc('dismiss_alert_for_user', {
         alert_id: alertId,
         user_id: userId
       });
 
       if (error) {
-        // Rollback optimistic update
-        setState(prev => ({
-          ...prev,
-          alerts: prev.alerts.map(alert =>
-            alert.id === alertId
-              ? {
-                  ...alert,
-                  dismissed_by: (alert.dismissed_by || []).filter(id => id !== userId)
-                }
-              : alert
-          )
-        }));
+        // Rollback
+        setAlerts(prev => prev.map(alert =>
+          alert.id === alertId
+            ? { ...alert, dismissed_by: (alert.dismissed_by || []).filter(id => id !== userId) }
+            : alert
+        ));
         throw error;
       }
-
     } catch (err: any) {
       console.error('[useOptimizedAlerts] Dismiss failed:', err);
       toast({
@@ -286,34 +264,28 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
     }
   }, [toast]);
 
-  // Clear all alerts optimistically
+  // Clear all alerts
   const clearAllAlerts = useCallback(async (userId: string) => {
     try {
-      // Optimistic update
-      const originalAlerts = state.alerts;
-      setState(prev => ({
-        ...prev,
-        alerts: prev.alerts.map(alert => ({
-          ...alert,
-          dismissed_by: [...(alert.dismissed_by || []), userId]
-        }))
-      }));
+      const originalAlerts = alerts;
+      setAlerts(prev => prev.map(alert => ({
+        ...alert,
+        dismissed_by: [...(alert.dismissed_by || []), userId]
+      })));
 
-      const { error } = await apiClient.rpc('clear_all_alerts_for_user', {
+      const { error } = await supabase.rpc('clear_all_alerts_for_user', {
         user_id: userId
       });
 
       if (error) {
-        // Rollback optimistic update
-        setState(prev => ({ ...prev, alerts: originalAlerts }));
+        setAlerts(originalAlerts);
         throw error;
       }
 
       toast({
         title: 'Success',
-        description: 'All alerts cleared',
+        description: 'All alerts cleared'
       });
-
     } catch (err: any) {
       console.error('[useOptimizedAlerts] Clear all failed:', err);
       toast({
@@ -322,12 +294,10 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
         variant: 'destructive'
       });
     }
-  }, [state.alerts, toast]);
+  }, [alerts, toast]);
 
-  // Refresh alerts manually
+  // Refresh manually
   const refresh = useCallback(() => {
-    // Clear cache for this query
-    apiClient.clearCache();
     loadAlerts(0);
   }, [loadAlerts]);
 
@@ -335,76 +305,73 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
   useEffect(() => {
     if (!realtime) return;
 
-    const unsubscribe = apiClient.subscribeToTable(
-      'alerts',
-      (payload) => {
-        console.log('[useOptimizedAlerts] Real-time update:', payload);
-        
+    const channel = supabase
+      .channel('alerts_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'alerts'
+      }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          setState(prev => ({
-            ...prev,
-            alerts: [payload.new, ...prev.alerts],
-            totalCount: prev.totalCount + 1
-          }));
+          const newAlert = {
+            ...payload.new,
+            urgency: (payload.new.urgency as OptimizedAlert['urgency']) || 'medium'
+          } as OptimizedAlert;
+          
+          setAlerts(prev => [newAlert, ...prev]);
+          setTotalCount(prev => prev + 1);
         } else if (payload.eventType === 'UPDATE') {
-          setState(prev => ({
-            ...prev,
-            alerts: prev.alerts.map(alert =>
-              alert.id === payload.new.id ? payload.new : alert
-            )
-          }));
+          const updatedAlert = {
+            ...payload.new,
+            urgency: (payload.new.urgency as OptimizedAlert['urgency']) || 'medium'
+          } as OptimizedAlert;
+          
+          setAlerts(prev => prev.map(alert =>
+            alert.id === updatedAlert.id ? updatedAlert : alert
+          ));
         } else if (payload.eventType === 'DELETE') {
-          setState(prev => ({
-            ...prev,
-            alerts: prev.alerts.filter(alert => alert.id !== payload.old.id),
-            totalCount: Math.max(0, prev.totalCount - 1)
-          }));
+          setAlerts(prev => prev.filter(alert => alert.id !== payload.old.id));
+          setTotalCount(prev => Math.max(0, prev - 1));
         }
-      },
-      memoizedFilters
-    );
+      });
 
-    return unsubscribe;
-  }, [realtime, memoizedFilters]);
+    channel.subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [realtime]);
 
-  // Load alerts on mount and when filters change
+  // Load alerts on mount and filter changes
   useEffect(() => {
     loadAlerts(0);
   }, [loadAlerts]);
 
   // Computed values
   const alertsByUrgency = useMemo(() => {
-    return state.alerts.reduce((acc, alert) => {
+    return alerts.reduce((acc, alert) => {
       acc[alert.urgency] = (acc[alert.urgency] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-  }, [state.alerts]);
+  }, [alerts]);
 
   const recentAlerts = useMemo(() => {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    return state.alerts.filter(alert => alert.published_date >= oneDayAgo);
-  }, [state.alerts]);
+    return alerts.filter(alert => alert.published_date >= oneDayAgo);
+  }, [alerts]);
 
   return {
-    // State
-    alerts: state.alerts,
-    loading: state.loading,
-    error: state.error,
-    totalCount: state.totalCount,
-    hasMore: state.hasMore,
-    retryCount: state.retryCount,
-    
-    // Actions
+    alerts,
+    loading,
+    error,
+    totalCount,
+    hasMore,
+    retryCount,
     loadMore,
     dismissAlert,
     clearAllAlerts,
     refresh,
-    
-    // Computed values
     alertsByUrgency,
-    recentAlerts,
-    
-    // Cache stats (for debugging)
-    cacheStats: apiClient.getCacheStats()
+    recentAlerts
   };
 };
