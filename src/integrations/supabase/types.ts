@@ -1086,32 +1086,132 @@ export type Database = {
       facilities: {
         Row: {
           address: string | null
+          compliance_requirements: Json | null
+          contact_info: Json | null
           created_at: string
           created_by: string | null
           facility_type: string | null
           id: string
           name: string
           organization_user_id: string
+          regulatory_zones: string[] | null
+          settings: Json | null
+          status: string | null
         }
         Insert: {
           address?: string | null
+          compliance_requirements?: Json | null
+          contact_info?: Json | null
           created_at?: string
           created_by?: string | null
           facility_type?: string | null
           id?: string
           name: string
           organization_user_id: string
+          regulatory_zones?: string[] | null
+          settings?: Json | null
+          status?: string | null
         }
         Update: {
           address?: string | null
+          compliance_requirements?: Json | null
+          contact_info?: Json | null
           created_at?: string
           created_by?: string | null
           facility_type?: string | null
           id?: string
           name?: string
           organization_user_id?: string
+          regulatory_zones?: string[] | null
+          settings?: Json | null
+          status?: string | null
         }
         Relationships: []
+      }
+      facility_alerts: {
+        Row: {
+          alert_id: string
+          assigned_to: string | null
+          created_at: string
+          facility_id: string
+          id: string
+          is_relevant: boolean | null
+          notes: string | null
+          risk_level: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          alert_id: string
+          assigned_to?: string | null
+          created_at?: string
+          facility_id: string
+          id?: string
+          is_relevant?: boolean | null
+          notes?: string | null
+          risk_level?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alert_id?: string
+          assigned_to?: string | null
+          created_at?: string
+          facility_id?: string
+          id?: string
+          is_relevant?: boolean | null
+          notes?: string | null
+          risk_level?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_alerts_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facility_users: {
+        Row: {
+          created_at: string
+          facility_id: string
+          id: string
+          permissions: Json | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          facility_id: string
+          id?: string
+          permissions?: Json | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          facility_id?: string
+          id?: string
+          permissions?: Json | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_users_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       import_compliance_gaps: {
         Row: {
@@ -2563,6 +2663,14 @@ export type Database = {
         Args: { user_id: string }
         Returns: undefined
       }
+      create_facility_with_admin: {
+        Args: {
+          facility_address: string
+          facility_name: string
+          facility_type?: string
+        }
+        Returns: string
+      }
       create_secure_api_key: {
         Args: { key_name_param: string; rate_limit_param?: number }
         Returns: Json
@@ -2678,6 +2786,16 @@ export type Database = {
           feature_value: Json
           plan_id: string
           status: string
+        }[]
+      }
+      get_user_facilities: {
+        Args: { user_uuid: string }
+        Returns: {
+          facility_id: string
+          facility_name: string
+          facility_type: string
+          status: string
+          user_role: string
         }[]
       }
       grant_admin_permission: {

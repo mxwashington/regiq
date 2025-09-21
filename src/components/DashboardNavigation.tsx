@@ -7,6 +7,7 @@ import {
   Bookmark, 
   Brain,
   TrendingUp,
+  Building2,
   ChevronRight
 } from 'lucide-react';
 
@@ -42,6 +43,12 @@ export function DashboardNavigation({
       icon: Bookmark,
       description: 'Your bookmarked alerts',
       badge: savedItemsCount > 0 ? savedItemsCount : undefined
+    },
+    {
+      id: 'facilities',
+      label: 'Facilities',
+      icon: Building2,
+      description: 'Multi-facility management'
     },
     {
       id: 'risk',

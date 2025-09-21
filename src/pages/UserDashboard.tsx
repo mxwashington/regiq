@@ -18,6 +18,8 @@ import { ConversationalChatbot } from '@/components/ConversationalChatbot';
 import { EnhancedRecallDemo } from '@/components/EnhancedRecallDemo';
 import PerplexityAlertCard from '@/components/PerplexityAlertCard';
 import { ExportManager } from '@/components/ExportManager';
+import { FacilityManagement } from '@/components/FacilityManagement';
+import { FacilitySelector } from '@/components/FacilitySelector';
 import RiskPredictorPage from './RiskPredictorPage';
 import RiskDashboardPage from './RiskDashboardPage';
 import SupportWidget from '@/components/account/SupportWidget';
@@ -202,17 +204,21 @@ const UserDashboard = () => {
         </div>
 
         <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">{/* Extra padding bottom for mobile nav */}
-        {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Your Regulatory Dashboard</h1>
-          <p className="text-muted-foreground">
-            Stay up to date with the latest regulatory alerts, chat with AI, and run advanced searches.
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Your Regulatory Dashboard</h1>
+              <p className="text-muted-foreground">
+                Stay up to date with the latest regulatory alerts, chat with AI, and run advanced searches.
+              </p>
+            </div>
+            <FacilitySelector className="hidden md:flex" />
+          </div>
         </div>
 
         {/* Main Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1 h-auto p-2">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 gap-1 h-auto p-2">
             <TabsTrigger value="alerts" className="flex items-center gap-1 px-2 py-2 text-sm">
               <Bell className="h-4 w-4 shrink-0" />
               <span>Alerts</span>
@@ -224,6 +230,11 @@ const UserDashboard = () => {
             >
               <Search className="h-4 w-4 shrink-0" />
               <span>Search</span>
+            </TabsTrigger>
+            <TabsTrigger value="facilities" className="flex items-center gap-1 px-2 py-2 text-sm">
+              <Shield className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Facilities</span>
+              <span className="sm:hidden">Sites</span>
             </TabsTrigger>
             <TabsTrigger value="risk" className="flex items-center gap-1 px-2 py-2 text-sm">
               <TrendingUp className="h-4 w-4 shrink-0" />
@@ -513,6 +524,13 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Facilities Tab */}
+          <TabsContent value="facilities" className="space-y-6">
+            <TrialGate feature="multi-facility management">
+              <FacilityManagement />
+            </TrialGate>
           </TabsContent>
 
           {/* Risk Intelligence Tab */}

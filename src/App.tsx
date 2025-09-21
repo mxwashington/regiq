@@ -162,6 +162,7 @@ const PWAApp = () => {
               <Route path="/regulatory-impact" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/RegulatoryImpactAnalysis")))}</AuthGuard>} />
               <Route path="/regulatory-gap-detection" element={<AuthGuard><RegulatoryGapDetection /></AuthGuard>} />
               <Route path="/custom-alerts" element={<AuthGuard><CustomAlerts /></AuthGuard>} />
+              <Route path="/facilities" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/FacilitiesPage")))}</AuthGuard>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/account" element={<Account />} />
               <Route path="/suppliers" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/UnifiedSupplierDashboard")))}</AuthGuard>} />
