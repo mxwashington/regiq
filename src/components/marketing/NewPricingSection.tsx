@@ -133,8 +133,8 @@ export const NewPricingSection: React.FC = () => {
             <div className="flex items-center gap-3 justify-center p-4 bg-card rounded-lg border">
               <Shield className="w-6 h-6 text-blue-500" />
               <div className="text-left">
-                <div className="font-semibold">$40K+ Saved</div>
-                <div className="text-sm text-muted-foreground">Annual compliance costs</div>
+                <div className="font-semibold">90% Faster</div>
+                <div className="text-sm text-muted-foreground">Regulatory searches</div>
               </div>
             </div>
             <div className="flex items-center gap-3 justify-center p-4 bg-card rounded-lg border">
