@@ -631,6 +631,56 @@ export type Database = {
         }
         Relationships: []
       }
+      collaboration_comments: {
+        Row: {
+          attachments: Json | null
+          content: string
+          created_at: string
+          edited_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          mentions: string[] | null
+          reply_to: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          created_at?: string
+          edited_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          mentions?: string[] | null
+          reply_to?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          created_at?: string
+          edited_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          mentions?: string[] | null
+          reply_to?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_comments_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "collaboration_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_deadlines: {
         Row: {
           agency: string
@@ -2263,6 +2313,106 @@ export type Database = {
           },
         ]
       }
+      team_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_activities_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_alert_assignments: {
+        Row: {
+          alert_id: string
+          assigned_by: string
+          assigned_to: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          priority: string | null
+          status: string | null
+          team_id: string
+          updated_at: string
+          workflow_stage: string | null
+        }
+        Insert: {
+          alert_id: string
+          assigned_by: string
+          assigned_to?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          priority?: string | null
+          status?: string | null
+          team_id: string
+          updated_at?: string
+          workflow_stage?: string | null
+        }
+        Update: {
+          alert_id?: string
+          assigned_by?: string
+          assigned_to?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          priority?: string | null
+          status?: string | null
+          team_id?: string
+          updated_at?: string
+          workflow_stage?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_alert_assignments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           id: string
@@ -2293,6 +2443,142 @@ export type Database = {
           role?: string | null
           status?: string | null
           team_owner?: string
+        }
+        Relationships: []
+      }
+      team_memberships: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          joined_at: string | null
+          permissions: Json | null
+          role: string
+          status: string | null
+          team_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          permissions?: Json | null
+          role?: string
+          status?: string | null
+          team_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          permissions?: Json | null
+          role?: string
+          status?: string | null
+          team_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_memberships_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          notification_type: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string | null
+          team_id: string | null
+          title: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          read_at?: string | null
+          recipient_id: string
+          sender_id?: string | null
+          team_id?: string | null
+          title: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string | null
+          team_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_notifications_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          settings: Json | null
+          team_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          settings?: Json | null
+          team_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          settings?: Json | null
+          team_type?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2594,6 +2880,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_alert_to_team: {
+        Args: {
+          alert_id_param: string
+          assigned_to_param?: string
+          notes_param?: string
+          priority_param?: string
+          team_id_param: string
+        }
+        Returns: string
+      }
       audit_email_exposure: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2682,6 +2978,14 @@ export type Database = {
           metadata_param?: Json
           severity_param: string
           title_param: string
+        }
+        Returns: string
+      }
+      create_team_with_admin: {
+        Args: {
+          team_description?: string
+          team_name: string
+          team_type?: string
         }
         Returns: string
       }
@@ -2779,6 +3083,12 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      get_user_active_teams: {
+        Args: { user_id_param: string }
+        Returns: {
+          team_id: string
+        }[]
+      }
       get_user_entitlements: {
         Args: { user_uuid: string }
         Returns: {
@@ -2818,8 +3128,16 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_facility_admin: {
+        Args: { facility_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       is_regiq_admin: {
         Args: { user_email: string }
+        Returns: boolean
+      }
+      is_team_admin_or_manager: {
+        Args: { team_id_param: string; user_id_param: string }
         Returns: boolean
       }
       is_trial_expired: {
