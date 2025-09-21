@@ -14,15 +14,27 @@ export const DigestSetup: React.FC<{ onNext: () => void, onBack: () => void }>=(
   const [loading, setLoading] = useState(false);
 
   const save = async () => {
+    setLoading(true);
     try {
-      localStorage.setItem('digest_prefs', JSON.stringify({ time, freq }));
-      if (user) {
-        await supabase.from('user_preferences').upsert({ user_id: user.id, email_notifications: true });
+      if (!user) {
+        toast.error('Please sign in to save preferences');
+        return;
       }
+
+      // Save to digest_preferences table
+      const { error } = await supabase.from('digest_preferences').upsert({
+        user_id: user.id,
+        enabled: true,
+        time: time,
+        frequency: freq
+      });
+
+      if (error) throw error;
+
       toast.success('Digest preferences saved');
       onNext();
     } catch (e) {
-      console.error(e);
+      console.error('Error saving digest preferences:', e);
       toast.error('Failed to save preferences');
     } finally {
       setLoading(false);

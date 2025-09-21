@@ -47,63 +47,112 @@ serve(async (req) => {
     const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1, 0, 0, 0));
     const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1, 23, 59, 59));
 
-    // Get subscribed users
-    const { data: subs, error: subsError } = await supabase
-      .from('subscribers')
-      .select('email')
-      .eq('subscribed', true);
-    if (subsError) throw subsError;
+    // Get users with digest preferences enabled
+    const { data: users, error: usersError } = await supabase
+      .from('digest_preferences')
+      .select(`
+        user_id,
+        enabled,
+        time,
+        frequency,
+        profiles!inner(email, full_name)
+      `)
+      .eq('enabled', true);
+    if (usersError) throw usersError;
 
-    // Fetch critical alerts from yesterday
+    // Fetch critical alerts from yesterday with AI summaries
     const { data: alerts, error: alertsError } = await supabase
       .from('alerts')
-      .select('title, agency, urgency, external_url, published_date')
-      .eq('urgency', 'High')
+      .select('title, agency, urgency_score, external_url, published_date, ai_summary')
+      .gte('urgency_score', 7)
       .gte('published_date', start.toISOString())
       .lte('published_date', end.toISOString())
-      .order('published_date', { ascending: false });
+      .order('urgency_score', { ascending: false })
+      .limit(10);
     if (alertsError) throw alertsError;
 
-    const htmlFor = (items: any[]) => {
+    const htmlFor = (items: any[], userName?: string) => {
+      const greeting = userName ? `Hello ${userName},` : 'Hello,';
+      
       if (!items?.length) {
-        return '<p>No critical alerts in the last 24 hours. You are all clear.</p>';
+        return `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">${greeting}</h2>
+            <p>No critical alerts in the last 24 hours. You are all clear! ✅</p>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+              <a href="https://regiq.org/account" style="color: #2563eb;">Manage preferences</a> | 
+              <a href="https://regiq.org/unsubscribe" style="color: #6b7280;">Unsubscribe</a>
+            </p>
+          </div>
+        `;
       }
+      
       const rows = items.map(a => `
-        <li style="margin-bottom:8px;">
-          <strong>[${a.agency}]</strong> ${a.title}
-          ${a.external_url ? ` - <a href="${a.external_url}">Read more</a>` : ''}
-        </li>`).join('');
+        <div style="border-left: 4px solid ${a.urgency_score >= 9 ? '#dc2626' : a.urgency_score >= 7 ? '#ea580c' : '#6b7280'}; 
+                    padding: 12px; margin: 12px 0; background: #f9fafb;">
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <span style="background: ${a.urgency_score >= 9 ? '#dc2626' : a.urgency_score >= 7 ? '#ea580c' : '#6b7280'}; 
+                        color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-right: 8px;">
+              ${a.urgency_score}/10
+            </span>
+            <strong style="color: #374151;">[${a.agency}]</strong>
+          </div>
+          <h3 style="margin: 8px 0; color: #111827;">${a.title}</h3>
+          ${a.ai_summary ? `<p style="color: #4b5563; margin: 8px 0;">${a.ai_summary}</p>` : ''}
+          ${a.external_url ? `<a href="${a.external_url}" style="color: #2563eb; text-decoration: none;">Read Full Alert →</a>` : ''}
+        </div>
+      `).join('');
+      
       return `
-        <h2>Yesterday's Critical Alerts</h2>
-        <ul>${rows}</ul>
-        <p style="margin-top:16px;">Manage preferences or unsubscribe in your RegIQ account.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">${greeting}</h2>
+          <h3 style="color: #374151;">Top ${items.length} Critical Alerts (Last 24 Hours)</h3>
+          ${rows}
+          <div style="border-top: 1px solid #e5e7eb; padding: 16px 0; margin-top: 24px;">
+            <p style="color: #6b7280; font-size: 14px;">
+              <a href="https://regiq.org/account" style="color: #2563eb;">Manage preferences</a> | 
+              <a href="https://regiq.org/unsubscribe" style="color: #6b7280;">Unsubscribe</a>
+            </p>
+          </div>
+        </div>
       `;
     };
 
     if (dryRun) {
-      return new Response(JSON.stringify({ recipients: subs?.length || 0, sampleHtml: htmlFor(alerts || []) }), {
+      return new Response(JSON.stringify({ 
+        recipients: users?.length || 0, 
+        sampleHtml: htmlFor(alerts || [], "John Doe") 
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
     let sent = 0;
-    for (const s of subs || []) {
-      if (!s.email) continue;
+    for (const user of users || []) {
+      if (!user.profiles?.email) continue;
+      
       try {
+        const subject = alerts?.length 
+          ? `RegIQ Alert: ${alerts.length} Critical ${alerts.length === 1 ? 'Update' : 'Updates'}`
+          : 'RegIQ Daily Digest — All Clear';
+          
         await resend.emails.send({
-          from: "RegIQ <no-reply@regiq.org>",
-          to: [s.email],
-          subject: "RegIQ Daily Digest — Critical Alerts",
-          html: htmlFor(alerts || []),
+          from: "RegIQ <alerts@regiq.org>",
+          to: [user.profiles.email],
+          subject,
+          html: htmlFor(alerts || [], user.profiles.full_name),
         });
         sent++;
       } catch (e) {
-        logStep("Error sending to recipient", { email: s.email, error: String(e) });
+        logStep("Error sending to recipient", { 
+          email: user.profiles?.email, 
+          error: String(e) 
+        });
       }
     }
 
-    logStep("Digest complete", { recipients: subs?.length || 0, sent });
+    logStep("Digest complete", { recipients: users?.length || 0, sent, alertsFound: alerts?.length || 0 });
     return new Response(JSON.stringify({ sent }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
