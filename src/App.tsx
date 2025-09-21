@@ -160,6 +160,10 @@ const PWAApp = () => {
               <Route path="/analytics" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/SuperAnalyticsPage")))}</AuthGuard>} />
               <Route path="/export" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/ExportPage")))}</AuthGuard>} />
               <Route path="/ai-test" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/AIFeatureTester")))}</AuthGuard>} />
+              <Route path="/custom-data-sources" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/CustomDataSourceManager").then(m => ({ default: m.CustomDataSourceManager }))))}</AuthGuard>} />
+              <Route path="/webhooks" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/WebhookManager").then(m => ({ default: m.WebhookManager }))))}</AuthGuard>} />
+              <Route path="/predictive-risk" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/PredictiveRiskDashboard").then(m => ({ default: m.PredictiveRiskDashboard }))))}</AuthGuard>} />
+              <Route path="/advanced-workflows" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/AdvancedWorkflowsDashboard").then(m => ({ default: m.AdvancedWorkflowsDashboard }))))}</AuthGuard>} />
               <Route path="/supplier-risk" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/UnifiedSupplierDashboard")))}</AuthGuard>} />
               <Route path="/regulatory-impact" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/RegulatoryImpactAnalysis")))}</AuthGuard>} />
               <Route path="/regulatory-gap-detection" element={<AuthGuard><RegulatoryGapDetection /></AuthGuard>} />
