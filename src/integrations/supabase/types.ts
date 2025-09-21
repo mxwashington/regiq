@@ -2158,6 +2158,7 @@ export type Database = {
           id: string
           query: string
           result_data: Json
+          user_id: string | null
         }
         Insert: {
           cache_key: string
@@ -2166,6 +2167,7 @@ export type Database = {
           id?: string
           query: string
           result_data: Json
+          user_id?: string | null
         }
         Update: {
           cache_key?: string
@@ -2174,6 +2176,7 @@ export type Database = {
           id?: string
           query?: string
           result_data?: Json
+          user_id?: string | null
         }
         Relationships: []
       }
