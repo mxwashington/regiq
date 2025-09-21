@@ -185,7 +185,7 @@ export const NewPricingSection: React.FC = () => {
               key={plan.id}
               className={cn(
                 "relative transition-all duration-300 hover:shadow-xl",
-                plan.popular && "ring-2 ring-primary shadow-xl scale-105 lg:scale-110"
+                plan.popular && "ring-2 ring-primary shadow-xl scale-105 lg:scale-110 mt-6"
               )}
             >
               {plan.popular && (
