@@ -29,7 +29,6 @@ const Landing = React.lazy(() => import("./pages/Landing").catch(() => ({ defaul
 const UserDashboard = React.lazy(() => import("./pages/UserDashboard").catch(() => ({ default: () => <div>Dashboard unavailable</div> })));
 const Auth = React.lazy(() => import("./pages/Auth").catch(() => ({ default: () => <div>Auth unavailable</div> })));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback").catch(() => ({ default: () => <div>Callback unavailable</div> })));
-import { NavigationUpdater } from "@/components/NavigationUpdater";
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard").catch(() => ({ default: () => <div>Admin unavailable</div> })));
 const SearchPage = React.lazy(() => import("./pages/SearchPage").catch(() => ({ default: () => <div>Search unavailable</div> })));
 const ComplianceAssistantPage = React.lazy(() => import("./pages/ComplianceAssistant").catch(() => ({ default: () => <div>Compliance Assistant unavailable</div> })));
@@ -237,7 +236,6 @@ const PWAApp = () => {
             </div>
             
           </SidebarProvider>
-          <NavigationUpdater />
         </BrowserRouter>
       </AIAccessProvider>
     </>

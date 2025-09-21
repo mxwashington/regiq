@@ -111,7 +111,6 @@ const Landing = () => {
           })}
         </script>
       </Helmet>
-      <TestInstructions />
       
       {/* Marketing Hero */}
       <Hero />
