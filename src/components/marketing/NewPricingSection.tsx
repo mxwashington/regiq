@@ -179,18 +179,18 @@ export const NewPricingSection: React.FC = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 mt-8">
           {plans.map((plan) => (
             <Card 
               key={plan.id}
               className={cn(
                 "relative transition-all duration-300 hover:shadow-xl",
-                plan.popular && "ring-2 ring-primary shadow-xl scale-105 lg:scale-110 mt-6"
+                plan.popular && "ring-2 ring-primary shadow-xl scale-105 lg:scale-110 mt-8"
               )}
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground px-6 py-2 text-sm font-semibold">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge className="bg-primary text-primary-foreground px-4 py-1 text-xs font-semibold whitespace-nowrap">
                     MOST POPULAR
                   </Badge>
                 </div>
