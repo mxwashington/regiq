@@ -20,8 +20,17 @@ export const useSubscriptionUpgrade = (): UseSubscriptionUpgradeReturn => {
     try {
       setLoading(true);
       
+      // Map new plan names to backend-compatible formats
+      const planMapping = {
+        starter: 'starter',
+        growth: 'growth', 
+        professional: 'professional'
+      };
+      
+      const mappedPlan = planMapping[targetPlan as keyof typeof planMapping] || targetPlan;
+      
       const { data, error } = await supabase.functions.invoke('manage-subscription', {
-        body: { targetPlan, annual }
+        body: { targetPlan: mappedPlan, annual }
       });
 
       if (error) {
@@ -31,6 +40,7 @@ export const useSubscriptionUpgrade = (): UseSubscriptionUpgradeReturn => {
       if (data?.url) {
         // Open checkout in new tab
         window.open(data.url, '_blank');
+        toast.success('Redirecting to secure checkout...');
       } else {
         throw new Error('No checkout URL received');
       }

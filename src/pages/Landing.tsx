@@ -26,7 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Hero } from "@/components/marketing/Hero";
 
-import { MobileFirstPricingSection } from "@/components/marketing/MobileFirstPricingSection";
+import { NewPricingSection } from "@/components/marketing/NewPricingSection";
 import { ROICalculator } from "@/components/marketing/ROICalculator";
 import { SocialProof } from "@/components/marketing/SocialProof";
 
@@ -266,7 +266,7 @@ const Landing = () => {
         </div>
       </section>
 
-      <MobileFirstPricingSection />
+      <NewPricingSection />
 
       <ROICalculator />
 

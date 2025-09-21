@@ -1,7 +1,8 @@
 import React from 'react';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { SchemaMarkup } from '@/components/SEO/SchemaMarkup';
-import { MobileFirstPricingSection } from '@/components/marketing/MobileFirstPricingSection';
+import { NewPricingSection } from '@/components/marketing/NewPricingSection';
+import { PricingFAQ } from '@/components/marketing/PricingFAQ';
 import { Link } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,36 +14,29 @@ const Pricing = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "name": "RegIQ Regulatory Intelligence",
-    "description": "Real-time regulatory alerts and compliance intelligence for food, pharma, and agriculture industries",
+    "name": "RegIQ Regulatory Intelligence Platform",
+    "description": "Enterprise-grade regulatory intelligence and compliance monitoring for food, pharma, and agriculture industries",
     "offers": [
       {
         "@type": "Offer",
-        "name": "Essential Alerts",
-        "price": "10",
+        "name": "Starter Plan",
+        "price": "179",
         "priceCurrency": "USD",
-        "description": "Real-time regulatory alerts for one facility"
+        "description": "Real-time regulatory alerts for small businesses and single facility operations"
       },
       {
         "@type": "Offer", 
-        "name": "Starter",
-        "price": "99",
+        "name": "Growth Plan",
+        "price": "349",
         "priceCurrency": "USD",
-        "description": "AI-powered regulatory intelligence"
+        "description": "AI-powered regulatory intelligence for growing multi-location businesses"
       },
       {
         "@type": "Offer",
-        "name": "Professional", 
-        "price": "399",
+        "name": "Professional Plan", 
+        "price": "549",
         "priceCurrency": "USD",
-        "description": "Advanced analytics and compliance tools"
-      },
-      {
-        "@type": "Offer",
-        "name": "Enterprise",
-        "price": "999", 
-        "priceCurrency": "USD",
-        "description": "Full platform with API access"
+        "description": "Enterprise-ready unlimited scale with advanced AI and custom integrations"
       }
     ]
   };
@@ -50,9 +44,9 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="Pricing - RegIQ Plans: Essential $10, Starter $99, Professional $399, Enterprise $999"
-        description="Flexible RegIQ pricing starting at $10/month. Essential alerts, AI-powered intelligence, advanced analytics. 2 months free annually. Start today."
-        keywords="RegIQ pricing, regulatory alerts cost, compliance software pricing, FDA alerts subscription, food safety software pricing"
+        title="RegIQ Pricing: Starter $179, Growth $349, Professional $549 - Save 11% Annually"
+        description="Transform regulatory compliance with RegIQ's proven ROI. Starter at $179/mo for small teams, Growth at $349/mo (Most Popular), Professional at $549/mo unlimited scale. Save 11% annually."
+        keywords="RegIQ pricing, regulatory compliance software cost, FDA alerts subscription, USDA monitoring pricing, EPA regulatory intelligence, compliance software ROI"
         canonical="https://regiq.com/pricing"
       />
       
@@ -83,8 +77,11 @@ const Pricing = () => {
         </div>
       </header>
 
-      {/* Mobile-First Pricing Section */}
-      <MobileFirstPricingSection />
+      {/* Main Pricing Section */}
+      <NewPricingSection />
+      
+      {/* FAQ Section */}
+      <PricingFAQ />
     </div>
   );
 };
