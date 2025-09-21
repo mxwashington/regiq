@@ -361,12 +361,14 @@ export type Database = {
       alerts: {
         Row: {
           agency: string | null
+          ai_summary: string | null
           created_at: string
           data_classification: string | null
           dismissed_by: string[] | null
           external_url: string | null
           full_content: string | null
           id: string
+          perplexity_processed: boolean | null
           published_date: string
           region: string | null
           source: string
@@ -374,15 +376,18 @@ export type Database = {
           title: string
           updated_at: string
           urgency: string
+          urgency_score: number | null
         }
         Insert: {
           agency?: string | null
+          ai_summary?: string | null
           created_at?: string
           data_classification?: string | null
           dismissed_by?: string[] | null
           external_url?: string | null
           full_content?: string | null
           id?: string
+          perplexity_processed?: boolean | null
           published_date: string
           region?: string | null
           source: string
@@ -390,15 +395,18 @@ export type Database = {
           title: string
           updated_at?: string
           urgency?: string
+          urgency_score?: number | null
         }
         Update: {
           agency?: string | null
+          ai_summary?: string | null
           created_at?: string
           data_classification?: string | null
           dismissed_by?: string[] | null
           external_url?: string | null
           full_content?: string | null
           id?: string
+          perplexity_processed?: boolean | null
           published_date?: string
           region?: string | null
           source?: string
@@ -406,6 +414,7 @@ export type Database = {
           title?: string
           updated_at?: string
           urgency?: string
+          urgency_score?: number | null
         }
         Relationships: []
       }
@@ -680,6 +689,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      compliance_assistant_chats: {
+        Row: {
+          answer: string
+          context_alerts: Json | null
+          created_at: string | null
+          id: string
+          question: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          context_alerts?: Json | null
+          created_at?: string | null
+          id?: string
+          question: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          context_alerts?: Json | null
+          created_at?: string | null
+          id?: string
+          question?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       compliance_deadlines: {
         Row: {
@@ -1097,6 +1133,39 @@ export type Database = {
         }
         Relationships: []
       }
+      digest_preferences: {
+        Row: {
+          created_at: string | null
+          digest_time: string | null
+          enabled: boolean | null
+          frequency: string | null
+          id: string
+          timezone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          digest_time?: string | null
+          enabled?: boolean | null
+          frequency?: string | null
+          id?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          digest_time?: string | null
+          enabled?: boolean | null
+          frequency?: string | null
+          id?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       enterprise_features: {
         Row: {
           created_at: string | null
@@ -1259,6 +1328,56 @@ export type Database = {
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      impact_assessments: {
+        Row: {
+          alert_id: string | null
+          category: string | null
+          created_at: string | null
+          estimated_cost: number | null
+          id: string
+          impact_description: string | null
+          mitigation_plan: string | null
+          severity: string | null
+          timeline_days: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          estimated_cost?: number | null
+          id?: string
+          impact_description?: string | null
+          mitigation_plan?: string | null
+          severity?: string | null
+          timeline_days?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          estimated_cost?: number | null
+          id?: string
+          impact_description?: string | null
+          mitigation_plan?: string | null
+          severity?: string | null
+          timeline_days?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impact_assessments_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
             referencedColumns: ["id"]
           },
         ]
@@ -2067,6 +2186,45 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_alerts: {
+        Row: {
+          alert_id: string | null
+          created_at: string | null
+          id: string
+          relevance_score: number | null
+          supplier_id: string | null
+        }
+        Insert: {
+          alert_id?: string | null
+          created_at?: string | null
+          id?: string
+          relevance_score?: number | null
+          supplier_id?: string | null
+        }
+        Update: {
+          alert_id?: string | null
+          created_at?: string | null
+          id?: string
+          relevance_score?: number | null
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_alerts_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_alerts_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_watches: {
         Row: {
           agency: string | null
@@ -2097,6 +2255,39 @@ export type Database = {
           supplier_name?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          created_at: string | null
+          duns_number: string | null
+          id: string
+          last_checked: string | null
+          metadata: Json | null
+          name: string
+          risk_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duns_number?: string | null
+          id?: string
+          last_checked?: string | null
+          metadata?: Json | null
+          name: string
+          risk_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duns_number?: string | null
+          id?: string
+          last_checked?: string | null
+          metadata?: Json | null
+          name?: string
+          risk_score?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }

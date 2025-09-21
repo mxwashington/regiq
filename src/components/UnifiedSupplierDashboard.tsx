@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BackButton } from '@/components/BackButton';
-import { SupplierRiskMonitoring } from '@/components/SupplierRiskMonitoring';
+import { EnhancedSupplierWatch } from '@/components/EnhancedSupplierWatch';
 import Suppliers from '@/pages/Suppliers';
 import { Shield, Building2 } from 'lucide-react';
 
@@ -89,7 +89,7 @@ export const UnifiedSupplierDashboard: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <SupplierRiskMonitoring />
+                <EnhancedSupplierWatch />
               </CardContent>
             </Card>
           </TabsContent>
