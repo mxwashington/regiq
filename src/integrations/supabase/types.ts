@@ -950,6 +950,110 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_data_ingestion_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          data_source_id: string
+          error_details: Json | null
+          errors_count: number | null
+          id: string
+          processing_time_ms: number | null
+          records_imported: number | null
+          records_processed: number | null
+          records_skipped: number | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          data_source_id: string
+          error_details?: Json | null
+          errors_count?: number | null
+          id?: string
+          processing_time_ms?: number | null
+          records_imported?: number | null
+          records_processed?: number | null
+          records_skipped?: number | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          data_source_id?: string
+          error_details?: Json | null
+          errors_count?: number | null
+          id?: string
+          processing_time_ms?: number | null
+          records_imported?: number | null
+          records_processed?: number | null
+          records_skipped?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_data_ingestion_logs_data_source_id_fkey"
+            columns: ["data_source_id"]
+            isOneToOne: false
+            referencedRelation: "custom_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_data_sources: {
+        Row: {
+          auth_config: Json | null
+          configuration: Json
+          created_at: string
+          description: string | null
+          error_message: string | null
+          id: string
+          is_active: boolean
+          last_synced_at: string | null
+          metadata: Json | null
+          name: string
+          source_type: string
+          status: string | null
+          sync_frequency: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auth_config?: Json | null
+          configuration?: Json
+          created_at?: string
+          description?: string | null
+          error_message?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          metadata?: Json | null
+          name: string
+          source_type: string
+          status?: string | null
+          sync_frequency?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auth_config?: Json | null
+          configuration?: Json
+          created_at?: string
+          description?: string | null
+          error_message?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          metadata?: Json | null
+          name?: string
+          source_type?: string
+          status?: string | null
+          sync_frequency?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       data_access_logs: {
         Row: {
           created_at: string | null
@@ -3156,6 +3260,98 @@ export type Database = {
           updated_at?: string
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      webhook_deliveries: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          delivery_attempts: number | null
+          event_type: string
+          id: string
+          payload: Json
+          response_body: string | null
+          response_status: number | null
+          status: string | null
+          webhook_endpoint_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          delivery_attempts?: number | null
+          event_type: string
+          id?: string
+          payload: Json
+          response_body?: string | null
+          response_status?: number | null
+          status?: string | null
+          webhook_endpoint_id: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          delivery_attempts?: number | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          response_body?: string | null
+          response_status?: number | null
+          status?: string | null
+          webhook_endpoint_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_webhook_endpoint_id_fkey"
+            columns: ["webhook_endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_endpoints: {
+        Row: {
+          created_at: string
+          description: string | null
+          endpoint_url: string
+          events: Json
+          headers: Json | null
+          id: string
+          is_active: boolean
+          name: string
+          retry_config: Json | null
+          secret_token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          endpoint_url: string
+          events?: Json
+          headers?: Json | null
+          id?: string
+          is_active?: boolean
+          name: string
+          retry_config?: Json | null
+          secret_token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          endpoint_url?: string
+          events?: Json
+          headers?: Json | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          retry_config?: Json | null
+          secret_token?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
