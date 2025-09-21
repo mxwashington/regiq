@@ -191,7 +191,7 @@ export const NewPricingSection: React.FC = () => {
               {plan.popular && (
                 <div 
                   className="absolute z-[20] left-1/2 transform -translate-x-1/2"
-                  style={{ top: '-12px' }}
+                  style={{ top: '-6px' }}
                 >
                   <div 
                     className="px-6 py-2 text-white font-semibold uppercase text-xs rounded-full"
