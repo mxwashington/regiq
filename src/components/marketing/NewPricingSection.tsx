@@ -110,8 +110,8 @@ export const NewPricingSection: React.FC = () => {
   };
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-background via-background to-muted/10">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-20 px-4 bg-gradient-to-br from-background via-background to-muted/10 overflow-visible">
+      <div className="max-w-7xl mx-auto overflow-visible">
         {/* Hero Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-6">
@@ -179,7 +179,7 @@ export const NewPricingSection: React.FC = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 mt-20 overflow-visible">
+        <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 mt-20 overflow-visible">
           {plans.map((plan) => (
             <Card 
               key={plan.id}
@@ -190,8 +190,8 @@ export const NewPricingSection: React.FC = () => {
             >
               {plan.popular && (
                 <div 
-                  className="absolute z-10 left-1/2 transform -translate-x-1/2"
-                  style={{ top: '-16px' }}
+                  className="absolute z-[20] left-1/2 transform -translate-x-1/2"
+                  style={{ top: '-12px' }}
                 >
                   <div 
                     className="px-6 py-2 text-white font-semibold uppercase text-xs rounded-full"
