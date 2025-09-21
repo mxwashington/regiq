@@ -10,14 +10,14 @@ export const EnhancedSecurityHeaders = () => {
     (window as any).__CSP_NONCE__ = nonce;
   }, [nonce]);
 
-  // Enhanced Content Security Policy with nonce
+  // Enhanced Content Security Policy with strict nonce-based security
   const cspPolicy = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' https://js.stripe.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' data: https: blob:;
-    connect-src 'self' https://piyikxxgoekawboitrzz.supabase.co wss://piyikxxgoekawboitrzz.supabase.co https://api.stripe.com;
+    connect-src 'self' https://piyikxxgoekawboitrzz.supabase.co wss://piyikxxgoekawboitrzz.supabase.co https://api.stripe.com https://api.perplexity.ai;
     frame-src 'self' https://js.stripe.com https://hooks.stripe.com;
     media-src 'self';
     object-src 'none';
@@ -26,6 +26,7 @@ export const EnhancedSecurityHeaders = () => {
     frame-ancestors 'none';
     upgrade-insecure-requests;
     report-uri /api/csp-report;
+    require-trusted-types-for 'script';
   `.replace(/\s+/g, ' ').trim();
 
   return (
