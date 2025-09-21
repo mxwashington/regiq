@@ -1726,49 +1726,47 @@ export type Database = {
           id?: string
           plan_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "plan_features_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "plans"
-            referencedColumns: ["plan_id"]
-          },
-        ]
+        Relationships: []
       }
       plans: {
         Row: {
-          billing_interval: string
-          created_at: string
+          annual_price: number
+          created_at: string | null
           description: string | null
           id: string
-          is_active: boolean
+          is_popular: boolean | null
+          monthly_price: number
           name: string
-          plan_id: string
-          price_cents: number
-          updated_at: string
+          sort_order: number | null
+          stripe_annual_price_id: string | null
+          stripe_monthly_price_id: string | null
+          updated_at: string | null
         }
         Insert: {
-          billing_interval?: string
-          created_at?: string
+          annual_price: number
+          created_at?: string | null
           description?: string | null
-          id?: string
-          is_active?: boolean
+          id: string
+          is_popular?: boolean | null
+          monthly_price: number
           name: string
-          plan_id: string
-          price_cents: number
-          updated_at?: string
+          sort_order?: number | null
+          stripe_annual_price_id?: string | null
+          stripe_monthly_price_id?: string | null
+          updated_at?: string | null
         }
         Update: {
-          billing_interval?: string
-          created_at?: string
+          annual_price?: number
+          created_at?: string | null
           description?: string | null
           id?: string
-          is_active?: boolean
+          is_popular?: boolean | null
+          monthly_price?: number
           name?: string
-          plan_id?: string
-          price_cents?: number
-          updated_at?: string
+          sort_order?: number | null
+          stripe_annual_price_id?: string | null
+          stripe_monthly_price_id?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -3130,15 +3128,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_entitlements_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "plans"
-            referencedColumns: ["plan_id"]
-          },
-        ]
+        Relationships: []
       }
       user_interactions: {
         Row: {
