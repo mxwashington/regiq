@@ -24,7 +24,7 @@ export const useSecureInputValidation = () => {
   ): Promise<ValidationResult> => {
     try {
       // Use the secure validation function from the database
-      const { data, error } = await supabase.rpc('validate_and_sanitize_input', {
+      const { data, error } = await (supabase as any).rpc('validate_and_sanitize_input', {
         input_text: input,
         max_length: options.maxLength || 1000,
         allow_html: options.allowHtml || false

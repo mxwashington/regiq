@@ -3638,6 +3638,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      enhanced_rate_limit_check: {
+        Args: { endpoint_name: string; ip_limit?: number; user_limit?: number }
+        Returns: Json
+      }
       extend_user_session_secure: {
         Args: { hours_to_extend?: number }
         Returns: Json
@@ -3939,6 +3943,10 @@ export type Database = {
           value_param: Json
         }
         Returns: undefined
+      }
+      validate_and_sanitize_input: {
+        Args: { allow_html?: boolean; input_text: string; max_length?: number }
+        Returns: Json
       }
       validate_api_key_secure: {
         Args: { api_key_input: string }

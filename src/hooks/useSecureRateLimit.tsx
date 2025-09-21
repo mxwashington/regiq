@@ -22,7 +22,7 @@ export const useSecureRateLimit = () => {
     ipLimit = 100
   ): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.rpc('enhanced_rate_limit_check', {
+      const { data, error } = await (supabase as any).rpc('enhanced_rate_limit_check', {
         endpoint_name: endpoint,
         user_limit: userLimit,
         ip_limit: ipLimit
@@ -34,7 +34,7 @@ export const useSecureRateLimit = () => {
         return true;
       }
 
-      const result = data as RateLimitResult;
+      const result = data as unknown as RateLimitResult;
       
       setRateLimitStatus(prev => ({
         ...prev,
