@@ -118,7 +118,7 @@ export const NewPricingSection: React.FC = () => {
             Choose Your <span className="text-primary">RegIQ</span> Plan
           </h1>
           <p className="text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Transform regulatory compliance into competitive advantage with proven 8-23:1 ROI
+            Transform regulatory compliance into competitive advantage. Most customers save 15+ hours weekly.
           </p>
           
           {/* ROI Highlights */}
@@ -126,8 +126,8 @@ export const NewPricingSection: React.FC = () => {
             <div className="flex items-center gap-3 justify-center p-4 bg-card rounded-lg border">
               <TrendingUp className="w-6 h-6 text-green-500" />
               <div className="text-left">
-                <div className="font-semibold">8-23:1 ROI</div>
-                <div className="text-sm text-muted-foreground">Proven returns</div>
+                <div className="font-semibold">$40K+ Saved</div>
+                <div className="text-sm text-muted-foreground">Per year typically</div>
               </div>
             </div>
             <div className="flex items-center gap-3 justify-center p-4 bg-card rounded-lg border">
