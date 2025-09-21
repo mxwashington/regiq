@@ -25,6 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Hero } from "@/components/marketing/Hero";
+import { TestInstructions } from '@/components/TestInstructions';
 
 import { MobileFirstPricingSection } from "@/components/marketing/MobileFirstPricingSection";
 import { ROICalculator } from "@/components/marketing/ROICalculator";
@@ -110,6 +111,7 @@ const Landing = () => {
           })}
         </script>
       </Helmet>
+      <TestInstructions />
       
       {/* Marketing Hero */}
       <Hero />

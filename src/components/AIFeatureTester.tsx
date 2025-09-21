@@ -11,7 +11,7 @@ import { useAIComplianceAssistant } from '@/hooks/useAIComplianceAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export const AIFeatureTester: React.FC = () => {
+const AIFeatureTester: React.FC = () => {
   const [testAlertId, setTestAlertId] = useState('');
   const [testQuestion, setTestQuestion] = useState('What are the key compliance requirements for food labeling?');
   const [supplierName, setSupplierName] = useState('Test Supplier Corp');
@@ -250,3 +250,5 @@ export const AIFeatureTester: React.FC = () => {
     </div>
   );
 };
+
+export default AIFeatureTester;

@@ -29,7 +29,7 @@ const Landing = React.lazy(() => import("./pages/Landing").catch(() => ({ defaul
 const UserDashboard = React.lazy(() => import("./pages/UserDashboard").catch(() => ({ default: () => <div>Dashboard unavailable</div> })));
 const Auth = React.lazy(() => import("./pages/Auth").catch(() => ({ default: () => <div>Auth unavailable</div> })));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback").catch(() => ({ default: () => <div>Callback unavailable</div> })));
-const AIFeatureTester = React.lazy(() => import("./components/AIFeatureTester").catch(() => ({ default: () => <div>AI Tester unavailable</div> })));
+import { NavigationUpdater } from "@/components/NavigationUpdater";
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard").catch(() => ({ default: () => <div>Admin unavailable</div> })));
 const SearchPage = React.lazy(() => import("./pages/SearchPage").catch(() => ({ default: () => <div>Search unavailable</div> })));
 const ComplianceAssistantPage = React.lazy(() => import("./pages/ComplianceAssistant").catch(() => ({ default: () => <div>Compliance Assistant unavailable</div> })));
@@ -160,7 +160,7 @@ const PWAApp = () => {
               <Route path="/calendar" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/ComplianceCalendar")))}</AuthGuard>} />
               <Route path="/analytics" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/SuperAnalyticsPage")))}</AuthGuard>} />
               <Route path="/export" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/ExportPage")))}</AuthGuard>} />
-              <Route path="/ai-test" element={<AuthGuard><AIFeatureTester /></AuthGuard>} />
+              <Route path="/ai-test" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/AIFeatureTester")))}</AuthGuard>} />
               <Route path="/supplier-risk" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/UnifiedSupplierDashboard")))}</AuthGuard>} />
               <Route path="/regulatory-impact" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/RegulatoryImpactAnalysis")))}</AuthGuard>} />
               <Route path="/regulatory-gap-detection" element={<AuthGuard><RegulatoryGapDetection /></AuthGuard>} />
@@ -237,6 +237,7 @@ const PWAApp = () => {
             </div>
             
           </SidebarProvider>
+          <NavigationUpdater />
         </BrowserRouter>
       </AIAccessProvider>
     </>
