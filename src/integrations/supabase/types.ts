@@ -1919,6 +1919,99 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_patterns: {
+        Row: {
+          affected_entities: Json | null
+          confidence: number | null
+          created_at: string
+          discovery_method: string | null
+          frequency: number | null
+          id: string
+          impact_score: number | null
+          pattern_data: Json
+          pattern_type: string
+          updated_at: string
+        }
+        Insert: {
+          affected_entities?: Json | null
+          confidence?: number | null
+          created_at?: string
+          discovery_method?: string | null
+          frequency?: number | null
+          id?: string
+          impact_score?: number | null
+          pattern_data?: Json
+          pattern_type: string
+          updated_at?: string
+        }
+        Update: {
+          affected_entities?: Json | null
+          confidence?: number | null
+          created_at?: string
+          discovery_method?: string | null
+          frequency?: number | null
+          id?: string
+          impact_score?: number | null
+          pattern_data?: Json
+          pattern_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      risk_predictions: {
+        Row: {
+          confidence_level: number
+          created_at: string
+          entity_id: string
+          entity_type: string
+          expires_at: string
+          historical_data: Json | null
+          id: string
+          mitigation_recommendations: Json | null
+          model_version: string | null
+          predicted_at: string
+          prediction_horizon: number
+          risk_factors: Json | null
+          risk_score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_level?: number
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          expires_at?: string
+          historical_data?: Json | null
+          id?: string
+          mitigation_recommendations?: Json | null
+          model_version?: string | null
+          predicted_at?: string
+          prediction_horizon?: number
+          risk_factors?: Json | null
+          risk_score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_level?: number
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string
+          historical_data?: Json | null
+          id?: string
+          mitigation_recommendations?: Json | null
+          model_version?: string | null
+          predicted_at?: string
+          prediction_horizon?: number
+          risk_factors?: Json | null
+          risk_score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       search_analytics: {
         Row: {
           clicked_result_position: number | null
@@ -3063,6 +3156,163 @@ export type Database = {
           updated_at?: string
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      workflow_instances: {
+        Row: {
+          assigned_users: Json | null
+          completed_at: string | null
+          context_data: Json | null
+          created_at: string
+          current_step: number
+          due_date: string | null
+          id: string
+          name: string
+          priority: string
+          status: string
+          step_history: Json | null
+          template_id: string | null
+          total_steps: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_users?: Json | null
+          completed_at?: string | null
+          context_data?: Json | null
+          created_at?: string
+          current_step?: number
+          due_date?: string | null
+          id?: string
+          name: string
+          priority?: string
+          status?: string
+          step_history?: Json | null
+          template_id?: string | null
+          total_steps?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_users?: Json | null
+          completed_at?: string | null
+          context_data?: Json | null
+          created_at?: string
+          current_step?: number
+          due_date?: string | null
+          id?: string
+          name?: string
+          priority?: string
+          status?: string
+          step_history?: Json | null
+          template_id?: string | null
+          total_steps?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_instances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_step_executions: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          execution_notes: string | null
+          id: string
+          input_data: Json | null
+          output_data: Json | null
+          started_at: string | null
+          status: string
+          step_name: string
+          step_number: number
+          workflow_instance_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          execution_notes?: string | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          started_at?: string | null
+          status?: string
+          step_name: string
+          step_number: number
+          workflow_instance_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          execution_notes?: string | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          started_at?: string | null
+          status?: string
+          step_name?: string
+          step_number?: number
+          workflow_instance_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_step_executions_workflow_instance_id_fkey"
+            columns: ["workflow_instance_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_instances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_templates: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system_template: boolean
+          name: string
+          updated_at: string
+          usage_count: number | null
+          user_id: string
+          workflow_definition: Json
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system_template?: boolean
+          name: string
+          updated_at?: string
+          usage_count?: number | null
+          user_id: string
+          workflow_definition?: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system_template?: boolean
+          name?: string
+          updated_at?: string
+          usage_count?: number | null
+          user_id?: string
+          workflow_definition?: Json
         }
         Relationships: []
       }
