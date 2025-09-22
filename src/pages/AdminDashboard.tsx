@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { SecurityDashboardEnhanced } from "@/components/SecurityDashboardEnhanced";
+import { AdminAPIManager } from "@/components/AdminAPIManager";
 
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -45,10 +46,11 @@ const AdminDashboard: React.FC = () => {
           </header>
 
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="alerts">Alerts</TabsTrigger>
+              <TabsTrigger value="apis">APIs</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
               <TabsTrigger value="sso">SSO</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -67,6 +69,10 @@ const AdminDashboard: React.FC = () => {
 
             <TabsContent value="alerts">
               <AdminAlertManager />
+            </TabsContent>
+
+            <TabsContent value="apis">
+              <AdminAPIManager />
             </TabsContent>
 
             <TabsContent value="security">
