@@ -50,6 +50,12 @@ export const AdminAPIManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [newKeyName, setNewKeyName] = useState('');
+  const [syncing, setSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState<{ total: number; completed: number; errors: string[] }>({
+    total: 0,
+    completed: 0,
+    errors: []
+  });
 
   useEffect(() => {
     fetchAPIKeys();
@@ -190,6 +196,76 @@ export const AdminAPIManager: React.FC = () => {
     }
   };
 
+  const syncAllDataSources = async () => {
+    const activeSources = dataSources.filter(source => source.is_active);
+    if (activeSources.length === 0) {
+      toast.error('No active data sources to sync');
+      return;
+    }
+
+    setSyncing(true);
+    setSyncProgress({ total: activeSources.length, completed: 0, errors: [] });
+
+    const syncPromises = activeSources.map(async (source) => {
+      try {
+        // Call appropriate sync function based on source table
+        let functionName = 'regulatory-data-pipeline';
+        let body: any = { sourceId: source.id, force: true };
+
+        if (source.source_table === 'regulatory_data_sources') {
+          functionName = 'enhanced-regulatory-data-pipeline';
+        } else if (source.source_table === 'custom_data_sources') {
+          functionName = 'custom-data-sources';
+          body = { action: 'sync', sourceId: source.id };
+        }
+
+        const { error } = await supabase.functions.invoke(functionName, { body });
+
+        if (error) throw error;
+
+        setSyncProgress(prev => ({ 
+          ...prev, 
+          completed: prev.completed + 1 
+        }));
+
+        return { source: source.name, success: true };
+      } catch (error) {
+        const errorMsg = `${source.name}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        setSyncProgress(prev => ({ 
+          ...prev, 
+          completed: prev.completed + 1,
+          errors: [...prev.errors, errorMsg]
+        }));
+
+        return { source: source.name, success: false, error: errorMsg };
+      }
+    });
+
+    try {
+      const results = await Promise.allSettled(syncPromises);
+      const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+      const failed = results.length - successful;
+
+      if (failed === 0) {
+        toast.success(`Successfully initiated sync for all ${successful} data sources`);
+      } else {
+        toast.success(`Initiated sync for ${successful} sources, ${failed} failed`);
+      }
+
+      // Refresh the data sources list
+      setTimeout(() => fetchDataSources(), 2000);
+    } catch (error) {
+      console.error('Error in sync all operation:', error);
+      toast.error('Failed to sync all data sources');
+    } finally {
+      setSyncing(false);
+      // Clear progress after a delay
+      setTimeout(() => {
+        setSyncProgress({ total: 0, completed: 0, errors: [] });
+      }, 5000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -292,6 +368,20 @@ export const AdminAPIManager: React.FC = () => {
               <CardTitle>Manage API Keys</CardTitle>
             </CardHeader>
             <CardContent>
+              {syncProgress.errors.length > 0 && (
+                <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                    <span className="text-sm font-medium text-destructive">Sync Errors</span>
+                  </div>
+                  <div className="space-y-1">
+                    {syncProgress.errors.map((error, index) => (
+                      <p key={index} className="text-xs text-muted-foreground">{error}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-4">
                 {apiKeys.map(key => (
                   <div key={key.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -340,8 +430,25 @@ export const AdminAPIManager: React.FC = () => {
 
         <TabsContent value="sources" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Data Sources</CardTitle>
+              <div className="flex items-center gap-2">
+                {syncing && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    {syncProgress.completed}/{syncProgress.total} synced
+                  </div>
+                )}
+                <Button
+                  onClick={syncAllDataSources}
+                  disabled={syncing || dataSources.filter(s => s.is_active).length === 0}
+                  className="flex items-center gap-2"
+                  variant="outline"
+                >
+                  <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+                  Sync All Sources
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
