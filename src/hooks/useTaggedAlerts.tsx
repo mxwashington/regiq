@@ -41,11 +41,22 @@ interface UseTaggedAlertsProps {
   limit?: number;
 }
 
-export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsProps = {}) => {
+interface UseTaggedAlertsReturn {
+  alerts: TaggedAlert[];
+  loading: boolean;
+  error: string | null;
+  retryCount: number;
+  retryLoad: () => void;
+  hasMore: boolean;
+  loadMore: () => void;
+}
+
+export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsProps = {}): UseTaggedAlertsReturn => {
   const [alerts, setAlerts] = useState<TaggedAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
 
   const loadTaggedAlertsWithRetry = async (maxRetries = 2) => {
@@ -184,6 +195,7 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
         }
 
         setAlerts(filteredAlerts);
+        setHasMore(filteredAlerts.length >= limit);
         setRetryCount(0);
         return;
 
@@ -210,9 +222,16 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
     loadTaggedAlertsWithRetry();
   }, [filters, limit]);
 
+  const loadMore = () => {
+    if (hasMore && !loading) {
+      const currentLimit = alerts.length + limit;
+      loadTaggedAlertsWithRetry();
+    }
+  };
+
   const retryLoad = () => {
     loadTaggedAlertsWithRetry();
   };
 
-  return { alerts, loading, error, retryCount, retryLoad };
+  return { alerts, loading, error, retryCount, retryLoad, hasMore, loadMore };
 };

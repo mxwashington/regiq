@@ -14,12 +14,24 @@ interface SimpleAlert {
   isFallback?: boolean;
 }
 
-export const useSimpleAlerts = (limit?: number) => {
+interface UseSimpleAlertsReturn {
+  alerts: SimpleAlert[];
+  loading: boolean;
+  error: string | null;
+  totalCount: number;
+  retryCount: number;
+  retryLoad: () => void;
+  hasMore: boolean;
+  loadMore: () => void;
+}
+
+export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
   const [alerts, setAlerts] = useState<SimpleAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [retryCount, setRetryCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
 
   const loadAlertsWithRetry = async (maxRetries = 3) => {
@@ -82,6 +94,7 @@ export const useSimpleAlerts = (limit?: number) => {
         
         setAlerts(data);
         setTotalCount(count || 0);
+        setHasMore(limit ? data.length >= limit : false);
         setRetryCount(0);
         setLoading(false);
         return;
@@ -95,6 +108,7 @@ export const useSimpleAlerts = (limit?: number) => {
           setError(err.message || 'Failed to load alerts');
           setAlerts(fallbackAlerts);
           setTotalCount(fallbackAlerts.length);
+          setHasMore(false);
           setRetryCount(attempt + 1);
           setLoading(false);
           
@@ -117,6 +131,53 @@ export const useSimpleAlerts = (limit?: number) => {
     loadAlertsWithRetry();
   }, [limit, toast]);
 
+  // Load more for pagination
+  const loadMore = async () => {
+    if (!hasMore || loading) return;
+
+    try {
+      const lastAlert = alerts[alerts.length - 1];
+      if (!lastAlert) return;
+
+      let query = supabase
+        .from('alerts')
+        .select(`
+          id,
+          title,
+          summary,
+          urgency,
+          source,
+          published_date,
+          external_url,
+          dismissed_by
+        `)
+        .order('published_date', { ascending: false })
+        .lt('published_date', lastAlert.published_date);
+
+      if (limit && limit > 0) {
+        query = query.limit(limit);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) throw fetchError;
+
+      if (data && data.length > 0) {
+        setAlerts(prev => [...prev, ...data]);
+        setHasMore(limit ? data.length >= limit : false);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err: any) {
+      console.error('[useSimpleAlerts] Load more failed:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to load more alerts',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Provide manual retry function
   const retryLoad = () => {
     loadAlertsWithRetry();
@@ -128,6 +189,8 @@ export const useSimpleAlerts = (limit?: number) => {
     error, 
     totalCount, 
     retryCount,
-    retryLoad 
+    retryLoad,
+    hasMore,
+    loadMore
   };
 };

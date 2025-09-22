@@ -40,25 +40,29 @@ export function AlertsDashboard() {
   // Load taxonomy data
   const { categories: taxonomyCategories, loading: taxonomyLoading, error: taxonomyError } = useTaxonomy();
   
-  // Load alerts with enhanced error handling
+  // Load alerts with enhanced error handling and pagination
   const { 
     alerts: taggedAlerts, 
     loading: taggedAlertsLoading, 
     error: taggedAlertsError,
     retryCount: taggedRetryCount,
-    retryLoad: retryTagged
+    retryLoad: retryTagged,
+    hasMore: taggedHasMore,
+    loadMore: loadMoreTagged
   } = useTaggedAlerts({ 
     filters: activeFilters,
     limit: 25 
   });
   
-  // Always load simple alerts as fallback
+  // Always load simple alerts as fallback with pagination
   const { 
     alerts: simpleAlerts, 
     loading: simpleAlertsLoading,
     error: simpleAlertsError,
     retryCount: simpleRetryCount,
-    retryLoad: retrySimple
+    retryLoad: retrySimple,
+    hasMore: simpleHasMore,
+    loadMore: loadMoreSimple
   } = useSimpleAlerts(25);
   
   // Smart fallback logic
@@ -66,6 +70,8 @@ export function AlertsDashboard() {
   const alerts = useSimpleFallback ? simpleAlerts : taggedAlerts;
   const alertsLoading = useSimpleFallback ? simpleAlertsLoading : taggedAlertsLoading;
   const alertsError = useSimpleFallback ? simpleAlertsError : taggedAlertsError;
+  const hasMore = useSimpleFallback ? simpleHasMore : taggedHasMore;
+  const loadMore = useSimpleFallback ? loadMoreSimple : loadMoreTagged;
   
   // Enhanced debugging info
   React.useEffect(() => {
@@ -491,6 +497,25 @@ export function AlertsDashboard() {
                 hasTaggedAlertsError={useSimpleFallback} 
                 onDismissAlert={dismissAlert} 
               />
+              {hasMore && (
+                <div className="text-center mt-6">
+                  <Button
+                    onClick={loadMore}
+                    disabled={alertsLoading}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    {alertsLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load More Alerts'
+                    )}
+                  </Button>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="high" className="space-y-4">
               <AlertsList 
@@ -499,6 +524,25 @@ export function AlertsDashboard() {
                 hasTaggedAlertsError={useSimpleFallback} 
                 onDismissAlert={dismissAlert} 
               />
+              {hasMore && alertsByUrgency.high.length > 0 && (
+                <div className="text-center mt-6">
+                  <Button
+                    onClick={loadMore}
+                    disabled={alertsLoading}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    {alertsLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load More High Priority Alerts'
+                    )}
+                  </Button>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="medium" className="space-y-4">
               <AlertsList 
@@ -507,6 +551,25 @@ export function AlertsDashboard() {
                 hasTaggedAlertsError={useSimpleFallback} 
                 onDismissAlert={dismissAlert} 
               />
+              {hasMore && alertsByUrgency.medium.length > 0 && (
+                <div className="text-center mt-6">
+                  <Button
+                    onClick={loadMore}
+                    disabled={alertsLoading}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    {alertsLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load More Medium Priority Alerts'
+                    )}
+                  </Button>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="low" className="space-y-4">
               <AlertsList 
@@ -515,6 +578,25 @@ export function AlertsDashboard() {
                 hasTaggedAlertsError={useSimpleFallback} 
                 onDismissAlert={dismissAlert} 
               />
+              {hasMore && alertsByUrgency.low.length > 0 && (
+                <div className="text-center mt-6">
+                  <Button
+                    onClick={loadMore}
+                    disabled={alertsLoading}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    {alertsLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load More Low Priority Alerts'
+                    )}
+                  </Button>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
