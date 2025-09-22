@@ -34,8 +34,7 @@ import { TrialBanner } from '@/components/TrialBanner';
 import { TrialGate } from '@/components/TrialGate';
 import { TrialStatusIndicator } from '@/components/TrialStatusIndicator';
 import { FilterPanel } from '@/components/filters/FilterPanel';
-import { useRegulatoryMonitoring } from '@/hooks/useRegulatoryMonitoring';
-import DashboardRegulatoryWidget from '@/components/DashboardRegulatoryWidget';
+import { useSourceFilters } from '@/hooks/useSourceFilters';
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
@@ -52,8 +51,14 @@ const UserDashboard = () => {
   const [showExportManager, setShowExportManager] = useState(false);
   const [showSourceFilters, setShowSourceFilters] = useState(false);
   
-  // Initialize regulatory monitoring
-  useRegulatoryMonitoring();
+  // Source filters functionality
+  const { executeQuery, results: sourceFilterResults, loading: sourceFilterLoading, error: sourceFilterError } = useSourceFilters();
+  const [activeSourceFilters, setActiveSourceFilters] = useState<any>({
+    sources: [],
+    shared: {},
+    pagination: { limit: 50, offset: 0 },
+    sorting: { field: 'published_date', direction: 'desc' }
+  });
   
   // User preferences state
   const [preferences, setPreferences] = useState({

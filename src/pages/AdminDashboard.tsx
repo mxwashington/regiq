@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { SecurityDashboardEnhanced } from "@/components/SecurityDashboardEnhanced";
-// AdminAPIManager removed - using new regulatory system
+import { AdminAPIManager } from "@/components/AdminAPIManager";
 
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -72,9 +72,7 @@ const AdminDashboard: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="apis">
-              <div className="text-center py-8 text-muted-foreground">
-                API Management has been replaced with the new Regulatory News system
-              </div>
+              <AdminAPIManager />
             </TabsContent>
 
             <TabsContent value="security">

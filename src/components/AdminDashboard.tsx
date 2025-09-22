@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Settings, Database, User, Search, Eye, Bot, Shield, Link, Cpu, Wrench } from 'lucide-react';
 import { AdminAlertManager } from "./AdminAlertManager";
-// DataPipelineManager removed - using new regulatory system
+import { DataPipelineManager } from "./DataPipelineManager";
 import { SessionHealthMonitor } from "./SessionHealthMonitor";
 import AuthTestingPanel from "./AuthTestingPanel";
 import { PWASettings } from "./PWASettings";
@@ -150,8 +150,18 @@ export const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                API Pipeline moved to new Regulatory News system
+              <div className="space-y-6">
+                <DataPipelineManager />
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Wrench className="h-4 w-4" />
+                    Management Tools
+                  </h3>
+                  <div className="space-y-6">
+                    <AdminAlertManager />
+                    <AlertSourceFinder />
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -36,7 +36,7 @@ export function AppSidebar() {
     { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
     { path: '/compliance-assistant', icon: Brain, label: 'AI Assistant', badge: 'ENT' },
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
-    { path: '/regulatory-news', icon: BookOpen, label: 'Safety News', badge: 'NEW' },
+    { path: '/blog', icon: BookOpen, label: 'Blog' },
     { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
     { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts', badge: 'NEW' },
     { path: '/regulatory-gap-detection', icon: AlertTriangle, label: 'Gap Detection', badge: 'PRO' },
