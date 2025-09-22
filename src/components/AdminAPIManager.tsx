@@ -41,6 +41,7 @@ interface DataSource {
   last_fetched_at: string | null;
   fetch_interval: number;
   agency: string;
+  source_table?: string;
 }
 
 export const AdminAPIManager: React.FC = () => {
@@ -72,13 +73,54 @@ export const AdminAPIManager: React.FC = () => {
 
   const fetchDataSources = async () => {
     try {
-      const { data, error } = await supabase
-        .from('data_sources')
-        .select('*')
-        .order('name', { ascending: true });
+      // Fetch from all data source tables
+      const [dataSourcesResult, regulatorySourcesResult, customSourcesResult] = await Promise.all([
+        supabase.from('data_sources').select('*'),
+        supabase.from('regulatory_data_sources').select('*'),
+        supabase.from('custom_data_sources').select('*')
+      ]);
 
-      if (error) throw error;
-      setDataSources(data || []);
+      const allSources: DataSource[] = [];
+
+      // Combine data from all tables
+      if (dataSourcesResult.data) {
+        allSources.push(...dataSourcesResult.data.map(source => ({
+          ...source,
+          source_table: 'data_sources'
+        })));
+      }
+
+      if (regulatorySourcesResult.data) {
+        allSources.push(...regulatorySourcesResult.data.map(source => ({
+          id: source.id || crypto.randomUUID(),
+          name: source.name,
+          source_type: source.source_type,
+          url: source.base_url || 'N/A',
+          is_active: source.is_active,
+          last_fetched_at: source.last_successful_fetch,
+          fetch_interval: source.polling_interval_minutes ? source.polling_interval_minutes * 60 : 3600,
+          agency: source.agency,
+          source_table: 'regulatory_data_sources'
+        })));
+      }
+
+      if (customSourcesResult.data) {
+        allSources.push(...customSourcesResult.data.map(source => ({
+          id: source.id,
+          name: source.name,
+          source_type: source.source_type,
+          url: (source.configuration as any)?.url || 'Custom Source',
+          is_active: source.is_active,
+          last_fetched_at: source.last_synced_at,
+          fetch_interval: source.sync_frequency || 3600,
+          agency: (source.configuration as any)?.agency || 'Custom',
+          source_table: 'custom_data_sources'
+        })));
+      }
+
+      // Sort by name
+      allSources.sort((a, b) => a.name.localeCompare(b.name));
+      setDataSources(allSources);
     } catch (error) {
       console.error('Error fetching data sources:', error);
       toast.error('Failed to fetch data sources');
@@ -314,6 +356,11 @@ export const AdminAPIManager: React.FC = () => {
                           {source.is_active ? "Active" : "Inactive"}
                         </Badge>
                         <Badge variant="outline">{source.source_type}</Badge>
+                        {source.source_table && (
+                          <Badge variant="secondary" className="text-xs">
+                            {source.source_table.replace('_', ' ')}
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{source.url}</p>
                       <p className="text-sm text-muted-foreground">

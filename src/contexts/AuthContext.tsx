@@ -196,8 +196,10 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
   // Handle auth state changes - CRITICAL: No async calls inside callback
   useEffect(() => {
     console.log('=== AUTH CONTEXT INITIALIZATION ===');
+    let mounted = true;
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
       console.log('Auth state change:', { event, hasSession: !!session });
       
       // Only synchronous state updates in the callback
@@ -218,29 +220,49 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
       }));
     });
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error getting initial session:', error);
-        setState(prev => ({
-          ...prev,
-          loading: false,
-          isHealthy: false,
-          lastError: error.message
-        }));
-      } else {
-        setState(prev => ({
-          ...prev,
-          session,
-          user: session?.user ?? null,
-          loading: false,
-          isHealthy: true,
-          lastError: null
-        }));
+    // Get initial session with better error handling
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+          setState(prev => ({
+            ...prev,
+            loading: false,
+            isHealthy: false,
+            lastError: error.message
+          }));
+        } else {
+          setState(prev => ({
+            ...prev,
+            session,
+            user: session?.user ?? null,
+            loading: false,
+            isHealthy: true,
+            lastError: null
+          }));
+        }
+      } catch (err) {
+        console.error('Auth initialization failed:', err);
+        if (mounted) {
+          setState(prev => ({
+            ...prev,
+            loading: false,
+            isHealthy: false,
+            lastError: 'Authentication initialization failed'
+          }));
+        }
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Separate effect for async operations when session changes
