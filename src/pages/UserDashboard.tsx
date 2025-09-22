@@ -317,7 +317,7 @@ const UserDashboard = () => {
                 </div>
                 
                  <div className="flex items-center gap-2 flex-wrap">
-                   <label className="text-sm font-medium">Filter:</label>
+                   <label className="text-sm font-medium">Agency:</label>
                    <Button
                      variant={selectedAgency === '' ? "default" : "outline"}
                      size="sm"
@@ -352,77 +352,14 @@ const UserDashboard = () => {
                        onClick={clearFilters}
                        className="text-xs"
                      >
-                       Clear Filters
+                       Clear All
                      </Button>
                    )}
-                   
-                   <Button
-                     variant={showSourceFilters ? "secondary" : "outline"}
-                     size="sm"
-                     onClick={() => setShowSourceFilters(!showSourceFilters)}
-                     className="text-xs flex items-center gap-1"
-                   >
-                     <Filter className="h-3 w-3" />
-                     {showSourceFilters ? 'Hide' : 'Source'} Filters
-                   </Button>
                  </div>
-               </div>
+                </div>
              </div>
 
-             {/* Source Filters Panel */}
-             {showSourceFilters && (
-               <Card className="border-dashed">
-                 <CardHeader>
-                   <CardTitle className="text-lg flex items-center gap-2">
-                     <Filter className="h-5 w-5" />
-                     Advanced Source Filters
-                   </CardTitle>
-                   <CardDescription>
-                     Filter results directly from regulatory agency APIs
-                   </CardDescription>
-                 </CardHeader>
-                 <CardContent>
-                   <FilterPanel
-                     onFilterChange={(query) => {
-                       setActiveSourceFilters(query);
-                       executeQuery(query);
-                     }}
-                     activeFilters={activeSourceFilters}
-                     loading={sourceFilterLoading}
-                   />
-                 </CardContent>
-               </Card>
-             )}
-
-             {/* Source Filter Results */}
-             {sourceFilterResults.length > 0 && (
-               <Card>
-                 <CardHeader>
-                   <CardTitle>Source Filter Results ({sourceFilterResults.length})</CardTitle>
-                   <CardDescription>
-                     Results from direct API queries
-                   </CardDescription>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="grid gap-4">
-                     {sourceFilterResults.flatMap((result) => 
-                       result.data.map((item, index) => (
-                         <div key={`${result.source}-${index}`} className="border rounded-lg p-4">
-                           <h3 className="font-semibold">{item.title}</h3>
-                           <p className="text-sm text-muted-foreground mt-1">{item.summary}</p>
-                           <div className="flex items-center gap-2 mt-2">
-                             <Badge variant="outline">{item.source}</Badge>
-                             <Badge variant="secondary">{item.urgency}</Badge>
-                           </div>
-                         </div>
-                       ))
-                     )}
-                   </div>
-                 </CardContent>
-               </Card>
-             )}
-
-            {/* Main Feed Section */}
+             {/* Main Feed Section */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">
