@@ -1123,42 +1123,69 @@ export type Database = {
       data_sources: {
         Row: {
           agency: string
+          base_url: string | null
           created_at: string
+          data_gov_org: string | null
           fetch_interval: number | null
           id: string
           is_active: boolean
+          keywords: Json | null
+          last_error: string | null
           last_fetched_at: string | null
+          last_successful_fetch: string | null
           metadata: Json | null
           name: string
+          polling_interval_minutes: number | null
+          priority: number | null
+          region: string
+          rss_feeds: Json | null
           source_type: string
           updated_at: string
-          url: string
+          url: string | null
         }
         Insert: {
           agency: string
+          base_url?: string | null
           created_at?: string
+          data_gov_org?: string | null
           fetch_interval?: number | null
           id?: string
           is_active?: boolean
+          keywords?: Json | null
+          last_error?: string | null
           last_fetched_at?: string | null
+          last_successful_fetch?: string | null
           metadata?: Json | null
           name: string
-          source_type: string
+          polling_interval_minutes?: number | null
+          priority?: number | null
+          region?: string
+          rss_feeds?: Json | null
+          source_type?: string
           updated_at?: string
-          url: string
+          url?: string | null
         }
         Update: {
           agency?: string
+          base_url?: string | null
           created_at?: string
+          data_gov_org?: string | null
           fetch_interval?: number | null
           id?: string
           is_active?: boolean
+          keywords?: Json | null
+          last_error?: string | null
           last_fetched_at?: string | null
+          last_successful_fetch?: string | null
           metadata?: Json | null
           name?: string
+          polling_interval_minutes?: number | null
+          priority?: number | null
+          region?: string
+          rss_feeds?: Json | null
           source_type?: string
           updated_at?: string
-          url?: string
+          url?: string | null
         }
         Relationships: []
       }
@@ -1726,47 +1753,49 @@ export type Database = {
           id?: string
           plan_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "plan_features_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["plan_id"]
+          },
+        ]
       }
       plans: {
         Row: {
-          annual_price: number
-          created_at: string | null
+          billing_interval: string
+          created_at: string
           description: string | null
           id: string
-          is_popular: boolean | null
-          monthly_price: number
+          is_active: boolean
           name: string
-          sort_order: number | null
-          stripe_annual_price_id: string | null
-          stripe_monthly_price_id: string | null
-          updated_at: string | null
+          plan_id: string
+          price_cents: number
+          updated_at: string
         }
         Insert: {
-          annual_price: number
-          created_at?: string | null
-          description?: string | null
-          id: string
-          is_popular?: boolean | null
-          monthly_price: number
-          name: string
-          sort_order?: number | null
-          stripe_annual_price_id?: string | null
-          stripe_monthly_price_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          annual_price?: number
-          created_at?: string | null
+          billing_interval?: string
+          created_at?: string
           description?: string | null
           id?: string
-          is_popular?: boolean | null
-          monthly_price?: number
+          is_active?: boolean
+          name: string
+          plan_id: string
+          price_cents: number
+          updated_at?: string
+        }
+        Update: {
+          billing_interval?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
           name?: string
-          sort_order?: number | null
-          stripe_annual_price_id?: string | null
-          stripe_monthly_price_id?: string | null
-          updated_at?: string | null
+          plan_id?: string
+          price_cents?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1916,63 +1945,6 @@ export type Database = {
           requests_count?: number | null
           user_id?: string | null
           window_start?: string | null
-        }
-        Relationships: []
-      }
-      regulatory_data_sources: {
-        Row: {
-          agency: string
-          base_url: string
-          created_at: string | null
-          data_gov_org: string | null
-          id: string
-          is_active: boolean | null
-          keywords: Json | null
-          last_error: string | null
-          last_successful_fetch: string | null
-          name: string
-          polling_interval_minutes: number | null
-          priority: number | null
-          region: string
-          rss_feeds: Json | null
-          source_type: string
-          updated_at: string | null
-        }
-        Insert: {
-          agency: string
-          base_url: string
-          created_at?: string | null
-          data_gov_org?: string | null
-          id?: string
-          is_active?: boolean | null
-          keywords?: Json | null
-          last_error?: string | null
-          last_successful_fetch?: string | null
-          name: string
-          polling_interval_minutes?: number | null
-          priority?: number | null
-          region?: string
-          rss_feeds?: Json | null
-          source_type?: string
-          updated_at?: string | null
-        }
-        Update: {
-          agency?: string
-          base_url?: string
-          created_at?: string | null
-          data_gov_org?: string | null
-          id?: string
-          is_active?: boolean | null
-          keywords?: Json | null
-          last_error?: string | null
-          last_successful_fetch?: string | null
-          name?: string
-          polling_interval_minutes?: number | null
-          priority?: number | null
-          region?: string
-          rss_feeds?: Json | null
-          source_type?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2158,7 +2130,6 @@ export type Database = {
           id: string
           query: string
           result_data: Json
-          user_id: string | null
         }
         Insert: {
           cache_key: string
@@ -2167,7 +2138,6 @@ export type Database = {
           id?: string
           query: string
           result_data: Json
-          user_id?: string | null
         }
         Update: {
           cache_key?: string
@@ -2176,7 +2146,6 @@ export type Database = {
           id?: string
           query?: string
           result_data?: Json
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -3131,7 +3100,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_entitlements_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["plan_id"]
+          },
+        ]
       }
       user_interactions: {
         Row: {
@@ -3573,21 +3550,9 @@ export type Database = {
         Args: { feature: string; user_uuid: string }
         Returns: boolean
       }
-      check_plan_limits: {
-        Args: { limit_type: string; user_uuid: string }
-        Returns: Json
-      }
       check_profiles_security: {
         Args: Record<PropertyKey, never>
         Returns: undefined
-      }
-      check_security_status: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          recommendation: string
-          security_check: string
-          status: string
-        }[]
       }
       clean_expired_cache: {
         Args: Record<PropertyKey, never>
@@ -3861,7 +3826,7 @@ export type Database = {
               sensitive_fields_param?: string[]
               table_name_param: string
             }
-        Returns: boolean
+        Returns: undefined
       }
       log_source_finder_result: {
         Args: {
