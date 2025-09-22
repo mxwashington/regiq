@@ -119,11 +119,12 @@ function parseRSSFeed(xmlText: string, source: DataSource): any[] {
       const pubDate = pubDateMatch ? pubDateMatch[1].trim() : '';
       const guid = guidMatch ? guidMatch[1].trim() : '';
       
-      if (title && (link || guid)) {
+      // Relaxed filtering - only require title (most regulatory content has titles)
+      if (title && title.trim().length > 10) {
         items.push({
           title,
-          link: link || guid,
-          description,
+          link: link || guid || `#${Date.now()}`, // Generate fallback link if missing
+          description: description || title, // Use title as fallback description
           pubDate,
           source: source.agency,
           region: source.region
@@ -279,15 +280,32 @@ function processRSSItem(item: any, source: DataSource): ProcessedAlert {
 }
 
 async function isDuplicate(supabase: any, alert: ProcessedAlert): Promise<boolean> {
+  // Relaxed duplicate detection - use similarity instead of exact match
   const { data } = await supabase
     .from('alerts')
-    .select('id')
-    .eq('title', alert.title)
+    .select('id, title')
     .eq('source', alert.source)
-    .gte('published_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-    .maybeSingle();
+    .gte('published_date', new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()) // Reduced to 3 days
+    .limit(50);
 
-  return !!data;
+  if (!data || data.length === 0) return false;
+
+  // Check for very similar titles (80% similarity or exact substring match)
+  const alertTitle = alert.title.toLowerCase().trim();
+  for (const existing of data) {
+    const existingTitle = existing.title.toLowerCase().trim();
+    
+    // Exact match
+    if (alertTitle === existingTitle) return true;
+    
+    // Substring match for shorter titles
+    if (alertTitle.length > 20 && (
+      alertTitle.includes(existingTitle) || 
+      existingTitle.includes(alertTitle)
+    )) return true;
+  }
+
+  return false;
 }
 
 async function saveAlert(supabase: any, alert: ProcessedAlert, openaiKey?: string): Promise<boolean> {
