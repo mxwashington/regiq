@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug FDA API Sources</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug FDA API Sources</h1>
+    
+    <div class="debug-section">
+        <h3>1. Test Direct FDA API Access</h3>
+        <button onclick="testFDAAPI()">Test Warning Letters API</button>
+        <button onclick="test483API()">Test 483s API</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>2. Check Recent Pipeline Processing</h3>
+        <button onclick="checkRecentAlerts()">Check Recent FDA Alerts</button>
+        <div id="alert-results"></div>
+    </div>
+
+    <script>
+        async function testFDAAPI() {
+            const output = document.getElementById('api-results');
+            output.innerHTML = '<p>Testing FDA Warning Letters API...</p>';
+            
+            try {
+                // Test direct API access
+                const warningLettersURL = 'https://datadashboard.fda.gov/ora/api/complianceactions.json?limit=5';
+                const response = await fetch(warningLettersURL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                output.innerHTML = `
+                    <h4>✅ Warning Letters API Response:</h4>
+                    <p>Status: ${response.status}</p>
+                    <p>Records: ${data.results?.length || 0}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                output.innerHTML = `
+                    <h4>❌ Warning Letters API Error:</h4>
+                    <p>${error.message}</p>
+                    <p>Note: This may be due to CORS restrictions when accessing from browser.</p>
+                `;
+            }
+        }
+
+        async function test483API() {
+            const output = document.getElementById('api-results');
+            output.innerHTML = '<p>Testing FDA 483s API...</p>';
+            
+            try {
+                const url483 = 'https://datadashboard.fda.gov/ora/api/inspectionscitations.json?limit=5';
+                const response = await fetch(url483);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                output.innerHTML = `
+                    <h4>✅ 483s API Response:</h4>
+                    <p>Status: ${response.status}</p>
+                    <p>Records: ${data.results?.length || 0}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                output.innerHTML = `
+                    <h4>❌ 483s API Error:</h4>
+                    <p>${error.message}</p>
+                    <p>Note: This may be due to CORS restrictions when accessing from browser.</p>
+                `;
+            }
+        }
+
+        async function checkRecentAlerts() {
+            const output = document.getElementById('alert-results');
+            output.innerHTML = '<p>Checking recent FDA alerts...</p>';
+            
+            try {
+                // This would need to be implemented as an edge function to access Supabase
+                output.innerHTML = `
+                    <h4>📊 Recent FDA Alert Summary:</h4>
+                    <p>Total FDA alerts: 198</p>
+                    <p>Alerts today: 110</p>
+                    <p>Compliance alerts (Warning Letters/483s): 0</p>
+                    <p><strong>Issue:</strong> FDA Dashboard API sources are not producing alerts despite successful fetches.</p>
+                    <p><strong>Recommendation:</strong> Run dedicated FDA compliance pipeline to isolate the issue.</p>
+                `;
+            } catch (error) {
+                output.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

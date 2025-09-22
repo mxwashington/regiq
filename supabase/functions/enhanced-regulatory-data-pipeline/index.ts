@@ -832,7 +832,8 @@ Deno.serve(async (req) => {
       source.name.includes('Warning Letters') || 
       source.name.includes('Inspection Observations') ||
       source.name.includes('483') ||
-      source.source_type === 'FDA_DDAPI'
+      source.source_type === 'FDA_DDAPI' ||
+      (source.agency === 'FDA' && source.metadata?.api_type === 'fda_dashboard')
     );
     
     const backgroundSources = filteredSources.filter(source => 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fixed Hybrid Pipeline Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .results { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Fixed Hybrid Pipeline Test</h1>
+    <p>Testing the corrected critical source detection for FDA Warning Letters and 483s</p>
+    
+    <button onclick="runTest()" id="runBtn">Run Fixed Pipeline</button>
+    <div id="output"></div>
+
+    <script>
+        async function runTest() {
+            const btn = document.getElementById('runBtn');
+            const output = document.getElementById('output');
+            
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+            
+            const startTime = Date.now();
+            
+            try {
+                output.innerHTML = '<div class="results">⏳ Starting hybrid pipeline with corrected FDA source detection...</div>';
+                
+                const response = await fetch('https://piyikxxgoekawboitrzz.supabase.co/functions/v1/enhanced-regulatory-data-pipeline', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeWlreHhnb2VrYXdib2l0cnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MDM2MjUsImV4cCI6MjA2ODQ3OTYyNX0.YfgCG-BorBSfyXk4MdIxko9AHT4-ef0MfO24rCpjy94'
+                    },
+                    body: JSON.stringify({ 
+                        force_refresh: true,
+                        agency: 'FDA'
+                    })
+                });
+
+                const endTime = Date.now();
+                const duration = (endTime - startTime) / 1000;
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+
+                const result = await response.json();
+                
+                const fdaResults = Object.entries(result.results || {})
+                    .filter(([key]) => key.includes('FDA'))
+                    .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+                
+                output.innerHTML = `
+                    <div class="results success">
+                        <h3>✅ Pipeline Completed Successfully</h3>
+                        <p><strong>Execution Time:</strong> ${duration} seconds</p>
+                        <p><strong>Total New Alerts:</strong> ${result.totalAlertsProcessed || 0}</p>
+                        
+                        <h4>FDA-Specific Results:</h4>
+                        <pre>${JSON.stringify(fdaResults, null, 2)}</pre>
+                        
+                        <h4>Full Results:</h4>
+                        <details>
+                            <summary>Click to expand full results</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                    </div>
+                `;
+                
+            } catch (error) {
+                const endTime = Date.now();
+                const duration = (endTime - startTime) / 1000;
+                
+                output.innerHTML = `
+                    <div class="results error">
+                        <h3>❌ Pipeline Failed</h3>
+                        <p><strong>Duration:</strong> ${duration} seconds</p>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Run Fixed Pipeline';
+            }
+        }
+
+        // Auto-run on load
+        window.onload = () => {
+            setTimeout(runTest, 1000);
+        };
+    </script>
+</body>
+</html>

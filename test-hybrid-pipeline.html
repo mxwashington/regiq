@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hybrid Pipeline</title>
+</head>
+<body>
+    <h1>Testing Hybrid FDA Pipeline</h1>
+    <button onclick="runPipeline()">Run Hybrid Pipeline</button>
+    <div id="results"></div>
+
+    <script>
+        async function runPipeline() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Running hybrid pipeline with critical FDA sources first...</p>';
+            
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch('https://piyikxxgoekawboitrzz.supabase.co/functions/v1/enhanced-regulatory-data-pipeline', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeWlreHhnb2VrYXdib2l0cnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MDM2MjUsImV4cCI6MjA2ODQ3OTYyNX0.YfgCG-BorBSfyXk4MdIxko9AHT4-ef0MfO24rCpjy94'
+                    },
+                    body: JSON.stringify({ 
+                        force_refresh: true,
+                        agency: 'FDA'
+                    })
+                });
+
+                const endTime = Date.now();
+                const executionTime = (endTime - startTime) / 1000;
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <h2>Pipeline Results (${executionTime}s execution time)</h2>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                    
+                    <h3>Key Metrics:</h3>
+                    <ul>
+                        <li>Total New Alerts: ${result.totalAlertsProcessed || 0}</li>
+                        <li>Execution Time: ${executionTime} seconds</li>
+                        <li>Success: ${result.success ? 'Yes' : 'No'}</li>
+                    </ul>
+                `;
+                
+            } catch (error) {
+                const endTime = Date.now();
+                const executionTime = (endTime - startTime) / 1000;
+                
+                resultsDiv.innerHTML = `
+                    <h2>Error (${executionTime}s execution time)</h2>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
