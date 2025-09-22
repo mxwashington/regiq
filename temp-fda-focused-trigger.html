@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FDA Compliance Pipeline</title>
+</head>
+<body>
+  <h1>Running FDA Compliance Pipeline (Warning Letters & 483s)</h1>
+  <div id="status">Starting focused FDA pipeline...</div>
+  <div id="results"></div>
+  
+  <script>
+    async function runFDACompliancePipeline() {
+      const statusDiv = document.getElementById('status');
+      const resultsDiv = document.getElementById('results');
+      
+      try {
+        statusDiv.innerHTML = '🚀 Calling focused FDA compliance pipeline...';
+        
+        const response = await fetch('https://piyikxxgoekawboitrzz.supabase.co/functions/v1/fda-compliance-pipeline', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeWlreHhnb2VrYXdib2l0cnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MDM2MjUsImV4cCI6MjA2ODQ3OTYyNX0.YfgCG-BorBSfyXk4MdIxko9AHT4-ef0MfO24rCpjy94'
+          },
+          body: JSON.stringify({
+            sources: ['FDA Warning Letters Feed', 'FDA Inspection Observations (483s)']
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          statusDiv.innerHTML = `✅ FDA compliance pipeline completed successfully!`;
+          resultsDiv.innerHTML = `
+            <h3>📊 Results:</h3>
+            <ul>
+              <li><strong>Sources Processed:</strong> ${result.sources_processed}</li>
+              <li><strong>Items Processed:</strong> ${result.total_items_processed}</li>
+              <li><strong>New Alerts Saved:</strong> ${result.new_alerts_saved}</li>
+              <li><strong>Execution Time:</strong> ${new Date(result.execution_time).toLocaleString()}</li>
+            </ul>
+            <pre>${JSON.stringify(result, null, 2)}</pre>
+          `;
+        } else {
+          throw new Error(result.error || 'Unknown error');
+        }
+        
+      } catch (error) {
+        statusDiv.innerHTML = `❌ Error: ${error.message}`;
+        console.error('FDA pipeline error:', error);
+      }
+    }
+    
+    // Auto-run on load
+    runFDACompliancePipeline();
+  </script>
+</body>
+</html>

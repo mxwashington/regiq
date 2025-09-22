@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FDA Compliance Sources Only</title>
+</head>
+<body>
+    <h1>Running FDA Compliance Sources</h1>
+    <div id="status">Initializing...</div>
+    <div id="results"></div>
+    
+    <script>
+        async function runFDAComplianceOnly() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Get baseline count first
+                statusDiv.innerHTML = '📊 Getting baseline alert count...';
+                
+                // Run the enhanced regulatory pipeline but targeting only FDA 
+                statusDiv.innerHTML = '🚀 Running enhanced pipeline for FDA compliance sources...';
+                
+                const response = await fetch('https://piyikxxgoekawboitrzz.supabase.co/functions/v1/enhanced-regulatory-data-pipeline', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeWlreHhnb2VrYXdib2l0cnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MDM2MjUsImV4cCI6MjA2ODQ3OTYyNX0.YfgCG-BorBSfyXk4MdIxko9AHT4-ef0MfO24rCpjy94'
+                    },
+                    body: JSON.stringify({
+                        agency: 'FDA',
+                        source_filter: ['FDA Warning Letters Feed', 'FDA Inspection Observations (483s)'],
+                        force_refresh: true
+                    })
+                });
+                
+                statusDiv.innerHTML = `Response status: ${response.status}`;
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    statusDiv.innerHTML = '✅ Pipeline completed!';
+                    resultsDiv.innerHTML = `
+                        <h3>Results:</h3>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    statusDiv.innerHTML = `❌ Error ${response.status}: ${response.statusText}`;
+                    resultsDiv.innerHTML = `<pre>${errorText}</pre>`;
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = `❌ Error: ${error.message}`;
+                console.error('Error:', error);
+            }
+        }
+        
+        // Auto-run
+        runFDAComplianceOnly();
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FDA API Test</title>
+</head>
+<body>
+    <h1>Testing FDA Data Dashboard API Access</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testFDAEndpoints() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '🧪 Testing FDA Data Dashboard API endpoints...<br>';
+            
+            // Test endpoints without authentication first to see structure
+            const testEndpoints = [
+                {
+                    name: 'Warning Letters (Test)',
+                    url: 'https://datadashboard.fda.gov/ora/api/complianceactions.json?limit=1',
+                    description: 'FDA Compliance Actions'
+                },
+                {
+                    name: '483s (Test)', 
+                    url: 'https://datadashboard.fda.gov/ora/api/inspectionscitations.json?limit=1',
+                    description: 'FDA Inspection Citations'
+                }
+            ];
+            
+            for (const endpoint of testEndpoints) {
+                try {
+                    resultsDiv.innerHTML += `<br>📡 Testing ${endpoint.name}...<br>`;
+                    
+                    const response = await fetch(endpoint.url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    resultsDiv.innerHTML += `Status: ${response.status} ${response.statusText}<br>`;
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        resultsDiv.innerHTML += `✅ Success! Got data: ${JSON.stringify(data).substring(0, 200)}...<br>`;
+                    } else {
+                        const errorText = await response.text();
+                        resultsDiv.innerHTML += `❌ Error: ${errorText.substring(0, 200)}<br>`;
+                    }
+                    
+                } catch (error) {
+                    resultsDiv.innerHTML += `❌ Network Error: ${error.message}<br>`;
+                }
+            }
+            
+            resultsDiv.innerHTML += '<br>🔄 Test completed. Check results above.';
+        }
+        
+        testFDAEndpoints();
+    </script>
+</body>
+</html>
