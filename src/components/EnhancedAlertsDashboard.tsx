@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { EnhancedRegulatoryFilter } from './EnhancedRegulatoryFilter';
+// EnhancedRegulatoryFilter removed - using new regulatory system
 import TaggedAlertCard from './TaggedAlertCard';
 import PerplexityAlertCard from './PerplexityAlertCard';
 
@@ -344,11 +344,9 @@ export function EnhancedAlertsDashboard() {
         {/* Filters Sidebar */}
         {showFilters && (
           <div className="lg:w-1/3 space-y-4">
-            <EnhancedRegulatoryFilter
-              onFiltersChange={setFilters}
-              onRefreshData={refreshData}
-              loading={refreshing}
-            />
+            <div className="bg-card rounded-lg p-4 text-center text-muted-foreground">
+              Enhanced filters moved to new Regulatory News system
+            </div>
           </div>
         )}
 

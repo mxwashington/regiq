@@ -3,7 +3,7 @@ import { FDAAdapter } from './FDAAdapter';
 import { USDAAdapter } from './USDAAdapter';
 import { FSISAdapter } from './FSISAdapter';
 import { WHOAdapter } from './WHOAdapter';
-import { RegulationsGovAdapter } from './RegulationsGovAdapter';
+// RegulationsGovAdapter removed - using new regulatory system
 import { SourceType, SourceFilter, SourceResult } from '@/types/filter-engine';
 
 // Placeholder adapters for remaining sources (R-010 to R-026)
@@ -51,7 +51,7 @@ export class SourceAdapterRegistry {
     this.adapters.set('USDA', new USDAAdapter());
     this.adapters.set('FSIS', new FSISAdapter());
     this.adapters.set('WHO', new WHOAdapter());
-    this.adapters.set('REGULATIONS_GOV', new RegulationsGovAdapter());
+    // RegulationsGovAdapter removed - using new regulatory system
 
     // Placeholder adapters for remaining sources (to be implemented in R-010 to R-026)
     const placeholder_sources: SourceType[] = [

@@ -1919,63 +1919,6 @@ export type Database = {
         }
         Relationships: []
       }
-      regulatory_data_sources: {
-        Row: {
-          agency: string
-          base_url: string
-          created_at: string | null
-          data_gov_org: string | null
-          id: string
-          is_active: boolean | null
-          keywords: Json | null
-          last_error: string | null
-          last_successful_fetch: string | null
-          name: string
-          polling_interval_minutes: number | null
-          priority: number | null
-          region: string
-          rss_feeds: Json | null
-          source_type: string
-          updated_at: string | null
-        }
-        Insert: {
-          agency: string
-          base_url: string
-          created_at?: string | null
-          data_gov_org?: string | null
-          id?: string
-          is_active?: boolean | null
-          keywords?: Json | null
-          last_error?: string | null
-          last_successful_fetch?: string | null
-          name: string
-          polling_interval_minutes?: number | null
-          priority?: number | null
-          region?: string
-          rss_feeds?: Json | null
-          source_type?: string
-          updated_at?: string | null
-        }
-        Update: {
-          agency?: string
-          base_url?: string
-          created_at?: string | null
-          data_gov_org?: string | null
-          id?: string
-          is_active?: boolean | null
-          keywords?: Json | null
-          last_error?: string | null
-          last_successful_fetch?: string | null
-          name?: string
-          polling_interval_minutes?: number | null
-          priority?: number | null
-          region?: string
-          rss_feeds?: Json | null
-          source_type?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       regulatory_gap_indicators: {
         Row: {
           affected_areas: Json
@@ -2018,6 +1961,48 @@ export type Database = {
           risk_score?: number
           trend_direction?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      regulatory_updates: {
+        Row: {
+          agency: string
+          consumer_impact: string | null
+          created_at: string | null
+          document_id: string
+          document_type: string | null
+          family_action: string | null
+          id: string
+          is_featured: boolean | null
+          posted_date: string | null
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          agency: string
+          consumer_impact?: string | null
+          created_at?: string | null
+          document_id: string
+          document_type?: string | null
+          family_action?: string | null
+          id?: string
+          is_featured?: boolean | null
+          posted_date?: string | null
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          agency?: string
+          consumer_impact?: string | null
+          created_at?: string | null
+          document_id?: string
+          document_type?: string | null
+          family_action?: string | null
+          id?: string
+          is_featured?: boolean | null
+          posted_date?: string | null
+          summary?: string | null
+          title?: string
         }
         Relationships: []
       }
@@ -2515,44 +2500,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
-      }
-      tag_classifications: {
-        Row: {
-          ai_model: string | null
-          alert_id: string
-          classification_data: Json | null
-          classification_method: string
-          confidence_scores: Json | null
-          created_at: string
-          id: string
-        }
-        Insert: {
-          ai_model?: string | null
-          alert_id: string
-          classification_data?: Json | null
-          classification_method: string
-          confidence_scores?: Json | null
-          created_at?: string
-          id?: string
-        }
-        Update: {
-          ai_model?: string | null
-          alert_id?: string
-          classification_data?: Json | null
-          classification_method?: string
-          confidence_scores?: Json | null
-          created_at?: string
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tag_classifications_alert_id_fkey"
-            columns: ["alert_id"]
-            isOneToOne: false
-            referencedRelation: "alerts"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       task_comments: {
         Row: {
