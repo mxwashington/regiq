@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     }
 
     // Test endpoint with recent documents
-    const testUrl = 'https://api.regulations.gov/v4/documents?filter[agencyId]=FDA,EPA,USDA&filter[postedDate][gte]=2025-09-01&sort=-postedDate&page[size]=10';
+    const testUrl = 'https://api.regulations.gov/v4/documents?filter[agencyId]=FDA,EPA,USDA&filter[lastModifiedDate][gte]=2025-09-01&sort=-lastModifiedDate&page[size]=10';
     console.log('Testing URL:', testUrl);
 
     const response = await fetch(testUrl, {
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       id: doc.id,
       title: doc.attributes?.title,
       agency: doc.attributes?.agencyId,
-      postedDate: doc.attributes?.postedDate,
+      lastModifiedDate: doc.attributes?.lastModifiedDate,
       documentType: doc.attributes?.documentType
     }));
 

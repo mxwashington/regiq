@@ -541,7 +541,7 @@ function processFSISItem(item: any, source: DataSource): ProcessedAlert {
 function processRegulationsGovItem(item: any, source: DataSource): ProcessedAlert {
   const title = item.attributes?.title || 'Regulatory Document Update';
   const description = item.attributes?.abstract || item.attributes?.summary || 'New regulatory document posted';
-  const publishedDate = new Date(item.attributes?.postedDate || item.attributes?.lastModifiedDate || Date.now());
+  const publishedDate = new Date(item.attributes?.lastModifiedDate || item.attributes?.postedDate || Date.now());
   const documentNumber = item.attributes?.documentId || item.id;
   
   return {
