@@ -5,31 +5,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Filter, Tags, TrendingUp, AlertTriangle, Clock, X, Trash2, RefreshCw, Bug } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Search, Filter, ChevronDown, TrendingUp, AlertTriangle, Clock, X, Trash2, RefreshCw, Bug } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import TagFilter from './TagFilter';
 import TaggedAlertCard from './TaggedAlertCard';
 import PerplexityAlertCard from './PerplexityAlertCard';
 import { AlertsErrorBoundary } from './AlertsErrorBoundary';
-import { useTaxonomy } from '@/hooks/useTaxonomy';
-import { useTaggedAlerts } from '@/hooks/useTaggedAlerts';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useAuth } from '@/contexts/AuthContext';
 import { debugRegIQ } from '@/lib/debug-utils';
 
-interface ActiveFilter {
-  categoryId: string;
-  categoryName: string;
-  tagId: string;
-  tagName: string;
-  color: string;
-}
+// Available regulatory sources for filtering
+const REGULATORY_SOURCES = [
+  'CDC', 'CFIA', 'Drugs.com', 'ECHA', 'EMA', 'EPA', 'FAO', 'FDA', 
+  'Federal Register', 'Food Safety', 'FSA', 'FSANZ', 'FSIS', 'FTC', 
+  'Health Canada', 'IAEA', 'MHLW', 'MHRA', 'OSHA', 'PMDA', 'GSA', 'TGA', 'USDA', 'WHO'
+].sort();
 
 export function AlertsDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showDismissed, setShowDismissed] = useState(false);
   const [updatingFDA, setUpdatingFDA] = useState(false);
@@ -37,72 +36,37 @@ export function AlertsDashboard() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Load taxonomy data
-  const { categories: taxonomyCategories, loading: taxonomyLoading, error: taxonomyError } = useTaxonomy();
-  
   // Load alerts with enhanced error handling and pagination
   const { 
-    alerts: taggedAlerts, 
-    loading: taggedAlertsLoading, 
-    error: taggedAlertsError,
-    retryCount: taggedRetryCount,
-    retryLoad: retryTagged,
-    hasMore: taggedHasMore,
-    loadMore: loadMoreTagged
-  } = useTaggedAlerts({ 
-    filters: activeFilters,
-    limit: 25 
-  });
-  
-  // Always load simple alerts as fallback with pagination
-  const { 
-    alerts: simpleAlerts, 
-    loading: simpleAlertsLoading,
-    error: simpleAlertsError,
-    retryCount: simpleRetryCount,
-    retryLoad: retrySimple,
-    hasMore: simpleHasMore,
-    loadMore: loadMoreSimple
+    alerts, 
+    loading: alertsLoading,
+    error: alertsError,
+    retryCount: alertsRetryCount,
+    retryLoad: retryAlerts,
+    hasMore,
+    loadMore
   } = useSimpleAlerts(25);
-  
-  // Smart fallback logic
-  const useSimpleFallback = !!taggedAlertsError || taggedAlerts.length === 0;
-  const alerts = useSimpleFallback ? simpleAlerts : taggedAlerts;
-  const alertsLoading = useSimpleFallback ? simpleAlertsLoading : taggedAlertsLoading;
-  const alertsError = useSimpleFallback ? simpleAlertsError : taggedAlertsError;
-  const hasMore = useSimpleFallback ? simpleHasMore : taggedHasMore;
-  const loadMore = useSimpleFallback ? loadMoreSimple : loadMoreTagged;
   
   // Enhanced debugging info
   React.useEffect(() => {
     console.log('[AlertsDashboard] State:', {
-      taggedAlertsError,
-      taggedAlertsCount: taggedAlerts?.length,
-      simpleAlertsCount: simpleAlerts?.length,
-      usingSimpleFallback: useSimpleFallback,
-      activeFiltersCount: activeFilters.length,
-      taxonomyError,
-      simpleAlertsError,
+      alertsCount: alerts?.length,
+      selectedSourcesCount: selectedSources.length,
+      alertsError,
       alertsLoading,
-      taggedRetryCount,
-      simpleRetryCount,
+      alertsRetryCount,
       user: user ? { id: user.id, email: user.email } : null
     });
   }, [
-    taggedAlertsError, 
-    taggedAlerts?.length, 
-    simpleAlerts?.length, 
-    useSimpleFallback,
-    activeFilters.length,
-    taxonomyError,
-    simpleAlertsError,
+    alerts?.length, 
+    selectedSources.length,
+    alertsError,
     alertsLoading,
-    taggedRetryCount,
-    simpleRetryCount,
+    alertsRetryCount,
     user
   ]);
 
-  // Filter alerts by search term and dismissed status
+  // Filter alerts by search term, sources, and dismissed status
   const filteredAlerts = React.useMemo(() => {
     if (!alerts || alerts.length === 0) return [];
     
@@ -116,6 +80,17 @@ export function AlertsDashboard() {
       });
     }
     
+    // Filter by selected sources
+    if (selectedSources.length > 0) {
+      filtered = filtered.filter(alert => {
+        const alertSource = alert.source?.toLowerCase() || '';
+        return selectedSources.some(source => 
+          alertSource.includes(source.toLowerCase()) ||
+          source.toLowerCase().includes(alertSource)
+        );
+      });
+    }
+    
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(alert =>
@@ -126,31 +101,18 @@ export function AlertsDashboard() {
     }
     
     return filtered;
-  }, [alerts, searchTerm, showDismissed, user]);
+  }, [alerts, searchTerm, selectedSources, showDismissed, user]);
 
-  const handleTagClick = (categoryName: string, tagId: string, tagName: string) => {
-    const category = taxonomyCategories.find(c => c.name === categoryName);
-    if (!category) return;
-
-    const tag = category.tags.find(t => t.id === tagId);
-    if (!tag) return;
-
-    const newFilter: ActiveFilter = {
-      categoryId: category.id,
-      categoryName,
-      tagId,
-      tagName,
-      color: tag.color
-    };
-
-    // Replace any existing filter in this category
-    const newFilters = activeFilters.filter(f => f.categoryId !== category.id);
-    newFilters.push(newFilter);
-    setActiveFilters(newFilters);
+  const handleSourceToggle = (source: string) => {
+    setSelectedSources(prev => 
+      prev.includes(source)
+        ? prev.filter(s => s !== source)
+        : [...prev, source]
+    );
   };
 
-  const handleFilterChange = (filters: ActiveFilter[]) => {
-    setActiveFilters(filters);
+  const clearAllFilters = () => {
+    setSelectedSources([]);
   };
 
   // Alert clearing functions
@@ -254,8 +216,7 @@ export function AlertsDashboard() {
 
   const handleRetryAll = () => {
     console.log('[AlertsDashboard] Retrying all data loading...');
-    if (retryTagged) retryTagged();
-    if (retrySimple) retrySimple();
+    if (retryAlerts) retryAlerts();
   };
 
   // Calculate stats
@@ -282,7 +243,7 @@ export function AlertsDashboard() {
   };
 
   // Handle critical errors
-  if (simpleAlertsError && taggedAlertsError) {
+  if (alertsError) {
     return (
       <AlertsErrorBoundary>
         <Card className="max-w-2xl mx-auto mt-8">
@@ -298,9 +259,8 @@ export function AlertsDashboard() {
             </p>
             
             <div className="grid gap-2 text-sm">
-              <div><strong>Tagged Alerts Error:</strong> {taggedAlertsError}</div>
-              <div><strong>Simple Alerts Error:</strong> {simpleAlertsError}</div>
-              {simpleRetryCount > 0 && <div><strong>Retry Attempts:</strong> {simpleRetryCount}</div>}
+              <div><strong>Alerts Error:</strong> {alertsError}</div>
+              {alertsRetryCount > 0 && <div><strong>Retry Attempts:</strong> {alertsRetryCount}</div>}
             </div>
             
             <div className="flex gap-2">
@@ -322,15 +282,15 @@ export function AlertsDashboard() {
     );
   }
 
-  if (taxonomyLoading || alertsLoading) {
+  if (alertsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading regulatory alerts...</p>
-          {(taggedRetryCount > 0 || simpleRetryCount > 0) && (
+          {alertsRetryCount > 0 && (
             <p className="text-xs text-muted-foreground mt-1">
-              Retry attempt {Math.max(taggedRetryCount, simpleRetryCount)}
+              Retry attempt {alertsRetryCount}
             </p>
           )}
         </div>
@@ -346,12 +306,9 @@ export function AlertsDashboard() {
           <div>
             <h1 className="text-2xl font-bold">Regulatory Alerts</h1>
             <p className="text-muted-foreground">
-              {useSimpleFallback ? 
-                'Showing basic alerts (enhanced features unavailable)' : 
-                'AI-powered classification and filtering of regulatory content'
-              }
+              Filter regulatory alerts by source agencies and search for specific content
             </p>
-            {(taggedAlertsError || simpleAlertsError) && (
+            {alertsError && (
               <p className="text-xs text-amber-600 mt-1">
                 Some features may be limited due to connectivity issues
               </p>
@@ -400,11 +357,9 @@ export function AlertsDashboard() {
             variant={showFilters ? "secondary" : "outline"}
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2"
-            disabled={useSimpleFallback}
           >
-            <Tags className="h-4 w-4" />
+            <Filter className="h-4 w-4" />
             {showFilters ? 'Hide Filters' : 'Show Filters'}
-            {useSimpleFallback && ' (Unavailable)'}
           </Button>
         </div>
       </div>
@@ -433,7 +388,7 @@ export function AlertsDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">{totalAlerts}</div>
                 <p className="text-xs text-muted-foreground">
-                  {activeFilters.length > 0 ? 'Filtered results' : 'All alerts'}
+                  {selectedSources.length > 0 ? 'Filtered results' : 'All alerts'}
                 </p>
               </CardContent>
             </Card>
@@ -493,132 +448,105 @@ export function AlertsDashboard() {
             <TabsContent value="all" className="space-y-4">
               <AlertsList 
                 alerts={alertsByUrgency.all} 
-                onTagClick={handleTagClick} 
-                hasTaggedAlertsError={useSimpleFallback} 
-                onDismissAlert={dismissAlert} 
+                onDismiss={dismissAlert}
               />
+              
               {hasMore && (
-                <div className="text-center mt-6">
-                  <Button
-                    onClick={loadMore}
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={loadMore} 
                     disabled={alertsLoading}
                     variant="outline"
-                    className="flex items-center gap-2"
                   >
-                    {alertsLoading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More Alerts'
-                    )}
+                    {alertsLoading ? 'Loading...' : 'Load More'}
                   </Button>
                 </div>
               )}
             </TabsContent>
+
             <TabsContent value="high" className="space-y-4">
               <AlertsList 
                 alerts={alertsByUrgency.high} 
-                onTagClick={handleTagClick} 
-                hasTaggedAlertsError={useSimpleFallback} 
-                onDismissAlert={dismissAlert} 
+                onDismiss={dismissAlert}
               />
-              {hasMore && alertsByUrgency.high.length > 0 && (
-                <div className="text-center mt-6">
-                  <Button
-                    onClick={loadMore}
-                    disabled={alertsLoading}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    {alertsLoading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More High Priority Alerts'
-                    )}
-                  </Button>
-                </div>
-              )}
             </TabsContent>
+
             <TabsContent value="medium" className="space-y-4">
               <AlertsList 
                 alerts={alertsByUrgency.medium} 
-                onTagClick={handleTagClick} 
-                hasTaggedAlertsError={useSimpleFallback} 
-                onDismissAlert={dismissAlert} 
+                onDismiss={dismissAlert}
               />
-              {hasMore && alertsByUrgency.medium.length > 0 && (
-                <div className="text-center mt-6">
-                  <Button
-                    onClick={loadMore}
-                    disabled={alertsLoading}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    {alertsLoading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More Medium Priority Alerts'
-                    )}
-                  </Button>
-                </div>
-              )}
             </TabsContent>
+
             <TabsContent value="low" className="space-y-4">
               <AlertsList 
                 alerts={alertsByUrgency.low} 
-                onTagClick={handleTagClick} 
-                hasTaggedAlertsError={useSimpleFallback} 
-                onDismissAlert={dismissAlert} 
+                onDismiss={dismissAlert}
               />
-              {hasMore && alertsByUrgency.low.length > 0 && (
-                <div className="text-center mt-6">
-                  <Button
-                    onClick={loadMore}
-                    disabled={alertsLoading}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    {alertsLoading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More Low Priority Alerts'
-                    )}
-                  </Button>
-                </div>
-              )}
             </TabsContent>
           </Tabs>
         </div>
 
-        {/* Sidebar Filters */}
-        {showFilters && !useSimpleFallback && (
+        {/* Filters Sidebar */}
+        {showFilters && (
           <div className="lg:w-1/3 space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Tags className="h-4 w-4" />
-                  Tag Filters
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TagFilter
-                  taxonomyData={{ categories: taxonomyCategories }}
-                  activeFilters={activeFilters}
-                  onFilterChange={handleFilterChange}
-                />
-              </CardContent>
-            </Card>
+            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg p-4 sticky top-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Filter by Source</h3>
+                  {selectedSources.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={clearAllFilters}
+                      className="text-sm"
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </div>
+                
+                {selectedSources.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-muted-foreground">Active Filters</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSources.map((source) => (
+                        <Badge key={source} variant="secondary" className="flex items-center gap-1">
+                          <span className="text-xs">{source}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0 w-4 h-4 hover:bg-transparent"
+                            onClick={() => handleSourceToggle(source)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                    <Separator className="my-3" />
+                  </div>
+                )}
+
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {REGULATORY_SOURCES.map((source) => (
+                    <div key={source} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`source-${source}`}
+                        checked={selectedSources.includes(source)}
+                        onCheckedChange={() => handleSourceToggle(source)}
+                      />
+                      <Label 
+                        htmlFor={`source-${source}`} 
+                        className="text-sm cursor-pointer flex-1"
+                      >
+                        {source}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -629,12 +557,10 @@ export function AlertsDashboard() {
 
 interface AlertsListProps {
   alerts: any[];
-  onTagClick: (categoryName: string, tagId: string, tagName: string) => void;
-  hasTaggedAlertsError: boolean;
-  onDismissAlert: (alertId: string) => void;
+  onDismiss: (alertId: string) => void;
 }
 
-const AlertsList = memo(function AlertsList({ alerts, onTagClick, hasTaggedAlertsError, onDismissAlert }: AlertsListProps) {
+const AlertsList = memo(function AlertsList({ alerts, onDismiss }: AlertsListProps) {
   if (alerts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -649,30 +575,14 @@ const AlertsList = memo(function AlertsList({ alerts, onTagClick, hasTaggedAlert
 
   return (
     <div className="grid gap-4">
-      {alerts.map((alert) => {
-        // Check if this is a tagged alert or simple alert
-        const hasAlertTags = alert.alert_tags && Array.isArray(alert.alert_tags);
-        
-        if (hasAlertTags && !hasTaggedAlertsError) {
-          return (
-            <TaggedAlertCard
-              key={alert.id}
-              alert={alert}
-              onTagClick={onTagClick}
-              onDismissAlert={onDismissAlert}
-            />
-          );
-        } else {
-          return (
-            <PerplexityAlertCard
-              key={alert.id}
-              alert={alert}
-              onDismissAlert={onDismissAlert}
-              savedAlerts={[]}
-            />
-          );
-        }
-      })}
+      {alerts.map((alert) => (
+        <PerplexityAlertCard
+          key={alert.id}
+          alert={alert}
+          onDismissAlert={onDismiss}
+          savedAlerts={[]}
+        />
+      ))}
     </div>
   );
 });
