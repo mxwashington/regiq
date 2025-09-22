@@ -126,7 +126,7 @@ function parseRSSFeed(xmlText: string, source: DataSource): any[] {
           link: link || guid || `#${Date.now()}`, // Generate fallback link if missing
           description: description || title, // Use title as fallback description
           pubDate,
-          source: source.agency,
+          source: source.name, // Use full source name for consistency
           region: source.region
         });
       }
@@ -244,7 +244,7 @@ function processRSSItem(item: any, source: DataSource): ProcessedAlert {
   
   // Detect if CDC is republishing FDA recalls and correctly attribute them
   let actualAgency = source.agency;
-  let actualSource = source.agency;
+  let actualSource = source.name; // Use full source name instead of agency
   
   if (source.agency === 'CDC') {
     const title = item.title || '';
@@ -262,7 +262,8 @@ function processRSSItem(item: any, source: DataSource): ProcessedAlert {
           content.includes('undeclared')
         ))) {
       actualAgency = 'FDA';
-      actualSource = 'FDA';
+      // Keep using the original source name for consistency
+      actualSource = source.name;
     }
   }
   
@@ -475,7 +476,7 @@ function processOpenFDAItem(item: any, source: DataSource, endpoint: string): Pr
 
   return {
     title: title || 'FDA Regulatory Update',
-    source: source.agency,
+    source: source.name, // Use full source name
     urgency: calculateUrgency({ title, description }, source),
     summary: description || 'No description available.',
     published_date: publishedDate.toISOString(),
@@ -493,7 +494,7 @@ function processFSISItem(item: any, source: DataSource): ProcessedAlert {
   
   return {
     title,
-    source: source.agency,
+    source: source.name, // Use full source name
     urgency: calculateUrgency({ title, description }, source),
     summary: description,
     published_date: publishedDate.toISOString(),
