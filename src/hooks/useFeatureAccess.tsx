@@ -34,10 +34,10 @@ export const useFeatureAccess = () => {
         return ['growth', 'professional'].includes(currentPlan);
       
       case 'complianceCalendar':
-        return ['growth', 'professional'].includes(currentPlan);
+        return ['starter', 'growth', 'professional'].includes(currentPlan);
       
       case 'taskManagement':
-        return ['growth', 'professional'].includes(currentPlan);
+        return ['starter', 'growth', 'professional'].includes(currentPlan);
       
       case 'supplierRisk':
         return currentPlan === 'professional';
@@ -54,12 +54,12 @@ export const useFeatureAccess = () => {
     switch (feature) {
       case 'aiAssistant':
       case 'multiFacility':
+      case 'complianceCalendar':
+      case 'taskManagement':
         return 'starter';
       
       case 'phoneSupport':
       case 'advancedAnalytics':
-      case 'complianceCalendar':
-      case 'taskManagement':
       case 'haccp':
         return 'growth';
       

@@ -40,7 +40,7 @@ export function AppSidebar() {
     { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
     { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts', badge: 'NEW' },
     { path: '/regulatory-gap-detection', icon: AlertTriangle, label: 'Gap Detection', badge: 'PRO' },
-    { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
+    { path: '/account', icon: User, label: user ? 'Profile' : 'Login' },
     { path: '/regulatory-impact', icon: TrendingUp, label: 'Regulatory Impact', badge: 'PRO' },
     { path: '/suppliers', icon: Building2, label: 'Suppliers', badge: 'NEW' },
     { path: '/tasks', icon: CheckSquare, label: 'Task Management', badge: 'NEW' },

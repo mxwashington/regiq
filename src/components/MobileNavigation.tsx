@@ -21,7 +21,7 @@ const MobileNavigation: React.FC = () => {
     { path: '/calendar', icon: Calendar, label: 'Calendar', badge: 'NEW' },
     { path: '/regulatory-gap-detection', icon: AlertTriangle, label: 'Gap Detection', badge: 'NEW' },
     { path: '/suppliers', icon: Building2, label: 'Suppliers' },
-    { path: '/auth', icon: User, label: user ? 'Profile' : 'Login' },
+    { path: '/account', icon: User, label: user ? 'Profile' : 'Login' },
   ];
 
   const isActive = (path: string) => {

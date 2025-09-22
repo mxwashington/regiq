@@ -5,7 +5,7 @@ import { usePlanRestrictions } from "@/hooks/usePlanRestrictions";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Link } from "react-router-dom";
 
-export type PlanName = 'basic' | 'premium' | 'enterprise';
+export type PlanName = 'starter' | 'growth' | 'professional';
 
 interface PlanGatingProps {
   requiredPlan: PlanName;
@@ -14,18 +14,18 @@ interface PlanGatingProps {
 }
 
 const planOrder: Record<PlanName, number> = {
-  basic: 1,
-  premium: 2,
-  enterprise: 3,
+  starter: 1,
+  growth: 2,
+  professional: 3,
 };
 
 const mapSubscriberTierToLevel = (tier: string | null, subscribed: boolean): number => {
-  if (!subscribed) return 1; // Basic plan for non-subscribers
+  if (!subscribed) return 1; // Starter plan for non-subscribers
   if (!tier) return 1;
   const t = tier.toLowerCase();
-  if (t.includes('enterprise')) return 3;
-  if (t.includes('premium')) return 2;
-  return 1; // Default to basic
+  if (t.includes('professional')) return 3;
+  if (t.includes('growth')) return 2;
+  return 1; // Default to starter
 };
 
 export const PlanGating: React.FC<PlanGatingProps> = ({ requiredPlan, feature, children }) => {

@@ -180,7 +180,7 @@ export default function GPTSearch() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Search Type</label>
-              <PlanGating requiredPlan="premium" feature="advanced_search_types">
+              <PlanGating requiredPlan="growth" feature="advanced_search_types">
                 <Select value={searchType} onValueChange={setSearchType}>
                   <SelectTrigger>
                     <SelectValue />
@@ -212,7 +212,7 @@ export default function GPTSearch() {
 
           <div>
             <label className="text-sm font-medium mb-2 block">Filter by Agencies</label>
-            <PlanGating requiredPlan="premium" feature="advanced_filters">
+            <PlanGating requiredPlan="growth" feature="advanced_filters">
               <div className="flex flex-wrap gap-2">
                 {availableAgencies.map(agency => (
                   <Badge
@@ -230,7 +230,7 @@ export default function GPTSearch() {
 
           <div>
             <label className="text-sm font-medium mb-2 block">Industry (Optional)</label>
-            <PlanGating requiredPlan="premium" feature="industry_filtering">
+            <PlanGating requiredPlan="growth" feature="industry_filtering">
               <Select value={industry} onValueChange={setIndustry}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select industry" />

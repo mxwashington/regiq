@@ -94,8 +94,8 @@ export const UsageDashboard: React.FC = () => {
   };
 
   const getCurrentPlanName = () => {
-    if (subscribed) return subscriptionTier || 'Basic';
-    return 'Basic';
+    if (subscribed) return subscriptionTier || 'Starter';
+    return 'Starter';
   };
 
   if (loading) {

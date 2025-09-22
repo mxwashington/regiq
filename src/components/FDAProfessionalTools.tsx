@@ -238,7 +238,7 @@ export function FDAProfessionalTools() {
     // This would typically use a library like SheetJS
     toast({
       title: "Excel Export",
-      description: "Excel export feature requires premium subscription",
+      description: "Excel export feature requires Professional subscription",
       variant: "destructive"
     });
   };
@@ -247,7 +247,7 @@ export function FDAProfessionalTools() {
     // This would typically use a library like jsPDF
     toast({
       title: "PDF Export", 
-      description: "PDF export feature requires premium subscription",
+      description: "PDF export feature requires Professional subscription",
       variant: "destructive"
     });
   };
@@ -370,7 +370,7 @@ export function FDAProfessionalTools() {
     });
   };
 
-  const isPremiumFeature = (feature: string) => {
+  const isProfessionalFeature = (feature: string) => {
     // Since this is now a free app, all features are available
     return false;
   };
@@ -422,11 +422,11 @@ export function FDAProfessionalTools() {
                       <SelectContent>
                         <SelectItem value="csv">CSV (Comma Separated)</SelectItem>
                         <SelectItem value="json">JSON (Structured Data)</SelectItem>
-                        <SelectItem value="excel" disabled={isPremiumFeature('excel')}>
-                          Excel (Premium)
+                        <SelectItem value="excel" disabled={isProfessionalFeature('excel')}>
+                          Excel (Professional)
                         </SelectItem>
-                        <SelectItem value="pdf" disabled={isPremiumFeature('pdf')}>
-                          PDF Report (Premium)
+                        <SelectItem value="pdf" disabled={isProfessionalFeature('pdf')}>
+                          PDF Report (Professional)
                         </SelectItem>
                       </SelectContent>
                     </Select>

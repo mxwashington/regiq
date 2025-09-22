@@ -71,7 +71,7 @@ export const useAnalyticsTracking = (): UseAnalyticsTrackingReturn => {
   const trackPricingView = () => {
     track('pricing_viewed', {
       page: 'pricing',
-      plans_shown: ['alerts_only', 'starter', 'professional', 'enterprise']
+      plans_shown: ['starter', 'growth', 'professional']
     });
   };
 
