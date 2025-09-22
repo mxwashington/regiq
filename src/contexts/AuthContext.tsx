@@ -193,41 +193,29 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Handle auth state changes
+  // Handle auth state changes - CRITICAL: No async calls inside callback
   useEffect(() => {
     console.log('=== AUTH CONTEXT INITIALIZATION ===');
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state change:', { event, hasSession: !!session });
       
+      // Only synchronous state updates in the callback
       setState(prev => ({
         ...prev,
         session,
         user: session?.user ?? null,
         loading: false,
         isHealthy: true,
-        lastError: null
-      }));
-
-      if (session?.user) {
-        // Check additional user data
-        setTimeout(() => {
-          checkAdminStatus();
-          checkSubscription();
-          updateUserActivity(session.user.id);
-        }, 100);
-      } else {
+        lastError: null,
         // Clear user data on sign out
-        setState(prev => ({
-          ...prev,
-          isAdmin: false,
-          adminRole: null,
-          adminPermissions: [],
-          subscribed: false,
-          subscriptionTier: null,
-          subscriptionEnd: null,
-        }));
-      }
+        isAdmin: !session ? false : prev.isAdmin,
+        adminRole: !session ? null : prev.adminRole,
+        adminPermissions: !session ? [] : prev.adminPermissions,
+        subscribed: !session ? false : prev.subscribed,
+        subscriptionTier: !session ? null : prev.subscriptionTier,
+        subscriptionEnd: !session ? null : prev.subscriptionEnd,
+      }));
     });
 
     // Get initial session
@@ -249,17 +237,27 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
           isHealthy: true,
           lastError: null
         }));
-
-        if (session?.user) {
-          checkAdminStatus();
-          checkSubscription();
-          updateUserActivity(session.user.id);
-        }
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Separate effect for async operations when session changes
+  useEffect(() => {
+    if (state.session?.user) {
+      // Defer async operations to prevent deadlock
+      const timeoutId = setTimeout(() => {
+        Promise.all([
+          checkAdminStatus().catch(err => console.error('Admin status check failed:', err)),
+          checkSubscription().catch(err => console.error('Subscription check failed:', err)),
+          updateUserActivity(state.session.user.id).catch(err => console.error('User activity update failed:', err))
+        ]);
+      }, 0);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [state.session?.user?.id, checkAdminStatus, checkSubscription, updateUserActivity]);
 
   const value: AuthContextType = {
     user: state.user,
