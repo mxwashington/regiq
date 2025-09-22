@@ -120,7 +120,7 @@ export const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-6">
                 <AdminAlertManager />
                 <AlertSourceFinder />
               </div>
@@ -158,7 +158,7 @@ export const AdminDashboard = () => {
                     <Wrench className="h-4 w-4" />
                     Management Tools
                   </h3>
-                  <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-6">
                     <AdminAlertManager />
                     <AlertSourceFinder />
                   </div>
@@ -191,7 +191,7 @@ export const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Session Monitoring</h3>
                   <SessionHealthMonitor />
