@@ -60,6 +60,7 @@ const DairyManufacturingPage = React.lazy(() => import("./pages/industries/Dairy
 const MeatPoultryPage = React.lazy(() => import("./pages/industries/MeatPoultryPage").catch(() => ({ default: () => <div>Meat & Poultry unavailable</div> })));
 const PackagedFoodsPage = React.lazy(() => import("./pages/industries/PackagedFoodsPage").catch(() => ({ default: () => <div>Packaged Foods unavailable</div> })));
 const BeverageProductionPage = React.lazy(() => import("./pages/industries/BeverageProductionPage").catch(() => ({ default: () => <div>Beverage Production unavailable</div> })));
+const MobilePricing = React.lazy(() => import("./pages/MobilePricing").catch(() => ({ default: () => <div>Mobile Pricing unavailable</div> })));
 
 const Blog = React.lazy(() => import("./pages/Blog").catch(() => ({ default: () => <div>Blog unavailable</div> })));
 const CustomAlerts = React.lazy(() => import("./pages/CustomAlerts").catch(() => ({ default: () => <div>Custom Alerts unavailable</div> })));
@@ -170,8 +171,9 @@ const PWAApp = () => {
               <Route path="/regulatory-gap-detection" element={<AuthGuard><RegulatoryGapDetection /></AuthGuard>} />
               <Route path="/custom-alerts" element={<AuthGuard><CustomAlerts /></AuthGuard>} />
               <Route path="/facilities" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/FacilitiesPage")))}</AuthGuard>} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/account" element={<Account />} />
+               <Route path="/pricing" element={<Pricing />} />
+               <Route path="/mobile-pricing" element={<MobilePricing />} />
+               <Route path="/account" element={<Account />} />
               <Route path="/suppliers" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/UnifiedSupplierDashboard")))}</AuthGuard>} />
               <Route path="/onboarding" element={<Onboarding />} />
                <Route path="/payment-success" element={<PaymentSuccess />} />
