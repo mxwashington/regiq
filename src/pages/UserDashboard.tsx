@@ -92,7 +92,7 @@ const UserDashboard = () => {
       console.log('[UserDashboard] After agency filter:', filtered.length);
     }
     
-    const result = filtered.slice(0, 20); // Show more alerts in dashboard
+    const result = filtered; // Show all filtered alerts
     console.log('[UserDashboard] Final displayAlerts:', {
       length: result.length,
       loading,
