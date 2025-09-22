@@ -827,13 +827,26 @@ Deno.serve(async (req) => {
 
     logStep(`Processing ${filteredSources.length} filtered data sources`);
 
+    // Separate critical compliance sources from others
+    const criticalSources = filteredSources.filter(source => 
+      source.name.includes('Warning Letters') || 
+      source.name.includes('Inspection Observations') ||
+      source.name.includes('483') ||
+      source.source_type === 'FDA_DDAPI'
+    );
+    
+    const backgroundSources = filteredSources.filter(source => 
+      !criticalSources.includes(source)
+    );
+
+    logStep(`Found ${criticalSources.length} critical sources, ${backgroundSources.length} background sources`);
+
     const results: { [key: string]: number } = {};
     let totalAlertsProcessed = 0;
 
-    // Process each data source
-    for (const source of filteredSources) {
+    // Process critical sources synchronously first
+    for (const source of criticalSources) {
       if (force_refresh) {
-        // Reset last run time for forced refresh
         await supabase.rpc('upsert_system_setting', {
           key_param: `last_run_${source.id}`,
           value_param: { timestamp: 0 },
@@ -844,9 +857,57 @@ Deno.serve(async (req) => {
       const processed = await processDataSource(supabase, source, openaiKey);
       results[`${source.agency}_${source.region}`] = processed;
       totalAlertsProcessed += processed;
-      
-      // Small delay between sources
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      logStep(`Critical source ${source.name}: ${processed} alerts processed`);
+    }
+
+    // Process background sources in parallel batches using EdgeRuntime.waitUntil()
+    if (backgroundSources.length > 0) {
+      const backgroundProcessor = async () => {
+        logStep('Starting background processing of remaining sources');
+        const batchSize = 5; // Process 5 sources at a time
+        
+        for (let i = 0; i < backgroundSources.length; i += batchSize) {
+          const batch = backgroundSources.slice(i, i + batchSize);
+          
+          const batchPromises = batch.map(async (source) => {
+            try {
+              if (force_refresh) {
+                await supabase.rpc('upsert_system_setting', {
+                  key_param: `last_run_${source.id}`,
+                  value_param: { timestamp: 0 },
+                  description_param: `Reset for forced refresh`
+                });
+              }
+              
+              const processed = await processDataSource(supabase, source, openaiKey);
+              logStep(`Background source ${source.name}: ${processed} alerts processed`);
+              return { source: `${source.agency}_${source.region}`, processed };
+            } catch (error) {
+              logStep(`Background processing error for ${source.name}:`, error);
+              return { source: `${source.agency}_${source.region}`, processed: 0 };
+            }
+          });
+          
+          await Promise.all(batchPromises);
+          
+          // Small delay between batches to prevent API throttling
+          if (i + batchSize < backgroundSources.length) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
+        
+        logStep('Background processing completed');
+      };
+
+      // Use EdgeRuntime.waitUntil to process background sources
+      if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+        EdgeRuntime.waitUntil(backgroundProcessor());
+      } else {
+        // Fallback: start background processing without awaiting
+        backgroundProcessor().catch(error => 
+          logStep('Background processing failed:', error)
+        );
+      }
     }
 
     // Update data freshness tracking
