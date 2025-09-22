@@ -1,5 +1,4 @@
 import React from 'react';
-import { TestRegulationsGov } from '@/components/TestRegulationsGov';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -141,12 +140,6 @@ const Debug = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Regulations.gov API Test */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">🏛️ API Source Testing</h2>
-          <TestRegulationsGov />
         </div>
 
         {/* Performance Information */}

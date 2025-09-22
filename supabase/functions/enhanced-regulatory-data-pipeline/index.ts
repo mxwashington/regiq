@@ -441,39 +441,6 @@ async function fetchFSISData(endpoint: string, source: DataSource): Promise<any[
   }
 }
 
-async function fetchRegulationsGovData(endpoint: string, source: DataSource, apiKey?: string): Promise<any[]> {
-  try {
-    logStep(`Fetching Regulations.gov data from: ${endpoint}`);
-    
-    if (!apiKey) {
-      logStep('No Regulations.gov API key available');
-      return [];
-    }
-    
-    const url = `${source.base_url}/${endpoint}`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-API-Key': apiKey,
-        'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      logStep(`Failed to fetch Regulations.gov data: ${response.status} - ${response.statusText}`);
-      return [];
-    }
-
-    const data = await response.json();
-    return data.data || [];
-  } catch (error) {
-    logStep(`Error fetching Regulations.gov data from ${endpoint}:`, error);
-    return [];
-  }
-}
-
 function processOpenFDAItem(item: any, source: DataSource, endpoint: string): ProcessedAlert {
   let title = '';
   let description = '';
@@ -538,25 +505,6 @@ function processFSISItem(item: any, source: DataSource): ProcessedAlert {
   };
 }
 
-function processRegulationsGovItem(item: any, source: DataSource): ProcessedAlert {
-  const title = item.attributes?.title || 'Regulatory Document Update';
-  const description = item.attributes?.abstract || item.attributes?.summary || 'New regulatory document posted';
-  const publishedDate = new Date(item.attributes?.postedDate || item.attributes?.lastModifiedDate || Date.now());
-  const documentNumber = item.attributes?.documentId || item.id;
-  
-  return {
-    title,
-    source: source.name,
-    urgency: calculateUrgency({ title, description }, source),
-    summary: description.substring(0, 300),
-    published_date: publishedDate.toISOString(),
-    external_url: `https://www.regulations.gov/document/${documentNumber}`,
-    full_content: JSON.stringify(item),
-    region: source.region,
-    agency: source.agency
-  };
-}
-
 async function processDataSource(supabase: any, source: DataSource, openaiKey?: string): Promise<number> {
   try {
     logStep(`Processing data source: ${source.name} (${source.region})`);
@@ -588,15 +536,6 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
           // Convert API items to alert format
           for (const item of apiItems) {
             const alert = processFSISItem(item, source);
-            allItems.push(alert);
-          }
-        } else if (source.agency === 'GSA' && source.name.includes('Regulations.gov')) {
-          // Regulations.gov API
-          const regulationsGovKey = Deno.env.get('REGULATIONS_GOV_API_KEY');
-          apiItems = await fetchRegulationsGovData(endpoint, source, regulationsGovKey);
-          // Convert API items to alert format
-          for (const item of apiItems) {
-            const alert = processRegulationsGovItem(item, source);
             allItems.push(alert);
           }
         }
