@@ -12,12 +12,21 @@ interface DataSource {
   agency: string;
   region: string;
   source_type: string;
-  base_url: string;
-  rss_feeds: string[];
-  polling_interval_minutes: number;
-  priority: number;
-  keywords: string[];
+  url?: string;
+  base_url?: string;
+  rss_feeds?: any[];
+  data_gov_org?: string;
   is_active: boolean;
+  last_fetched_at?: string;
+  last_successful_fetch?: string;
+  fetch_interval?: number;
+  polling_interval_minutes?: number;
+  priority?: number;
+  keywords?: any[];
+  metadata?: any;
+  last_error?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ProcessedAlert {
@@ -39,7 +48,7 @@ function logStep(message: string, data?: any) {
 
 async function fetchDataSources(supabase: any): Promise<DataSource[]> {
   const { data, error } = await supabase
-    .from('regulatory_data_sources')
+    .from('data_sources')
     .select('*')
     .eq('is_active', true)
     .order('priority', { ascending: false });
@@ -519,10 +528,12 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
     // Process based on source type
     if (source.source_type === 'api') {
       // Handle API data sources
-      for (const endpoint of source.rss_feeds) {
+      const endpoints = source.rss_feeds || (source.url ? [source.url] : []);
+      
+      for (const endpoint of endpoints) {
         let apiItems: any[] = [];
         
-        if (source.agency === 'FDA' && source.base_url.includes('api.fda.gov')) {
+        if (source.agency === 'FDA' && (source.base_url?.includes('api.fda.gov') || source.url?.includes('api.fda.gov'))) {
           // openFDA API
           apiItems = await fetchOpenFDAData(endpoint, source);
           // Convert API items to alert format
@@ -545,18 +556,18 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
       }
     } else {
       // Process RSS feeds (existing functionality)
-      if (source.rss_feeds && source.rss_feeds.length > 0) {
-        for (const feedUrl of source.rss_feeds) {
-          const items = await fetchRSSFeed(feedUrl, source);
-          // Convert RSS items to alert format
-          for (const item of items) {
-            const alert = processRSSItem(item, source);
-            allItems.push(alert);
-          }
-          
-          // Small delay to avoid hitting rate limits
-          await new Promise(resolve => setTimeout(resolve, 500));
+      const feedUrls = source.rss_feeds || (source.url ? [source.url] : []);
+      
+      for (const feedUrl of feedUrls) {
+        const items = await fetchRSSFeed(feedUrl, source);
+        // Convert RSS items to alert format
+        for (const item of items) {
+          const alert = processRSSItem(item, source);
+          allItems.push(alert);
         }
+        
+        // Small delay to avoid hitting rate limits
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
@@ -587,7 +598,7 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
 
     // Update source status
     await supabase
-      .from('regulatory_data_sources')
+      .from('data_sources')
       .update({
         last_successful_fetch: new Date().toISOString(),
         last_error: null
@@ -602,7 +613,7 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
     
     // Update source with error status
     await supabase
-      .from('regulatory_data_sources')
+      .from('data_sources')
       .update({
         last_error: error.message || 'Unknown error'
       })

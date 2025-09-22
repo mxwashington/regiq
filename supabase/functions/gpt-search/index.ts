@@ -446,7 +446,7 @@ async function searchRSSFeeds(supabaseClient: any, query: string, agencies?: str
     
     // Get recent data sources and their latest content
     let queryBuilder = supabaseClient
-      .from('regulatory_data_sources')
+      .from('data_sources')
       .select('*')
       .eq('is_active', true)
       .order('last_successful_fetch', { ascending: false })
