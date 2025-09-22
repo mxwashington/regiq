@@ -78,15 +78,15 @@ export function RegulatoryDataPipeline() {
   useEffect(() => {
     fetchAllData();
     
-    // Set up real-time subscription for regulatory_data_sources
+    // Set up real-time subscription for data_sources
     const channel = supabase
-      .channel('regulatory-sources-changes')
+      .channel('data-sources-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'regulatory_data_sources'
+          table: 'data_sources'
         },
         () => {
           fetchAllData();
@@ -120,7 +120,7 @@ export function RegulatoryDataPipeline() {
 
   const fetchDataSources = async () => {
     const { data, error } = await supabase
-      .from('regulatory_data_sources')
+      .from('data_sources')
       .select('*')
       .order('priority', { ascending: false });
 
@@ -188,7 +188,7 @@ export function RegulatoryDataPipeline() {
   const toggleSourceStatus = async (sourceId: string, isActive: boolean) => {
     try {
       const { error } = await supabase
-        .from('regulatory_data_sources')
+        .from('data_sources')
         .update({ is_active: isActive })
         .eq('id', sourceId);
 

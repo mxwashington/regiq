@@ -79,34 +79,26 @@ export const AdminAPIManager: React.FC = () => {
 
   const fetchDataSources = async () => {
     try {
-      // Fetch from all data source tables
-      const [dataSourcesResult, regulatorySourcesResult, customSourcesResult] = await Promise.all([
+      // Fetch from unified data sources table and custom sources
+      const [dataSourcesResult, customSourcesResult] = await Promise.all([
         supabase.from('data_sources').select('*'),
-        supabase.from('regulatory_data_sources').select('*'),
         supabase.from('custom_data_sources').select('*')
       ]);
 
       const allSources: DataSource[] = [];
 
-      // Combine data from all tables
+      // Add data from unified data_sources table
       if (dataSourcesResult.data) {
         allSources.push(...dataSourcesResult.data.map(source => ({
-          ...source,
-          source_table: 'data_sources'
-        })));
-      }
-
-      if (regulatorySourcesResult.data) {
-        allSources.push(...regulatorySourcesResult.data.map(source => ({
           id: source.id || crypto.randomUUID(),
           name: source.name,
           source_type: source.source_type,
-          url: source.base_url || 'N/A',
+          url: source.url || source.base_url || 'N/A',
           is_active: source.is_active,
-          last_fetched_at: source.last_successful_fetch,
-          fetch_interval: source.polling_interval_minutes ? source.polling_interval_minutes * 60 : 3600,
+          last_fetched_at: source.last_fetched_at || source.last_successful_fetch,
+          fetch_interval: source.fetch_interval || (source.polling_interval_minutes ? source.polling_interval_minutes * 60 : 3600),
           agency: source.agency,
-          source_table: 'regulatory_data_sources'
+          source_table: 'data_sources'
         })));
       }
 
@@ -212,7 +204,7 @@ export const AdminAPIManager: React.FC = () => {
         let functionName = 'regulatory-data-pipeline';
         let body: any = { sourceId: source.id, force: true };
 
-        if (source.source_table === 'regulatory_data_sources') {
+        if (source.source_table === 'data_sources') {
           functionName = 'enhanced-regulatory-data-pipeline';
         } else if (source.source_table === 'custom_data_sources') {
           functionName = 'custom-data-sources';

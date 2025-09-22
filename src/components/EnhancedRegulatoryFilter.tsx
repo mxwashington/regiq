@@ -72,7 +72,7 @@ export function EnhancedRegulatoryFilter({
   const loadDataSources = async () => {
     try {
       const { data, error } = await supabase
-        .from('regulatory_data_sources')
+        .from('data_sources')
         .select('*')
         .order('priority', { ascending: false });
 
