@@ -2,7 +2,7 @@
 export type SourceType = 
   | 'FDA' | 'USDA' | 'FSIS' | 'WHO' | 'HEALTH_CANADA' | 'CDC' | 'MHRA' 
   | 'IAEA' | 'FSA' | 'EFSA' | 'CFIA' | 'EMA' | 'FAO' | 'MHLW' | 'ECHA' 
-  | 'FSANZ' | 'EPA' | 'OSHA' | 'TGA' | 'PMDA' | 'FTC';
+  | 'FSANZ' | 'EPA' | 'OSHA' | 'TGA' | 'PMDA' | 'FTC' | 'REGULATIONS_GOV';
 
 export type FilterOperator = 'eq' | 'ne' | 'in' | 'not_in' | 'contains' | 'range' | 'exists';
 
