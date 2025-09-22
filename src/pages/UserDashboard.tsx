@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle, Bot, MessageCircle, Download, Bookmark } from 'lucide-react';
+import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle, Bot, MessageCircle, Download, Bookmark, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
@@ -23,7 +24,12 @@ import { FacilitySelector } from '@/components/FacilitySelector';
 import RiskPredictorPage from './RiskPredictorPage';
 import RiskDashboardPage from './RiskDashboardPage';
 import SupportWidget from '@/components/account/SupportWidget';
-import { AVAILABLE_AGENCIES, getAgencyDisplayName, doesSourceMatchAgency } from '@/lib/agencies';
+// Available regulatory sources for filtering
+const REGULATORY_SOURCES = [
+  'CDC', 'CFIA', 'Drugs.com', 'ECHA', 'EMA', 'EPA', 'FAO', 'FDA', 
+  'Federal Register', 'Food Safety', 'FSA', 'FSANZ', 'FSIS', 'FTC', 
+  'Health Canada', 'IAEA', 'MHLW', 'MHRA', 'OSHA', 'PMDA', 'GSA', 'TGA', 'USDA', 'WHO'
+].sort();
 import { TrialBanner } from '@/components/TrialBanner';
 import { TrialGate } from '@/components/TrialGate';
 import { TrialStatusIndicator } from '@/components/TrialStatusIndicator';
@@ -36,8 +42,8 @@ const UserDashboard = () => {
   const { alerts, loading } = useSimpleAlerts();
   const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
   
-  // State for dashboard functionality (matching landing page)
-  const [selectedAgency, setSelectedAgency] = useState('');
+  // State for dashboard functionality
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('alerts');
@@ -62,12 +68,12 @@ const UserDashboard = () => {
     industries: ['Food Safety']
   });
 
-  // Get filtered alerts for display (same logic as landing page)
+  // Get filtered alerts for display
   const displayAlerts = useMemo(() => {
     console.log('[UserDashboard] Processing alerts:', {
       totalAlerts: alerts.length,
       searchQuery,
-      selectedAgency,
+      selectedSources,
       sampleAlert: alerts[0]
     });
     
@@ -84,12 +90,16 @@ const UserDashboard = () => {
       console.log('[UserDashboard] After search filter:', filtered.length);
     }
     
-    // Apply agency filter
-    if (selectedAgency) {
-      filtered = filtered.filter(alert => 
-        doesSourceMatchAgency(alert.source, selectedAgency)
-      );
-      console.log('[UserDashboard] After agency filter:', filtered.length);
+    // Apply source filter
+    if (selectedSources.length > 0) {
+      filtered = filtered.filter(alert => {
+        const alertSource = alert.source?.toLowerCase() || '';
+        return selectedSources.some(source => 
+          alertSource.includes(source.toLowerCase()) ||
+          source.toLowerCase().includes(alertSource)
+        );
+      });
+      console.log('[UserDashboard] After source filter:', filtered.length);
     }
     
     const result = filtered; // Show all filtered alerts
@@ -100,15 +110,17 @@ const UserDashboard = () => {
     });
     
     return result;
-  }, [alerts, selectedAgency, searchQuery, loading]);
+  }, [alerts, selectedSources, searchQuery, loading]);
 
-  // Agency filter counts - based on actual APIs we have
-  const agencyCounts = useMemo(() => {
+  // Source filter counts
+  const sourceCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    AVAILABLE_AGENCIES.forEach(agency => {
-      counts[agency] = alerts.filter(alert => 
-        doesSourceMatchAgency(alert.source, agency)
-      ).length;
+    REGULATORY_SOURCES.forEach(source => {
+      counts[source] = alerts.filter(alert => {
+        const alertSource = alert.source?.toLowerCase() || '';
+        return alertSource.includes(source.toLowerCase()) ||
+               source.toLowerCase().includes(alertSource);
+      }).length;
     });
     return counts;
   }, [alerts]);
@@ -150,8 +162,16 @@ const UserDashboard = () => {
     console.log('Updated preferences:', preferences);
   };
 
+  const handleSourceToggle = (source: string) => {
+    setSelectedSources(prev => 
+      prev.includes(source)
+        ? prev.filter(s => s !== source)
+        : [...prev, source]
+    );
+  };
+
   const clearFilters = () => {
-    setSelectedAgency('');
+    setSelectedSources([]);
     setSearchQuery('');
   };
 
@@ -282,7 +302,7 @@ const UserDashboard = () => {
                 <CardContent>
                   <div className="text-2xl font-bold">{alerts.length}</div>
                   <p className="text-xs text-muted-foreground">
-                    {searchQuery || selectedAgency ? `${displayAlerts.length} filtered` : 'All sources'}
+                    {searchQuery || selectedSources.length > 0 ? `${displayAlerts.length} filtered` : 'All sources'}
                   </p>
                 </CardContent>
               </Card>
@@ -316,45 +336,61 @@ const UserDashboard = () => {
                   </div>
                 </div>
                 
-                 <div className="flex items-center gap-2 flex-wrap">
-                   <label className="text-sm font-medium">Agency:</label>
-                   <Button
-                     variant={selectedAgency === '' ? "default" : "outline"}
-                     size="sm"
-                     onClick={() => setSelectedAgency('')}
-                     className="text-xs"
-                   >
-                     All ({alerts.length})
-                   </Button>
-                   {AVAILABLE_AGENCIES.map(agency => {
-                     const count = agencyCounts[agency] || 0;
-                     if (count === 0) return null;
-                     
-                     const displayName = getAgencyDisplayName(agency);
-                     
-                     return (
+                 <div className="flex flex-col gap-4">
+                   <div className="flex items-center justify-between">
+                     <label className="text-sm font-medium">Filter by Source:</label>
+                     {selectedSources.length > 0 && (
                        <Button
-                         key={agency}
-                         variant={selectedAgency === agency ? "default" : "outline"}
+                         variant="ghost"
                          size="sm"
-                         onClick={() => setSelectedAgency(agency)}
+                         onClick={clearFilters}
                          className="text-xs"
                        >
-                         {displayName} ({count})
+                         Clear All Filters
                        </Button>
-                     );
-                   })}
+                     )}
+                   </div>
                    
-                   {(searchQuery || selectedAgency) && (
-                     <Button
-                       variant="ghost"
-                       size="sm"
-                       onClick={clearFilters}
-                       className="text-xs"
-                     >
-                       Clear All
-                     </Button>
+                   {selectedSources.length > 0 && (
+                     <div className="flex flex-wrap gap-2">
+                       {selectedSources.map((source) => (
+                         <Badge key={source} variant="secondary" className="flex items-center gap-1">
+                           <span className="text-xs">{source}</span>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             className="h-auto p-0 w-4 h-4 hover:bg-transparent"
+                             onClick={() => handleSourceToggle(source)}
+                           >
+                             <X className="h-3 w-3" />
+                           </Button>
+                         </Badge>
+                       ))}
+                     </div>
                    )}
+                   
+                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+                     {REGULATORY_SOURCES.map((source) => {
+                       const count = sourceCounts[source] || 0;
+                       if (count === 0) return null;
+                       
+                       return (
+                         <div key={source} className="flex items-center space-x-2">
+                           <Checkbox
+                             id={`source-${source}`}
+                             checked={selectedSources.includes(source)}
+                             onCheckedChange={() => handleSourceToggle(source)}
+                           />
+                           <Label 
+                             htmlFor={`source-${source}`} 
+                             className="text-xs cursor-pointer flex-1"
+                           >
+                             {source} ({count})
+                           </Label>
+                         </div>
+                       );
+                     })}
+                   </div>
                  </div>
                 </div>
              </div>
@@ -363,7 +399,7 @@ const UserDashboard = () => {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">
-                  {searchQuery || selectedAgency ? 'Filtered Alerts' : 'Latest Regulatory Updates'}
+                  {searchQuery || selectedSources.length > 0 ? 'Filtered Alerts' : 'Latest Regulatory Updates'}
                 </h2>
                 <Badge variant="secondary" className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -389,7 +425,7 @@ const UserDashboard = () => {
                     <CardContent className="text-center py-8">
                       <p className="text-muted-foreground">
                         No alerts found matching your current filters.
-                        {(searchQuery || selectedAgency) && (
+                        {(searchQuery || selectedSources.length > 0) && (
                           <Button variant="outline" onClick={clearFilters} className="mt-4 block mx-auto">
                             Clear Filters
                           </Button>

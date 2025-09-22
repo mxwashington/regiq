@@ -5,11 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Settings, Database, User, Search, Eye, Bot, Shield, Link, Cpu, Wrench } from 'lucide-react';
-import { AlertsDashboard } from "./AlertsDashboard";
+import { AdminAlertManager } from "./AdminAlertManager";
+import { DataPipelineManager } from "./DataPipelineManager";
 import { SessionHealthMonitor } from "./SessionHealthMonitor";
 import AuthTestingPanel from "./AuthTestingPanel";
-import { DataPipelineManager } from "./DataPipelineManager";
-import { AdminAlertManager } from "./AdminAlertManager";
 import { PWASettings } from "./PWASettings";
 import { ThirdShiftChatbot } from "./ThirdShiftChatbot";
 import { AlertSourceFinder } from "./AlertSourceFinder";
@@ -83,7 +82,7 @@ export const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <AlertsDashboard />
+              <AdminAlertManager />
             </CardContent>
           </Card>
         </TabsContent>
