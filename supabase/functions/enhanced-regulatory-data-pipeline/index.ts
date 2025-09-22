@@ -165,7 +165,7 @@ function calculateUrgency(item: any, source: DataSource): string {
   let urgencyScore = 0;
   
   // Base urgency from source priority
-  urgencyScore += source.priority;
+  urgencyScore += source.priority || 5;
   
   // Check for urgent keywords in title and description
   const text = (item.title + ' ' + (item.description || '')).toLowerCase();
@@ -174,11 +174,30 @@ function calculateUrgency(item: any, source: DataSource): string {
   
   urgencyScore += foundUrgentKeywords.length * 2;
   
+  // GSA-specific keywords for enhanced urgency
+  if (source.agency === 'GSA') {
+    const gsaCriticalKeywords = ['far amendment', 'procurement regulation', 'contracting rule change', 'acquisition policy'];
+    const gsaHighKeywords = ['federal acquisition', 'procurement policy', 'contracting guidance', 'acquisition regulation'];
+    const gsaMediumKeywords = ['schedule update', 'gsa policy', 'administrative guidance'];
+    
+    gsaCriticalKeywords.forEach(keyword => {
+      if (text.includes(keyword)) urgencyScore += 6;
+    });
+    gsaHighKeywords.forEach(keyword => {
+      if (text.includes(keyword)) urgencyScore += 4;
+    });
+    gsaMediumKeywords.forEach(keyword => {
+      if (text.includes(keyword)) urgencyScore += 2;
+    });
+  }
+  
   // Check source-specific keywords
-  const foundSourceKeywords = source.keywords.filter(keyword => 
-    text.includes(keyword.toLowerCase())
-  );
-  urgencyScore += foundSourceKeywords.length;
+  if (source.keywords) {
+    const foundSourceKeywords = source.keywords.filter(keyword => 
+      text.includes(keyword.toLowerCase())
+    );
+    urgencyScore += foundSourceKeywords.length;
+  }
   
   // Recency boost
   const publishedDate = new Date(item.pubDate || Date.now());
@@ -273,6 +292,23 @@ function processRSSItem(item: any, source: DataSource): ProcessedAlert {
       actualAgency = 'FDA';
       // Keep using the original source name for consistency
       actualSource = source.name;
+    }
+  }
+  
+  // Handle GSA content - enhance urgency for key regulatory topics
+  if (source.agency === 'GSA') {
+    const title = item.title || '';
+    const description = item.description || '';
+    const content = (title + ' ' + description).toLowerCase();
+    
+    // Boost urgency for important regulatory or acquisition topics
+    if (content.includes('far') || // Federal Acquisition Regulation
+        content.includes('procurement') ||
+        content.includes('solicitation') ||
+        content.includes('regulation') ||
+        content.includes('policy change') ||
+        content.includes('contracting')) {
+      // This will be handled in calculateUrgency function
     }
   }
   
