@@ -3826,7 +3826,7 @@ export type Database = {
               sensitive_fields_param?: string[]
               table_name_param: string
             }
-        Returns: undefined
+        Returns: boolean
       }
       log_source_finder_result: {
         Args: {
