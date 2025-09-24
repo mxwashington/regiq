@@ -198,9 +198,24 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
     console.log('=== AUTH CONTEXT INITIALIZATION ===');
     let mounted = true;
     
+    // Force loading to false after timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        console.log('Auth timeout - forcing loading false');
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          isHealthy: true,
+          lastError: null
+        }));
+      }
+    }, 3000);
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       console.log('Auth state change:', { event, hasSession: !!session });
+      
+      clearTimeout(timeoutId); // Clear timeout since we got a response
       
       // Only synchronous state updates in the callback
       setState(prev => ({
@@ -226,27 +241,20 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (!mounted) return;
         
-        if (error) {
-          console.error('Error getting initial session:', error);
-          setState(prev => ({
-            ...prev,
-            loading: false,
-            isHealthy: false,
-            lastError: error.message
-          }));
-        } else {
-          setState(prev => ({
-            ...prev,
-            session,
-            user: session?.user ?? null,
-            loading: false,
-            isHealthy: true,
-            lastError: null
-          }));
-        }
+        clearTimeout(timeoutId); // Clear timeout since we got a response
+        
+        setState(prev => ({
+          ...prev,
+          session,
+          user: session?.user ?? null,
+          loading: false,
+          isHealthy: !error,
+          lastError: error?.message || null
+        }));
       } catch (err) {
         console.error('Auth initialization failed:', err);
         if (mounted) {
+          clearTimeout(timeoutId);
           setState(prev => ({
             ...prev,
             loading: false,
@@ -261,6 +269,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
