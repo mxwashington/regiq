@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface ScrapingResult {
   target_id: string;
@@ -114,7 +115,7 @@ export default function GovernmentWebScraper() {
       });
 
     } catch (err: any) {
-      console.error('Government scraping error:', err);
+      logger.error('Government scraping error:', err, 'GovernmentWebScraper');
       setError(err.message);
       toast({
         title: "Scraping Failed",

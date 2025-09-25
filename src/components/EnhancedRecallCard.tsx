@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 import { 
   ExternalLink, 
   ChevronDown, 
@@ -116,7 +117,7 @@ export const EnhancedRecallCard: React.FC<EnhancedRecallCardProps> = ({
       });
 
     } catch (error) {
-      console.error('Error enhancing recall:', error);
+      logger.error('Error enhancing recall:', error, 'EnhancedRecallCard');
       toast({
         title: "Enhancement Failed",
         description: "Could not enhance this recall. Please try again.",

@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { logger } from '@/lib/logger';
 import { 
   Filter, 
   Globe, 
@@ -79,7 +80,7 @@ export function EnhancedRegulatoryFilter({
       if (error) throw error;
       setDataSources(data || []);
     } catch (error) {
-      console.error('Error loading data sources:', error);
+      logger.error('Error loading data sources:', error, 'EnhancedRegulatoryFilter');
       toast({
         title: "Error",
         description: "Failed to load regulatory data sources.",

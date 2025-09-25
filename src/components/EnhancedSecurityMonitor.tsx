@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface SecurityPosture {
   security_score: number;
@@ -52,7 +53,7 @@ export const EnhancedSecurityMonitor: React.FC = () => {
       );
       
       if (postureError) {
-        console.error('Error fetching security posture:', postureError);
+        logger.error('Error fetching security posture:', postureError, 'EnhancedSecurityMonitor');
       } else {
         setSecurityPosture(postureData as unknown as SecurityPosture);
       }
@@ -64,7 +65,7 @@ export const EnhancedSecurityMonitor: React.FC = () => {
       
       if (dashboardError) {
         // If user is not admin, show basic security info
-        console.log('Enhanced dashboard not available:', dashboardError.message);
+        logger.info('Enhanced dashboard not available:', dashboardError.message, 'EnhancedSecurityMonitor');
       } else {
         setSecurityDashboard(dashboardData as unknown as SecurityDashboard);
       }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 interface SavedAlert {
   id: string;
@@ -16,7 +17,7 @@ export const useSavedAlerts = () => {
         setSavedAlerts(JSON.parse(saved));
       }
     } catch (error) {
-      console.warn('Failed to load saved alerts:', error);
+      logger.warn('Failed to load saved alerts:', error, 'useSavedAlerts');
     }
   }, []);
 
@@ -25,7 +26,7 @@ export const useSavedAlerts = () => {
     try {
       localStorage.setItem('regiq_saved_alerts', JSON.stringify(savedAlerts));
     } catch (error) {
-      console.warn('Failed to save alerts to localStorage:', error);
+      logger.warn('Failed to save alerts to localStorage:', error, 'useSavedAlerts');
     }
   }, [savedAlerts]);
 

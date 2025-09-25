@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 import { 
   Clock2 as Timeline,
   GitMerge,
@@ -68,7 +69,7 @@ export function IntegrationEnhancements({ searchQuery = "listeria" }: Integratio
       });
 
     } catch (error) {
-      console.error('Error fetching integrated data:', error);
+      logger.error('Error fetching integrated data:', error, 'IntegrationEnhancements');
       toast({
         title: "Integration Error",
         description: "Unable to fetch integrated regulatory data.",

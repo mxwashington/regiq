@@ -2,6 +2,7 @@ import React, { Component, ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Props {
   children: ReactNode;
@@ -34,7 +35,7 @@ export class IPServiceErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.error('IP Service Error Boundary caught an error:', error, errorInfo);
+    logger.error('IP Service Error Boundary caught an error:', error, 'IPServiceErrorBoundary');
     
     this.setState({
       error,

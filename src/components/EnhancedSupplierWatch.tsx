@@ -9,6 +9,7 @@ import { AlertTriangle, TrendingUp, Eye, Plus, X, Clock, Building, RefreshCw } f
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 interface Supplier {
   id: string;
@@ -79,7 +80,7 @@ export const EnhancedSupplierWatch: React.FC = () => {
         .not('id', 'in', `(${processedSuppliers.map(s => s.id).join(',') || 'null'})`);
 
       if (noAlertError && noAlertError.code !== 'PGRST116') {
-        console.warn('Error fetching suppliers without alerts:', noAlertError);
+        logger.warn('Error fetching suppliers without alerts:', noAlertError, 'EnhancedSupplierWatch');
       }
 
       const allSuppliers = [
@@ -93,7 +94,7 @@ export const EnhancedSupplierWatch: React.FC = () => {
 
       setSuppliers(allSuppliers);
     } catch (error: any) {
-      console.error('Error fetching suppliers:', error);
+      logger.error('Error fetching suppliers:', error, 'EnhancedSupplierWatch');
       toast.error('Failed to load suppliers');
     } finally {
       setLoading(false);
@@ -127,7 +128,7 @@ export const EnhancedSupplierWatch: React.FC = () => {
       setIsAddDialogOpen(false);
       toast.success('Supplier added successfully');
     } catch (error: any) {
-      console.error('Error adding supplier:', error);
+      logger.error('Error adding supplier:', error, 'EnhancedSupplierWatch');
       toast.error('Failed to add supplier');
     }
   };
@@ -144,7 +145,7 @@ export const EnhancedSupplierWatch: React.FC = () => {
       setSuppliers(prev => prev.filter(s => s.id !== supplierId));
       toast.success(`Removed ${supplierName} from watch list`);
     } catch (error: any) {
-      console.error('Error removing supplier:', error);
+      logger.error('Error removing supplier:', error, 'EnhancedSupplierWatch');
       toast.error('Failed to remove supplier');
     }
   };
@@ -161,7 +162,7 @@ export const EnhancedSupplierWatch: React.FC = () => {
       toast.success(`Processed ${data.alertsProcessed} alerts, found ${data.suppliersFound} new suppliers`);
       await fetchSuppliers(); // Refresh the list
     } catch (error: any) {
-      console.error('Error processing supplier alerts:', error);
+      logger.error('Error processing supplier alerts:', error, 'EnhancedSupplierWatch');
       toast.error('Failed to process supplier alerts');
     } finally {
       setProcessing(false);

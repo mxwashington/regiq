@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { logger } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Download, 
@@ -170,7 +171,7 @@ export function FDAProfessionalTools() {
       });
 
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error, 'FDAProfessionalTools');
       toast({
         title: "Export Failed",
         description: "Failed to export FDA data",

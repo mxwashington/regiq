@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface SecurityEvent {
   id: string;
@@ -60,7 +61,7 @@ export const EnhancedSecurityProvider: React.FC<EnhancedSecurityProviderProps> =
         threat_level_param: threatLevel
       });
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      logger.error('Failed to log security event:', error, 'EnhancedSecurityProvider');
     }
   }, []);
 
@@ -84,7 +85,7 @@ export const EnhancedSecurityProvider: React.FC<EnhancedSecurityProviderProps> =
         failedAttempts: result.failed_attempts || 0
       };
     } catch (error) {
-      console.error('Failed to check account lockout:', error);
+      logger.error('Failed to check account lockout:', error, 'EnhancedSecurityProvider');
       return { isLocked: false, retryAfter: 0, failedAttempts: 0 };
     }
   }, []);
@@ -112,7 +113,7 @@ export const EnhancedSecurityProvider: React.FC<EnhancedSecurityProviderProps> =
       }
       return false;
     } catch (error) {
-      console.error('Failed to extend session:', error);
+      logger.error('Failed to extend session:', error, 'EnhancedSecurityProvider');
       toast({
         title: "Session Extension Failed",
         description: "Unable to extend your session at this time",
@@ -131,7 +132,7 @@ export const EnhancedSecurityProvider: React.FC<EnhancedSecurityProviderProps> =
       setSecurityScore(result.security_score || 100);
       return data;
     } catch (error) {
-      console.error('Failed to get security posture:', error);
+      logger.error('Failed to get security posture:', error, 'EnhancedSecurityProvider');
       return null;
     }
   }, []);

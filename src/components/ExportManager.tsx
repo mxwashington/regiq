@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Badge } from '@/components/ui/badge';
 import { Download, Calendar as CalendarIcon, FileText, Database, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -357,7 +358,7 @@ export function ExportManager({ isOpen = true, onClose }: ExportManagerProps) {
       });
 
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error, 'ExportManager');
       toast({
         title: "Export failed",
         description: "There was an error exporting your data. Please try again.",

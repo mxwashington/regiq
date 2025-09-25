@@ -9,6 +9,7 @@ import { useComplianceAnalytics } from '@/hooks/useComplianceAnalytics';
 import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 import { useTaskManagement } from '@/hooks/useTaskManagement';
 import { useComplianceCalendar } from '@/hooks/useComplianceCalendar';
+import { logger } from '@/lib/logger';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -318,7 +319,7 @@ export const EnhancedAnalyticsDashboard: React.FC = () => {
       setCostData(cost);
       setTrendsData(trends);
     } catch (error) {
-      console.error('Error generating analytics:', error);
+      logger.error('Error generating analytics:', error, 'EnhancedAnalyticsDashboard');
     } finally {
       setLoading(false);
     }

@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { EnhancedRegulatoryFilter } from './EnhancedRegulatoryFilter';
 import TaggedAlertCard from './TaggedAlertCard';
 import PerplexityAlertCard from './PerplexityAlertCard';
+import { logger } from '@/lib/logger';
 
 interface Alert {
   id: string;
@@ -90,7 +91,7 @@ export function EnhancedAlertsDashboard() {
         setAlerts(taggedAlerts);
       }
     } catch (error) {
-      console.error('Error loading alerts:', error);
+      logger.error('Error loading alerts:', error, 'EnhancedAlertsDashboard');
       toast({
         title: "Error",
         description: "Failed to load regulatory alerts.",
@@ -264,7 +265,7 @@ export function EnhancedAlertsDashboard() {
       
       await loadAlerts(); // Reload alerts
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      logger.error('Error refreshing data:', error, 'EnhancedAlertsDashboard');
       toast({
         title: "Error",
         description: "Failed to refresh regulatory data.",

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, RefreshCw, Bug, Clock, Zap } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Props {
   children: ReactNode;
@@ -63,7 +64,7 @@ export class ErrorBoundaryEnhanced extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const { onError, level = 'component' } = this.props;
     
-    console.error(`[ErrorBoundaryEnhanced:${level}] Error caught:`, error, errorInfo);
+    logger.error(`[ErrorBoundaryEnhanced:${level}] Error caught:`, error, 'ErrorBoundaryEnhanced');
     
     this.setState({
       error,
@@ -114,7 +115,7 @@ export class ErrorBoundaryEnhanced extends Component<Props, State> {
         entryTypes: ['measure', 'navigation', 'resource'] 
       });
     } catch (error) {
-      console.warn('[ErrorBoundaryEnhanced] Performance monitoring setup failed:', error);
+      logger.warn('[ErrorBoundaryEnhanced] Performance monitoring setup failed:', error, 'ErrorBoundaryEnhanced');
     }
   }
 
@@ -164,11 +165,11 @@ export class ErrorBoundaryEnhanced extends Component<Props, State> {
 
     // Example: Send to your monitoring service
     // errorTrackingService.captureException(errorData);
-    console.log('[ErrorBoundaryEnhanced] Error data for service:', errorData);
+    logger.info('[ErrorBoundaryEnhanced] Error data for service:', errorData, 'ErrorBoundaryEnhanced');
   }
 
   private handleRetry = () => {
-    console.log(`[ErrorBoundaryEnhanced] Retrying... (attempt ${this.state.retryCount + 1})`);
+    logger.info(`[ErrorBoundaryEnhanced] Retrying... (attempt ${this.state.retryCount + 1})`, undefined, 'ErrorBoundaryEnhanced');
     
     this.setState(prevState => ({
       hasError: false,
