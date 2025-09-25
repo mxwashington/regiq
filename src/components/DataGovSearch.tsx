@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface DataGovResult {
   title: string;
@@ -114,7 +115,7 @@ export default function DataGovSearch() {
       });
 
     } catch (err: any) {
-      console.error('Data.gov search error:', err);
+      logger.error('Data.gov search error', err, 'DataGovSearch');
       setError(err.message);
       toast({
         title: "Search Failed",

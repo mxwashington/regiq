@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { RefreshCw, Play, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export const DataScraperTrigger = () => {
   const [isRunning, setIsRunning] = useState(false);
@@ -31,7 +32,7 @@ export const DataScraperTrigger = () => {
         throw new Error(`Web scraping failed: ${scrapingError.message}`);
       }
 
-      console.log('Web scraping completed:', scrapingData);
+      logger.debug('Web scraping completed', scrapingData, 'DataScraperTrigger');
       
       // Step 2: Wait for cache to populate
       setProgress('Waiting for data to be cached...');
@@ -50,7 +51,7 @@ export const DataScraperTrigger = () => {
         throw new Error(`Source finding failed: ${sourceError.message}`);
       }
 
-      console.log('Source finding completed:', sourceData);
+      logger.debug('Source finding completed', sourceData, 'DataScraperTrigger');
       
       setResults({
         scraping: scrapingData,
@@ -65,7 +66,7 @@ export const DataScraperTrigger = () => {
       setProgress('✅ Complete! Data has been updated.');
       
     } catch (error: any) {
-      console.error('Error running data collection:', error);
+      logger.error('Error running data collection', error, 'DataScraperTrigger');
       toast({
         title: 'Error',
         description: error.message || 'Failed to collect data',

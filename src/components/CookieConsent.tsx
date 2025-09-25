@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Cookie, Settings, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface CookiePreferences {
   essential: boolean;
@@ -58,7 +59,7 @@ export function CookieConsent() {
           return;
         }
       } catch (error) {
-        console.error('Error checking cookie consent:', error);
+        logger.error('Error checking cookie consent', error, 'CookieConsent');
       }
     }
 
@@ -103,7 +104,7 @@ export function CookieConsent() {
 
       const { error } = await supabase.from('cookie_consents').insert(consent);
     } catch (error) {
-      console.error('Error saving cookie consent:', error);
+      logger.error('Error saving cookie consent', error, 'CookieConsent');
     }
 
     setShowBanner(false);

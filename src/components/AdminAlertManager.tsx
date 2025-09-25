@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { logger } from '@/lib/logger';
 
 export const AdminAlertManager = () => {
   const [isClearing, setIsClearing] = useState(false);
@@ -34,7 +35,7 @@ export const AdminAlertManager = () => {
       const { error, count } = await query;
 
       if (error) {
-        console.error('Error clearing alerts:', error);
+        logger.error('Error clearing alerts', error, 'AdminAlertManager');
         toast({
           title: "Error",
           description: "Failed to clear alerts. Please try again.",
@@ -47,7 +48,7 @@ export const AdminAlertManager = () => {
         });
       }
     } catch (error) {
-      console.error('Error clearing alerts:', error);
+      logger.error('Error clearing alerts', error, 'AdminAlertManager');
       toast({
         title: "Error",
         description: "Failed to clear alerts. Please try again.",
@@ -77,7 +78,7 @@ export const AdminAlertManager = () => {
         description: "Data collection triggered for all sources. New alerts should appear within 1-2 minutes.",
       });
     } catch (error) {
-      console.error('Error triggering data collection:', error);
+      logger.error('Error triggering data collection', error, 'AdminAlertManager');
       toast({
         title: "Error",
         description: "Failed to trigger data collection. Please try again.",

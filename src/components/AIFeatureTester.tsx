@@ -10,6 +10,7 @@ import { useAIAlertProcessor } from '@/hooks/useAIAlertProcessor';
 import { useAIComplianceAssistant } from '@/hooks/useAIComplianceAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 const AIFeatureTester: React.FC = () => {
   const [testAlertId, setTestAlertId] = useState('');
@@ -36,7 +37,7 @@ const AIFeatureTester: React.FC = () => {
     
     if (response) {
       toast.success('AI response generated successfully!');
-      console.log('AI Response:', response);
+      logger.debug('AI Response', response, 'AIFeatureTester');
     }
   };
 
@@ -66,7 +67,7 @@ const AIFeatureTester: React.FC = () => {
       if (error) throw error;
 
       toast.success(`Digest test: ${data.recipients} recipients, sample generated`);
-      console.log('Sample HTML:', data.sampleHtml);
+      logger.debug('Sample HTML', data.sampleHtml, 'AIFeatureTester');
     } catch (error: any) {
       toast.error(`Digest test failed: ${error.message}`);
     }

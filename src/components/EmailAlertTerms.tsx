@@ -9,6 +9,7 @@ import { Trash2, Plus, Mail, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface AlertRule {
   id: string;
@@ -42,7 +43,7 @@ export const EmailAlertTerms: React.FC = () => {
       if (error) throw error;
       setAlertRules(data as AlertRule[] || []);
     } catch (error) {
-      console.error('Error loading alert rules:', error);
+      logger.error('Error loading alert rules', error, 'EmailAlertTerms');
       toast.error('Failed to load alert rules');
     } finally {
       setLoading(false);
@@ -72,7 +73,7 @@ export const EmailAlertTerms: React.FC = () => {
       setIsDialogOpen(false);
       toast.success('Alert rule created successfully');
     } catch (error) {
-      console.error('Error creating alert rule:', error);
+      logger.error('Error creating alert rule', error, 'EmailAlertTerms');
       toast.error('Failed to create alert rule');
     }
   };
@@ -89,7 +90,7 @@ export const EmailAlertTerms: React.FC = () => {
       setAlertRules(prev => prev.filter(rule => rule.id !== id));
       toast.success('Alert rule deleted');
     } catch (error) {
-      console.error('Error deleting alert rule:', error);
+      logger.error('Error deleting alert rule', error, 'EmailAlertTerms');
       toast.error('Failed to delete alert rule');
     }
   };
@@ -108,7 +109,7 @@ export const EmailAlertTerms: React.FC = () => {
       ));
       toast.success(isActive ? 'Alert rule activated' : 'Alert rule deactivated');
     } catch (error) {
-      console.error('Error updating alert rule:', error);
+      logger.error('Error updating alert rule', error, 'EmailAlertTerms');
       toast.error('Failed to update alert rule');
     }
   };

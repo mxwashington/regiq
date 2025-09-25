@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { searchForAlert, generateSearchQueries, extractKeywords } from '@/lib/alert-search';
 import { formatDistanceToNow } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 interface AlertSourceSearchDemoProps {
   alert: {
@@ -87,7 +88,7 @@ export const AlertSourceSearchDemo = ({ alert }: AlertSourceSearchDemoProps) => 
       const generatedQueries = await generateSearchQueries(alert.title, alert.source);
       setQueries(generatedQueries);
     } catch (error) {
-      console.error('Failed to generate queries:', error);
+      logger.error('Failed to generate queries', error, 'AlertSourceSearchDemo');
       // Fallback to basic queries
       const config = { domain: 'gov', additionalTerms: ['alert'] };
       setQueries({

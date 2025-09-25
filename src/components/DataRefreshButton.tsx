@@ -4,6 +4,7 @@ import { RefreshCw, CheckCircle, AlertCircle, Search, Database } from 'lucide-re
 import { triggerDataRefresh } from '@/lib/data-refresh';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export function DataRefreshButton({ showFindSources = true }: { showFindSources?: boolean }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -22,7 +23,7 @@ export function DataRefreshButton({ showFindSources = true }: { showFindSources?
         .neq('id', ''); // Delete all cache entries
 
       if (cacheError) {
-        console.error('Cache clear error:', cacheError);
+        logger.error('Cache clear error', cacheError, 'DataRefreshButton');
       }
 
       // Clear localStorage cache
@@ -47,7 +48,7 @@ export function DataRefreshButton({ showFindSources = true }: { showFindSources?
           window.location.reload();
         }, 1000);
       } else {
-        console.error('Data refresh failed:', result);
+        logger.error('Data refresh failed', result, 'DataRefreshButton');
         toast({
           title: "Refresh Failed", 
           description: result?.error || "Failed to refresh data from sources",
@@ -56,7 +57,7 @@ export function DataRefreshButton({ showFindSources = true }: { showFindSources?
       }
 
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      logger.error('Error refreshing data', error, 'DataRefreshButton');
       toast({
         title: "Refresh Error",
         description: "Unable to connect to data pipeline",
@@ -92,7 +93,7 @@ export function DataRefreshButton({ showFindSources = true }: { showFindSources?
       }, 2000);
 
     } catch (error) {
-      console.error('Source enhancement error:', error);
+      logger.error('Source enhancement error', error, 'DataRefreshButton');
       toast({
         title: "Enhancement Error",
         description: "Failed to enhance sources. Please try again.",
@@ -129,7 +130,7 @@ export function DataRefreshButton({ showFindSources = true }: { showFindSources?
       }, 500);
 
     } catch (error) {
-      console.error('Cache clear error:', error);
+      logger.error('Cache clear error', error, 'DataRefreshButton');
       toast({
         title: "Error",
         description: "Failed to clear cache",

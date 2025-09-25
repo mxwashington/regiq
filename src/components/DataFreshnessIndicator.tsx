@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, CheckCircle, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface DataFreshness {
   id: string;
@@ -36,7 +37,7 @@ export function DataFreshnessIndicator() {
       if (error) throw error;
       setFreshness(data || []);
     } catch (error) {
-      console.error('Error fetching data freshness:', error);
+      logger.error('Error fetching data freshness', error, 'DataFreshnessIndicator');
     } finally {
       setLoading(false);
     }
@@ -59,7 +60,7 @@ export function DataFreshnessIndicator() {
       // Refresh freshness data after a short delay
       setTimeout(fetchFreshness, 2000);
     } catch (error) {
-      console.error('Error triggering data collection:', error);
+      logger.error('Error triggering data collection', error, 'DataFreshnessIndicator');
       toast({
         title: 'Error',
         description: 'Failed to trigger data collection',

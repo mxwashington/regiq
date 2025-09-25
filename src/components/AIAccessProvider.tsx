@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { getAIFriendlyMetaTags, isAIOrBot } from '@/lib/ai-access-helper';
+import { logger } from '@/lib/logger';
 
 interface AIAccessProviderProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export const AIAccessProvider: React.FC<AIAccessProviderProps> = ({ children }) 
     document.documentElement.setAttribute('data-react-loaded', 'true');
     
     if (isBot) {
-      console.log('AI/Bot detected - optimizing for accessibility');
+      logger.info('AI/Bot detected - optimizing for accessibility', undefined, 'AIAccessProvider');
       
       // Add structured data for better AI understanding
       const structuredData = {

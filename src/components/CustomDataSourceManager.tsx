@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Plus, Settings, Play, Trash2, RefreshCw, Database, Rss, Mail, Webhook, Globe } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface DataSource {
   id: string;
@@ -70,7 +71,7 @@ export const CustomDataSourceManager: React.FC = () => {
       if (error) throw error;
       setDataSources(data.data_sources || []);
     } catch (error) {
-      console.error('Error loading data sources:', error);
+      logger.error('Error loading data sources', error, 'CustomDataSourceManager');
       toast.error('Failed to load data sources');
     } finally {
       setLoading(false);
@@ -88,7 +89,7 @@ export const CustomDataSourceManager: React.FC = () => {
       if (error) throw error;
       setIngestionLogs(data || []);
     } catch (error) {
-      console.error('Error loading ingestion logs:', error);
+      logger.error('Error loading ingestion logs', error, 'CustomDataSourceManager');
     }
   };
 
@@ -120,7 +121,7 @@ export const CustomDataSourceManager: React.FC = () => {
       });
       loadDataSources();
     } catch (error) {
-      console.error('Error creating data source:', error);
+      logger.error('Error creating data source', error, 'CustomDataSourceManager');
       toast.error('Failed to create data source');
     } finally {
       setCreating(false);
@@ -143,7 +144,7 @@ export const CustomDataSourceManager: React.FC = () => {
       loadDataSources();
       loadIngestionLogs();
     } catch (error) {
-      console.error('Error syncing data source:', error);
+      logger.error('Error syncing data source', error, 'CustomDataSourceManager');
       toast.error('Failed to sync data source');
     } finally {
       setSyncing(null);
@@ -166,7 +167,7 @@ export const CustomDataSourceManager: React.FC = () => {
       toast.success('Data source deleted successfully');
       loadDataSources();
     } catch (error) {
-      console.error('Error deleting data source:', error);
+      logger.error('Error deleting data source', error, 'CustomDataSourceManager');
       toast.error('Failed to delete data source');
     }
   };
@@ -188,7 +189,7 @@ export const CustomDataSourceManager: React.FC = () => {
         toast.error(`Connection test failed: ${data.error}`);
       }
     } catch (error) {
-      console.error('Error testing data source:', error);
+      logger.error('Error testing data source', error, 'CustomDataSourceManager');
       toast.error('Connection test failed');
     }
   };

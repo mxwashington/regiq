@@ -25,6 +25,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { logger } from '@/lib/logger';
 
 interface RegulatoryAlert {
   id: string;
@@ -102,7 +103,7 @@ export function DemoInteractiveDashboard() {
         
         setDemoAlerts(convertedAlerts);
       } catch (error) {
-        console.error('Error fetching alerts:', error);
+        logger.error('Error fetching alerts', error, 'DemoInteractiveDashboard');
         setDemoAlerts([]);
       } finally {
         setLoading(false);

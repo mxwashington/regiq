@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, AlertCircle, Database } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
+import { logger } from '@/lib/logger';
 
 export function AlertsCleanStatus() {
   const [alertCount, setAlertCount] = useState<number>(0);
@@ -18,7 +19,7 @@ export function AlertsCleanStatus() {
         if (error) throw error;
         setAlertCount(count || 0);
       } catch (error) {
-        console.error('Error checking alert count:', error);
+        logger.error('Error checking alert count', error, 'AlertsCleanStatus');
       } finally {
         setLoading(false);
       }

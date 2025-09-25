@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Search, ExternalLink, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface SourceFinderResult {
   processed: number;
@@ -26,7 +27,7 @@ export const AlertSourceFinder = () => {
     setLastResult(null);
 
     try {
-      console.log('Invoking alert-source-finder function...');
+      logger.debug('Invoking alert-source-finder function', undefined, 'AlertSourceFinder');
       const { data, error } = await supabase.functions.invoke('alert-source-finder');
 
       if (error) {
@@ -42,7 +43,7 @@ export const AlertSourceFinder = () => {
       });
 
     } catch (error) {
-      console.error('Error finding sources:', error);
+      logger.error('Error finding sources', error, 'AlertSourceFinder');
       toast({
         title: "Error",
         description: "Failed to find alert sources. Please try again.",
