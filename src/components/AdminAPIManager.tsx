@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import { 
   Key, 
   Database, 
@@ -72,7 +73,7 @@ export const AdminAPIManager: React.FC = () => {
       if (error) throw error;
       setApiKeys(data || []);
     } catch (error) {
-      console.error('Error fetching API keys:', error);
+      logger.error('Error fetching API keys', error, 'AdminAPIManager');
       toast.error('Failed to fetch API keys');
     }
   };
@@ -144,7 +145,7 @@ export const AdminAPIManager: React.FC = () => {
       setNewKeyName('');
       fetchAPIKeys();
     } catch (error) {
-      console.error('Error creating API key:', error);
+      logger.error('Error creating API key', error, 'AdminAPIManager');
       toast.error('Failed to create API key');
     }
   };
@@ -160,7 +161,7 @@ export const AdminAPIManager: React.FC = () => {
       toast.success('API key revoked successfully');
       fetchAPIKeys();
     } catch (error) {
-      console.error('Error revoking API key:', error);
+      logger.error('Error revoking API key', error, 'AdminAPIManager');
       toast.error('Failed to revoke API key');
     }
   };
@@ -183,7 +184,7 @@ export const AdminAPIManager: React.FC = () => {
       toast.success('Data source sync initiated');
       fetchDataSources();
     } catch (error) {
-      console.error('Error syncing data source:', error);
+      logger.error('Error syncing data source', error, 'AdminAPIManager');
       toast.error('Failed to sync data source');
     }
   };

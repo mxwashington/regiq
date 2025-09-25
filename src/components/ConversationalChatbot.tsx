@@ -8,6 +8,7 @@ import { Loader2, MessageCircle, Send, X, Bot, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 
 interface ChatMessage {
@@ -61,7 +62,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
     setIsLoading(true);
 
     try {
-      console.log('ConversationalChatbot: Starting search with query:', userMessage.content);
+      logger.debug('ConversationalChatbot: Starting search with query', { query: userMessage.content }, 'ConversationalChatbot');
       
       // Call Perplexity search function for better regulatory intelligence
       const { data, error } = await supabase.functions.invoke('perplexity-search', {
@@ -74,10 +75,10 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
         }
       });
 
-      console.log('ConversationalChatbot: API response:', { data, error });
+      logger.debug('ConversationalChatbot: API response', { data, error }, 'ConversationalChatbot');
 
       if (error) {
-        console.error('ConversationalChatbot: Supabase function error:', error);
+        logger.error('ConversationalChatbot: Supabase function error', error, 'ConversationalChatbot');
         throw error;
       }
 
@@ -124,7 +125,7 @@ export function ConversationalChatbot({ isOpen, onToggle }: ConversationalChatbo
       }
 
     } catch (error) {
-      console.error('Chat error:', error);
+      logger.error('Chat error', error, 'ConversationalChatbot');
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',

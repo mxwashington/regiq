@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useCallback, useEffect } from 'react';
 import { useSecurityValidation } from '@/hooks/useSecurityValidation';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface SecurityContextValue {
   sanitizeInput: (input: string) => string;
@@ -41,7 +42,7 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({ children }) 
         }
       });
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      logger.error('Failed to log security event', error, 'SecurityProvider');
     }
   }, []);
 

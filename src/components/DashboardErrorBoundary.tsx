@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '@/lib/logger';
 
 interface Props {
   children: ReactNode;
@@ -33,13 +34,13 @@ class DashboardErrorBoundaryCore extends Component<Props & { navigate: (path: st
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Dashboard Error Boundary caught an error:', {
+    logger.error('Dashboard Error Boundary caught an error', {
       error: error.message,
       stack: error.stack,
       errorInfo,
       retryCount: this.state.retryCount,
       timestamp: new Date().toISOString()
-    });
+    }, 'DashboardErrorBoundary');
 
     this.setState({
       error,
@@ -54,12 +55,12 @@ class DashboardErrorBoundaryCore extends Component<Props & { navigate: (path: st
 
   private handleRetry = () => {
     if (this.state.retryCount >= 3) {
-      console.warn('Maximum retry attempts reached, redirecting to landing');
+      logger.warn('Maximum retry attempts reached, redirecting to landing', { retryCount: this.state.retryCount }, 'DashboardErrorBoundary');
       this.props.navigate('/');
       return;
     }
 
-    console.log(`Retrying dashboard load (attempt ${this.state.retryCount + 1})`);
+    logger.info(`Retrying dashboard load (attempt ${this.state.retryCount + 1})`, { retryCount: this.state.retryCount }, 'DashboardErrorBoundary');
     
     this.setState(prevState => ({ 
       hasError: false, 
@@ -70,12 +71,12 @@ class DashboardErrorBoundaryCore extends Component<Props & { navigate: (path: st
   };
 
   private handleGoHome = () => {
-    console.log('Navigating to home from dashboard error');
+    logger.info('Navigating to home from dashboard error', undefined, 'DashboardErrorBoundary');
     this.props.navigate('/');
   };
 
   private handleReload = () => {
-    console.log('Reloading page from dashboard error');
+    logger.info('Reloading page from dashboard error', undefined, 'DashboardErrorBoundary');
     window.location.reload();
   };
 

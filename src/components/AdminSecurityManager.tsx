@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Shield, UserCheck, AlertTriangle, Key } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface AdminUser {
   user_id: string;
@@ -46,7 +47,7 @@ export const AdminSecurityManager: React.FC = () => {
       if (error) throw error;
       setAdminUsers(data || []);
     } catch (error) {
-      console.error('Failed to fetch admin users:', error);
+      logger.error('Failed to fetch admin users', error, 'AdminSecurityManager');
       toast({
         title: "Error",
         description: "Failed to load admin users",
