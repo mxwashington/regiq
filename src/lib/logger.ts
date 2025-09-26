@@ -1,4 +1,3 @@
-import { logger } from '@/lib/logger';
 
 /**
  * Centralized logging utility
@@ -97,16 +96,16 @@ class Logger {
     
     switch (level) {
       case 'debug':
-        logger.debug(prefix, message, data ? entry.data : '');
+        console.debug(prefix, message, data ? entry.data : '');
         break;
       case 'info':
-        logger.info(prefix, message, data ? entry.data : '');
+        console.info(prefix, message, data ? entry.data : '');
         break;
       case 'warn':
-        logger.warn(prefix, message, data ? entry.data : '');
+        console.warn(prefix, message, data ? entry.data : '');
         break;
       case 'error':
-        logger.error(prefix, message, data ? entry.data : '');
+        console.error(prefix, message, data ? entry.data : '');
         break;
     }
   }
