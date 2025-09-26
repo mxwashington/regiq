@@ -4,9 +4,33 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Clock, AlertTriangle, X, Share2, Search, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+// import { useIsMobile } from '@/hooks/use-mobile';
 import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 
 import { logger } from '@/lib/logger';
+
+// Simple inline mobile hook to fix runtime error
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isMobile;
+}
+
 interface SimpleAlert {
   id: string;
   title: string;

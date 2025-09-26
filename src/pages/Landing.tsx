@@ -10,18 +10,11 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { logger } from '@/lib/logger';
-// Removed alert-related imports
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
-import { SEOHead } from '@/components/SEO/SEOHead';
-import { SchemaMarkup } from '@/components/SEO/SchemaMarkup';
-
-// Removed alert component imports
 import { cn } from "@/lib/utils";
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Hero } from "@/components/marketing/Hero";
-
 import { NewPricingSection } from "@/components/marketing/NewPricingSection";
 import { ROICalculator } from "@/components/marketing/ROICalculator";
 import { SocialProof } from "@/components/marketing/SocialProof";
@@ -34,7 +27,6 @@ const Landing = () => {
   const { trackInteraction } = useAnalytics();
   const [email, setEmail] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const { isMobile, isTablet } = useMobileOptimization();
   
   const getDashboardUrl = () => {
     return isAdmin ? "/admin/dashboard" : "/dashboard";
@@ -167,93 +159,73 @@ const Landing = () => {
 
       
 
-      {/* NEW FEATURES ANNOUNCEMENT - MOVED UP FOR PROMINENCE */}
-      <section id="new-features" className="py-12 md:py-16 px-4 bg-gradient-to-br from-primary/20 via-secondary/10 to-primary/10 border-y-2 border-primary/20">
+      {/* Core Features Section */}
+      <section id="core-features" className="py-12 md:py-16 px-4 bg-gradient-to-br from-primary/20 via-secondary/10 to-primary/10 border-y-2 border-primary/20">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-8">
-            <Badge variant="default" className="mb-4 text-base px-4 py-2">🚀 NEW: Complete Compliance Suite</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">6 Powerful New Features Just Launched</h2>
-            <p className="text-muted-foreground text-lg md:text-xl">Task Management • Compliance Calendar • AI Assistant • Enhanced Analytics • Supplier Risk Monitoring • Regulatory Impact Analysis</p>
+            <Badge variant="default" className="mb-4 text-base px-4 py-2">✅ Core Features</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Essential Regulatory Intelligence</h2>
+            <p className="text-muted-foreground text-lg md:text-xl">Real-time alerts • AI-enhanced search • Source verification • Conversational AI assistant</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="border-primary/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-primary" />
                   <Badge variant="secondary" className="text-xs">ALL PLANS</Badge>
                 </div>
-                <CardTitle className="text-lg">Task Management System</CardTitle>
+                <CardTitle className="text-lg">Real-time Regulatory Alerts</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Create, assign, and track compliance tasks with deadlines and priority levels.</p>
+                <p className="text-sm text-muted-foreground">Live monitoring of FDA, USDA, EPA, and CDC for instant regulatory updates.</p>
               </CardContent>
             </Card>
-            
+
             <Card className="border-primary/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-primary" />
+                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                </div>
+                <CardTitle className="text-lg">AI-Enhanced Search</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Perplexity-powered search with intelligent source enrichment and plain English summaries.</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
                   <Badge variant="secondary" className="text-xs">ALL PLANS</Badge>
                 </div>
-                <CardTitle className="text-lg">Compliance Calendar</CardTitle>
+                <CardTitle className="text-lg">Source Verification</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Never miss a deadline with automated reminders and recurring compliance tasks.</p>
+                <p className="text-sm text-muted-foreground">Direct government data feeds with verified citations and cross-agency clarity.</p>
               </CardContent>
             </Card>
-            
+
             <Card className="border-primary/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-primary" />
                   <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
                 </div>
-                <CardTitle className="text-lg">AI Compliance Assistant</CardTitle>
+                <CardTitle className="text-lg">Conversational AI Assistant</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Get instant answers to complex regulatory questions with AI-powered intelligence.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-primary/20">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
-                </div>
-                <CardTitle className="text-lg">Enhanced Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Compliance maturity scoring, cost analysis, and industry benchmarking.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-primary/20">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
-                </div>
-                <CardTitle className="text-lg">Supplier Risk Monitoring</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Automated risk scoring for your suppliers based on regulatory alerts.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-primary/20">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
-                </div>
-                <CardTitle className="text-lg">Regulatory Impact Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">AI-powered business impact scoring with actionable recommendations.</p>
+                <p className="text-sm text-muted-foreground">Interactive AI assistant for complex regulatory questions and compliance guidance.</p>
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="text-center mt-8">
             <Button size="lg" className="mb-2" asChild>
               <Link to="/pricing">
-                Start 7-Day Free Trial - All Features Included
+                Start 7-Day Free Trial
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
@@ -310,95 +282,87 @@ const Landing = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Link to="/industries/dairy-manufacturing" className="group hover:no-underline">
-              <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
-                <CardHeader className="text-center">
-                  <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                    🥛
-                  </div>
-                  <CardTitle className="text-lg">Dairy Manufacturing</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Grade A PMO compliance, pasteurization standards, and 21 CFR 131 dairy regulations.
-                  </p>
-                  <ul className="text-xs space-y-1">
-                    <li>✓ Grade A PMO monitoring</li>
-                    <li>✓ Pasteurization alerts</li>
-                    <li>✓ Dairy standards tracking</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </Link>
+            <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  🥛
+                </div>
+                <CardTitle className="text-lg">Dairy Manufacturing</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Grade A PMO compliance, pasteurization standards, and 21 CFR 131 dairy regulations.
+                </p>
+                <ul className="text-xs space-y-1">
+                  <li>✓ Grade A PMO monitoring</li>
+                  <li>✓ Pasteurization alerts</li>
+                  <li>✓ Dairy standards tracking</li>
+                </ul>
+              </CardContent>
+            </Card>
 
-            <Link to="/industries/meat-poultry" className="group hover:no-underline">
-              <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
-                <CardHeader className="text-center">
-                  <div className="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                    🥩
-                  </div>
-                  <CardTitle className="text-lg">Meat & Poultry</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    USDA FSIS regulations, HACCP requirements, and pathogen testing compliance.
-                  </p>
-                  <ul className="text-xs space-y-1">
-                    <li>✓ USDA FSIS alerts</li>
-                    <li>✓ Pathogen monitoring</li>
-                    <li>✓ HACCP compliance</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </Link>
+            <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  🥩
+                </div>
+                <CardTitle className="text-lg">Meat & Poultry</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  USDA FSIS regulations, HACCP requirements, and pathogen testing compliance.
+                </p>
+                <ul className="text-xs space-y-1">
+                  <li>✓ USDA FSIS alerts</li>
+                  <li>✓ Pathogen monitoring</li>
+                  <li>✓ HACCP compliance</li>
+                </ul>
+              </CardContent>
+            </Card>
 
-            <Link to="/industries/packaged-foods" className="group hover:no-underline">
-              <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
-                <CardHeader className="text-center">
-                  <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                    📦
-                  </div>
-                  <CardTitle className="text-lg">Packaged Foods</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    FSMA Preventive Controls, allergen management, and nutritional labeling.
-                  </p>
-                  <ul className="text-xs space-y-1">
-                    <li>✓ FSMA compliance</li>
-                    <li>✓ Allergen tracking</li>
-                    <li>✓ Label requirements</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </Link>
+            <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  📦
+                </div>
+                <CardTitle className="text-lg">Packaged Foods</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  FSMA Preventive Controls, allergen management, and nutritional labeling.
+                </p>
+                <ul className="text-xs space-y-1">
+                  <li>✓ FSMA compliance</li>
+                  <li>✓ Allergen tracking</li>
+                  <li>✓ Label requirements</li>
+                </ul>
+              </CardContent>
+            </Card>
 
-            <Link to="/industries/beverage-production" className="group hover:no-underline">
-              <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
-                <CardHeader className="text-center">
-                  <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                    🧃
-                  </div>
-                  <CardTitle className="text-lg">Beverage Production</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Juice HACCP, bottled water standards, and acidified foods requirements.
-                  </p>
-                  <ul className="text-xs space-y-1">
-                    <li>✓ Juice HACCP</li>
-                    <li>✓ Water standards</li>
-                    <li>✓ Acidified foods</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </Link>
+            <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer h-full">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  🧃
+                </div>
+                <CardTitle className="text-lg">Beverage Production</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Juice HACCP, bottled water standards, and acidified foods requirements.
+                </p>
+                <ul className="text-xs space-y-1">
+                  <li>✓ Juice HACCP</li>
+                  <li>✓ Water standards</li>
+                  <li>✓ Acidified foods</li>
+                </ul>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="text-center">
             <Button size="lg" variant="outline" asChild>
-              <Link to="/solutions/food-safety-compliance">
-                View All Solutions
+              <Link to="/search">
+                Explore Regulatory Search
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

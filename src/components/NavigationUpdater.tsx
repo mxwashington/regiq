@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { X, TestTube, BarChart3, Download } from 'lucide-react';
 
 export const NavigationUpdater: React.FC = () => {
   const [isVisible, setIsVisible] = React.useState(true);
@@ -23,22 +24,22 @@ export const NavigationUpdater: React.FC = () => {
           </Button>
         </div>
         <div className="space-y-2">
-          <Link to="/ai-test">
+          <Link to="/search">
             <Button variant="outline" size="sm" className="w-full justify-start text-xs">
               <TestTube className="h-3 w-3 mr-2" />
-              AI Testing Suite
+              AI Search
             </Button>
           </Link>
-          <Link to="/analytics">
+          <Link to="/dashboard">
             <Button variant="outline" size="sm" className="w-full justify-start text-xs">
               <BarChart3 className="h-3 w-3 mr-2" />
-              Enhanced Analytics
+              Alerts Dashboard
             </Button>
           </Link>
-          <Link to="/export">
+          <Link to="/custom-alerts">
             <Button variant="outline" size="sm" className="w-full justify-start text-xs">
               <Download className="h-3 w-3 mr-2" />
-              Data Export
+              Custom Alerts
             </Button>
           </Link>
         </div>

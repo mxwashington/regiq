@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+// import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   ExternalLink, 
   Share2, 
@@ -25,6 +26,29 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 
 import { logger } from '@/lib/logger';
+
+// Simple inline mobile hook to fix runtime error
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isMobile;
+}
+
 interface Alert {
   id: string;
   title: string;

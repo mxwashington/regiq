@@ -32,24 +32,15 @@ export function AppSidebar() {
 
   const navItems: NavItem[] = [
     { path: '/', icon: Home, label: 'Home' },
-    { path: '/analytics', icon: BarChart3, label: 'Advanced Analytics', badge: 'PRO' },
-    { path: '/search', icon: Search, label: 'Advanced Search', badge: 'PRO' },
-    { path: '/compliance-assistant', icon: Brain, label: 'AI Assistant', badge: 'ENT' },
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
-    { path: '/blog', icon: BookOpen, label: 'Blog' },
-    { path: '/calendar', icon: Calendar, label: 'Compliance Calendar', badge: 'NEW' },
-    { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts', badge: 'NEW' },
-    { path: '/regulatory-gap-detection', icon: AlertTriangle, label: 'Gap Detection', badge: 'PRO' },
-    { path: '/account', icon: User, label: user ? 'Profile' : 'Login' },
-    { path: '/regulatory-impact', icon: TrendingUp, label: 'Regulatory Impact', badge: 'PRO' },
-    { path: '/suppliers', icon: Building2, label: 'Suppliers', badge: 'NEW' },
-    { path: '/tasks', icon: CheckSquare, label: 'Task Management', badge: 'NEW' },
+    { path: '/search', icon: Search, label: 'Search' },
+    { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts' },
+    { path: '/account', icon: User, label: user ? 'Account' : 'Login' },
+    { path: '/pricing', icon: TrendingUp, label: 'Pricing' },
   ];
 
   const adminNavItems: NavItem[] = [
-    { path: '/admin/dashboard', icon: Database, label: 'Admin Dashboard', badge: 'ADMIN' },
-    { path: '/admin/analytics', icon: BarChart3, label: 'Admin Analytics', badge: 'ADMIN' },
-    { path: '/admin/security', icon: Shield, label: 'Security Monitor', badge: 'ADMIN' },
+    { path: '/admin', icon: Database, label: 'Admin Dashboard' },
   ];
 
   const isActive = (path: string) => {

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
+// import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Calendar, 
   ExternalLink, 
@@ -26,6 +27,29 @@ import { ThirdShiftStatusIndicator } from "./ThirdShiftStatusIndicator";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 
 import { logger } from '@/lib/logger';
+
+// Simple inline mobile hook to fix runtime error
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isMobile;
+}
+
 interface RegIQAlert {
   id: string;
   title: string;
