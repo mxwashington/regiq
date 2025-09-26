@@ -8,7 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { EnhancedSecurityHeaders } from "@/components/EnhancedSecurityHeaders";
 import { EnhancedAuthHandler } from "@/components/EnhancedAuthHandler";
 import { AIAccessProvider } from "@/components/AIAccessProvider";
-import { SafeAuthProvider as AuthProvider } from "@/contexts/SafeAuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { SecurityProvider } from "@/components/SecurityProvider";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -127,6 +127,7 @@ const PWAApp = () => {
     <>
       <Toaster />
       <Sonner />
+      <EnhancedAuthHandler />
 
       <PWAInstallPrompt />
       <AIAccessProvider>
@@ -258,7 +259,6 @@ const App = () => (
       <EnhancedSecurityHeaders />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <EnhancedAuthHandler />
           <SecurityProvider>
             <DemoProvider>
               <TooltipProvider>
