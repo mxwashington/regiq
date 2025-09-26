@@ -133,8 +133,9 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const checkAdminStatus = useCallback(async () => {
-    if (!state.session?.user?.id) {
+  const checkAdminStatus = useCallback(async (userId?: string) => {
+    const userIdToUse = userId || state.session?.user?.id;
+    if (!userIdToUse) {
       return;
     }
 
@@ -142,7 +143,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from('profiles')
         .select('role, is_admin, admin_permissions')
-        .eq('user_id', state.session.user.id)
+        .eq('user_id', userIdToUse)
         .single();
 
       if (error) throw error;
@@ -161,10 +162,11 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
         adminPermissions: []
       }));
     }
-  }, [state.session?.user?.id]);
+  }, []); // Remove dependency to break the loop
 
-  const checkSubscription = useCallback(async () => {
-    if (!state.session?.user?.id) {
+  const checkSubscription = useCallback(async (userId?: string) => {
+    const userIdToUse = userId || state.session?.user?.id;
+    if (!userIdToUse) {
       return;
     }
 
@@ -172,7 +174,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from('profiles')
         .select('subscription_tier, subscription_end')
-        .eq('user_id', state.session.user.id)
+        .eq('user_id', userIdToUse)
         .single();
 
       if (error) throw error;
@@ -195,7 +197,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
         subscriptionEnd: null
       }));
     }
-  }, [state.session?.user?.id]);
+  }, []);
 
   const updateUserActivity = useCallback(async (userId: string) => {
     try {
@@ -297,14 +299,15 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
     if (state.session?.user?.id && !state.loading) {
       // Defer async operations to prevent deadlock
       const timeoutId = setTimeout(() => {
-        checkAdminStatus();
-        checkSubscription();
-        updateUserActivity(state.session.user.id);
+        const userId = state.session.user.id;
+        checkAdminStatus(userId);
+        checkSubscription(userId);
+        updateUserActivity(userId);
       }, 100);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [state.session?.user?.id, state.loading]);
+  }, [state.session?.user?.id, state.loading, checkAdminStatus, checkSubscription, updateUserActivity]);
 
   const value: AuthContextType = {
     user: state.user,
