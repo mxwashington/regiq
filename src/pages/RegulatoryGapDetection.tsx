@@ -22,7 +22,7 @@ const RegulatoryGapDetection: React.FC = () => {
           </div>
 
           <FeaturePaywall
-            feature="regulatory_impact_analysis"
+            feature="advanced_analytics"
             context="AI-powered regulatory gap detection and compliance analysis require a Professional plan."
           />
         </div>

@@ -255,7 +255,7 @@ const openSearchUrl = (searchUrl: string) => {
 export const searchForAlert = async (title: string, agency: string, searchType: 'primary' | 'secondary' | 'fallback' | 'broad' = 'primary') => {
   logger.info('=== Mobile Search Debug ===');
   logger.info('User Agent:', navigator.userAgent);
-  logger.info('Window size:', window.innerWidth, 'x', window.innerHeight);
+  logger.info('Window size:', `${window.innerWidth}x${window.innerHeight}`);
   logger.info('Touch support:', 'ontouchstart' in window);
   logger.info('Alert title:', title);
   logger.info('Agency:', agency);

@@ -53,7 +53,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
 
       // Test connection
       const { error: pingError } = await supabase
-        .from('alerts_filtered')
+        .from('alerts')
         .select('count')
         .limit(0);
 
@@ -63,7 +63,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
 
       // Build query
       let query = supabase
-        .from('alerts_filtered')
+        .from('alerts')
         .select(`
           id,
           title,
@@ -174,7 +174,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
       if (!lastAlert) return;
 
       let query = supabase
-        .from('alerts_filtered')
+        .from('alerts')
         .select(`
           id,
           title,

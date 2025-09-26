@@ -105,10 +105,13 @@ export const useComplianceCalendar = () => {
 
         // Fallback to basic table query if RPC function doesn't exist  
         try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
           const { data: basicData, error: basicError } = await supabase
             .from('compliance_deadlines')
             .select('*')
-            .eq('user_id', user?.id)
+            .eq('user_id', user.id)
             .gte('deadline_date', new Date().toISOString().split('T')[0])
             .order('deadline_date', { ascending: true })
             .limit(10);
@@ -125,18 +128,18 @@ export const useComplianceCalendar = () => {
             deadline_time: deadline.deadline_time,
             agency: deadline.agency,
             regulation_reference: deadline.regulation_reference,
-            facility_id: null,
-            priority: deadline.priority as ComplianceDeadline['priority'],
-            status: deadline.status as ComplianceDeadline['status'],
-            recurrence_type: 'none',
-            recurrence_interval: 1,
-            next_occurrence: null,
-            tags: null,
-            reminder_days: [7, 3, 1],
-            completion_date: null,
-            completion_notes: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            facility_id: deadline.facility_id,
+            priority: (deadline.priority || 'medium') as ComplianceDeadline['priority'],
+            status: (deadline.status || 'upcoming') as ComplianceDeadline['status'],
+            recurrence_type: (deadline.recurrence_type || 'none') as ComplianceDeadline['recurrence_type'],
+            recurrence_interval: deadline.recurrence_interval || 1,
+            next_occurrence: deadline.next_occurrence,
+            tags: deadline.tags,
+            reminder_days: deadline.reminder_days || [7, 3, 1],
+            completion_date: deadline.completion_date,
+            completion_notes: deadline.completion_notes,
+            created_at: deadline.created_at,
+            updated_at: deadline.updated_at
           }));
           setDeadlines(typedDeadlines);
           return;
@@ -176,22 +179,14 @@ export const useComplianceCalendar = () => {
     }
   };
 
-  // Fetch compliance statistics
+  // Fetch compliance statistics (disabled - RPC function doesn't exist)
   const fetchStatistics = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_compliance_statistics');
-
-      if (error) {
-        logger.info('RPC statistics function not available, using client-side calculation:', error);
-        setStats(null);
-        return;
-      }
-
-      setStats(data);
-      logger.info('Successfully fetched server-side compliance statistics');
+      // RPC function doesn't exist, use client-side calculation
+      setStats(null);
+      logger.info('Using client-side compliance statistics calculation');
     } catch (error) {
-      logger.error('Error fetching compliance statistics:', error);
-      // Fallback to client-side statistics calculation
+      logger.error('Error with compliance statistics:', error);
       setStats(null);
     }
   };

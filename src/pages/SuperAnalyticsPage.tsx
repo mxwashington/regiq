@@ -10,7 +10,7 @@ const SuperAnalyticsPage: React.FC = () => {
     return (
       <div className="container mx-auto py-8">
         <FeaturePaywall
-          feature="enhanced_analytics"
+          feature="advanced_analytics"
           context="Advanced analytics with custom dashboards, data export, and detailed insights require a Professional plan."
         />
       </div>

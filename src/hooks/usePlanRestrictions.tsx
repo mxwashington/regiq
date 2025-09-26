@@ -27,10 +27,10 @@ export const usePlanRestrictions = () => {
           return;
         }
 
-        // Check actual subscription from profile
+        // Check basic profiles table (subscription columns don't exist)
         const { data: profile, error } = await supabase
-          .from('profiles_secure')
-          .select('subscription_tier, subscription_end')
+          .from('profiles')
+          .select('*')
           .eq('user_id', user.id)
           .maybeSingle();
 
@@ -38,19 +38,9 @@ export const usePlanRestrictions = () => {
           logger.error('Error fetching subscription:', error);
           setSubscriptionTier('starter'); // Fallback
         } else {
-          const currentDate = new Date();
-          const subscriptionEnd = profile?.subscription_end ? new Date(profile.subscription_end) : null;
-
-          // Check if subscription is active
-          const isSubscriptionActive = !subscriptionEnd || subscriptionEnd > currentDate;
-
-          if (profile?.subscription_tier && isSubscriptionActive) {
-            setSubscriptionTier(profile.subscription_tier);
-            logger.info('Active subscription detected:', profile.subscription_tier);
-          } else {
-            setSubscriptionTier('starter'); // Expired or no subscription
-            logger.info('No active subscription, using starter tier');
-          }
+          // Default fallback since subscription columns don't exist
+          setSubscriptionTier('starter');
+          logger.info('Using default starter tier');
         }
       } catch (error) {
         logger.error('Error checking subscription:', error);

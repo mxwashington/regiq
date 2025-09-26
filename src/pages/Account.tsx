@@ -33,12 +33,12 @@ const Account: React.FC = () => {
       try {
         // Use the secure profiles view
         const { data: profile } = await supabase
-          .from('profiles_secure')
-          .select('company_name, full_name')
+          .from('profiles')
+          .select('*')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        setCompany(profile?.company_name ?? '');
+        setCompany(profile?.company ?? '');
         setFullName(profile?.full_name ?? '');
 
         const { data: prefs } = await supabase

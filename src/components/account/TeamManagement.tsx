@@ -21,23 +21,12 @@ export const TeamManagement: React.FC = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('metadata')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      const teamInvites = data?.metadata?.team_invites || '';
-      setEmails(teamInvites);
-      setSavedEmails(teamInvites);
-    } catch (error) {
-      logger.error('Error loading team invites:', error);
-      // Fallback to localStorage for backward compatibility
+      // Since metadata doesn't exist, use localStorage as primary storage
       const localEmails = localStorage.getItem('team_invites') || '';
       setEmails(localEmails);
       setSavedEmails(localEmails);
+    } catch (error) {
+      logger.error('Error loading team invites:', error);
     }
   };
 
@@ -68,32 +57,9 @@ export const TeamManagement: React.FC = () => {
 
     setLoading(true);
     try {
-      // Get current preferences
-      const { data: currentPrefs } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      const updatedMetadata = {
-        ...currentPrefs?.metadata,
-        team_invites: emails.trim(),
-        last_updated: new Date().toISOString()
-      };
-
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          metadata: updatedMetadata,
-          email_notifications: currentPrefs?.email_notifications ?? true,
-          urgency_threshold: currentPrefs?.urgency_threshold ?? 'Low'
-        });
-
-      if (error) throw error;
-
+      // Save to localStorage since metadata field doesn't exist
+      localStorage.setItem('team_invites', emails);
       setSavedEmails(emails);
-      localStorage.setItem('team_invites', emails); // Backup to localStorage
       toast.success('Team invites saved successfully');
     } catch (error) {
       logger.error('Error saving team invites:', error);

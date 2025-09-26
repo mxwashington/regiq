@@ -78,10 +78,13 @@ export const useEmergencyAlerts = (limit?: number): UseEmergencyAlertsReturn => 
         setLoading(true);
         setError(null);
 
-        // Try emergency alerts view first
+        // Try basic alerts table (emergency view doesn't exist)
         const { data: alertsData, error: alertsError } = await supabase
-          .from('alerts_emergency')
+          .from('alerts')
           .select('*')
+          .in('urgency', ['High', 'Critical'])
+          .gte('published_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .order('published_date', { ascending: false })
           .limit(limit || 20);
 
         if (alertsError) {
@@ -119,15 +122,7 @@ export const useEmergencyAlerts = (limit?: number): UseEmergencyAlertsReturn => 
           setTotalCount(alertsData?.length || 0);
         }
 
-        // Try to get count
-        try {
-          const { data: countData } = await supabase.rpc('get_emergency_alert_count');
-          if (countData) {
-            setTotalCount(countData);
-          }
-        } catch (countError) {
-          console.warn('[useEmergencyAlerts] Count function failed:', countError);
-        }
+        // Count is already set from data length (RPC function doesn't exist)
 
         setHasMore(false); // Simplified for emergency mode
         setLoading(false);

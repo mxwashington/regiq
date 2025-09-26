@@ -7,8 +7,8 @@ import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface FeaturePaywallProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   feature: 'ai_assistant' | 'mobile_app' | 'advanced_analytics' | 'multi_facility' | 'unlimited_history' | 'advanced_filters' | 'search_queries';
   context?: string;
 }
@@ -28,55 +28,55 @@ const featureConfig = {
   mobile_app: {
     icon: <Smartphone className="w-6 h-6" />,
     title: 'Mobile App',
-    description: 'Stay connected with regulatory changes on-the-go with our mobile application',
+    description: 'Stay connected to regulatory updates wherever you go',
     benefits: [
       'Push notifications for critical alerts',
-      'Offline alert history access',
-      'Mobile-optimized dashboard',
-      'Quick alert actions and filtering'
+      'Offline access to recent alerts',
+      'Mobile-optimized interface',
+      'Quick search and filtering'
     ]
   },
   advanced_analytics: {
     icon: <BarChart3 className="w-6 h-6" />,
     title: 'Advanced Analytics',
-    description: 'Comprehensive compliance insights with dashboards and reporting',
+    description: 'Deep insights into regulatory trends and compliance patterns',
     benefits: [
-      'Compliance maturity scoring',
-      'Industry benchmarking data',
-      'Cost analysis and ROI tracking',
-      'Custom dashboard creation'
+      'Customizable compliance dashboards',
+      'Trend analysis and forecasting',
+      'Risk assessment metrics',
+      'Automated compliance reporting'
     ]
   },
   multi_facility: {
     icon: <Building className="w-6 h-6" />,
-    title: 'Multi-Facility Monitoring',
-    description: 'Monitor regulatory compliance across multiple facilities and locations',
+    title: 'Multi-Facility Management',
+    description: 'Manage regulatory compliance across multiple locations',
     benefits: [
-      'Up to 3 facilities with Starter',
-      'Facility-specific alert filtering',
-      'Consolidated compliance view',
-      'Team collaboration features'
+      'Location-specific alert filtering',
+      'Facility-based user management',
+      'Regional compliance tracking',
+      'Consolidated reporting'
     ]
   },
   unlimited_history: {
     icon: <Clock className="w-6 h-6" />,
     title: 'Unlimited History',
-    description: 'Access your complete regulatory alert history beyond 30 days',
+    description: 'Access your complete regulatory alert archive',
     benefits: [
       'Full historical alert archive',
-      'Advanced search and filtering',
-      'Regulatory trend analysis',
-      'Compliance audit trails'
+      'Advanced search across all alerts',
+      'Export historical data',
+      'Custom date ranges'
     ]
   },
   advanced_filters: {
-    icon: <BarChart3 className="w-6 h-6" />,
+    icon: <Search className="w-6 h-6" />,
     title: 'Advanced Filters',
-    description: 'Powerful filtering options to find exactly what you need',
+    description: 'Powerful filtering and search capabilities',
     benefits: [
-      'Multi-criteria filtering',
-      'Saved filter presets',
-      'Boolean search operators',
+      'Complex filter combinations',
+      'Saved search presets',
+      'Regex pattern matching',
       'Custom date ranges'
     ]
   },
@@ -94,7 +94,7 @@ const featureConfig = {
 };
 
 export const FeaturePaywall: React.FC<FeaturePaywallProps> = ({
-  isOpen,
+  isOpen = true,
   onClose,
   feature,
   context
@@ -104,9 +104,54 @@ export const FeaturePaywall: React.FC<FeaturePaywallProps> = ({
 
   const handleUpgrade = async () => {
     await upgradeToStarter();
-    // Close modal after initiating upgrade
-    onClose();
+    // Close modal after initiating upgrade (if onClose is provided)
+    if (onClose) onClose();
   };
+
+  // If no onClose provided, render as standalone component
+  if (!onClose) {
+    return (
+      <Card className="max-w-md mx-auto border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
+        <CardHeader className="text-center pb-4">
+          <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-800 mb-4">
+            Essential Alerts
+          </Badge>
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <div className="text-orange-600">
+              {config.icon}
+            </div>
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              {config.title} Required
+            </CardTitle>
+          </div>
+          {context && (
+            <p className="text-sm text-gray-600 mb-4">
+              {context}
+            </p>
+          )}
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="space-y-3 mb-6">
+            {config.benefits.map((benefit, index) => (
+              <div key={index} className="flex items-start space-x-2">
+                <div className="text-orange-500 mt-0.5">
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+                <span className="text-sm text-gray-700">{benefit}</span>
+              </div>
+            ))}
+          </div>
+          <Button 
+            onClick={handleUpgrade} 
+            disabled={loading}
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+          >
+            {loading ? 'Processing...' : 'Upgrade to Essential Alerts'}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -121,82 +166,43 @@ export const FeaturePaywall: React.FC<FeaturePaywallProps> = ({
                 variant="ghost" 
                 size="sm" 
                 onClick={onClose}
-                className="p-1 h-auto"
+                className="h-6 w-6 p-0"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
-            
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-              {config.icon}
-            </div>
-            
-            <CardTitle className="text-xl mb-2">
-              Unlock {config.title}
-            </CardTitle>
-            
-            <p className="text-sm text-muted-foreground">
-              {config.description}
-            </p>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <div>
-              <h4 className="font-semibold mb-3 text-sm">What you'll get:</h4>
-              <ul className="space-y-2">
-                {config.benefits.map((benefit, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    <span>{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 border border-primary/20">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold">Starter Plan</h4>
-                <Badge className="bg-primary text-primary-foreground">Most Popular</Badge>
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <div className="text-orange-600">
+                {config.icon}
               </div>
-              <div className="text-2xl font-bold mb-1">$99<span className="text-sm font-normal">/month</span></div>
-              <p className="text-xs text-muted-foreground mb-3">
-                Includes AI insights, mobile access, multi-facility, and unlimited history
-              </p>
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                {config.title} Required
+              </CardTitle>
             </div>
-
-            <div className="space-y-3">
-              <Button 
-                onClick={handleUpgrade}
-                disabled={loading}
-                size="lg"
-                className="w-full group"
-              >
-                {loading ? 'Processing...' : (
-                  <>
-                    Upgrade to Starter
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                onClick={onClose}
-                className="w-full text-sm"
-              >
-                Maybe later
-              </Button>
-            </div>
-
             {context && (
-              <div className="text-xs text-center text-muted-foreground bg-muted/30 rounded p-2">
-                <strong>Pro tip:</strong> {context}
-              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                {context}
+              </p>
             )}
-
-            <div className="text-xs text-center text-muted-foreground">
-              7-day free trial • Cancel anytime • No setup fees
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-3 mb-6">
+              {config.benefits.map((benefit, index) => (
+                <div key={index} className="flex items-start space-x-2">
+                  <div className="text-orange-500 mt-0.5">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm text-gray-700">{benefit}</span>
+                </div>
+              ))}
             </div>
+            <Button 
+              onClick={handleUpgrade} 
+              disabled={loading}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              {loading ? 'Processing...' : 'Upgrade to Essential Alerts'}
+            </Button>
           </CardContent>
         </Card>
       </DialogContent>

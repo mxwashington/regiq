@@ -24,7 +24,7 @@ const CustomAlerts: React.FC = () => {
           </div>
 
           <FeaturePaywall
-            feature="regulatory_impact_analysis"
+            feature="advanced_analytics"
             context="Custom alert rules with advanced filtering and notifications require a Professional plan."
           />
         </main>

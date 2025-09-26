@@ -10,7 +10,7 @@ export default function RegulatoryImpactAnalysis() {
     return (
       <div className="container mx-auto px-4 py-8">
         <FeaturePaywall
-          feature="regulatory_impact_analysis"
+          feature="advanced_analytics"
           context="Advanced regulatory impact analysis with AI-powered insights requires a Professional plan."
         />
       </div>

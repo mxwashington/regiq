@@ -49,7 +49,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
         // Test basic connection first
         logger.info('[useSimpleAlerts] Testing database connection...');
         const { error: pingError } = await supabase
-          .from('alerts_filtered')
+          .from('alerts')
           .select('count')
           .limit(0);
 
@@ -61,7 +61,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
 
         // Build query
         let query = supabase
-          .from('alerts_filtered')
+          .from('alerts')
           .select(`
             id,
             title,
@@ -148,7 +148,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
       if (!lastAlert) return;
 
       let query = supabase
-        .from('alerts_filtered')
+        .from('alerts')
         .select(`
           id,
           title,

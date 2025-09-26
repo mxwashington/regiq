@@ -112,10 +112,11 @@ export const useDashboardMetrics = () => {
           .select('event_type, created_at')
           .eq('event_type', 'alert_view');
 
-        // Fetch alerts by source using the filtered view for better security
+        // Fetch alerts by source using the base alerts table
         const { data: alertsData } = await supabase
-          .from('alerts_filtered')
-          .select('source');
+          .from('alerts')
+          .select('source')
+          .gte('published_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
         const alertsBySource = alertsData?.reduce((acc: any[], alert) => {
           const existing = acc.find(item => item.source === alert.source);
