@@ -127,14 +127,20 @@ export const extractKeywords = (title: string): string => {
 /**
  * Enhanced search with GPT-4.1 keyword extraction
  */
-export const enhanceSearchWithGPT = async (alertTitle: string, agency: string): Promise<string> => {
+export const enhanceSearchWithGPT = async (alertTitle: string, agency: string, sessionToken?: string): Promise<string> => {
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Only add Authorization header if session token is provided
+    if (sessionToken) {
+      headers['Authorization'] = `Bearer ${sessionToken}`;
+    }
+
     const response = await fetch('/functions/v1/gpt-search', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
-      },
+      headers,
       body: JSON.stringify({
         query: alertTitle,
         agencies: [agency],
@@ -157,14 +163,20 @@ export const enhanceSearchWithGPT = async (alertTitle: string, agency: string): 
 /**
  * Generate alert summary using GPT-4.1
  */
-export const generateAlertSummary = async (alertContent: string): Promise<string> => {
+export const generateAlertSummary = async (alertContent: string, sessionToken?: string): Promise<string> => {
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Only add Authorization header if session token is provided
+    if (sessionToken) {
+      headers['Authorization'] = `Bearer ${sessionToken}`;
+    }
+
     const response = await fetch('/functions/v1/gpt-search', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
-      },
+      headers,
       body: JSON.stringify({
         query: alertContent,
         searchType: 'summary_generation'
@@ -220,7 +232,7 @@ const isMobile = (): boolean => {
 /**
  * Open search URL with mobile-friendly approach
  */
-const openSearchUrl = (searchUrl: string, title: string) => {
+const openSearchUrl = (searchUrl: string) => {
   console.log('Opening search URL:', searchUrl);
   console.log('Is mobile device:', isMobile());
   
@@ -254,7 +266,7 @@ export const searchForAlert = async (title: string, agency: string, searchType: 
     // Track search usage
     console.log(`GPT-enhanced search: ${searchType} for ${agency}`, { title: title.substring(0, 50), query });
     
-    openSearchUrl(searchUrl, title);
+    openSearchUrl(searchUrl);
   } catch (error) {
     // Fallback to basic search if GPT enhancement fails
     console.warn('GPT search failed, using basic search:', error);
@@ -266,7 +278,7 @@ export const searchForAlert = async (title: string, agency: string, searchType: 
       const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
       
       console.log('Using fallback search with keywords:', keywords);
-      openSearchUrl(searchUrl, title);
+      openSearchUrl(searchUrl);
     } catch (fallbackError) {
       // Ultimate fallback - simple Google search
       console.error('All search methods failed, using simple search:', fallbackError);

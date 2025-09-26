@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedInputValidation } from './useEnhancedInputValidation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ApiKey {
   id: string;
@@ -28,6 +29,7 @@ export const useSecureApiKeyManagement = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { validateField, validationRules } = useEnhancedInputValidation();
+  const { user } = useAuth();
 
   // Fetch user's API keys (metadata only, never the actual key)
   const fetchApiKeys = useCallback(async () => {
@@ -125,12 +127,47 @@ export const useSecureApiKeyManagement = () => {
   // Revoke API key
   const revokeApiKey = useCallback(async (keyId: string): Promise<boolean> => {
     try {
+      // Authentication check
+      if (!user?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to revoke API keys",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Validate UUID format for keyId
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(keyId)) {
+        toast({
+          title: "Security Error",
+          description: "Invalid API key ID format",
+          variant: "destructive"
+        });
+        console.warn('Invalid API key ID format attempted in revoke', { keyId, userId: user.id });
+        return false;
+      }
+
+      // Verify ownership by checking if the key exists in user's list
+      const targetKey = apiKeys.find(k => k.id === keyId);
+      if (!targetKey) {
+        toast({
+          title: "Security Error",
+          description: "API key not found in your account",
+          variant: "destructive"
+        });
+        console.warn('Attempt to revoke non-owned API key', { keyId, userId: user.id });
+        return false;
+      }
+
       setLoading(true);
-      
+
       const { error } = await supabase
         .from('api_keys')
         .update({ is_active: false })
-        .eq('id', keyId);
+        .eq('id', keyId)
+        .eq('user_id', user.id); // Additional ownership verification
 
       if (error) throw error;
 
@@ -147,7 +184,7 @@ export const useSecureApiKeyManagement = () => {
     } catch (error) {
       console.error('Error revoking API key:', error);
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Failed to revoke API key",
         variant: "destructive"
       });
@@ -155,14 +192,25 @@ export const useSecureApiKeyManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchApiKeys, toast]);
+  }, [user, apiKeys, fetchApiKeys, toast]);
 
   // Update API key rate limit
   const updateRateLimit = useCallback(async (
-    keyId: string, 
+    keyId: string,
     newRateLimit: number
   ): Promise<boolean> => {
     try {
+      // Authentication check
+      if (!user?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to update API keys",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Validate rate limit bounds
       if (newRateLimit < 1 || newRateLimit > 10000) {
         toast({
           title: "Invalid Rate Limit",
@@ -172,12 +220,37 @@ export const useSecureApiKeyManagement = () => {
         return false;
       }
 
+      // Validate UUID format for keyId
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(keyId)) {
+        toast({
+          title: "Security Error",
+          description: "Invalid API key ID format",
+          variant: "destructive"
+        });
+        console.warn('Invalid API key ID format attempted in rate limit update', { keyId, userId: user.id });
+        return false;
+      }
+
+      // Verify ownership by checking if the key exists in user's list
+      const targetKey = apiKeys.find(k => k.id === keyId);
+      if (!targetKey) {
+        toast({
+          title: "Security Error",
+          description: "API key not found in your account",
+          variant: "destructive"
+        });
+        console.warn('Attempt to update rate limit for non-owned API key', { keyId, userId: user.id });
+        return false;
+      }
+
       setLoading(true);
-      
+
       const { error } = await supabase
         .from('api_keys')
         .update({ rate_limit_per_hour: newRateLimit })
-        .eq('id', keyId);
+        .eq('id', keyId)
+        .eq('user_id', user.id); // Additional ownership verification
 
       if (error) throw error;
 
@@ -202,7 +275,7 @@ export const useSecureApiKeyManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchApiKeys, toast]);
+  }, [user, apiKeys, fetchApiKeys, toast]);
 
   // Test API key validation (for debugging)
   const testApiKeyValidation = useCallback(async (apiKey: string) => {

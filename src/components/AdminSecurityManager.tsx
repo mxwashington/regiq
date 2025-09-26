@@ -57,12 +57,48 @@ export const AdminSecurityManager: React.FC = () => {
   }, [toast]);
 
   const grantPermission = useCallback(async () => {
+    // Input validation and sanitization
     if (!selectedUser || !permissionToGrant) {
       toast({
         title: "Validation Error",
         description: "Please select both a user and permission",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Validate UUID format for user ID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(selectedUser)) {
+      toast({
+        title: "Security Error",
+        description: "Invalid user ID format",
+        variant: "destructive"
+      });
+      logger.warn('Invalid user ID format attempted in permission grant', { selectedUser }, 'AdminSecurityManager');
+      return;
+    }
+
+    // Validate permission is in allowed list
+    if (!availablePermissions.includes(permissionToGrant)) {
+      toast({
+        title: "Security Error",
+        description: "Invalid permission specified",
+        variant: "destructive"
+      });
+      logger.warn('Invalid permission attempted in grant', { permissionToGrant }, 'AdminSecurityManager');
+      return;
+    }
+
+    // Verify user exists in current admin list (additional security check)
+    const targetUser = adminUsers.find(u => u.user_id === selectedUser);
+    if (!targetUser) {
+      toast({
+        title: "Security Error",
+        description: "Target user not found in admin list",
+        variant: "destructive"
+      });
+      logger.warn('Permission grant attempted for non-admin user', { selectedUser }, 'AdminSecurityManager');
       return;
     }
 
@@ -96,6 +132,52 @@ export const AdminSecurityManager: React.FC = () => {
   }, [selectedUser, permissionToGrant, toast, fetchAdminUsers]);
 
   const revokePermission = useCallback(async (userId: string, permission: string) => {
+    // Input validation and sanitization
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      toast({
+        title: "Security Error",
+        description: "Invalid user ID format",
+        variant: "destructive"
+      });
+      logger.warn('Invalid user ID format attempted in permission revoke', { userId }, 'AdminSecurityManager');
+      return;
+    }
+
+    // Validate permission is in allowed list
+    if (!availablePermissions.includes(permission)) {
+      toast({
+        title: "Security Error",
+        description: "Invalid permission specified",
+        variant: "destructive"
+      });
+      logger.warn('Invalid permission attempted in revoke', { permission }, 'AdminSecurityManager');
+      return;
+    }
+
+    // Verify user exists in current admin list (additional security check)
+    const targetUser = adminUsers.find(u => u.user_id === userId);
+    if (!targetUser) {
+      toast({
+        title: "Security Error",
+        description: "Target user not found in admin list",
+        variant: "destructive"
+      });
+      logger.warn('Permission revoke attempted for non-admin user', { userId }, 'AdminSecurityManager');
+      return;
+    }
+
+    // Prevent revoking permissions from self (security measure)
+    if (userId === user?.id) {
+      toast({
+        title: "Security Error",
+        description: "Cannot revoke permissions from yourself",
+        variant: "destructive"
+      });
+      logger.warn('Attempt to revoke own permissions blocked', { userId }, 'AdminSecurityManager');
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase.rpc('revoke_admin_permission', {
