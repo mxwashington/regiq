@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, Bell, Building2, TrendingUp, User, BookOpen, Brain, CheckSquare, Calendar, BarChart3, Shield, AlertTriangle, Mail, Settings, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SafeAuthContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import {
   Sidebar,

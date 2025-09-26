@@ -45,11 +45,15 @@ export const SecureAuthHandler: React.FC<SecureAuthHandlerProps> = ({ mode, onSu
     try {
       // Check for account lockout before attempting auth
       const lockout = await checkAccountLockout(email);
-      if (lockout.isLocked) {
-        setLockoutInfo(lockout);
+      if (lockout.is_locked) {
+        setLockoutInfo({
+          isLocked: lockout.is_locked,
+          retryAfter: lockout.retry_after_seconds,
+          failedAttempts: lockout.failed_attempts || 0
+        });
         toast({
-          title: "Account Temporarily Locked",
-          description: `Too many failed attempts. Try again in ${Math.ceil(lockout.retryAfter / 60)} minutes.`,
+          title: "Account Temporarily Locked", 
+          description: `Too many failed attempts. Try again in ${Math.ceil(lockout.retry_after_seconds / 60)} minutes.`,
           variant: "destructive"
         });
         return;
@@ -108,10 +112,10 @@ export const SecureAuthHandler: React.FC<SecureAuthHandlerProps> = ({ mode, onSu
         // Check if this was due to invalid credentials
         if (result.error.message.includes('Invalid login credentials')) {
           const updatedLockout = await checkAccountLockout(email);
-          if (updatedLockout.failedAttempts >= 3) {
+          if ((updatedLockout.failed_attempts || 0) >= 3) {
             toast({
               title: "Warning",
-              description: `${5 - updatedLockout.failedAttempts} attempts remaining before account lockout`,
+              description: `${5 - (updatedLockout.failed_attempts || 0)} attempts remaining before account lockout`,
               variant: "destructive"
             });
           }

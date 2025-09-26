@@ -23,13 +23,25 @@ export function ThirdShiftAI() {
   const [response, setResponse] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'error' | 'checking'>('connected');
+  const [showPaywall, setShowPaywall] = useState(false);
 
   if (!checkFeatureAccess('ai_assistant')) {
     return (
       <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-4">AI Assistant Access Required</h2>
+          <p className="text-muted-foreground mb-6">
+            ThirdShift AI assistant with advanced regulatory analysis requires an Enterprise plan.
+          </p>
+          <Button onClick={() => setShowPaywall(true)}>
+            Upgrade to Enterprise
+          </Button>
+        </div>
         <FeaturePaywall
           feature="ai_assistant"
           context="ThirdShift AI assistant with advanced regulatory analysis requires an Enterprise plan."
+          isOpen={showPaywall}
+          onClose={() => setShowPaywall(false)}
         />
       </div>
     );
