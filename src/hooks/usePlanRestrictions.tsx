@@ -61,18 +61,19 @@ export const usePlanRestrictions = () => {
     }
 
     const featureMatrix = {
-      compliance_assistant: ['professional', 'enterprise'],
+      compliance_assistant: ['growth', 'professional', 'enterprise'],
       regulatory_impact_analysis: ['professional', 'enterprise'],
       supplier_risk_monitoring: ['professional', 'enterprise'],
-      task_management: ['starter', 'professional', 'enterprise'],
-      compliance_calendar: ['starter', 'professional', 'enterprise'],
+      task_management: ['starter', 'growth', 'professional', 'enterprise'],
+      compliance_calendar: ['starter', 'growth', 'professional', 'enterprise'],
       enhanced_analytics: ['professional', 'enterprise'],
       compliance_workflows: ['enterprise'],
       predictive_risk_modeling: ['enterprise'],
       api_access: ['enterprise'],
       custom_data_sources: ['enterprise'],
-      ai_assistant: ['starter', 'professional', 'enterprise'], // AI assistant for all tiers
-      ai_queries: ['starter', 'professional', 'enterprise'] // AI queries for all tiers
+      ai_assistant: ['starter', 'growth', 'professional', 'enterprise'], // AI assistant for all tiers
+      ai_queries: ['starter', 'growth', 'professional', 'enterprise'], // AI queries for all tiers
+      advanced_filters: ['growth', 'professional', 'enterprise'] // Advanced filters from Growth tier
     };
 
     const allowedTiers = featureMatrix[featureName as keyof typeof featureMatrix] || [];
@@ -95,6 +96,21 @@ export const usePlanRestrictions = () => {
         bulk_export: false,
         custom_notifications: false,
         priority_support: false
+      },
+      growth: {
+        ai_queries_per_month: 200,
+        alert_history_days: 90,
+        team_members: 3,
+        data_sources: ['FDA', 'USDA', 'EPA'],
+        exports_per_month: 25,
+        queries_per_month: 200, // backward compatibility
+        alerts_per_day: 50,
+        saved_searches: 25,
+        api_access: false,
+        advanced_filters: true,
+        bulk_export: false,
+        custom_notifications: true,
+        priority_support: true
       },
       professional: {
         ai_queries_per_month: -1, // unlimited

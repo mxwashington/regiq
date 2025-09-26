@@ -4,8 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowRight, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Hero: React.FC = () => {
+  const { user } = useAuth();
+
   return (
     <section id="hero" className="py-8 md:py-12 px-4">
       <div className="container mx-auto text-center max-w-6xl">
@@ -17,12 +20,24 @@ export const Hero: React.FC = () => {
           </div>
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/auth">Sign In</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link to="/pricing">Start Free Trial</Link>
-            </Button>
+            {user ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/account">Account</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/auth">Sign In</Link>
+              </Button>
+            )}
+            {user ? (
+              <Button size="sm" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <Button size="sm" asChild>
+                <Link to="/pricing">Start Free Trial</Link>
+              </Button>
+            )}
           </nav>
         </div>
 

@@ -13,7 +13,7 @@ export const PricingFAQ: React.FC = () => {
   const faqs = [
     {
       question: "What's included in the 14-day free trial?",
-      answer: "Your free trial includes full access to all features of your chosen plan. No credit card required to start. You'll get real regulatory alerts, AI summarization, and can test our mobile app. We'll even help you set up your first facility during onboarding."
+      answer: "Your free trial includes full access to all features of your chosen plan. No credit card required to start. You'll get real regulatory alerts, AI summarization, and can test our mobile-responsive platform. We'll help you get started with personalized onboarding."
     },
     {
       question: "How quickly will I see ROI with RegIQ?",
@@ -24,8 +24,8 @@ export const PricingFAQ: React.FC = () => {
       answer: "Yes! You can change plans anytime with immediate effect. Upgrades are prorated and take effect immediately. Downgrades take effect at your next billing cycle. No penalties or fees for plan changes."
     },
     {
-      question: "What happens when I reach my user or facility limits?",
-      answer: "We'll notify you when you're approaching your limits and make it easy to upgrade. Growth plan users get priority upgrade assistance, and Professional plan users have unlimited users and facilities."
+      question: "What happens when I reach my user limits?",
+      answer: "We'll notify you when you're approaching your user limits and make it easy to upgrade. Growth plan users get priority upgrade assistance, and Professional plan users have unlimited user accounts."
     },
     {
       question: "Is my regulatory data secure with RegIQ?",
@@ -33,7 +33,7 @@ export const PricingFAQ: React.FC = () => {
     },
     {
       question: "Do you offer custom integrations and API access?",
-      answer: "Professional plan includes custom integrations via webhooks and basic API access. For advanced API needs, custom integrations, or white-label solutions, contact our enterprise team for a custom quote."
+      answer: "Currently, RegIQ focuses on web-based alerts and search functionality. For custom integration needs or data exports, contact our enterprise team to discuss available options."
     },
     {
       question: "What kind of support do you provide?",

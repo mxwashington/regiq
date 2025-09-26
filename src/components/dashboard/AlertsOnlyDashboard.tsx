@@ -154,7 +154,7 @@ export const AlertsOnlyDashboard: React.FC = () => {
         
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700">
-            Essential Alerts
+            Starter Plan
           </Badge>
           <Button
             onClick={() => handleFeatureClick('mobile_app')}
@@ -421,7 +421,7 @@ export const AlertsOnlyDashboard: React.FC = () => {
         isOpen={!!paywallFeature}
         onClose={() => setPaywallFeature(null)}
         feature={paywallFeature as any}
-        context="Essential Alerts users get the core regulatory intelligence needed to stay compliant"
+        context="Starter Plan users get the core regulatory intelligence needed to stay compliant"
       />
 
       {/* Advanced Search Modal */}

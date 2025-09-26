@@ -496,7 +496,7 @@ export function RegulatorySearch() {
         isOpen={showPaywall}
         onClose={() => setShowPaywall(false)}
         feature="search_queries"
-        context="You need a paid plan to use search queries. Essential Alerts only includes alerts, not search functionality."
+        context="You need a paid plan to use search queries. Starter Plan only includes alerts, not search functionality."
       />
     </div>
   );

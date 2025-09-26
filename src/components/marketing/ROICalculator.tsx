@@ -10,7 +10,7 @@ export const ROICalculator: React.FC = () => {
   const [hoursSaved, setHoursSaved] = useState(15);
 
   const monthlySavings = useMemo(() => teamSize * hourlyRate * hoursSaved * 4, [teamSize, hourlyRate, hoursSaved]);
-  const price = 299;
+  const price = 549;
   const roi = useMemo(() => ((monthlySavings - price) / price) * 100, [monthlySavings]);
 
   return (
@@ -45,7 +45,7 @@ export const ROICalculator: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="text-sm text-muted-foreground">RegIQ Professional</div>
-                <div className="text-2xl font-semibold">$299/month</div>
+                <div className="text-2xl font-semibold">$549/month</div>
               </div>
               <div className="text-center">
                 <div className="text-sm text-muted-foreground">Estimated ROI</div>

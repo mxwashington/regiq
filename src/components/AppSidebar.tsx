@@ -35,7 +35,7 @@ export function AppSidebar() {
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
     { path: '/search', icon: Search, label: 'Search' },
     { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts' },
-    { path: '/account', icon: User, label: user ? 'Account' : 'Login' },
+    { path: user ? '/account' : '/auth', icon: User, label: user ? 'Account' : 'Sign In' },
     { path: '/pricing', icon: TrendingUp, label: 'Pricing' },
   ];
 

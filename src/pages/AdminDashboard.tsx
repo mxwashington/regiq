@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { AdminAPIManager } from "@/components/AdminAPIManager";
+import { AdminDataManager } from "@/components/AdminDataManager";
 
 import { logger } from '@/lib/logger';
 const LoadingScreen = () => (
@@ -45,8 +46,9 @@ const AdminDashboard: React.FC = () => {
           </header>
 
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="data">Data Sync</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="alerts">Alerts</TabsTrigger>
               <TabsTrigger value="apis">APIs</TabsTrigger>
@@ -57,6 +59,10 @@ const AdminDashboard: React.FC = () => {
 
             <TabsContent value="analytics">
               <UsageDashboard />
+            </TabsContent>
+
+            <TabsContent value="data">
+              <AdminDataManager />
             </TabsContent>
 
             <TabsContent value="users">
@@ -75,7 +81,7 @@ const AdminDashboard: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="security">
-              <SecurityDashboardEnhanced />
+              <AdminSecurityManager />
             </TabsContent>
 
             <TabsContent value="sso">

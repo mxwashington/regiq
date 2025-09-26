@@ -15,28 +15,28 @@ const Pricing = () => {
     "@context": "https://schema.org",
     "@type": "Service",
     "name": "RegIQ Regulatory Intelligence Platform",
-    "description": "Enterprise-grade regulatory intelligence and compliance monitoring for food, pharma, and agriculture industries",
+    "description": "AI-powered regulatory intelligence platform for food compliance monitoring",
     "offers": [
       {
         "@type": "Offer",
         "name": "Starter Plan",
         "price": "179",
         "priceCurrency": "USD",
-        "description": "Real-time regulatory alerts for small businesses and single facility operations"
+        "description": "Real-time regulatory alerts for small businesses getting started with compliance"
       },
       {
         "@type": "Offer", 
         "name": "Growth Plan",
         "price": "349",
         "priceCurrency": "USD",
-        "description": "AI-powered regulatory intelligence for growing multi-location businesses"
+        "description": "AI-powered regulatory intelligence for growing businesses with advanced features"
       },
       {
         "@type": "Offer",
         "name": "Professional Plan", 
         "price": "549",
         "priceCurrency": "USD",
-        "description": "Enterprise-ready unlimited scale with advanced AI and custom integrations"
+        "description": "Enterprise-ready organizations with premium support and unlimited users"
       }
     ]
   };

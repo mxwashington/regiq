@@ -59,7 +59,7 @@ serve(async (req) => {
 
     switch (type) {
       case 'welcome':
-        subject = "Welcome to RegIQ Essential Alerts";
+        subject = "Welcome to RegIQ Starter Plan";
         emailHtml = generateWelcomeEmail(userName, data);
         break;
         
@@ -111,17 +111,17 @@ function generateWelcomeEmail(userName: string, data?: Record<string, any>): str
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to RegIQ Essential Alerts</title>
+      <title>Welcome to RegIQ Starter Plan</title>
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px; text-align: center; margin-bottom: 30px;">
-        <h1 style="margin: 0 0 10px 0; font-size: 28px;">Welcome to RegIQ Essential Alerts</h1>
+        <h1 style="margin: 0 0 10px 0; font-size: 28px;">Welcome to RegIQ Starter Plan</h1>
         <p style="margin: 0; font-size: 16px; opacity: 0.9;">Your regulatory intelligence starts now</p>
       </div>
       
       <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
         <h2 style="color: #1a202c; margin: 0 0 15px 0;">Hi ${userName},</h2>
-        <p>You'll receive FDA, USDA, and EPA alerts by email. Here's what's included with Essential Alerts:</p>
+        <p>You'll receive FDA, USDA, and EPA alerts by email. Here's what's included with Starter Plan:</p>
         
         <div style="display: grid; gap: 15px; margin: 20px 0;">
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -145,8 +145,8 @@ function generateWelcomeEmail(userName: string, data?: Record<string, any>): str
 
       <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #f59e0b;">
         <h3 style="margin: 0 0 10px 0; color: #92400e;">Ready for more?</h3>
-        <p style="margin: 0 0 15px 0; color: #92400e;">Upgrade to Starter for AI-powered insights, mobile access, advanced filters, and unlimited history—instantly.</p>
-        <a href="${Deno.env.get('SITE_URL')}/pricing" style="display: inline-block; background: #f59e0b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">Upgrade to Starter</a>
+        <p style="margin: 0 0 15px 0; color: #92400e;">Upgrade to Growth for AI-powered insights, mobile access, advanced filters, and unlimited history—instantly.</p>
+        <a href="${Deno.env.get('SITE_URL')}/pricing" style="display: inline-block; background: #f59e0b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">Upgrade to Growth</a>
       </div>
 
       <div style="text-align: center; margin: 30px 0;">
@@ -155,7 +155,7 @@ function generateWelcomeEmail(userName: string, data?: Record<string, any>): str
       </div>
 
       <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center; color: #6b7280; font-size: 14px;">
-        <p>You're receiving this because you subscribed to RegIQ Essential Alerts.</p>
+        <p>You're receiving this because you subscribed to RegIQ Starter Plan.</p>
         <p>Need help? Reply to this email or visit our <a href="${Deno.env.get('SITE_URL')}/help" style="color: #3b82f6;">help center</a>.</p>
         <p style="margin-top: 20px;">
           <a href="${Deno.env.get('SITE_URL')}/unsubscribe" style="color: #9ca3af; text-decoration: none;">Unsubscribe</a> | 
@@ -186,10 +186,10 @@ function generateUpgradeNudgeEmail(userName: string, data?: Record<string, any>)
       
       <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
         <h2 style="color: #1a202c; margin: 0 0 15px 0;">Hi ${userName},</h2>
-        <p>You received <strong>${alertCount} alerts</strong> in the last 14 days. Essential delivers the signal; Starter explains the impact.</p>
+        <p>You received <strong>${alertCount} alerts</strong> in the last 14 days. Starter delivers the signal; Growth explains the impact.</p>
         
         <div style="background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #3b82f6;">
-          <h3 style="margin: 0 0 10px 0; color: #1e40af;">What you're missing with Starter:</h3>
+          <h3 style="margin: 0 0 10px 0; color: #1e40af;">What you're missing with Growth:</h3>
           <ul style="margin: 10px 0; padding-left: 20px; color: #374151;">
             <li><strong>AI-powered analysis</strong> - Understand what each alert means for your business</li>
             <li><strong>Mobile access</strong> - Stay informed anywhere with our mobile app</li>
@@ -201,10 +201,10 @@ function generateUpgradeNudgeEmail(userName: string, data?: Record<string, any>)
       </div>
 
       <div style="background: linear-gradient(135deg, #ddd6fe, #c4b5fd); padding: 25px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
-        <h3 style="margin: 0 0 15px 0; color: #5b21b6; font-size: 20px;">Upgrade to Starter</h3>
-        <div style="font-size: 32px; font-weight: bold; color: #5b21b6; margin-bottom: 5px;">$99<span style="font-size: 18px; font-weight: normal;">/month</span></div>
+        <h3 style="margin: 0 0 15px 0; color: #5b21b6; font-size: 20px;">Upgrade to Growth</h3>
+        <div style="font-size: 32px; font-weight: bold; color: #5b21b6; margin-bottom: 5px;">$349<span style="font-size: 18px; font-weight: normal;">/month</span></div>
         <p style="margin: 0 0 20px 0; color: #6d28d9;">7-day free trial • Cancel anytime</p>
-        <a href="${Deno.env.get('SITE_URL')}/pricing?upgrade=starter" style="display: inline-block; background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Upgrade Now</a>
+        <a href="${Deno.env.get('SITE_URL')}/pricing?upgrade=growth" style="display: inline-block; background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Upgrade Now</a>
       </div>
 
       <div style="text-align: center; margin: 20px 0;">
@@ -212,7 +212,7 @@ function generateUpgradeNudgeEmail(userName: string, data?: Record<string, any>)
       </div>
 
       <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center; color: #6b7280; font-size: 14px;">
-        <p>Still getting value from Essential Alerts? No problem—we'll keep delivering regulatory intelligence to your inbox.</p>
+        <p>Still getting value from Starter Plan? No problem—we'll keep delivering regulatory intelligence to your inbox.</p>
         <p style="margin-top: 15px;">
           <a href="${Deno.env.get('SITE_URL')}/unsubscribe" style="color: #9ca3af; text-decoration: none;">Unsubscribe</a> | 
           <a href="${Deno.env.get('SITE_URL')}/settings/emails" style="color: #9ca3af; text-decoration: none;">Email Preferences</a>

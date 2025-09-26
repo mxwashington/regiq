@@ -125,7 +125,7 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id') // Only select columns that exist for now
+        .select('user_id, is_admin, role, permissions') // Include admin fields
         .eq('user_id', userId)
         .single();
 
@@ -199,11 +199,19 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
     if (profileData) {
       setState(prev => ({
         ...prev,
-        isAdmin: false, // Default to false until schema is fixed
-        adminRole: null,
-        adminPermissions: [],
-        subscribed: false,
-        subscriptionTier: 'trial',
+        isAdmin: Boolean(profileData.is_admin),
+        adminRole: profileData.role || null,
+        adminPermissions: Array.isArray(profileData.permissions) ? profileData.permissions : [],
+        subscribed: true, // Enable subscribed status for all authenticated users
+        subscriptionTier: profileData.subscription_tier || 'growth', // Default to growth for trial users
+        subscriptionEnd: profileData.subscription_end || null
+      }));
+    } else {
+      // If no profile data exists, still give authenticated users trial access
+      setState(prev => ({
+        ...prev,
+        subscribed: true,
+        subscriptionTier: 'growth', // Trial access for authenticated users
         subscriptionEnd: null
       }));
     }

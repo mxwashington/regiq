@@ -44,13 +44,39 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    if (customers.data.length === 0) {
-      throw new Error("No Stripe customer found for this user");
+    // Read request body if provided (optional)
+    let requestBody = {};
+    try {
+      const contentLength = req.headers.get("content-length");
+      if (contentLength && parseInt(contentLength) > 0) {
+        requestBody = await req.json();
+        logStep("Request body parsed", requestBody);
+      }
+    } catch (bodyError) {
+      logStep("No request body or failed to parse (continuing)", { error: bodyError.message });
     }
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
+
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+
+    // Try to find existing customer
+    let customerId: string;
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+
+    if (customers.data.length === 0) {
+      // Create a new customer if none exists
+      logStep("No Stripe customer found, creating new one");
+      const newCustomer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          supabase_user_id: user.id
+        }
+      });
+      customerId = newCustomer.id;
+      logStep("Created new Stripe customer", { customerId });
+    } else {
+      customerId = customers.data[0].id;
+      logStep("Found existing Stripe customer", { customerId });
+    }
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
     const portalSession = await stripe.billingPortal.sessions.create({
@@ -66,9 +92,24 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in customer-portal", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+
+    // Determine appropriate status code based on error type
+    let statusCode = 500;
+    if (errorMessage.includes("No authorization header") || errorMessage.includes("Authentication error")) {
+      statusCode = 401;
+    } else if (errorMessage.includes("User not authenticated")) {
+      statusCode = 403;
+    } else if (errorMessage.includes("STRIPE_SECRET_KEY")) {
+      statusCode = 500; // Internal server configuration error
+    }
+
+    return new Response(JSON.stringify({
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+      function: "customer-portal"
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: statusCode,
     });
   }
 });

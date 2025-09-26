@@ -114,7 +114,7 @@ export const FeaturePaywall: React.FC<FeaturePaywallProps> = ({
       <Card className="max-w-md mx-auto border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
         <CardHeader className="text-center pb-4">
           <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-800 mb-4">
-            Essential Alerts
+            Starter Plan
           </Badge>
           <div className="flex items-center justify-center space-x-2 mb-2">
             <div className="text-orange-600">
@@ -146,7 +146,7 @@ export const FeaturePaywall: React.FC<FeaturePaywallProps> = ({
             disabled={loading}
             className="w-full bg-orange-600 hover:bg-orange-700 text-white"
           >
-            {loading ? 'Processing...' : 'Upgrade to Essential Alerts'}
+            {loading ? 'Processing...' : 'Upgrade to Starter Plan'}
           </Button>
         </CardContent>
       </Card>
@@ -160,7 +160,7 @@ export const FeaturePaywall: React.FC<FeaturePaywallProps> = ({
           <CardHeader className="text-center pb-4">
             <div className="flex justify-between items-start mb-4">
               <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700">
-                Essential Alerts
+                Starter Plan
               </Badge>
               <Button 
                 variant="ghost" 
@@ -201,7 +201,7 @@ export const FeaturePaywall: React.FC<FeaturePaywallProps> = ({
               disabled={loading}
               className="w-full bg-orange-600 hover:bg-orange-700 text-white"
             >
-              {loading ? 'Processing...' : 'Upgrade to Essential Alerts'}
+              {loading ? 'Processing...' : 'Upgrade to Starter Plan'}
             </Button>
           </CardContent>
         </Card>

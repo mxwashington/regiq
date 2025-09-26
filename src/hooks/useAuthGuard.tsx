@@ -24,7 +24,7 @@ export const useAuthGuard = (requireAdmin = false) => {
 
     // For admins, redirect to admin dashboard by default
     if (!requireAdmin && isAdmin && window.location.pathname === '/dashboard') {
-      navigate('/admin/dashboard');
+      navigate('/admin');
       return;
     }
   }, [user, isAdmin, loading, requireAdmin, navigate]);
