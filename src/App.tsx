@@ -127,8 +127,7 @@ const PWAApp = () => {
     <>
       <Toaster />
       <Sonner />
-      <EnhancedAuthHandler />
-      
+
       <PWAInstallPrompt />
       <AIAccessProvider>
         <BrowserRouter>
@@ -259,6 +258,7 @@ const App = () => (
       <EnhancedSecurityHeaders />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <EnhancedAuthHandler />
           <SecurityProvider>
             <DemoProvider>
               <TooltipProvider>
