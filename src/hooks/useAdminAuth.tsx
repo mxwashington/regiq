@@ -1,4 +1,4 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SafeAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 import { logger } from '@/lib/logger';
