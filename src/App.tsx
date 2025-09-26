@@ -8,7 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { EnhancedSecurityHeaders } from "@/components/EnhancedSecurityHeaders";
 import { EnhancedAuthHandler } from "@/components/EnhancedAuthHandler";
 import { AIAccessProvider } from "@/components/AIAccessProvider";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { SafeAuthProvider as AuthProvider } from "@/contexts/SafeAuthContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { SecurityProvider } from "@/components/SecurityProvider";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -25,6 +25,8 @@ import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 
 // Lazy load pages for better performance with error boundaries
 const Debug = React.lazy(() => import("./pages/Debug").catch(() => ({ default: () => <div>Debug unavailable</div> })));
+const DebugAuth = React.lazy(() => import("./pages/DebugAuth").catch(() => ({ default: () => <div>Auth debug unavailable</div> })));
+const EmergencyAlerts = React.lazy(() => import("./components/EmergencyAlertsDashboard").then(m => ({ default: m.EmergencyAlertsDashboard })).catch(() => ({ default: () => <div>Emergency alerts unavailable</div> })));
 const Landing = React.lazy(() => import("./pages/Landing").catch(() => ({ default: () => <div>Landing unavailable</div> })));
 const UserDashboard = React.lazy(() => import("./pages/UserDashboard").catch(() => ({ default: () => <div>Dashboard unavailable</div> })));
 const Auth = React.lazy(() => import("./pages/Auth").catch(() => ({ default: () => <div>Auth unavailable</div> })));
@@ -235,6 +237,8 @@ const PWAApp = () => {
               {/* Other pages */}
               <Route path="/legal" element={<LegalFramework />} />
               <Route path="/debug" element={<Debug />} />
+              <Route path="/debug-auth" element={<DebugAuth />} />
+              <Route path="/emergency-alerts" element={<EmergencyAlerts />} />
               <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
