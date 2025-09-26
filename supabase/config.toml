@@ -25,7 +25,6 @@ pop3_port = 54326
 
 [realtime]
 enabled = true
-ip_version = "IPv4"
 
 [storage]
 enabled = true
@@ -34,12 +33,10 @@ image_transformation.enabled = true
 
 [edge_runtime]
 enabled = true
-ip_version = "IPv4"
 
 [auth]
 enabled = true
 enable_signup = true
-enable_confirmations = false
 
 [functions.data-gov-search]
 verify_jwt = false
@@ -52,6 +49,12 @@ verify_jwt = false
 
 [functions.public-api]
 verify_jwt = false
+
+[functions.sync-alerts]
+verify_jwt = false
+
+[functions.sync-alerts.scheduler]
+schedule = "0 * * * *"
 
 [auth.external.apple]
 enabled = false

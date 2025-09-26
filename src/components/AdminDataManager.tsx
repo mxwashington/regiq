@@ -15,7 +15,7 @@ import {
   Calendar,
   RefreshCw
 } from 'lucide-react';
-import { alertSyncService, AlertSyncResult } from '@/services/AlertSyncService';
+import { comprehensiveAlertSyncService } from '@/services/ComprehensiveAlertSyncService';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
@@ -26,10 +26,22 @@ interface SyncStatus {
   recentAlerts: number;
 }
 
+interface SyncResult {
+  source: string;
+  success: boolean;
+  startTime: Date;
+  endTime: Date;
+  alertsFetched: number;
+  alertsInserted: number;
+  alertsUpdated: number;
+  alertsSkipped: number;
+  errors: string[];
+}
+
 export const AdminDataManager: React.FC = () => {
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [loading, setLoading] = useState(false);
-  const [syncResults, setSyncResults] = useState<AlertSyncResult[]>([]);
+  const [syncResults, setSyncResults] = useState<SyncResult[]>([]);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
 
   useEffect(() => {
@@ -39,7 +51,7 @@ export const AdminDataManager: React.FC = () => {
   const loadSyncStatus = async () => {
     try {
       setIsLoadingStatus(true);
-      const status = await alertSyncService.getSyncStatus();
+      const status = await comprehensiveAlertSyncService.getSyncStatus();
       setSyncStatus(status);
       logger.info('[AdminDataManager] Sync status loaded:', status);
     } catch (error) {
@@ -47,6 +59,47 @@ export const AdminDataManager: React.FC = () => {
       toast.error('Failed to load data sync status');
     } finally {
       setIsLoadingStatus(false);
+    }
+  };
+
+  // Manual sync via API endpoint
+  const handleManualSync = async () => {
+    setLoading(true);
+    setSyncResults([]);
+
+    try {
+      logger.info('[AdminDataManager] Starting manual API sync');
+      toast.info('Starting data sync from all sources...');
+
+      const response = await fetch('/api/admin/sync-alerts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sinceDays: 1 }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Sync request failed');
+      }
+
+      if (data.success) {
+        setSyncResults(data.results || []);
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+
+      // Refresh status after sync
+      await loadSyncStatus();
+
+    } catch (error) {
+      logger.error('[AdminDataManager] Manual sync failed:', error);
+      toast.error(`Manual sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,16 +111,16 @@ export const AdminDataManager: React.FC = () => {
       logger.info('[AdminDataManager] Starting comprehensive data sync');
       toast.info('Starting data sync from all sources...');
 
-      const results = await alertSyncService.syncAllSources(30);
+      const results = await comprehensiveAlertSyncService.syncAllSources(30);
       setSyncResults(results);
 
-      const totalImported = results.reduce((sum, r) => sum + r.alertsImported, 0);
+      const totalImported = results.reduce((sum, r) => sum + r.alertsInserted + r.alertsUpdated, 0);
       const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
 
       if (totalErrors === 0) {
-        toast.success(`Successfully imported ${totalImported} alerts from all sources`);
+        toast.success(`Successfully processed ${totalImported} alerts from all sources`);
       } else {
-        toast.warning(`Imported ${totalImported} alerts with ${totalErrors} errors`);
+        toast.warning(`Processed ${totalImported} alerts with ${totalErrors} errors`);
       }
 
       // Refresh status after sync
@@ -75,7 +128,7 @@ export const AdminDataManager: React.FC = () => {
 
     } catch (error) {
       logger.error('[AdminDataManager] Sync failed:', error);
-      toast.error(`Data sync failed: ${error}`);
+      toast.error(`Data sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -251,12 +304,32 @@ export const AdminDataManager: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="all" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="manual" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="manual">Manual Sync</TabsTrigger>
               <TabsTrigger value="all">All Sources</TabsTrigger>
               <TabsTrigger value="fda">FDA Food</TabsTrigger>
               <TabsTrigger value="fsis">USDA FSIS</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="manual" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Manual Sync (Recommended)</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Trigger an immediate sync of recent alerts from all sources using the admin API
+                  </p>
+                </div>
+                <Button
+                  onClick={handleManualSync}
+                  disabled={loading}
+                  className="gap-2"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
+                  Sync Now
+                </Button>
+              </div>
+            </TabsContent>
 
             <TabsContent value="all" className="space-y-4">
               <div className="flex items-center justify-between">
@@ -338,7 +411,7 @@ export const AdminDataManager: React.FC = () => {
                     <div>
                       <div className="font-medium">{result.source}</div>
                       <div className="text-sm text-muted-foreground">
-                        {result.alertsImported} alerts imported
+                        {result.alertsInserted || result.alertsImported || 0} inserted, {result.alertsUpdated || 0} updated
                         {result.errors.length > 0 && `, ${result.errors.length} errors`}
                       </div>
                     </div>

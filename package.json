@@ -8,7 +8,13 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "backfill:alerts": "tsx scripts/backfill-last-30-days.ts",
+    "seed:alerts": "tsx scripts/seed-sample-alerts.ts",
+    "sync:hourly": "tsx scripts/backfill-last-30-days.ts --days=1",
+    "test": "vitest run",
+    "smoke:clients": "tsx scripts/smoke-fetch.ts",
+    "smoke:pipeline": "tsx scripts/smoke-pipeline.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
