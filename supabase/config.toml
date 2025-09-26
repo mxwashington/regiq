@@ -8,7 +8,6 @@ extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-enabled = true
 port = 54322
 shadow_port = 54320
 major_version = 15
@@ -26,22 +25,21 @@ pop3_port = 54326
 
 [realtime]
 enabled = true
-ip_version = "ipv4"
+ip_version = "IPv4"
 
 [storage]
 enabled = true
 file_size_limit = "50MiB"
-image_transformation = "enabled"
+image_transformation.enabled = true
 
 [edge_runtime]
 enabled = true
-ip_version = "ipv4"
+ip_version = "IPv4"
 
 [auth]
 enabled = true
-external_anonymous_users_enabled = true
-disable_signup = false
-auto_confirm_email = true
+enable_signup = true
+enable_confirmations = false
 
 [functions.data-gov-search]
 verify_jwt = false

@@ -50,7 +50,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
         logger.info('[useSimpleAlerts] Testing database connection...');
         const { error: pingError } = await supabase
           .from('alerts')
-          .select('count')
+          .select('*', { count: 'exact', head: true })
           .limit(0);
 
         if (pingError) {

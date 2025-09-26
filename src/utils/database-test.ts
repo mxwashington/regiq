@@ -20,9 +20,9 @@ export const testDatabaseConnectivity = async () => {
 
     // Test 2: Basic query (should work without auth)
     try {
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from('alerts')
-        .select('count(*)', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true });
 
       if (error) {
         results.errors.push(`Basic query error: ${error.message}`);
@@ -51,9 +51,9 @@ export const testDatabaseConnectivity = async () => {
 
     // Test 4: Profiles table access (requires auth)
     try {
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from('profiles')
-        .select('count(*)', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true });
 
       if (error) {
         results.errors.push(`Profiles table error: ${error.message}`);

@@ -40,9 +40,9 @@ export const debugRegIQ = async (): Promise<DebugInfo> => {
     // 3. Test basic database connection
     logger.info('3. Testing database connection...');
     try {
-      const { data: connectionTest, error: connectionError } = await supabase
+      const { count: connectionTest, error: connectionError } = await supabase
         .from('alerts')
-        .select('count')
+        .select('*', { count: 'exact', head: true })
         .limit(0);
       
       if (connectionError) {

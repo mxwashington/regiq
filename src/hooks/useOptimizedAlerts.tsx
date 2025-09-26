@@ -54,7 +54,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
       // Test connection
       const { error: pingError } = await supabase
         .from('alerts')
-        .select('count')
+        .select('*', { count: 'exact', head: true })
         .limit(0);
 
       if (pingError) {
