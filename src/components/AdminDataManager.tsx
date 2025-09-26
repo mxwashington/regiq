@@ -15,7 +15,6 @@ import {
   Calendar,
   RefreshCw
 } from 'lucide-react';
-import { comprehensiveAlertSyncService } from '@/services/ComprehensiveAlertSyncService';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
@@ -51,9 +50,15 @@ export const AdminDataManager: React.FC = () => {
   const loadSyncStatus = async () => {
     try {
       setIsLoadingStatus(true);
-      const status = await comprehensiveAlertSyncService.getSyncStatus();
-      setSyncStatus(status);
-      logger.info('[AdminDataManager] Sync status loaded:', status);
+      const response = await fetch('/api/admin/sync-status');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to load sync status');
+      }
+
+      setSyncStatus(data);
+      logger.info('[AdminDataManager] Sync status loaded:', data);
     } catch (error) {
       logger.error('[AdminDataManager] Failed to load sync status:', error);
       toast.error('Failed to load data sync status');
@@ -111,16 +116,34 @@ export const AdminDataManager: React.FC = () => {
       logger.info('[AdminDataManager] Starting comprehensive data sync');
       toast.info('Starting data sync from all sources...');
 
-      const results = await comprehensiveAlertSyncService.syncAllSources(30);
-      setSyncResults(results);
+      const response = await fetch('/api/admin/sync-all', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sinceDays: 30 }),
+      });
 
-      const totalImported = results.reduce((sum, r) => sum + r.alertsInserted + r.alertsUpdated, 0);
-      const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
+      const data = await response.json();
 
-      if (totalErrors === 0) {
-        toast.success(`Successfully processed ${totalImported} alerts from all sources`);
+      if (!response.ok) {
+        throw new Error(data.message || 'Sync request failed');
+      }
+
+      if (data.success) {
+        const results = data.results || [];
+        setSyncResults(results);
+
+        const totalImported = results.reduce((sum: number, r: any) => sum + r.alertsInserted + r.alertsUpdated, 0);
+        const totalErrors = results.reduce((sum: number, r: any) => sum + r.errors.length, 0);
+
+        if (totalErrors === 0) {
+          toast.success(`Successfully processed ${totalImported} alerts from all sources`);
+        } else {
+          toast.warning(`Processed ${totalImported} alerts with ${totalErrors} errors`);
+        }
       } else {
-        toast.warning(`Processed ${totalImported} alerts with ${totalErrors} errors`);
+        toast.error(data.message);
       }
 
       // Refresh status after sync
@@ -141,20 +164,32 @@ export const AdminDataManager: React.FC = () => {
       logger.info('[AdminDataManager] Starting FDA data sync');
       toast.info('Starting FDA Food alerts sync...');
 
-      const result = await alertSyncService.syncFDAFoodAlerts(30);
-      setSyncResults([result]);
+      const response = await fetch('/api/admin/sync-fda', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sinceDays: 30 }),
+      });
 
-      if (result.success) {
-        toast.success(`Successfully imported ${result.alertsImported} FDA alerts`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'FDA sync request failed');
+      }
+
+      if (data.success) {
+        setSyncResults(data.results ? [data.results] : []);
+        toast.success(`Successfully imported ${data.results?.alertsInserted || 0} FDA alerts`);
       } else {
-        toast.error(`FDA sync failed: ${result.errors.join(', ')}`);
+        toast.error(`FDA sync failed: ${data.message}`);
       }
 
       await loadSyncStatus();
 
     } catch (error) {
       logger.error('[AdminDataManager] FDA sync failed:', error);
-      toast.error(`FDA sync failed: ${error}`);
+      toast.error(`FDA sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -167,26 +202,38 @@ export const AdminDataManager: React.FC = () => {
       logger.info('[AdminDataManager] Starting FSIS data sync');
       toast.info('Starting USDA FSIS alerts sync...');
 
-      const result = await alertSyncService.syncFSISAlerts(30);
-      setSyncResults([result]);
+      const response = await fetch('/api/admin/sync-fsis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sinceDays: 30 }),
+      });
 
-      if (result.success) {
-        toast.success(`Successfully imported ${result.alertsImported} FSIS alerts`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'FSIS sync request failed');
+      }
+
+      if (data.success) {
+        setSyncResults(data.results ? [data.results] : []);
+        toast.success(`Successfully imported ${data.results?.alertsInserted || 0} FSIS alerts`);
       } else {
-        toast.error(`FSIS sync failed: ${result.errors.join(', ')}`);
+        toast.error(`FSIS sync failed: ${data.message}`);
       }
 
       await loadSyncStatus();
 
     } catch (error) {
       logger.error('[AdminDataManager] FSIS sync failed:', error);
-      toast.error(`FSIS sync failed: ${error}`);
+      toast.error(`FSIS sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const getSyncResultIcon = (result: AlertSyncResult) => {
+  const getSyncResultIcon = (result: SyncResult) => {
     if (result.success) {
       return <CheckCircle className="w-4 h-4 text-green-500" />;
     } else {
@@ -194,7 +241,7 @@ export const AdminDataManager: React.FC = () => {
     }
   };
 
-  const getSyncResultBadge = (result: AlertSyncResult) => {
+  const getSyncResultBadge = (result: SyncResult) => {
     if (result.success) {
       return <Badge className="bg-green-100 text-green-800">Success</Badge>;
     } else {
@@ -411,7 +458,7 @@ export const AdminDataManager: React.FC = () => {
                     <div>
                       <div className="font-medium">{result.source}</div>
                       <div className="text-sm text-muted-foreground">
-                        {result.alertsInserted || result.alertsImported || 0} inserted, {result.alertsUpdated || 0} updated
+                        {result.alertsInserted || 0} inserted, {result.alertsUpdated || 0} updated
                         {result.errors.length > 0 && `, ${result.errors.length} errors`}
                       </div>
                     </div>
