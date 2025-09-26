@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useEnhancedSecurity } from '@/hooks/useEnhancedSecurity';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SafeAuthContext';
 
 export const EnhancedAuthHandler: React.FC = () => {
   const { user } = useAuth();
