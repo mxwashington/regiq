@@ -3,8 +3,35 @@ import { Helmet } from 'react-helmet-async';
 import { CustomAlertRules } from '@/components/CustomAlertRules';
 import { BackButton } from '@/components/BackButton';
 import { Mail, Bell } from 'lucide-react';
+import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
+import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
 
 const CustomAlerts: React.FC = () => {
+  const { checkFeatureAccess } = usePlanRestrictions();
+
+  if (!checkFeatureAccess('regulatory_impact_analysis')) {
+    return (
+      <>
+        <Helmet>
+          <title>Custom Alert Rules | RegIQ</title>
+          <meta name="description" content="Create custom email alerts for specific terms and get notified when new regulatory alerts match your interests." />
+          <link rel="canonical" href="https://regiq.com/custom-alerts" />
+        </Helmet>
+
+        <main className="container mx-auto p-4">
+          <div className="mb-4">
+            <BackButton fallback="/dashboard" />
+          </div>
+
+          <FeaturePaywall
+            feature="regulatory_impact_analysis"
+            context="Custom alert rules with advanced filtering and notifications require a Professional plan."
+          />
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -12,7 +39,7 @@ const CustomAlerts: React.FC = () => {
         <meta name="description" content="Create custom email alerts for specific terms and get notified when new regulatory alerts match your interests." />
         <link rel="canonical" href="https://regiq.com/custom-alerts" />
       </Helmet>
-      
+
       <main className="container mx-auto p-4">
         <div className="mb-4">
           <BackButton fallback="/dashboard" />

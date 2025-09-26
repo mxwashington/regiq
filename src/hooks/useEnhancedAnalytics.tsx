@@ -35,12 +35,17 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
 
   const fetchAnalyticsOverview = async () => {
     try {
+      logger.info('Fetching analytics overview for', daysBack, 'days');
       const { data, error } = await supabase.rpc('get_analytics_overview', { days_back: daysBack });
-      
-      if (error) throw error;
-      
+
+      if (error) {
+        logger.error('RPC error:', error);
+        throw error;
+      }
+
       if (data && data.length > 0) {
         const result = data[0];
+        logger.info('Analytics overview data received:', result);
         setOverview({
           total_page_views: Number(result.total_page_views) || 0,
           unique_visitors: Number(result.unique_visitors) || 0,
@@ -50,19 +55,42 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
           user_growth: Array.isArray(result.user_growth) ? result.user_growth as Array<{ date: string; new_users: number }> : [],
           device_breakdown: Array.isArray(result.device_breakdown) ? result.device_breakdown as Array<{ device: string; count: number }> : []
         });
+      } else {
+        logger.warn('No analytics data returned, using defaults');
+        // Set default empty data instead of failing
+        setOverview({
+          total_page_views: 0,
+          unique_visitors: 0,
+          avg_session_duration: 0,
+          bounce_rate: 0,
+          top_pages: [],
+          user_growth: [],
+          device_breakdown: []
+        });
       }
     } catch (err) {
       logger.error('Error fetching analytics overview:', err);
-      setError('Failed to fetch analytics overview');
+      setError('Failed to fetch analytics overview: ' + (err as Error).message);
+      // Set default data even on error
+      setOverview({
+        total_page_views: 0,
+        unique_visitors: 0,
+        avg_session_duration: 0,
+        bounce_rate: 0,
+        top_pages: [],
+        user_growth: [],
+        device_breakdown: []
+      });
     }
   };
 
   const fetchAlertAnalytics = async () => {
     try {
+      logger.info('Fetching alert analytics for', daysBack, 'days');
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysBack);
 
-      // Get alert interaction stats
+      // Get alert interaction stats with better error handling
       const { data: interactionData, error: interactionError } = await supabase
         .from('alert_interactions')
         .select(`
@@ -72,35 +100,40 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
         `)
         .gte('created_at', cutoffDate.toISOString());
 
-      if (interactionError) throw interactionError;
+      if (interactionError) {
+        logger.error('Alert interactions query error:', interactionError);
+        // Don't throw immediately, try to get some data
+      }
 
       // Process the data
       const interactionBreakdown: Record<string, number> = {};
       const alertViewCounts: Record<string, { title: string; views: number; alert_id: string }> = {};
       const sourceCounts: Record<string, number> = {};
 
-      interactionData?.forEach(interaction => {
-        // Count interaction types
-        interactionBreakdown[interaction.interaction_type] = 
-          (interactionBreakdown[interaction.interaction_type] || 0) + 1;
+      if (interactionData && interactionData.length > 0) {
+        interactionData.forEach(interaction => {
+          // Count interaction types
+          interactionBreakdown[interaction.interaction_type] =
+            (interactionBreakdown[interaction.interaction_type] || 0) + 1;
 
-        // Count alert views
-        if (interaction.interaction_type === 'view' && interaction.alerts) {
-          const alertId = interaction.alert_id;
-          if (!alertViewCounts[alertId]) {
-            alertViewCounts[alertId] = {
-              title: interaction.alerts.title,
-              views: 0,
-              alert_id: alertId
-            };
+          // Count alert views
+          if (interaction.interaction_type === 'view' && interaction.alerts) {
+            const alertId = interaction.alert_id;
+            if (!alertViewCounts[alertId]) {
+              alertViewCounts[alertId] = {
+                title: interaction.alerts.title,
+                views: 0,
+                alert_id: alertId
+              };
+            }
+            alertViewCounts[alertId].views++;
+
+            // Count source interactions
+            const source = interaction.alerts.source;
+            sourceCounts[source] = (sourceCounts[source] || 0) + 1;
           }
-          alertViewCounts[alertId].views++;
-
-          // Count source interactions
-          const source = interaction.alerts.source;
-          sourceCounts[source] = (sourceCounts[source] || 0) + 1;
-        }
-      });
+        });
+      }
 
       const mostViewedAlerts = Object.values(alertViewCounts)
         .sort((a, b) => b.views - a.views)
@@ -116,14 +149,24 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
         interaction_breakdown: interactionBreakdown,
         top_sources: topSources
       });
+
+      logger.info('Alert analytics processed successfully');
     } catch (err) {
       logger.error('Error fetching alert analytics:', err);
-      setError('Failed to fetch alert analytics');
+      setError('Failed to fetch alert analytics: ' + (err as Error).message);
+      // Set default data even on error
+      setAlertAnalytics({
+        total_alert_views: 0,
+        most_viewed_alerts: [],
+        interaction_breakdown: {},
+        top_sources: []
+      });
     }
   };
 
   const fetchSearchAnalytics = async () => {
     try {
+      logger.info('Fetching search analytics for', daysBack, 'days');
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysBack);
 
@@ -132,17 +175,21 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
         .select('*')
         .gte('created_at', cutoffDate.toISOString());
 
-      if (searchError) throw searchError;
+      if (searchError) {
+        logger.error('Search analytics query error:', searchError);
+      }
 
       const queryCount: Record<string, number> = {};
       const typeCount: Record<string, number> = {};
       let totalResults = 0;
 
-      searchData?.forEach(search => {
-        queryCount[search.search_query] = (queryCount[search.search_query] || 0) + 1;
-        typeCount[search.search_type || 'general'] = (typeCount[search.search_type || 'general'] || 0) + 1;
-        totalResults += search.results_count || 0;
-      });
+      if (searchData && searchData.length > 0) {
+        searchData.forEach(search => {
+          queryCount[search.search_query] = (queryCount[search.search_query] || 0) + 1;
+          typeCount[search.search_type || 'general'] = (typeCount[search.search_type || 'general'] || 0) + 1;
+          totalResults += search.results_count || 0;
+        });
+      }
 
       const topQueries = Object.entries(queryCount)
         .map(([query, count]) => ({ query, count }))
@@ -155,9 +202,18 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
         top_queries: topQueries,
         search_types: typeCount
       });
+
+      logger.info('Search analytics processed successfully');
     } catch (err) {
       logger.error('Error fetching search analytics:', err);
-      setError('Failed to fetch search analytics');
+      setError('Failed to fetch search analytics: ' + (err as Error).message);
+      // Set default data even on error
+      setSearchAnalytics({
+        total_searches: 0,
+        avg_results_count: 0,
+        top_queries: [],
+        search_types: {}
+      });
     }
   };
 

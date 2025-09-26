@@ -53,7 +53,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
 
       // Test connection
       const { error: pingError } = await supabase
-        .from('alerts')
+        .from('alerts_filtered')
         .select('count')
         .limit(0);
 
@@ -63,7 +63,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
 
       // Build query
       let query = supabase
-        .from('alerts')
+        .from('alerts_filtered')
         .select(`
           id,
           title,
@@ -72,7 +72,10 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
           source,
           published_date,
           external_url,
-          dismissed_by
+          dismissed_by,
+          ai_summary,
+          urgency_score,
+          full_content
         `, { count: 'exact' })
         .order('published_date', { ascending: false });
 
@@ -171,7 +174,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
       if (!lastAlert) return;
 
       let query = supabase
-        .from('alerts')
+        .from('alerts_filtered')
         .select(`
           id,
           title,
@@ -180,7 +183,10 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
           source,
           published_date,
           external_url,
-          dismissed_by
+          dismissed_by,
+          ai_summary,
+          urgency_score,
+          full_content
         `)
         .order('published_date', { ascending: false })
         .lt('published_date', lastAlert.published_date);

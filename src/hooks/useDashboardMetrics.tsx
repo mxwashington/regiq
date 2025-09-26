@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { logger } from '@/lib/logger';
 interface DashboardMetrics {
@@ -16,6 +17,7 @@ interface DashboardMetrics {
 }
 
 export const useDashboardMetrics = () => {
+  const { isAdmin } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,52 @@ export const useDashboardMetrics = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch total users
+        logger.info('Fetching dashboard metrics, user is admin:', isAdmin);
+
+        // Use the new function for quick dashboard stats if available, with fallback
+        try {
+          const { data: quickStats, error: quickStatsError } = await supabase.rpc('get_quick_dashboard_stats');
+
+          if (!quickStatsError && quickStats) {
+            logger.info('Using quick dashboard stats:', quickStats);
+            // Convert quick stats format to metrics format
+            setMetrics({
+              totalUsers: quickStats.users?.total || 0,
+              activeUsers: quickStats.users?.total || 0, // Fallback if no active user tracking
+              monthlyUsers: quickStats.users?.new_this_week || 0,
+              totalAlerts: quickStats.alerts?.total || 0,
+              alertEngagement: quickStats.activity?.events_today || 0,
+              userGrowthPercent: 0, // Calculate if needed
+              alertsBySource: [],
+              userSignupsOverTime: [],
+              dailyActiveUsers: [],
+              monthlyActiveUsers: []
+            });
+            return;
+          }
+        } catch (quickError) {
+          logger.warn('Quick stats not available, falling back to manual queries:', quickError);
+        }
+
+        // Fallback to manual queries with proper permissions
+        // For non-admin users, show limited data or redirect
+        if (!isAdmin) {
+          setMetrics({
+            totalUsers: 0,
+            activeUsers: 0,
+            monthlyUsers: 0,
+            totalAlerts: 0,
+            alertEngagement: 0,
+            userGrowthPercent: 0,
+            alertsBySource: [],
+            userSignupsOverTime: [],
+            dailyActiveUsers: [],
+            monthlyActiveUsers: []
+          });
+          return;
+        }
+
+        // Fetch total users (admin only)
         const { count: totalUsers } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true });
@@ -61,9 +108,9 @@ export const useDashboardMetrics = () => {
           .select('event_type, created_at')
           .eq('event_type', 'alert_view');
 
-        // Fetch alerts by source
+        // Fetch alerts by source using the filtered view for better security
         const { data: alertsData } = await supabase
-          .from('alerts')
+          .from('alerts_filtered')
           .select('source');
 
         const alertsBySource = alertsData?.reduce((acc: any[], alert) => {
@@ -172,7 +219,21 @@ export const useDashboardMetrics = () => {
 
       } catch (err) {
         logger.error('Error fetching dashboard metrics:', err);
-        setError('Failed to load metrics');
+        setError(`Failed to load metrics: ${(err as Error).message}`);
+
+        // Set default metrics on error to prevent blank dashboard
+        setMetrics({
+          totalUsers: 0,
+          activeUsers: 0,
+          monthlyUsers: 0,
+          totalAlerts: 0,
+          alertEngagement: 0,
+          userGrowthPercent: 0,
+          alertsBySource: [],
+          userSignupsOverTime: [],
+          dailyActiveUsers: [],
+          monthlyActiveUsers: []
+        });
       } finally {
         setLoading(false);
       }

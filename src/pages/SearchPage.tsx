@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
+import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
 import { RegulatorySearch } from '@/components/RegulatorySearch';
 import { FDASearch } from '@/components/FDASearch';
 import { CombinedSearch } from '@/components/CombinedSearch';
@@ -39,6 +41,7 @@ export default function SearchPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { trackInteraction } = useAnalytics();
+  const { checkFeatureAccess } = usePlanRestrictions();
   const { executeQuery, results, loading: filterLoading, error, totalResults } = useSourceFilters();
   const [showFilters, setShowFilters] = React.useState(false);
   const [activeQuery, setActiveQuery] = React.useState<FilterQuery | null>(null);
@@ -48,6 +51,17 @@ export default function SearchPage() {
       navigate('/auth');
     }
   }, [user, loading, navigate]);
+
+  if (!checkFeatureAccess('advanced_filters')) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <FeaturePaywall
+          feature="advanced_filters"
+          context="Advanced search capabilities including regulatory databases, CFR search, and professional analytics tools require a Professional plan."
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -289,39 +303,7 @@ export default function SearchPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Note: All features are now free */}
-        {false && (
-          <Card className="mt-8 border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Zap className="h-5 w-5 text-primary" />
-                <span>Unlock More Searches</span>
-              </CardTitle>
-              <CardDescription>
-                Get unlimited regulatory intelligence with a RegIQ subscription
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-4 mb-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">25</div>
-                  <div className="text-sm text-muted-foreground">Starter Plan</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">100</div>
-                  <div className="text-sm text-muted-foreground">Professional Plan</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">500</div>
-                  <div className="text-sm text-muted-foreground">Enterprise Plan</div>
-                </div>
-              </div>
-              <Button className="w-full" onClick={() => navigate('/subscription')}>
-                Upgrade Your Plan
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        {/* Upgrade features are now handled by subscription enforcement */}
       </div>
     </div>
   );

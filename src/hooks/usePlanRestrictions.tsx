@@ -1,32 +1,78 @@
 import { logger } from '@/lib/logger';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 import { useState, useEffect } from 'react';
 
 export const usePlanRestrictions = () => {
+  const { user, isAdmin } = useAuth();
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Mock subscription check - replace with real Supabase integration
+  // Subscription check with admin bypass
   useEffect(() => {
-    // This would integrate with your subscription system
     const checkSubscription = async () => {
       try {
-        // Mock tier detection - replace with actual Supabase check
-        setSubscriptionTier('starter'); // or 'professional', 'enterprise'
+        // Admin users get enterprise-level access
+        if (isAdmin) {
+          logger.info('User is admin, granting enterprise access');
+          setSubscriptionTier('enterprise');
+          setLoading(false);
+          return;
+        }
+
+        if (!user?.id) {
+          setSubscriptionTier('starter'); // Default for unauthenticated
+          setLoading(false);
+          return;
+        }
+
+        // Check actual subscription from profile
+        const { data: profile, error } = await supabase
+          .from('profiles_secure')
+          .select('subscription_tier, subscription_end')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          logger.error('Error fetching subscription:', error);
+          setSubscriptionTier('starter'); // Fallback
+        } else {
+          const currentDate = new Date();
+          const subscriptionEnd = profile?.subscription_end ? new Date(profile.subscription_end) : null;
+
+          // Check if subscription is active
+          const isSubscriptionActive = !subscriptionEnd || subscriptionEnd > currentDate;
+
+          if (profile?.subscription_tier && isSubscriptionActive) {
+            setSubscriptionTier(profile.subscription_tier);
+            logger.info('Active subscription detected:', profile.subscription_tier);
+          } else {
+            setSubscriptionTier('starter'); // Expired or no subscription
+            logger.info('No active subscription, using starter tier');
+          }
+        }
       } catch (error) {
         logger.error('Error checking subscription:', error);
+        setSubscriptionTier('starter'); // Safe fallback
       } finally {
         setLoading(false);
       }
     };
-    
+
     checkSubscription();
-  }, []);
+  }, [user, isAdmin]);
 
   const hasFeatureAccess = (featureName: string): boolean => {
+    // Admin users have access to all features
+    if (isAdmin) {
+      logger.info(`Admin user accessing feature: ${featureName}`);
+      return true;
+    }
+
     const featureMatrix = {
       compliance_assistant: ['professional', 'enterprise'],
-      regulatory_impact_analysis: ['professional', 'enterprise'], 
+      regulatory_impact_analysis: ['professional', 'enterprise'],
       supplier_risk_monitoring: ['professional', 'enterprise'],
       task_management: ['starter', 'professional', 'enterprise'],
       compliance_calendar: ['starter', 'professional', 'enterprise'],
@@ -35,6 +81,8 @@ export const usePlanRestrictions = () => {
       predictive_risk_modeling: ['enterprise'],
       api_access: ['enterprise'],
       custom_data_sources: ['enterprise'],
+      ai_assistant: ['starter', 'professional', 'enterprise'], // AI assistant for all tiers
+      ai_queries: ['starter', 'professional', 'enterprise'] // AI queries for all tiers
     };
 
     const allowedTiers = featureMatrix[featureName as keyof typeof featureMatrix] || [];
@@ -98,8 +146,14 @@ export const usePlanRestrictions = () => {
   };
 
   const checkUsageLimit = (featureName: string, currentUsage: number = 0): { allowed: boolean; message?: string; current_usage?: number; limit?: number } => {
+    // Admin users bypass all usage limits
+    if (isAdmin) {
+      logger.info(`Admin user bypassing usage limit for: ${featureName}`);
+      return { allowed: true, current_usage: currentUsage, limit: -1 };
+    }
+
     const limits = getPlanLimits();
-    
+
     switch (featureName) {
       case 'ai_queries':
         const limit = limits.ai_queries_per_month;

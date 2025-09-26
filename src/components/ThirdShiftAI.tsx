@@ -4,22 +4,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Brain, 
-  Send, 
-  AlertCircle, 
-  CheckCircle, 
+import {
+  Brain,
+  Send,
+  AlertCircle,
+  CheckCircle,
   Loader2,
-  RefreshCw 
+  RefreshCw
 } from 'lucide-react';
+import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
+import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
 
 import { logger } from '@/lib/logger';
 export function ThirdShiftAI() {
+  const { checkFeatureAccess } = usePlanRestrictions();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'error' | 'checking'>('connected');
+
+  if (!checkFeatureAccess('ai_assistant')) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <FeaturePaywall
+          feature="ai_assistant"
+          context="ThirdShift AI assistant with advanced regulatory analysis requires an Enterprise plan."
+        />
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +51,9 @@ export function ThirdShiftAI() {
       // Simulate error for now (until API is fixed)
       throw new Error('ThirdShift AI service is currently unavailable. Please try again later.');
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error('ThirdShift AI error:', err);
-      setError(err.message || 'Failed to get AI response');
+      setError(err instanceof Error ? err.message : 'Failed to get AI response');
       setConnectionStatus('error');
     } finally {
       setLoading(false);

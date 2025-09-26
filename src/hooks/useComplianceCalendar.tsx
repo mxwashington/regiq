@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { logger } from '@/lib/logger';
 export interface ComplianceDeadline {
@@ -67,7 +68,18 @@ export const useComplianceCalendar = () => {
   const [deadlines, setDeadlines] = useState<ComplianceDeadline[]>([]);
   const [templates, setTemplates] = useState<ComplianceTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  interface ComplianceStats {
+    total_deadlines: number;
+    completed_deadlines: number;
+    upcoming_deadlines: number;
+    overdue_deadlines: number;
+    due_soon_deadlines: number;
+    completion_rate: number;
+  }
+
+  const [stats, setStats] = useState<ComplianceStats | null>(null);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   // Convert database deadline to typed deadline
   const convertDbDeadline = (dbDeadline: DeadlineFromDB): ComplianceDeadline => ({
@@ -78,16 +90,73 @@ export const useComplianceCalendar = () => {
   });
 
   // Fetch deadlines
-  const fetchDeadlines = async () => {
+  const fetchDeadlines = useCallback(async () => {
     try {
+      logger.info(`Fetching compliance deadlines for ${isAdmin ? 'admin' : 'regular'} user`);
+
+      // Try to fetch all deadlines first (works for admin users due to RLS policies)
       const { data, error } = await supabase
         .from('compliance_deadlines')
         .select('*')
         .order('deadline_date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        logger.error('Direct query failed, trying RPC function:', error);
+
+        // Fallback to RPC function if direct query fails
+        try {
+          const { data: rpcData, error: rpcError } = await supabase.rpc('get_upcoming_deadlines', {
+            days_ahead: 365 // Get deadlines for next year
+          });
+
+          if (rpcError) throw rpcError;
+
+          // Convert the function result to ComplianceDeadline format
+          const typedDeadlines = (rpcData || []).map((deadline: {
+            id: string;
+            title: string;
+            description?: string | null;
+            deadline_date: string;
+            deadline_time?: string | null;
+            agency: string;
+            regulation_reference?: string | null;
+            priority: string;
+            status: string;
+            user_id?: string;
+          }) => ({
+            id: deadline.id,
+            user_id: deadline.user_id || '',
+            title: deadline.title,
+            description: deadline.description,
+            deadline_date: deadline.deadline_date,
+            deadline_time: deadline.deadline_time,
+            agency: deadline.agency,
+            regulation_reference: deadline.regulation_reference,
+            facility_id: null,
+            priority: deadline.priority as ComplianceDeadline['priority'],
+            status: deadline.status as ComplianceDeadline['status'],
+            recurrence_type: 'none',
+            recurrence_interval: 1,
+            next_occurrence: null,
+            tags: null,
+            reminder_days: [7, 3, 1],
+            completion_date: null,
+            completion_notes: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }));
+          setDeadlines(typedDeadlines);
+          return;
+        } catch (rpcError) {
+          logger.error('RPC function also failed:', rpcError);
+        }
+
+        throw error; // Re-throw original error if both methods fail
+      }
+
       const typedDeadlines = (data || []).map(convertDbDeadline);
       setDeadlines(typedDeadlines);
+      logger.info(`Successfully loaded ${typedDeadlines.length} compliance deadlines`);
     } catch (error) {
       logger.error('Error fetching deadlines:', error);
       toast({
@@ -96,7 +165,7 @@ export const useComplianceCalendar = () => {
         variant: "destructive"
       });
     }
-  };
+  }, [isAdmin, toast]);
 
   // Fetch templates
   const fetchTemplates = async () => {
@@ -111,6 +180,26 @@ export const useComplianceCalendar = () => {
       setTemplates(data || []);
     } catch (error) {
       logger.error('Error fetching templates:', error);
+    }
+  };
+
+  // Fetch compliance statistics
+  const fetchStatistics = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_compliance_statistics');
+
+      if (error) {
+        logger.info('RPC statistics function not available, using client-side calculation:', error);
+        setStats(null);
+        return;
+      }
+
+      setStats(data);
+      logger.info('Successfully fetched server-side compliance statistics');
+    } catch (error) {
+      logger.error('Error fetching compliance statistics:', error);
+      // Fallback to client-side statistics calculation
+      setStats(null);
     }
   };
 
@@ -169,7 +258,7 @@ export const useComplianceCalendar = () => {
   // Update deadline
   const updateDeadline = async (deadlineId: string, updates: Partial<ComplianceDeadline>) => {
     try {
-      const updateData: any = { ...updates };
+      const updateData = { ...updates };
       
       const { data, error } = await supabase
         .from('compliance_deadlines')
@@ -293,6 +382,19 @@ export const useComplianceCalendar = () => {
 
   // Get deadline statistics
   const getDeadlineStats = () => {
+    // Use server-side statistics if available
+    if (stats) {
+      return {
+        total: stats.total_deadlines,
+        completed: stats.completed_deadlines,
+        upcoming: stats.upcoming_deadlines,
+        overdue: stats.overdue_deadlines,
+        dueSoon: stats.due_soon_deadlines,
+        completionRate: stats.completion_rate
+      };
+    }
+
+    // Fallback to client-side calculations
     const total = deadlines.length;
     const completed = deadlines.filter(d => d.status === 'completed').length;
     const upcoming = getUpcomingDeadlines().length;
@@ -312,12 +414,12 @@ export const useComplianceCalendar = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchDeadlines(), fetchTemplates()]);
+      await Promise.all([fetchDeadlines(), fetchTemplates(), fetchStatistics()]);
       setLoading(false);
     };
 
     loadData();
-  }, []);
+  }, [isAdmin, fetchDeadlines]);
 
   return {
     deadlines,

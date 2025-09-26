@@ -12,6 +12,10 @@ interface SimpleAlert {
   source: string;
   published_date: string;
   external_url?: string;
+  ai_summary?: string;
+  urgency_score?: number;
+  full_content?: string;
+  dismissed_by?: string[];
   isFallback?: boolean;
 }
 
@@ -45,7 +49,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
         // Test basic connection first
         logger.info('[useSimpleAlerts] Testing database connection...');
         const { error: pingError } = await supabase
-          .from('alerts')
+          .from('alerts_filtered')
           .select('count')
           .limit(0);
 
@@ -57,7 +61,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
 
         // Build query
         let query = supabase
-          .from('alerts')
+          .from('alerts_filtered')
           .select(`
             id,
             title,
@@ -66,7 +70,10 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
             source,
             published_date,
             external_url,
-            dismissed_by
+            dismissed_by,
+            ai_summary,
+            urgency_score,
+            full_content
           `, { count: 'exact' })
           .order('published_date', { ascending: false });
 
@@ -141,7 +148,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
       if (!lastAlert) return;
 
       let query = supabase
-        .from('alerts')
+        .from('alerts_filtered')
         .select(`
           id,
           title,
@@ -150,7 +157,10 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
           source,
           published_date,
           external_url,
-          dismissed_by
+          dismissed_by,
+          ai_summary,
+          urgency_score,
+          full_content
         `)
         .order('published_date', { ascending: false })
         .lt('published_date', lastAlert.published_date);

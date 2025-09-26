@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
+import { AdvancedSearchModal } from '@/components/AdvancedSearchModal';
 import { toast } from 'sonner';
 import { format, subDays } from 'date-fns';
 
@@ -35,6 +36,10 @@ interface Alert {
   published_date: string;
   external_url?: string;
   created_at: string;
+  ai_summary?: string;
+  urgency_score?: number;
+  full_content?: string;
+  dismissed_by?: string[];
 }
 
 export const AlertsOnlyDashboard: React.FC = () => {
@@ -47,6 +52,7 @@ export const AlertsOnlyDashboard: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedAgency, setSelectedAgency] = useState<string>('all');
   const [paywallFeature, setPaywallFeature] = useState<string | null>(null);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
   const historyDays = getFeatureValue('alert_history_days') || 30;
   const maxDailyAlerts = getFeatureValue('max_daily_alerts') || 50;
@@ -68,7 +74,7 @@ export const AlertsOnlyDashboard: React.FC = () => {
       const cutoffDate = subDays(new Date(), historyDays);
       
       const { data, error } = await supabase
-        .from('alerts')
+        .from('alerts_filtered')
         .select('*')
         .gte('published_date', cutoffDate.toISOString())
         .order('published_date', { ascending: false })
@@ -287,11 +293,15 @@ export const AlertsOnlyDashboard: React.FC = () => {
 
             <Button
               variant="outline"
-              onClick={() => handleFeatureClick('advanced_filters')}
+              onClick={() => {
+                if (handleFeatureClick('advanced_filters')) {
+                  setShowAdvancedSearch(true);
+                }
+              }}
               className="gap-2"
             >
               <Filter className="w-4 h-4" />
-              Advanced
+              Advanced Search
             </Button>
           </div>
         </CardHeader>
@@ -412,6 +422,12 @@ export const AlertsOnlyDashboard: React.FC = () => {
         onClose={() => setPaywallFeature(null)}
         feature={paywallFeature as any}
         context="Essential Alerts users get the core regulatory intelligence needed to stay compliant"
+      />
+
+      {/* Advanced Search Modal */}
+      <AdvancedSearchModal
+        isOpen={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
       />
     </div>
   );

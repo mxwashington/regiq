@@ -61,17 +61,40 @@ export const useAnalytics = () => {
         sessionId: sessionId.current 
       });
       
-      const { error } = await supabase.from('page_views').insert({
-        user_id: user?.id || null,
-        page_path: pagePath || location.pathname,
-        page_title: pageTitle || document.title,
-        referrer: document.referrer || null,
-        user_agent: navigator.userAgent,
-        session_id: sessionId.current,
-        viewport_width: window.innerWidth,
-        viewport_height: window.innerHeight,
-        load_time_ms: loadTime
-      });
+      // Try page_views table first, fall back to user_analytics
+      let error = null;
+      try {
+        const { error: pageViewError } = await supabase.from('page_views').insert({
+          user_id: user?.id || null,
+          page_path: pagePath || location.pathname,
+          page_title: pageTitle || document.title,
+          referrer: document.referrer || null,
+          user_agent: navigator.userAgent,
+          session_id: sessionId.current,
+          viewport_width: window.innerWidth,
+          viewport_height: window.innerHeight,
+          load_time_ms: loadTime
+        });
+        error = pageViewError;
+      } catch (tableError) {
+        // Fallback to user_analytics table if page_views doesn't exist
+        logger.info('page_views table not available, using user_analytics fallback');
+        const { error: analyticsError } = await supabase.from('user_analytics').insert({
+          user_id: user?.id || null,
+          event_name: 'page_view',
+          event_type: 'navigation',
+          metadata: {
+            page_path: pagePath || location.pathname,
+            page_title: pageTitle || document.title,
+            referrer: document.referrer || null,
+            session_id: sessionId.current,
+            viewport_width: window.innerWidth,
+            viewport_height: window.innerHeight,
+            load_time_ms: loadTime
+          }
+        });
+        error = analyticsError;
+      }
       
       if (error) {
         logger.error('Page view insert error:', error);
@@ -93,15 +116,33 @@ export const useAnalytics = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      await supabase.from('user_interactions').insert({
-        user_id: user?.id || null,
-        session_id: sessionId.current,
-        interaction_type: interactionType,
-        element_id: elementId,
-        element_type: elementType,
-        page_path: location.pathname,
-        interaction_data: additionalData || {}
-      });
+      // Try user_interactions table first, fall back to user_analytics
+      try {
+        await supabase.from('user_interactions').insert({
+          user_id: user?.id || null,
+          session_id: sessionId.current,
+          interaction_type: interactionType,
+          element_id: elementId,
+          element_type: elementType,
+          page_path: location.pathname,
+          interaction_data: additionalData || {}
+        });
+      } catch (tableError) {
+        // Fallback to user_analytics table
+        logger.info('user_interactions table not available, using user_analytics fallback');
+        await supabase.from('user_analytics').insert({
+          user_id: user?.id || null,
+          event_name: 'user_interaction',
+          event_type: interactionType,
+          metadata: {
+            element_id: elementId,
+            element_type: elementType,
+            page_path: location.pathname,
+            session_id: sessionId.current,
+            interaction_data: additionalData || {}
+          }
+        });
+      }
     } catch (error) {
       logger.error('Failed to track interaction:', error);
     }
@@ -165,18 +206,38 @@ export const useAnalytics = () => {
         deviceInfo 
       });
       
-      // Try to update existing session or create new one
-      const { error } = await supabase.from('user_sessions').upsert({
-        user_id: user?.id || null,
-        session_id: sessionId.current,
-        start_time: sessionStartTime.current.toISOString(),
-        device_type: deviceInfo.deviceType,
-        browser: deviceInfo.browser,
-        operating_system: deviceInfo.os,
-        pages_visited: 1
-      }, {
-        onConflict: 'session_id'
-      });
+      // Try user_sessions table first, fall back to user_analytics
+      let error = null;
+      try {
+        const { error: sessionError } = await supabase.from('user_sessions').upsert({
+          user_id: user?.id || null,
+          session_id: sessionId.current,
+          start_time: sessionStartTime.current.toISOString(),
+          device_type: deviceInfo.deviceType,
+          browser: deviceInfo.browser,
+          operating_system: deviceInfo.os,
+          pages_visited: 1
+        }, {
+          onConflict: 'session_id'
+        });
+        error = sessionError;
+      } catch (tableError) {
+        // Fallback to user_analytics table
+        logger.info('user_sessions table not available, using user_analytics fallback');
+        const { error: analyticsError } = await supabase.from('user_analytics').insert({
+          user_id: user?.id || null,
+          event_name: 'session_start',
+          event_type: 'session',
+          metadata: {
+            session_id: sessionId.current,
+            device_type: deviceInfo.deviceType,
+            browser: deviceInfo.browser,
+            operating_system: deviceInfo.os,
+            start_time: sessionStartTime.current.toISOString()
+          }
+        });
+        error = analyticsError;
+      }
       
       if (error) {
         logger.error('Session upsert error:', error);
@@ -191,38 +252,67 @@ export const useAnalytics = () => {
   // Update session on page change
   const updateSession = useCallback(async () => {
     try {
-      // Get current session to increment pages_visited
-      const { data: currentSession } = await supabase
-        .from('user_sessions')
-        .select('pages_visited')
-        .eq('session_id', sessionId.current)
-        .single();
+      // Try to update user_sessions table, fall back to tracking in user_analytics
+      try {
+        const { data: currentSession } = await supabase
+          .from('user_sessions')
+          .select('pages_visited')
+          .eq('session_id', sessionId.current)
+          .single();
 
-      await supabase
-        .from('user_sessions')
-        .update({
-          pages_visited: (currentSession?.pages_visited || 0) + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('session_id', sessionId.current);
+        await supabase
+          .from('user_sessions')
+          .update({
+            pages_visited: (currentSession?.pages_visited || 0) + 1,
+            updated_at: new Date().toISOString()
+          })
+          .eq('session_id', sessionId.current);
+      } catch (tableError) {
+        // Fallback to user_analytics
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from('user_analytics').insert({
+          user_id: user?.id || null,
+          event_name: 'page_change',
+          event_type: 'navigation',
+          metadata: {
+            session_id: sessionId.current,
+            page_path: location.pathname
+          }
+        });
+      }
     } catch (error) {
       logger.error('Failed to update session:', error);
     }
-  }, []);
+  }, [location.pathname]);
 
   // End session on page unload
   const endSession = useCallback(async () => {
     try {
       const endTime = new Date();
       const duration = Math.floor((endTime.getTime() - sessionStartTime.current.getTime()) / 1000);
-      
-      await supabase
-        .from('user_sessions')
-        .update({
-          end_time: endTime.toISOString(),
-          duration_seconds: duration
-        })
-        .eq('session_id', sessionId.current);
+
+      try {
+        await supabase
+          .from('user_sessions')
+          .update({
+            end_time: endTime.toISOString(),
+            duration_seconds: duration
+          })
+          .eq('session_id', sessionId.current);
+      } catch (tableError) {
+        // Fallback to user_analytics
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from('user_analytics').insert({
+          user_id: user?.id || null,
+          event_name: 'session_end',
+          event_type: 'session',
+          metadata: {
+            session_id: sessionId.current,
+            end_time: endTime.toISOString(),
+            duration_seconds: duration
+          }
+        });
+      }
     } catch (error) {
       logger.error('Failed to end session:', error);
     }

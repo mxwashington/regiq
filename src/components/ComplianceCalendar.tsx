@@ -455,7 +455,15 @@ const CreateDeadlineDialog: React.FC<{
   );
 };
 
-const DeadlineStats: React.FC<{ stats: any }> = ({ stats }) => (
+interface DeadlineStatsData {
+  total: number;
+  dueSoon: number;
+  overdue: number;
+  completed: number;
+  completionRate: number;
+}
+
+const DeadlineStats: React.FC<{ stats: DeadlineStatsData }> = ({ stats }) => (
   <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
     <Card>
       <CardContent className="p-4">
