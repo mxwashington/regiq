@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SafeAuthContext';
 
 import { logger } from '@/lib/logger';
 export interface ComplianceDeadline {
@@ -103,27 +103,20 @@ export const useComplianceCalendar = () => {
       if (error) {
         logger.error('Direct query failed, trying RPC function:', error);
 
-        // Fallback to RPC function if direct query fails
+        // Fallback to basic table query if RPC function doesn't exist  
         try {
-          const { data: rpcData, error: rpcError } = await supabase.rpc('get_upcoming_deadlines', {
-            days_ahead: 365 // Get deadlines for next year
-          });
+          const { data: basicData, error: basicError } = await supabase
+            .from('compliance_deadlines')
+            .select('*')
+            .eq('user_id', user?.id)
+            .gte('deadline_date', new Date().toISOString().split('T')[0])
+            .order('deadline_date', { ascending: true })
+            .limit(10);
 
-          if (rpcError) throw rpcError;
+          if (basicError) throw basicError;
 
-          // Convert the function result to ComplianceDeadline format
-          const typedDeadlines = (rpcData || []).map((deadline: {
-            id: string;
-            title: string;
-            description?: string | null;
-            deadline_date: string;
-            deadline_time?: string | null;
-            agency: string;
-            regulation_reference?: string | null;
-            priority: string;
-            status: string;
-            user_id?: string;
-          }) => ({
+          // Convert to expected format
+          const typedDeadlines = (basicData || []).map((deadline: any) => ({
             id: deadline.id,
             user_id: deadline.user_id || '',
             title: deadline.title,

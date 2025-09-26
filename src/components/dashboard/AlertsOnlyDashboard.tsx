@@ -74,7 +74,7 @@ export const AlertsOnlyDashboard: React.FC = () => {
       const cutoffDate = subDays(new Date(), historyDays);
       
       const { data, error } = await supabase
-        .from('alerts_filtered')
+        .from('alerts')
         .select('*')
         .gte('published_date', cutoffDate.toISOString())
         .order('published_date', { ascending: false })

@@ -35,7 +35,7 @@ class AuthErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('AuthProvider error details:', error, errorInfo);
+    logger.error('AuthProvider error details:', { error: error.message, stack: error.stack, componentStack: errorInfo.componentStack });
   }
 
   render() {
@@ -173,21 +173,18 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('subscription_tier, subscription_end')
+        .select('user_id') // Only select basic columns that exist
         .eq('user_id', userIdToUse)
         .single();
 
       if (error) throw error;
 
-      const subscribed = data?.subscription_tier &&
-        data?.subscription_end &&
-        new Date(data.subscription_end) > new Date();
-
+      // For now, assume trial status until schema is fixed
       setState(prev => ({
         ...prev,
-        subscribed: !!subscribed,
-        subscriptionTier: data?.subscription_tier || null,
-        subscriptionEnd: data?.subscription_end || null
+        subscribed: false,
+        subscriptionTier: 'trial',
+        subscriptionEnd: null
       }));
     } catch (error) {
       setState(prev => ({

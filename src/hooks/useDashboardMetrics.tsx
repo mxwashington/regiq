@@ -30,27 +30,31 @@ export const useDashboardMetrics = () => {
 
         logger.info('Fetching dashboard metrics, user is admin:', isAdmin);
 
-        // Use the new function for quick dashboard stats if available, with fallback
+        // Use basic queries instead of non-existent RPC function
         try {
-          const { data: quickStats, error: quickStatsError } = await supabase.rpc('get_quick_dashboard_stats');
-
-          if (!quickStatsError && quickStats) {
-            logger.info('Using quick dashboard stats:', quickStats);
-            // Convert quick stats format to metrics format
-            setMetrics({
-              totalUsers: quickStats.users?.total || 0,
-              activeUsers: quickStats.users?.total || 0, // Fallback if no active user tracking
-              monthlyUsers: quickStats.users?.new_this_week || 0,
-              totalAlerts: quickStats.alerts?.total || 0,
-              alertEngagement: quickStats.activity?.events_today || 0,
-              userGrowthPercent: 0, // Calculate if needed
-              alertsBySource: [],
-              userSignupsOverTime: [],
-              dailyActiveUsers: [],
-              monthlyActiveUsers: []
-            });
-            return;
-          }
+          logger.info('Using basic queries for dashboard stats');
+          
+          // Get basic metrics from existing tables
+          const [profilesCount, alertsCount] = await Promise.all([
+            supabase.from('profiles').select('id', { count: 'exact', head: true }),
+            supabase.from('alerts').select('id', { count: 'exact', head: true })
+          ]);
+          
+          const metrics = {
+            totalUsers: profilesCount.count || 0,
+            activeUsers: profilesCount.count || 0,
+            monthlyUsers: 0, // Placeholder
+            totalAlerts: alertsCount.count || 0,
+            alertEngagement: 0, // Placeholder
+            userGrowthPercent: 0, // Calculate if needed
+            alertsBySource: [],
+            userSignupsOverTime: [],
+            dailyActiveUsers: [],
+            monthlyActiveUsers: []
+          };
+          
+          setMetrics(metrics);
+          return;
         } catch (quickError) {
           logger.warn('Quick stats not available, falling back to manual queries:', quickError);
         }

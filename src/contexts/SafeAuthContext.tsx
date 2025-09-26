@@ -125,7 +125,7 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('role, is_admin, admin_permissions, subscription_tier, subscription_end')
+        .select('user_id') // Only select columns that exist for now
         .eq('user_id', userId)
         .single();
 
@@ -199,14 +199,12 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
     if (profileData) {
       setState(prev => ({
         ...prev,
-        isAdmin: profileData?.is_admin || false,
-        adminRole: profileData?.role || null,
-        adminPermissions: profileData?.admin_permissions || [],
-        subscribed: !!(profileData?.subscription_tier &&
-          profileData?.subscription_end &&
-          new Date(profileData.subscription_end) > new Date()),
-        subscriptionTier: profileData?.subscription_tier || null,
-        subscriptionEnd: profileData?.subscription_end || null
+        isAdmin: false, // Default to false until schema is fixed
+        adminRole: null,
+        adminPermissions: [],
+        subscribed: false,
+        subscriptionTier: 'trial',
+        subscriptionEnd: null
       }));
     }
   }, [state.session?.user?.id]);
