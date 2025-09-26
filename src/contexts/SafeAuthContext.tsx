@@ -199,12 +199,12 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
     if (profileData) {
       setState(prev => ({
         ...prev,
-        isAdmin: false,
-        adminRole: null,
-        adminPermissions: [],
+        isAdmin: Boolean(profileData.is_admin),
+        adminRole: profileData.role || null,
+        adminPermissions: Array.isArray(profileData.permissions) ? profileData.permissions : [],
         subscribed: true, // Enable subscribed status for all authenticated users
-        subscriptionTier: 'growth', // Default to growth for trial users
-        subscriptionEnd: null
+        subscriptionTier: profileData.subscription_tier || 'growth', // Default to growth for trial users
+        subscriptionEnd: profileData.subscription_end || null
       }));
     } else {
       // If no profile data exists, still give authenticated users trial access
