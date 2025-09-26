@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 export interface RiskPrediction {
   id: string;
   entityType: 'supplier' | 'facility' | 'compliance_area' | 'regulatory_change';
@@ -67,7 +68,7 @@ export const usePredictiveRiskModeling = () => {
         throw new Error(data.error || 'Failed to generate risk prediction');
       }
     } catch (error: any) {
-      console.error('Error generating risk prediction:', error);
+      logger.error('Error generating risk prediction:', error);
       toast({
         title: "Risk Prediction Failed",
         description: error.message || "Failed to generate risk prediction",
@@ -117,7 +118,7 @@ export const usePredictiveRiskModeling = () => {
       setPredictions(mappedPredictions);
       return mappedPredictions;
     } catch (error: any) {
-      console.error('Error fetching risk predictions:', error);
+      logger.error('Error fetching risk predictions:', error);
       toast({
         title: "Failed to Load Predictions",
         description: error.message || "Could not fetch risk predictions",
@@ -153,7 +154,7 @@ export const usePredictiveRiskModeling = () => {
       setPatterns(mappedPatterns);
       return mappedPatterns;
     } catch (error: any) {
-      console.error('Error fetching risk patterns:', error);
+      logger.error('Error fetching risk patterns:', error);
       toast({
         title: "Failed to Load Risk Patterns",
         description: error.message || "Could not fetch risk patterns",

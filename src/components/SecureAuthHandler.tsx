@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle, Clock, User, Lock } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface SecureAuthHandlerProps {
   mode: 'signin' | 'signup';
   onSuccess?: () => void;
@@ -142,7 +143,7 @@ export const SecureAuthHandler: React.FC<SecureAuthHandlerProps> = ({ mode, onSu
       onSuccess?.();
 
     } catch (error: any) {
-      console.error('Authentication error:', error);
+      logger.error('Authentication error:', error);
       toast({
         title: "Authentication Failed",
         description: error.message || "An error occurred during authentication",

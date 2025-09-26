@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+import { logger } from '@/lib/logger';
 const AGENCIES = ["FDA","USDA","EPA","CDC"] as const;
 
 export const AlertPreferences: React.FC<{ onNext: () => void, onBack: () => void }>=({ onNext, onBack })=>{
@@ -21,7 +22,7 @@ export const AlertPreferences: React.FC<{ onNext: () => void, onBack: () => void
       toast.success('Preferences saved');
       onNext();
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       toast.error('Failed to save preferences');
     } finally {
       setLoading(false);

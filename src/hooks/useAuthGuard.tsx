@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from './useAdminAuth';
 import { useAuth } from '@/contexts/AuthContext';
 
+import { logger } from '@/lib/logger';
 export const useAuthGuard = (requireAdmin = false) => {
   const { user } = useAuth();
   const { isAdmin, loading } = useAdminAuth();
@@ -46,7 +47,7 @@ export const AdminProtectedRoute = ({ children }: { children: React.ReactNode })
     
     // If not healthy or no user, redirect to auth
     if (!isHealthy || !user) {
-      console.log('Auth guard redirecting to auth:', { isHealthy, hasUser: !!user });
+      logger.info('Auth guard redirecting to auth:', { isHealthy, hasUser: !!user });
       navigate('/auth');
     }
   }, [user, loading, isHealthy, navigate]);

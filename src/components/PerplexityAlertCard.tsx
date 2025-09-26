@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
+import { logger } from '@/lib/logger';
 interface Alert {
   id: string;
   title: string;
@@ -178,10 +179,10 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
                 description: "Alert source link has been updated with the best available URL.",
               });
             } else {
-              console.error('Failed to update alert URL:', updateError);
+              logger.error('Failed to update alert URL:', updateError);
             }
           } catch (updateError) {
-            console.error('Error updating alert URL:', updateError);
+            logger.error('Error updating alert URL:', updateError);
           }
         }
       }
@@ -192,7 +193,7 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
       });
 
     } catch (error) {
-      console.error('Error enhancing alert:', error);
+      logger.error('Error enhancing alert:', error);
       toast({
         title: "Enhancement Failed",
         description: "Could not enhance this alert. Please try again.",
@@ -223,7 +224,7 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
         });
       }
     } catch (error) {
-      console.error('Error sharing:', error);
+      logger.error('Error sharing:', error);
     }
   };
 

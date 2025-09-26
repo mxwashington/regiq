@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { fallbackAlerts } from '@/lib/debug-utils';
 
+import { logger } from '@/lib/logger';
 interface SimpleAlert {
   id: string;
   title: string;
@@ -37,12 +38,12 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
   const loadAlertsWithRetry = async (maxRetries = 3) => {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`[useSimpleAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading alerts...`, { limit });
+        logger.info(`[useSimpleAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading alerts...`, { limit });
         setLoading(true);
         setError(null);
 
         // Test basic connection first
-        console.log('[useSimpleAlerts] Testing database connection...');
+        logger.info('[useSimpleAlerts] Testing database connection...');
         const { error: pingError } = await supabase
           .from('alerts')
           .select('count')
@@ -52,7 +53,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
           throw new Error(`Database connection failed: ${pingError.message}`);
         }
 
-        console.log('[useSimpleAlerts] Database connection successful, loading alerts...');
+        logger.info('[useSimpleAlerts] Database connection successful, loading alerts...');
 
         // Build query
         let query = supabase
@@ -77,7 +78,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
         const { data, error: fetchError, count } = await query;
 
         if (fetchError) {
-          console.error('[useSimpleAlerts] Query failed:', fetchError);
+          logger.error('[useSimpleAlerts] Query failed:', fetchError);
           throw new Error(`Query failed: ${fetchError.message} (Code: ${fetchError.code})`);
         }
 
@@ -85,7 +86,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
           throw new Error('No data returned from query');
         }
 
-        console.log('[useSimpleAlerts] Successfully loaded alerts:', { 
+        logger.info('[useSimpleAlerts] Successfully loaded alerts:', { 
           count: data.length, 
           totalCount: count,
           limit,
@@ -100,11 +101,11 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
         return;
 
       } catch (err: any) {
-        console.error(`[useSimpleAlerts] Attempt ${attempt + 1} failed:`, err);
+        logger.error(`[useSimpleAlerts] Attempt ${attempt + 1} failed:`, err);
         
         if (attempt === maxRetries) {
           // All retries failed, use fallback
-          console.warn('[useSimpleAlerts] All retries failed, using fallback data');
+          logger.warn('[useSimpleAlerts] All retries failed, using fallback data');
           setError(err.message || 'Failed to load alerts');
           setAlerts(fallbackAlerts);
           setTotalCount(fallbackAlerts.length);
@@ -120,7 +121,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
         } else {
           // Wait before retry with exponential backoff
           const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
-          console.log(`[useSimpleAlerts] Waiting ${delay}ms before retry...`);
+          logger.info(`[useSimpleAlerts] Waiting ${delay}ms before retry...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -169,7 +170,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
         setHasMore(false);
       }
     } catch (err: any) {
-      console.error('[useSimpleAlerts] Load more failed:', err);
+      logger.error('[useSimpleAlerts] Load more failed:', err);
       toast({
         title: 'Error',
         description: 'Failed to load more alerts',

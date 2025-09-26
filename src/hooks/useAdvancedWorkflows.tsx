@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 export interface WorkflowStep {
   name: string;
   type: 'manual' | 'automated' | 'approval';
@@ -93,7 +94,7 @@ export const useAdvancedWorkflows = () => {
         throw new Error(data.error || 'Failed to fetch templates');
       }
     } catch (error: any) {
-      console.error('Error fetching workflow templates:', error);
+      logger.error('Error fetching workflow templates:', error);
       toast({
         title: "Failed to Load Templates",
         description: error.message || "Could not fetch workflow templates",
@@ -137,7 +138,7 @@ export const useAdvancedWorkflows = () => {
         throw new Error(data.error || 'Failed to create template');
       }
     } catch (error: any) {
-      console.error('Error creating workflow template:', error);
+      logger.error('Error creating workflow template:', error);
       toast({
         title: "Template Creation Failed",
         description: error.message || "Failed to create workflow template",
@@ -181,7 +182,7 @@ export const useAdvancedWorkflows = () => {
         throw new Error(data.error || 'Failed to create workflow instance');
       }
     } catch (error: any) {
-      console.error('Error creating workflow instance:', error);
+      logger.error('Error creating workflow instance:', error);
       toast({
         title: "Workflow Creation Failed",
         description: error.message || "Failed to start workflow",
@@ -225,7 +226,7 @@ export const useAdvancedWorkflows = () => {
         throw new Error(data.error || 'Failed to advance workflow step');
       }
     } catch (error: any) {
-      console.error('Error advancing workflow step:', error);
+      logger.error('Error advancing workflow step:', error);
       toast({
         title: "Step Advancement Failed",
         description: error.message || "Failed to advance workflow step",
@@ -253,7 +254,7 @@ export const useAdvancedWorkflows = () => {
         throw new Error(data.error || 'Failed to fetch instances');
       }
     } catch (error: any) {
-      console.error('Error fetching workflow instances:', error);
+      logger.error('Error fetching workflow instances:', error);
       toast({
         title: "Failed to Load Workflows",
         description: error.message || "Could not fetch workflow instances",

@@ -6,6 +6,7 @@ import { ExternalLink, Calendar, AlertTriangle, Info, CheckCircle } from 'lucide
 import { useMobileOptimization } from '@/hooks/useMobileOptimization';
 import { cn } from '@/lib/utils';
 
+import { logger } from '@/lib/logger';
 interface Alert {
   id: string;
   title: string;
@@ -93,7 +94,7 @@ export const MobileAlertCard: React.FC<MobileAlertCardProps> = ({
       window.open(alert.source_url, '_blank', 'noopener,noreferrer');
     } else {
       // Could add a toast here for invalid URLs if needed
-      console.warn('Invalid or missing source URL for alert:', alert.title);
+      logger.warn('Invalid or missing source URL for alert:', alert.title);
     }
   };
 

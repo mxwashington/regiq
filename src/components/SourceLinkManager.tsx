@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { RefreshCw, Search, Link, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { DataScraperTrigger } from './DataScraperTrigger';
 
+import { logger } from '@/lib/logger';
 interface SourceResult {
   id: string;
   title: string;
@@ -52,7 +53,7 @@ export const SourceLinkManager = () => {
         description: `Enhanced ${data.updated} alerts with source links`,
       });
     } catch (error: any) {
-      console.error('Error running source finder:', error);
+      logger.error('Error running source finder:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to find source links',
@@ -95,7 +96,7 @@ export const SourceLinkManager = () => {
         description: `Scraped ${data.total_items} items from ${data.successful_scrapes} sources`,
       });
     } catch (error: any) {
-      console.error('Error running web scraper:', error);
+      logger.error('Error running web scraper:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to scrape sources',

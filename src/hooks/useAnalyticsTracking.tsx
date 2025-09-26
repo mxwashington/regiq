@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+import { logger } from '@/lib/logger';
 interface TrackingEvent {
   event_type: string;
   event_data: Record<string, any>;
@@ -57,10 +58,10 @@ export const useAnalyticsTracking = (): UseAnalyticsTrackingReturn => {
         }]);
 
       if (error) {
-        console.error('Analytics tracking error:', error);
+        logger.error('Analytics tracking error:', error);
       }
     } catch (error) {
-      console.error('Failed to track event:', error);
+      logger.error('Failed to track event:', error);
     }
   };
 

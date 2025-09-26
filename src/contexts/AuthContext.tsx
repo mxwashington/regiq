@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -29,12 +30,12 @@ class AuthErrorBoundary extends React.Component<
   }
 
   static getDerivedStateFromError(error: Error) {
-    console.error('AuthErrorBoundary caught error:', error);
+    logger.error('AuthErrorBoundary caught error:', error);
     return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('AuthProvider error details:', error, errorInfo);
+    logger.error('AuthProvider error details:', error, errorInfo);
   }
 
   render() {
@@ -47,12 +48,18 @@ class AuthErrorBoundary extends React.Component<
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
-    <AuthErrorBoundary 
+    <AuthErrorBoundary
       fallback={
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-lg font-semibold mb-2">Authentication Initializing...</h2>
-            <p className="text-sm text-muted-foreground">Please wait while we set up your session.</p>
+            <h2 className="text-lg font-semibold mb-2">Authentication Error</h2>
+            <p className="text-sm text-muted-foreground">Please refresh the page or try again.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+            >
+              Refresh Page
+            </button>
           </div>
         </div>
       }
@@ -63,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 function AuthProviderInner({ children }: { children: React.ReactNode }) {
-  console.log('AuthProviderInner rendering...');
+  logger.info('AuthProviderInner rendering...');
   
   // Basic state management without complex hooks initially
   const [state, setState] = useState({
@@ -83,7 +90,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
   // Enhanced sign in with magic link
   const signInWithMagicLink = useCallback(async (email: string) => {
     try {
-      console.log('Sending magic link to:', email);
+      logger.info('Sending magic link to:', email);
       
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
@@ -93,14 +100,14 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        console.error('Magic link error:', error);
+        logger.error('Magic link error:', error);
         return { error };
       }
 
-      console.log('Magic link sent successfully');
+      logger.info('Magic link sent successfully');
       return { error: null };
     } catch (error) {
-      console.error('Magic link error:', error);
+      logger.error('Magic link error:', error);
       return { error };
     }
   }, []);
@@ -108,7 +115,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
   // Enhanced sign out with proper cleanup
   const signOut = useCallback(async () => {
     try {
-      console.log('Signing out user...');
+      logger.info('Signing out user...');
       await supabase.auth.signOut();
       setState(prev => ({
         ...prev,
@@ -122,98 +129,109 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
         subscriptionEnd: null,
       }));
     } catch (error) {
-      console.error('Error during sign out:', error);
+      logger.error('Error during sign out:', error);
     }
   }, []);
 
   const checkAdminStatus = useCallback(async () => {
-    if (!state.session?.access_token) {
+    if (!state.session?.user?.id) {
       return;
     }
-    
+
     try {
-      console.log('Checking admin status...');
-      const { data, error } = await supabase.functions.invoke('check-admin-status', {
-        headers: {
-          Authorization: `Bearer ${state.session.access_token}`,
-        },
-      });
-      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role, is_admin, admin_permissions')
+        .eq('user_id', state.session.user.id)
+        .single();
+
       if (error) throw error;
-      
+
       setState(prev => ({
         ...prev,
-        isAdmin: data.isAdmin || false,
-        adminRole: data.role || null,
-        adminPermissions: data.permissions || []
+        isAdmin: data?.is_admin || false,
+        adminRole: data?.role || null,
+        adminPermissions: data?.admin_permissions || []
       }));
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      setState(prev => ({
+        ...prev,
+        isAdmin: false,
+        adminRole: null,
+        adminPermissions: []
+      }));
     }
-  }, [state.session?.access_token]);
+  }, [state.session?.user?.id]);
 
   const checkSubscription = useCallback(async () => {
-    if (!state.session?.access_token) {
+    if (!state.session?.user?.id) {
       return;
     }
-    
+
     try {
-      console.log('Checking subscription status...');
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
-        headers: {
-          Authorization: `Bearer ${state.session.access_token}`,
-        },
-      });
-      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('subscription_tier, subscription_end')
+        .eq('user_id', state.session.user.id)
+        .single();
+
       if (error) throw error;
-      
+
+      const subscribed = data?.subscription_tier &&
+        data?.subscription_end &&
+        new Date(data.subscription_end) > new Date();
+
       setState(prev => ({
         ...prev,
-        subscribed: data.subscribed || false,
-        subscriptionTier: data.subscription_tier || null,
-        subscriptionEnd: data.subscription_end || null
+        subscribed: !!subscribed,
+        subscriptionTier: data?.subscription_tier || null,
+        subscriptionEnd: data?.subscription_end || null
       }));
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      setState(prev => ({
+        ...prev,
+        subscribed: false,
+        subscriptionTier: null,
+        subscriptionEnd: null
+      }));
     }
-  }, [state.session?.access_token]);
+  }, [state.session?.user?.id]);
 
   const updateUserActivity = useCallback(async (userId: string) => {
     try {
-      console.log('Updating user activity for:', userId);
+      logger.info('Updating user activity for:', userId);
       
       await supabase.rpc('update_user_activity', {
         user_id_param: userId,
         ip_address_param: null
       });
       
-      console.log('Updated user activity');
+      logger.info('Updated user activity');
     } catch (error) {
-      console.error('Error updating user activity:', error);
+      logger.error('Error updating user activity:', error);
     }
   }, []);
 
   // Handle auth state changes - CRITICAL: No async calls inside callback
   useEffect(() => {
-    console.log('=== AUTH CONTEXT INITIALIZATION ===');
+    logger.info('=== AUTH CONTEXT INITIALIZATION ===');
     let mounted = true;
     
     // Force loading to false after timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (mounted) {
-        console.log('Auth timeout - forcing loading false');
         setState(prev => ({
           ...prev,
           loading: false,
           isHealthy: true,
-          lastError: null
+          lastError: 'Authentication timeout - session initialized as guest'
         }));
       }
-    }, 3000);
+    }, 8000);
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-      console.log('Auth state change:', { event, hasSession: !!session });
+      logger.info('Auth state change:', { event, hasSession: !!session });
       
       clearTimeout(timeoutId); // Clear timeout since we got a response
       
@@ -252,7 +270,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
           lastError: error?.message || null
         }));
       } catch (err) {
-        console.error('Auth initialization failed:', err);
+        logger.error('Auth initialization failed:', err);
         if (mounted) {
           clearTimeout(timeoutId);
           setState(prev => ({
@@ -276,19 +294,17 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
 
   // Separate effect for async operations when session changes
   useEffect(() => {
-    if (state.session?.user) {
+    if (state.session?.user?.id && !state.loading) {
       // Defer async operations to prevent deadlock
       const timeoutId = setTimeout(() => {
-        Promise.all([
-          checkAdminStatus().catch(err => console.error('Admin status check failed:', err)),
-          checkSubscription().catch(err => console.error('Subscription check failed:', err)),
-          updateUserActivity(state.session.user.id).catch(err => console.error('User activity update failed:', err))
-        ]);
-      }, 0);
-      
+        checkAdminStatus();
+        checkSubscription();
+        updateUserActivity(state.session.user.id);
+      }, 100);
+
       return () => clearTimeout(timeoutId);
     }
-  }, [state.session?.user?.id, checkAdminStatus, checkSubscription, updateUserActivity]);
+  }, [state.session?.user?.id, state.loading]);
 
   const value: AuthContextType = {
     user: state.user,

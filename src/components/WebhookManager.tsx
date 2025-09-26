@@ -25,6 +25,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface WebhookEndpoint {
   id: string;
   name: string;
@@ -102,7 +103,7 @@ export const WebhookManager: React.FC = () => {
       if (error) throw error;
       setWebhooks(data.webhook_endpoints || []);
     } catch (error) {
-      console.error('Error loading webhooks:', error);
+      logger.error('Error loading webhooks:', error);
       toast.error('Failed to load webhooks');
     } finally {
       setLoading(false);
@@ -121,7 +122,7 @@ export const WebhookManager: React.FC = () => {
       if (error) throw error;
       setDeliveries(data.deliveries || []);
     } catch (error) {
-      console.error('Error loading deliveries:', error);
+      logger.error('Error loading deliveries:', error);
     }
   };
 
@@ -153,7 +154,7 @@ export const WebhookManager: React.FC = () => {
       });
       loadWebhooks();
     } catch (error) {
-      console.error('Error creating webhook:', error);
+      logger.error('Error creating webhook:', error);
       toast.error('Failed to create webhook endpoint');
     } finally {
       setCreating(false);
@@ -180,7 +181,7 @@ export const WebhookManager: React.FC = () => {
       
       loadDeliveries();
     } catch (error) {
-      console.error('Error testing webhook:', error);
+      logger.error('Error testing webhook:', error);
       toast.error('Failed to test webhook');
     } finally {
       setTesting(null);
@@ -203,7 +204,7 @@ export const WebhookManager: React.FC = () => {
       toast.success('Webhook endpoint deleted successfully');
       loadWebhooks();
     } catch (error) {
-      console.error('Error deleting webhook:', error);
+      logger.error('Error deleting webhook:', error);
       toast.error('Failed to delete webhook endpoint');
     }
   };

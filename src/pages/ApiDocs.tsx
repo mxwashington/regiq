@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Copy, Key, RefreshCw, Shield, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { logger } from '@/lib/logger';
 interface ApiKey {
   id: string;
   key_name: string;
@@ -51,7 +52,7 @@ const ApiDocs = () => {
         return;
       }
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      logger.error('Error checking subscription:', error);
       navigate('/pricing');
     }
   };
@@ -63,7 +64,7 @@ const ApiDocs = () => {
       
       setApiKeys(data.api_keys || []);
     } catch (error) {
-      console.error('Error fetching API keys:', error);
+      logger.error('Error fetching API keys:', error);
       toast.error('Failed to load API keys');
     } finally {
       setLoading(false);
@@ -83,7 +84,7 @@ const ApiDocs = () => {
       await fetchApiKeys();
       toast.success('API key generated successfully');
     } catch (error) {
-      console.error('Error generating API key:', error);
+      logger.error('Error generating API key:', error);
       toast.error('Failed to generate API key');
     } finally {
       setGenerating(false);

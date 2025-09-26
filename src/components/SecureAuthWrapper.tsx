@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Clock } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface SecureAuthWrapperProps {
   children: React.ReactNode;
 }
@@ -51,7 +52,7 @@ export const SecureAuthWrapper: React.FC<SecureAuthWrapperProps> = ({ children }
         setLockoutInfo(null);
       }
     } catch (error) {
-      console.error('Auth security check failed:', error);
+      logger.error('Auth security check failed:', error);
     }
   }, [checkAccountLockout, logSecurityEvent, toast]);
 

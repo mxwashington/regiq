@@ -8,6 +8,7 @@ import { Loader2, ExternalLink, MessageCircle, Calendar, Building2 } from 'lucid
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
+import { logger } from '@/lib/logger';
 interface RegulationDocument {
   id: string;
   title: string;
@@ -89,7 +90,7 @@ export const RegulationsGovSearch = () => {
       });
 
     } catch (error: any) {
-      console.error('Search error:', error);
+      logger.error('Search error:', error);
       toast({
         title: "Search Failed",
         description: error.message || "Failed to search regulations",

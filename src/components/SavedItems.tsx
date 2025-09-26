@@ -6,6 +6,7 @@ import { Calendar, ExternalLink, BookmarkX, Share2, Bookmark, Search, Globe } fr
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 
+import { logger } from '@/lib/logger';
 interface SavedItemsProps {
   savedAlerts: any[];
   onUnsaveAlert: (alertId: string) => void;
@@ -51,7 +52,7 @@ export function SavedItems({ savedAlerts, onUnsaveAlert }: SavedItemsProps) {
         await navigator.clipboard.writeText(urlToCopy);
       }
     } catch (error) {
-      console.warn('Share failed:', error);
+      logger.warn('Share failed:', error);
     }
   };
 

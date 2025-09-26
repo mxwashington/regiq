@@ -24,6 +24,7 @@ import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
 import { toast } from 'sonner';
 import { format, subDays } from 'date-fns';
 
+import { logger } from '@/lib/logger';
 interface Alert {
   id: string;
   title: string;
@@ -79,7 +80,7 @@ export const AlertsOnlyDashboard: React.FC = () => {
 
       setAlerts(data || []);
     } catch (error) {
-      console.error('Error fetching alerts:', error);
+      logger.error('Error fetching alerts:', error);
       toast.error('Failed to load alerts');
     } finally {
       setLoading(false);

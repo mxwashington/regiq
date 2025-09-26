@@ -105,16 +105,16 @@ export function IntegrationEnhancements({ searchQuery = "listeria" }: Integratio
           // Check if date is valid and not in the future
           if (isNaN(timestamp.getTime()) || timestamp > new Date()) {
             // Skip this event if date is invalid or in the future
-            console.warn(`Invalid or future date for recall ${recall.recall_number}: ${dateStr}`);
+            logger.warn(`Invalid or future date for recall ${recall.recall_number}: ${dateStr}`);
             return;
           }
         } else {
           // Skip events without dates
-          console.warn(`No date available for recall ${recall.recall_number}`);
+          logger.warn(`No date available for recall ${recall.recall_number}`);
           return;
         }
       } catch (error) {
-        console.warn(`Error parsing date for recall ${recall.recall_number}:`, error);
+        logger.warn(`Error parsing date for recall ${recall.recall_number}:`, error);
         return; // Skip this event
       }
 

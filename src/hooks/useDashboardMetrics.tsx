@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface DashboardMetrics {
   totalUsers: number;
   activeUsers: number;
@@ -170,7 +171,7 @@ export const useDashboardMetrics = () => {
         });
 
       } catch (err) {
-        console.error('Error fetching dashboard metrics:', err);
+        logger.error('Error fetching dashboard metrics:', err);
         setError('Failed to load metrics');
       } finally {
         setLoading(false);

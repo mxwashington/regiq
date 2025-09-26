@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface SecureFormWrapperProps {
   children: ReactNode;
   onSubmit: (sanitizedData: Record<string, string>) => Promise<void>;
@@ -65,7 +66,7 @@ export const SecureFormWrapper: React.FC<SecureFormWrapperProps> = ({
       });
 
     } catch (error: any) {
-      console.error('Secure form submission error:', error);
+      logger.error('Secure form submission error:', error);
       setSecurityError('Submission failed. Please try again.');
       
       toast({

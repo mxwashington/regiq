@@ -1,8 +1,9 @@
 // Temporary script to trigger enhanced regulatory data pipeline
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 export const triggerPipeline = async () => {
-  console.log('🚀 Starting enhanced regulatory data pipeline...');
+  logger.info('🚀 Starting enhanced regulatory data pipeline...');
   
   try {
     const { data, error } = await supabase.functions.invoke('enhanced-regulatory-data-pipeline', {
@@ -13,14 +14,14 @@ export const triggerPipeline = async () => {
     });
     
     if (error) {
-      console.error('❌ Pipeline error:', error);
+      logger.error('❌ Pipeline error:', error);
       throw error;
     }
     
-    console.log('✅ Pipeline completed successfully:', data);
+    logger.info('✅ Pipeline completed successfully:', data);
     return data;
   } catch (error) {
-    console.error('❌ Failed to run pipeline:', error);
+    logger.error('❌ Failed to run pipeline:', error);
     throw error;
   }
 };

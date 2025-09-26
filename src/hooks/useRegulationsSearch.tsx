@@ -9,6 +9,7 @@ import {
 } from '@/lib/regulations/types';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface UseRegulationsSearchProps {
   industryFocus?: keyof typeof INDUSTRY_PRESETS;
   initialFilters?: RegulationsGovSearchFilters;
@@ -103,7 +104,7 @@ export const useRegulationsSearch = ({
       queryClient.invalidateQueries({ queryKey: ['recent-documents'] });
     },
     onError: (error) => {
-      console.error('Sync failed:', error);
+      logger.error('Sync failed:', error);
       toast({
         title: "Sync Error",
         description: "Failed to sync regulatory data. Please try again.",

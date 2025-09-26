@@ -14,6 +14,7 @@ import TeamManagement from '@/components/account/TeamManagement';
 import CancellationFlow from '@/components/account/CancellationFlow';
 
 
+import { logger } from '@/lib/logger';
 const Account: React.FC = () => {
   const { user } = useAuth();
   const [company, setCompany] = useState('');
@@ -50,7 +51,7 @@ const Account: React.FC = () => {
       await supabase.from('user_preferences').upsert({ user_id: user.id, email_notifications: emailNotifications, urgency_threshold: urgency });
       toast.success('Settings saved');
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       toast.error('Failed to save settings');
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface AgencyData {
   name: string;
   count: number;
@@ -63,7 +64,7 @@ export const useDynamicAgencies = () => {
         setAgencies(agencyList);
         setError(null);
       } catch (err) {
-        console.error('Error fetching agencies:', err);
+        logger.error('Error fetching agencies:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch agencies');
         
         // Fallback to static list if database fetch fails

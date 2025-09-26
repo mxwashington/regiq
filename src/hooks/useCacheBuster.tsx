@@ -2,6 +2,7 @@
 import { useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface CacheBusterConfig {
   checkInterval?: number;
   clearStaleDataInterval?: number;
@@ -41,9 +42,9 @@ export const useCacheBuster = (config: CacheBusterConfig = {}) => {
         
         localStorage.setItem('last-data-clear', Date.now().toString());
         
-        console.log('Cache buster: Cleared stale data');
+        logger.info('Cache buster: Cleared stale data');
       } catch (error) {
-        console.error('Cache buster: Error clearing stale data:', error);
+        logger.error('Cache buster: Error clearing stale data:', error);
       }
     }
   }, [clearStaleDataInterval]);
@@ -62,7 +63,7 @@ export const useCacheBuster = (config: CacheBusterConfig = {}) => {
       // Force reload with cache bypass
       window.location.reload();
     } catch (error) {
-      console.error('Cache buster: Force refresh failed:', error);
+      logger.error('Cache buster: Force refresh failed:', error);
       // Fallback to normal reload
       window.location.reload();
     }
@@ -94,7 +95,7 @@ export const useCacheBuster = (config: CacheBusterConfig = {}) => {
       }
     } catch (error) {
       // Don't log this as it's expected when the endpoint doesn't exist
-      console.log('Cache buster: Service worker check skipped');
+      logger.info('Cache buster: Service worker check skipped');
     }
   }, [enableAutoRefresh, forceRefresh]);
 

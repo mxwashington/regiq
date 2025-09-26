@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Settings, Shield, Users, CheckCircle, AlertCircle } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface SSOProvider {
   id: string;
   name: string;
@@ -77,7 +78,7 @@ export const SSOConfiguration: React.FC = () => {
         setGlobalSettings(globalData.setting_value as unknown as typeof globalSettings);
       }
     } catch (error) {
-      console.error('Error loading SSO configuration:', error);
+      logger.error('Error loading SSO configuration:', error);
       toast({
         title: "Error",
         description: "Failed to load SSO configuration",
@@ -129,7 +130,7 @@ export const SSOConfiguration: React.FC = () => {
         description: "SSO configuration saved successfully",
       });
     } catch (error) {
-      console.error('Error saving SSO configuration:', error);
+      logger.error('Error saving SSO configuration:', error);
       toast({
         title: "Error",
         description: "Failed to save SSO configuration",
@@ -157,7 +158,7 @@ export const SSOConfiguration: React.FC = () => {
         variant: data.success ? "default" : "destructive"
       });
     } catch (error) {
-      console.error('Error testing SSO connection:', error);
+      logger.error('Error testing SSO connection:', error);
       toast({
         title: "Test Failed",
         description: "Unable to test SSO connection",

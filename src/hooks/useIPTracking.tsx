@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ipDetectionService } from '@/services/ipDetection';
 import { shouldSkipIPTracking } from '@/lib/ai-access-helper';
 
+import { logger } from '@/lib/logger';
 interface IPInfo {
   ip: string;
   isTrusted: boolean;
@@ -41,7 +42,7 @@ export const useIPTracking = () => {
       });
 
       if (activityError) {
-        console.warn('Failed to update user activity:', activityError);
+        logger.warn('Failed to update user activity:', activityError);
         return;
       }
 
@@ -83,7 +84,7 @@ export const useIPTracking = () => {
 
       setError(null);
     } catch (error) {
-      console.error('Error in user activity tracking:', error);
+      logger.error('Error in user activity tracking:', error);
       setError(error instanceof Error ? error.message : 'Unknown error');
       
       // Set fallback state

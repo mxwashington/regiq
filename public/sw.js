@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 
 // RegIQ Service Worker - Optimized Performance
 const BUILD_VERSION = Date.now().toString();
@@ -34,17 +36,17 @@ const API_CACHE_PATTERNS = [
 
 // Install event - simplified caching
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker version:', BUILD_VERSION);
+  logger.info('[SW] Installing service worker version:', BUILD_VERSION);
   
   event.waitUntil(
     Promise.all([
       // Cache only essential static resources
       caches.open(STATIC_CACHE_NAME).then(async (cache) => {
-        console.log('[SW] Caching essential static resources');
+        logger.info('[SW] Caching essential static resources');
         try {
           await cache.addAll(STATIC_URLS);
         } catch (error) {
-          console.warn('[SW] Some static resources failed to cache:', error);
+          logger.warn('[SW] Some static resources failed to cache:', error);
         }
         
         // Store version info in cache
@@ -62,7 +64,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - aggressive cleanup
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker version:', BUILD_VERSION);
+  logger.info('[SW] Activating service worker version:', BUILD_VERSION);
   
   event.waitUntil(
     Promise.all([
@@ -72,7 +74,7 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (!currentCaches.includes(cacheName)) {
-              console.log('[SW] Deleting old cache:', cacheName);
+              logger.info('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
@@ -151,7 +153,7 @@ async function cacheFirst(request, cacheName) {
     }
     return networkResponse;
   } catch (error) {
-    console.log('[SW] Cache first failed:', error);
+    logger.info('[SW] Cache first failed:', error);
     return new Response('Offline content not available', { status: 503 });
   }
 }
@@ -162,7 +164,7 @@ async function handleNavigation(request) {
     const networkResponse = await fetch(request);
     return networkResponse;
   } catch (error) {
-    console.log('[SW] Navigation failed, serving cached version');
+    logger.info('[SW] Navigation failed, serving cached version');
     // Serve cached version
     const cache = await caches.open(STATIC_CACHE_NAME);
     const cachedResponse = await cache.match('/') || 

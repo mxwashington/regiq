@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface AlertTag {
   id: string;
   tag: {
@@ -62,12 +63,12 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
   const loadTaggedAlertsWithRetry = async (maxRetries = 2) => {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`[useTaggedAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading tagged alerts...`, { filters, limit });
+        logger.info(`[useTaggedAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading tagged alerts...`, { filters, limit });
         setLoading(true);
         setError(null);
 
         // Test if the tables exist first with a simple query
-        console.log('[useTaggedAlerts] Testing table access...');
+        logger.info('[useTaggedAlerts] Testing table access...');
         const { error: testError } = await supabase
           .from('alerts')
           .select('id')
@@ -110,7 +111,7 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
         // Apply filters if any - but do it more safely
         if (filters.length > 0) {
           const tagIds = filters.map(f => f.tagId);
-          console.log('[useTaggedAlerts] Applying filters:', { tagIds });
+          logger.info('[useTaggedAlerts] Applying filters:', { tagIds });
           
           // Use a more specific filter that's less likely to fail
           query = query.not('alert_tags', 'is', null);
@@ -119,7 +120,7 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
         const { data, error: fetchError } = await query;
 
         if (fetchError) {
-          console.error('[useTaggedAlerts] Complex query failed:', fetchError);
+          logger.error('[useTaggedAlerts] Complex query failed:', fetchError);
           
           // If it's a relationship error, this might be expected
           if (fetchError.message.includes('foreign key') || 
@@ -131,7 +132,7 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
           throw new Error(`Query failed: ${fetchError.message}`);
         }
 
-        console.log('[useTaggedAlerts] Raw data loaded:', { count: data?.length });
+        logger.info('[useTaggedAlerts] Raw data loaded:', { count: data?.length });
 
         // Transform the data more safely
         const transformedAlerts = data?.map(alert => {
@@ -154,7 +155,7 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
               })) || []
             };
           } catch (transformError) {
-            console.warn('[useTaggedAlerts] Transform error for alert:', alert.id, transformError);
+            logger.warn('[useTaggedAlerts] Transform error for alert:', alert.id, transformError);
             return {
               ...alert,
               alert_tags: []
@@ -162,7 +163,7 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
           }
         }) || [];
         
-        console.log('[useTaggedAlerts] Transformed alerts:', { count: transformedAlerts?.length });
+        logger.info('[useTaggedAlerts] Transformed alerts:', { count: transformedAlerts?.length });
         
         // Apply client-side filtering more safely
         let filteredAlerts = transformedAlerts;
@@ -184,12 +185,12 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
               });
             });
             
-            console.log('[useTaggedAlerts] Applied client-side filters:', { 
+            logger.info('[useTaggedAlerts] Applied client-side filters:', { 
               originalCount: transformedAlerts.length,
               filteredCount: filteredAlerts.length 
             });
           } catch (filterError) {
-            console.warn('[useTaggedAlerts] Filter error, using unfiltered data:', filterError);
+            logger.warn('[useTaggedAlerts] Filter error, using unfiltered data:', filterError);
             filteredAlerts = transformedAlerts;
           }
         }
@@ -200,10 +201,10 @@ export const useTaggedAlerts = ({ filters = [], limit = 50 }: UseTaggedAlertsPro
         return;
 
       } catch (err: any) {
-        console.error(`[useTaggedAlerts] Attempt ${attempt + 1} failed:`, err);
+        logger.error(`[useTaggedAlerts] Attempt ${attempt + 1} failed:`, err);
         
         if (attempt === maxRetries) {
-          console.error('[useTaggedAlerts] All retries failed:', err);
+          logger.error('[useTaggedAlerts] All retries failed:', err);
           setError(err.message || 'Failed to load tagged alerts');
           setRetryCount(attempt + 1);
           

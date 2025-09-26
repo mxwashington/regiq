@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+import { logger } from '@/lib/logger';
 export const CompanySetup: React.FC<{ onNext: () => void }>=({ onNext })=>{
   const { user } = useAuth();
   const [company, setCompany] = useState("");
@@ -32,7 +33,7 @@ export const CompanySetup: React.FC<{ onNext: () => void }>=({ onNext })=>{
       toast.success('Company saved - Your 7-day trial has started!');
       onNext();
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       toast.error('Failed to save company');
     } finally {
       setLoading(false);

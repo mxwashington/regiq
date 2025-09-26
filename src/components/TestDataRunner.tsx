@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { RefreshCw } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 export const TestDataRunner = () => {
   const [isRunning, setIsRunning] = useState(false);
   const { toast } = useToast();
@@ -13,36 +14,36 @@ export const TestDataRunner = () => {
     setIsRunning(true);
     
     try {
-      console.log('Starting test run...');
+      logger.info('Starting test run...');
       toast({
         title: 'Running Test',
         description: 'Testing data collection system...',
       });
 
       // First run the web scraper
-      console.log('Running web scraper...');
+      logger.info('Running web scraper...');
       const { data: scrapingResult, error: scrapingError } = await supabase.functions.invoke('government-web-scraper');
       
       if (scrapingError) {
-        console.error('Scraping error:', scrapingError);
+        logger.error('Scraping error:', scrapingError);
         throw scrapingError;
       }
       
-      console.log('Scraping result:', scrapingResult);
+      logger.info('Scraping result:', scrapingResult);
       
       // Wait a bit
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Then run the source finder
-      console.log('Running source finder...');
+      logger.info('Running source finder...');
       const { data: sourceResult, error: sourceError } = await supabase.functions.invoke('alert-source-finder');
       
       if (sourceError) {
-        console.error('Source finding error:', sourceError);
+        logger.error('Source finding error:', sourceError);
         throw sourceError;
       }
       
-      console.log('Source result:', sourceResult);
+      logger.info('Source result:', sourceResult);
       
       toast({
         title: 'Test Complete',
@@ -50,7 +51,7 @@ export const TestDataRunner = () => {
       });
       
     } catch (error: any) {
-      console.error('Test error:', error);
+      logger.error('Test error:', error);
       toast({
         title: 'Test Failed',
         description: error.message || 'Unknown error',

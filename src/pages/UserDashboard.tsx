@@ -24,6 +24,7 @@ import { FacilitySelector } from '@/components/FacilitySelector';
 import RiskPredictorPage from './RiskPredictorPage';
 import RiskDashboardPage from './RiskDashboardPage';
 import SupportWidget from '@/components/account/SupportWidget';
+import { logger } from '@/lib/logger';
 // Available regulatory sources for filtering
 const REGULATORY_SOURCES = [
   'CDC', 'CFIA', 'Drugs.com', 'ECHA', 'EMA', 'EPA', 'FAO', 'FDA', 
@@ -70,7 +71,7 @@ const UserDashboard = () => {
 
   // Get filtered alerts for display
   const displayAlerts = useMemo(() => {
-    console.log('[UserDashboard] Processing alerts:', {
+    logger.info('[UserDashboard] Processing alerts:', {
       totalAlerts: alerts.length,
       searchQuery,
       selectedSources,
@@ -87,7 +88,7 @@ const UserDashboard = () => {
         alert.summary.toLowerCase().includes(query) ||
         alert.source.toLowerCase().includes(query)
       );
-      console.log('[UserDashboard] After search filter:', filtered.length);
+      logger.info('[UserDashboard] After search filter:', filtered.length);
     }
     
     // Apply source filter
@@ -99,11 +100,11 @@ const UserDashboard = () => {
           source.toLowerCase().includes(alertSource)
         );
       });
-      console.log('[UserDashboard] After source filter:', filtered.length);
+      logger.info('[UserDashboard] After source filter:', filtered.length);
     }
     
     const result = filtered; // Show all filtered alerts
-    console.log('[UserDashboard] Final displayAlerts:', {
+    logger.info('[UserDashboard] Final displayAlerts:', {
       length: result.length,
       loading,
       sampleTitles: result.slice(0, 3).map(a => a.title)
@@ -159,7 +160,7 @@ const UserDashboard = () => {
   const handlePreferencesUpdate = () => {
     // TODO: Update user preferences in database
     setPreferencesOpen(false);
-    console.log('Updated preferences:', preferences);
+    logger.info('Updated preferences:', preferences);
   };
 
   const handleSourceToggle = (source: string) => {
@@ -483,7 +484,7 @@ const UserDashboard = () => {
                         size="sm"
                         onClick={() => {
                           // Clear all saved alerts - TODO: Implement this functionality
-                          console.log('Clear all saved alerts');
+                          logger.info('Clear all saved alerts');
                         }}
                       >
                         Clear All

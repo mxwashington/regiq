@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * Alert source search utilities with smart keyword extraction
  */
@@ -155,7 +157,7 @@ export const enhanceSearchWithGPT = async (alertTitle: string, agency: string, s
     const data = await response.json();
     return data.enhancedKeywords || extractKeywords(alertTitle);
   } catch (error) {
-    console.warn('GPT enhancement failed, falling back to basic extraction:', error);
+    logger.warn('GPT enhancement failed, falling back to basic extraction:', error);
     return extractKeywords(alertTitle);
   }
 };
@@ -190,7 +192,7 @@ export const generateAlertSummary = async (alertContent: string, sessionToken?: 
     const data = await response.json();
     return data.smartSummary || alertContent.substring(0, 200) + '...';
   } catch (error) {
-    console.warn('GPT summary failed:', error);
+    logger.warn('GPT summary failed:', error);
     return alertContent.substring(0, 200) + '...';
   }
 };
@@ -233,16 +235,16 @@ const isMobile = (): boolean => {
  * Open search URL with mobile-friendly approach
  */
 const openSearchUrl = (searchUrl: string) => {
-  console.log('Opening search URL:', searchUrl);
-  console.log('Is mobile device:', isMobile());
+  logger.info('Opening search URL:', searchUrl);
+  logger.info('Is mobile device:', isMobile());
   
   if (isMobile()) {
     // On mobile, use direct navigation to avoid popup blockers
-    console.log('Mobile device detected, using direct navigation');
+    logger.info('Mobile device detected, using direct navigation');
     window.location.href = searchUrl;
   } else {
     // On desktop, open in new tab
-    console.log('Desktop device detected, opening in new tab');
+    logger.info('Desktop device detected, opening in new tab');
     window.open(searchUrl, '_blank', 'noopener,noreferrer');
   }
 };
@@ -251,12 +253,12 @@ const openSearchUrl = (searchUrl: string) => {
  * Open a targeted search for an alert with GPT-4.1 enhancement
  */
 export const searchForAlert = async (title: string, agency: string, searchType: 'primary' | 'secondary' | 'fallback' | 'broad' = 'primary') => {
-  console.log('=== Mobile Search Debug ===');
-  console.log('User Agent:', navigator.userAgent);
-  console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
-  console.log('Touch support:', 'ontouchstart' in window);
-  console.log('Alert title:', title);
-  console.log('Agency:', agency);
+  logger.info('=== Mobile Search Debug ===');
+  logger.info('User Agent:', navigator.userAgent);
+  logger.info('Window size:', window.innerWidth, 'x', window.innerHeight);
+  logger.info('Touch support:', 'ontouchstart' in window);
+  logger.info('Alert title:', title);
+  logger.info('Agency:', agency);
   
   try {
     const queries = await generateSearchQueries(title, agency);
@@ -264,12 +266,12 @@ export const searchForAlert = async (title: string, agency: string, searchType: 
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
     
     // Track search usage
-    console.log(`GPT-enhanced search: ${searchType} for ${agency}`, { title: title.substring(0, 50), query });
+    logger.info(`GPT-enhanced search: ${searchType} for ${agency}`, { title: title.substring(0, 50), query });
     
     openSearchUrl(searchUrl);
   } catch (error) {
     // Fallback to basic search if GPT enhancement fails
-    console.warn('GPT search failed, using basic search:', error);
+    logger.warn('GPT search failed, using basic search:', error);
     
     try {
       const config = getAgencySearchConfig(agency);
@@ -277,13 +279,13 @@ export const searchForAlert = async (title: string, agency: string, searchType: 
       const query = `${keywords} site:${config.domain}`;
       const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
       
-      console.log('Using fallback search with keywords:', keywords);
+      logger.info('Using fallback search with keywords:', keywords);
       openSearchUrl(searchUrl);
     } catch (fallbackError) {
       // Ultimate fallback - simple Google search
-      console.error('All search methods failed, using simple search:', fallbackError);
+      logger.error('All search methods failed, using simple search:', fallbackError);
       const fallbackUrl = `https://www.google.com/search?q=${encodeURIComponent(title)}`;
-      openSearchUrl(fallbackUrl, title);
+      openSearchUrl(fallbackUrl);
     }
   }
 };

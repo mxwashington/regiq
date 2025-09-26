@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { RefreshCw, Shield, AlertTriangle, Clock, User } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface SecurityEvent {
   id: string;
   event_type: string;
@@ -74,7 +75,7 @@ export const SecurityMonitoringDashboard: React.FC = () => {
       });
 
     } catch (error: any) {
-      console.error('Failed to fetch security events:', error);
+      logger.error('Failed to fetch security events:', error);
       toast({
         title: "Error",
         description: "Failed to load security events",

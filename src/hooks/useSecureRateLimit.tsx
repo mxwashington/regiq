@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface RateLimitResult {
   allowed: boolean;
   userRequests: number;
@@ -29,7 +30,7 @@ export const useSecureRateLimit = () => {
       });
 
       if (error) {
-        console.error('Rate limit check error:', error);
+        logger.error('Rate limit check error:', error);
         // Fail open - allow request if rate limit service is down
         return true;
       }
@@ -59,7 +60,7 @@ export const useSecureRateLimit = () => {
 
       return true;
     } catch (err) {
-      console.error('Rate limit check failed:', err);
+      logger.error('Rate limit check failed:', err);
       // Fail open in case of errors
       return true;
     }

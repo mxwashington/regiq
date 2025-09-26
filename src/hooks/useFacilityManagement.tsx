@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+import { logger } from '@/lib/logger';
 export interface Facility {
   id: string;
   name: string;
@@ -69,7 +70,7 @@ export const useFacilityManagement = () => {
         setSelectedFacility(facilitiesData[0].id);
       }
     } catch (err) {
-      console.error('Error fetching facilities:', err);
+      logger.error('Error fetching facilities:', err);
       setError(err instanceof Error ? err.message : 'Failed to load facilities');
     } finally {
       setLoading(false);
@@ -100,7 +101,7 @@ export const useFacilityManagement = () => {
       await fetchFacilities();
       return data;
     } catch (err) {
-      console.error('Error creating facility:', err);
+      logger.error('Error creating facility:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create facility';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -125,7 +126,7 @@ export const useFacilityManagement = () => {
       toast.success('Facility updated successfully');
       await fetchFacilities();
     } catch (err) {
-      console.error('Error updating facility:', err);
+      logger.error('Error updating facility:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to update facility';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -152,7 +153,7 @@ export const useFacilityManagement = () => {
       toast.success('User added to facility successfully');
       await fetchFacilities();
     } catch (err) {
-      console.error('Error adding facility user:', err);
+      logger.error('Error adding facility user:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to add user to facility';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -177,7 +178,7 @@ export const useFacilityManagement = () => {
       toast.success('User removed from facility successfully');
       await fetchFacilities();
     } catch (err) {
-      console.error('Error removing facility user:', err);
+      logger.error('Error removing facility user:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to remove user from facility';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -198,7 +199,7 @@ export const useFacilityManagement = () => {
       if (error) throw error;
       return data || [];
     } catch (err) {
-      console.error('Error fetching facility alerts:', err);
+      logger.error('Error fetching facility alerts:', err);
       return [];
     }
   };
@@ -218,7 +219,7 @@ export const useFacilityManagement = () => {
       if (error) throw error;
       toast.success('Alert updated successfully');
     } catch (err) {
-      console.error('Error updating facility alert:', err);
+      logger.error('Error updating facility alert:', err);
       toast.error('Failed to update alert');
     }
   };

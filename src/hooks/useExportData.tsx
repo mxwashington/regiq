@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+import { logger } from '@/lib/logger';
 export interface ExportOptions {
   format: 'csv' | 'pdf' | 'json';
   dateRange?: {
@@ -53,7 +54,7 @@ export const useExportData = () => {
 
       toast.success(`Successfully exported ${alerts?.length || 0} alerts`);
     } catch (error: any) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       toast.error('Failed to export data: ' + error.message);
     } finally {
       setExporting(false);
@@ -80,7 +81,7 @@ export const useExportData = () => {
 
       toast.success(`Successfully exported ${suppliers?.length || 0} suppliers`);
     } catch (error: any) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       toast.error('Failed to export suppliers: ' + error.message);
     } finally {
       setExporting(false);
@@ -113,7 +114,7 @@ export const useExportData = () => {
 
       toast.success(`Successfully exported ${tasks?.length || 0} tasks`);
     } catch (error: any) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       toast.error('Failed to export tasks: ' + error.message);
     } finally {
       setExporting(false);

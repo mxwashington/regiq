@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 export interface ComplianceDeadline {
   id: string;
   user_id: string;
@@ -88,7 +89,7 @@ export const useComplianceCalendar = () => {
       const typedDeadlines = (data || []).map(convertDbDeadline);
       setDeadlines(typedDeadlines);
     } catch (error) {
-      console.error('Error fetching deadlines:', error);
+      logger.error('Error fetching deadlines:', error);
       toast({
         title: "Error",
         description: "Failed to load compliance deadlines",
@@ -109,7 +110,7 @@ export const useComplianceCalendar = () => {
       if (error) throw error;
       setTemplates(data || []);
     } catch (error) {
-      console.error('Error fetching templates:', error);
+      logger.error('Error fetching templates:', error);
     }
   };
 
@@ -155,7 +156,7 @@ export const useComplianceCalendar = () => {
 
       return typedDeadline;
     } catch (error) {
-      console.error('Error creating deadline:', error);
+      logger.error('Error creating deadline:', error);
       toast({
         title: "Error",
         description: "Failed to create deadline",
@@ -193,7 +194,7 @@ export const useComplianceCalendar = () => {
 
       return typedDeadline;
     } catch (error) {
-      console.error('Error updating deadline:', error);
+      logger.error('Error updating deadline:', error);
       toast({
         title: "Error",
         description: "Failed to update deadline",
@@ -228,7 +229,7 @@ export const useComplianceCalendar = () => {
         description: "Deadline deleted successfully"
       });
     } catch (error) {
-      console.error('Error deleting deadline:', error);
+      logger.error('Error deleting deadline:', error);
       toast({
         title: "Error",
         description: "Failed to delete deadline",

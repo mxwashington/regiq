@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 export interface CacheEntry {
   cache_key: string;
   query: string;
@@ -22,7 +23,7 @@ export const searchCacheUtils = {
       const cacheKey = searchCacheUtils.generateCacheKey(query, filters);
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 minutes
 
-      console.log('Storing cache entry:', { cacheKey, query: query.substring(0, 50) });
+      logger.info('Storing cache entry:', { cacheKey, query: query.substring(0, 50) });
 
       const { error } = await supabase
         .from('search_cache')
@@ -37,10 +38,10 @@ export const searchCacheUtils = {
         });
 
       if (error) {
-        console.error('Cache storage error:', error);
+        logger.error('Cache storage error:', error);
       }
     } catch (error) {
-      console.error('Cache storage failed:', error);
+      logger.error('Cache storage failed:', error);
     }
   },
 
@@ -71,7 +72,7 @@ export const searchCacheUtils = {
 
       return data.result_data;
     } catch (error) {
-      console.error('Cache retrieval failed:', error);
+      logger.error('Cache retrieval failed:', error);
       return null;
     }
   },
@@ -85,12 +86,12 @@ export const searchCacheUtils = {
         .lt('expires_at', new Date().toISOString());
 
       if (error) {
-        console.error('Cache cleanup error:', error);
+        logger.error('Cache cleanup error:', error);
       } else {
-        console.log('Expired cache entries cleaned');
+        logger.info('Expired cache entries cleaned');
       }
     } catch (error) {
-      console.error('Cache cleanup failed:', error);
+      logger.error('Cache cleanup failed:', error);
     }
   }
 };

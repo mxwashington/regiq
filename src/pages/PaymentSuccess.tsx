@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CheckCircle } from "lucide-react";
 
+import { logger } from '@/lib/logger';
 const PaymentSuccess: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const PaymentSuccess: React.FC = () => {
         await supabase.functions.invoke('check-subscription');
         toast.success('Subscription activated successfully!');
       } catch (error) {
-        console.error('Error checking subscription:', error);
+        logger.error('Error checking subscription:', error);
       }
     };
 

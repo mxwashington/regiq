@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { useState, useEffect } from 'react';
 
 export const usePlanRestrictions = () => {
@@ -12,7 +14,7 @@ export const usePlanRestrictions = () => {
         // Mock tier detection - replace with actual Supabase check
         setSubscriptionTier('starter'); // or 'professional', 'enterprise'
       } catch (error) {
-        console.error('Error checking subscription:', error);
+        logger.error('Error checking subscription:', error);
       } finally {
         setLoading(false);
       }

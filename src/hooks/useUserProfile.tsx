@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface UserProfileState {
   subscribed: boolean;
   subscriptionTier: string | null;
@@ -35,20 +36,20 @@ export const useUserProfile = () => {
 
   const checkSubscription = useCallback(async (session: Session | null) => {
     if (!session?.access_token) {
-      console.log('No session token for subscription check');
+      logger.info('No session token for subscription check');
       clearProfile();
       return;
     }
     
     try {
-      console.log('Checking subscription status...');
+      logger.info('Checking subscription status...');
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
       
-      console.log('Subscription response:', { data, error });
+      logger.info('Subscription response:', { data, error });
       
       if (error) throw error;
       
@@ -59,25 +60,25 @@ export const useUserProfile = () => {
         subscriptionEnd: data.subscription_end || null
       }));
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      logger.error('Error checking subscription:', error);
     }
   }, [clearProfile]);
 
   const checkAdminStatus = useCallback(async (session: Session | null) => {
     if (!session?.access_token) {
-      console.log('No session token for admin check');
+      logger.info('No session token for admin check');
       return;
     }
     
     try {
-      console.log('Checking admin status...');
+      logger.info('Checking admin status...');
       const { data, error } = await supabase.functions.invoke('check-admin-status', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
       
-      console.log('Admin status response:', { data, error });
+      logger.info('Admin status response:', { data, error });
       
       if (error) throw error;
       
@@ -88,13 +89,13 @@ export const useUserProfile = () => {
         adminPermissions: data.permissions || []
       }));
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      logger.error('Error checking admin status:', error);
     }
   }, []);
 
   const updateUserActivity = useCallback(async (userId: string) => {
     try {
-      console.log('Updating user activity for:', userId);
+      logger.info('Updating user activity for:', userId);
       
       // Use the IP detection service instead of direct API calls
       const { ipDetectionService } = await import('@/services/ipDetection');
@@ -106,9 +107,9 @@ export const useUserProfile = () => {
         ip_address_param: ip
       });
       
-      console.log('Updated user activity');
+      logger.info('Updated user activity');
     } catch (error) {
-      console.error('Error updating user activity:', error);
+      logger.error('Error updating user activity:', error);
     }
   }, []);
 

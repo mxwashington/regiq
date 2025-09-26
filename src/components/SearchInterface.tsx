@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Calendar, ExternalLink, Bookmark, Share2, Globe } from 'lucide-react';
 import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 
+import { logger } from '@/lib/logger';
 interface SimpleAlert {
   id: string;
   title: string;
@@ -84,7 +85,7 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
         await navigator.clipboard.writeText(urlToCopy);
       }
     } catch (error) {
-      console.warn('Share failed:', error);
+      logger.warn('Share failed:', error);
     }
   };
 
@@ -204,7 +205,7 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
                           rel="noopener noreferrer"
                           className="flex items-center gap-2"
                           onClick={(e) => {
-                            console.log('Clicking external URL:', alert.external_url);
+                            logger.info('Clicking external URL:', alert.external_url);
                           }}
                         >
                           <ExternalLink className="h-3 w-3" />

@@ -7,6 +7,7 @@ import { useSSO } from '@/hooks/useSSO';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export default function AuthCallback() {
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Auth callback error:', error);
+          logger.error('Auth callback error:', error);
           setStatus('error');
           setMessage(error.message || 'Authentication failed');
           return;
@@ -68,7 +69,7 @@ export default function AuthCallback() {
           setMessage('No user session found. Please try signing in again.');
         }
       } catch (error: any) {
-        console.error('Unexpected error in auth callback:', error);
+        logger.error('Unexpected error in auth callback:', error);
         setStatus('error');
         setMessage('An unexpected error occurred. Please try again.');
       }

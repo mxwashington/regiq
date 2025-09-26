@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface DebugInfo {
   configurationValid: boolean;
   networkOnline: boolean;
@@ -11,7 +12,7 @@ interface DebugInfo {
 
 // Global debug function
 export const debugRegIQ = async (): Promise<DebugInfo> => {
-  console.log('=== RegIQ Debug Information ===');
+  logger.info('=== RegIQ Debug Information ===');
   
   const debug: DebugInfo = {
     configurationValid: false,
@@ -24,20 +25,20 @@ export const debugRegIQ = async (): Promise<DebugInfo> => {
 
   try {
     // 1. Check configuration
-    console.log('1. Checking configuration...');
+    logger.info('1. Checking configuration...');
     if (!supabase) {
       debug.errors.push('Supabase client not initialized');
       return debug;
     }
     debug.configurationValid = true;
-    console.log('✅ Supabase client initialized');
+    logger.info('✅ Supabase client initialized');
 
     // 2. Check network connectivity
-    console.log('2. Checking network connectivity...');
-    console.log(`Network status: ${debug.networkOnline ? 'Online' : 'Offline'}`);
+    logger.info('2. Checking network connectivity...');
+    logger.info(`Network status: ${debug.networkOnline ? 'Online' : 'Offline'}`);
 
     // 3. Test basic database connection
-    console.log('3. Testing database connection...');
+    logger.info('3. Testing database connection...');
     try {
       const { data: connectionTest, error: connectionError } = await supabase
         .from('alerts')
@@ -46,18 +47,18 @@ export const debugRegIQ = async (): Promise<DebugInfo> => {
       
       if (connectionError) {
         debug.errors.push(`Database connection failed: ${connectionError.message}`);
-        console.error('❌ Database connection failed:', connectionError);
+        logger.error('❌ Database connection failed:', connectionError);
       } else {
         debug.databaseConnection = true;
-        console.log('✅ Database connection successful');
+        logger.info('✅ Database connection successful');
       }
     } catch (error: any) {
       debug.errors.push(`Database connection error: ${error.message}`);
-      console.error('❌ Database connection error:', error);
+      logger.error('❌ Database connection error:', error);
     }
 
     // 4. Check if alerts table exists and get structure
-    console.log('4. Checking alerts table...');
+    logger.info('4. Checking alerts table...');
     try {
       const { data: tableTest, error: tableError } = await supabase
         .from('alerts')
@@ -67,24 +68,24 @@ export const debugRegIQ = async (): Promise<DebugInfo> => {
       if (tableError) {
         if (tableError.code === 'PGRST116') {
           debug.errors.push('Alerts table does not exist or no access permissions');
-          console.error('❌ Alerts table not accessible:', tableError);
+          logger.error('❌ Alerts table not accessible:', tableError);
         } else {
           debug.errors.push(`Table access error: ${tableError.message}`);
-          console.error('❌ Table access error:', tableError);
+          logger.error('❌ Table access error:', tableError);
         }
       } else {
         debug.alertsTableExists = true;
         debug.sampleAlert = tableTest?.[0] || null;
-        console.log('✅ Alerts table accessible');
-        console.log('Table structure:', tableTest?.[0] ? Object.keys(tableTest[0]) : 'No data');
+        logger.info('✅ Alerts table accessible');
+        logger.info('Table structure:', tableTest?.[0] ? Object.keys(tableTest[0]) : 'No data');
       }
     } catch (error: any) {
       debug.errors.push(`Table verification error: ${error.message}`);
-      console.error('❌ Table verification error:', error);
+      logger.error('❌ Table verification error:', error);
     }
 
     // 5. Try to load a few alerts
-    console.log('5. Testing alert loading...');
+    logger.info('5. Testing alert loading...');
     try {
       const { data: alerts, error: alertsError } = await supabase
         .from('alerts')
@@ -102,18 +103,18 @@ export const debugRegIQ = async (): Promise<DebugInfo> => {
       
       if (alertsError) {
         debug.errors.push(`Alert loading failed: ${alertsError.message}`);
-        console.error('❌ Alert loading failed:', alertsError);
+        logger.error('❌ Alert loading failed:', alertsError);
       } else {
-        console.log(`✅ Successfully loaded ${alerts?.length || 0} alerts`);
-        console.log('Sample alerts:', alerts?.slice(0, 2));
+        logger.info(`✅ Successfully loaded ${alerts?.length || 0} alerts`);
+        logger.info('Sample alerts:', alerts?.slice(0, 2));
       }
     } catch (error: any) {
       debug.errors.push(`Alert loading error: ${error.message}`);
-      console.error('❌ Alert loading error:', error);
+      logger.error('❌ Alert loading error:', error);
     }
 
     // 6. Test complex query with joins
-    console.log('6. Testing complex tagged alerts query...');
+    logger.info('6. Testing complex tagged alerts query...');
     try {
       const { data: taggedAlerts, error: taggedError } = await supabase
         .from('alerts')
@@ -132,26 +133,26 @@ export const debugRegIQ = async (): Promise<DebugInfo> => {
       
       if (taggedError) {
         debug.errors.push(`Tagged alerts query failed: ${taggedError.message}`);
-        console.error('❌ Tagged alerts query failed:', taggedError);
+        logger.error('❌ Tagged alerts query failed:', taggedError);
       } else {
-        console.log('✅ Tagged alerts query successful');
+        logger.info('✅ Tagged alerts query successful');
       }
     } catch (error: any) {
       debug.errors.push(`Tagged alerts query error: ${error.message}`);
-      console.error('❌ Tagged alerts query error:', error);
+      logger.error('❌ Tagged alerts query error:', error);
     }
 
   } catch (error: any) {
     debug.errors.push(`General debug error: ${error.message}`);
-    console.error('❌ General debug error:', error);
+    logger.error('❌ General debug error:', error);
   }
 
-  console.log('=== Debug Summary ===');
-  console.log('Configuration valid:', debug.configurationValid);
-  console.log('Network online:', debug.networkOnline);
-  console.log('Database connection:', debug.databaseConnection);
-  console.log('Alerts table exists:', debug.alertsTableExists);
-  console.log('Errors:', debug.errors);
+  logger.info('=== Debug Summary ===');
+  logger.info('Configuration valid:', debug.configurationValid);
+  logger.info('Network online:', debug.networkOnline);
+  logger.info('Database connection:', debug.databaseConnection);
+  logger.info('Alerts table exists:', debug.alertsTableExists);
+  logger.info('Errors:', debug.errors);
   
   return debug;
 };
@@ -166,7 +167,7 @@ declare global {
 
 if (typeof window !== 'undefined') {
   window.debugRegIQ = debugRegIQ;
-  console.log('RegIQ Debug: Run window.debugRegIQ() to diagnose issues');
+  logger.info('RegIQ Debug: Run window.debugRegIQ() to diagnose issues');
 }
 
 export const fallbackAlerts = [

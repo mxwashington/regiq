@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * Centralized logging utility
  * Provides debug, info, warn, error logging levels
@@ -95,16 +97,16 @@ class Logger {
     
     switch (level) {
       case 'debug':
-        console.debug(prefix, message, data ? entry.data : '');
+        logger.debug(prefix, message, data ? entry.data : '');
         break;
       case 'info':
-        console.info(prefix, message, data ? entry.data : '');
+        logger.info(prefix, message, data ? entry.data : '');
         break;
       case 'warn':
-        console.warn(prefix, message, data ? entry.data : '');
+        logger.warn(prefix, message, data ? entry.data : '');
         break;
       case 'error':
-        console.error(prefix, message, data ? entry.data : '');
+        logger.error(prefix, message, data ? entry.data : '');
         break;
     }
   }

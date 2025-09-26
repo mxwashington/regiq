@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -28,7 +30,7 @@ serve(async (req) => {
   try {
     const { providerId, config }: TestRequest = await req.json();
 
-    console.log('Testing SSO connection:', { providerId, config });
+    logger.info('Testing SSO connection:', { providerId, config });
 
     let success = false;
     let message = '';
@@ -67,7 +69,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error testing SSO connection:', error);
+    logger.error('Error testing SSO connection:', error);
     
     return new Response(
       JSON.stringify({ 
@@ -96,7 +98,7 @@ async function testGoogleConnection(config: SSOProvider): Promise<boolean> {
     const data = await response.json();
     return !!data.authorization_endpoint;
   } catch (error) {
-    console.error('Google connection test failed:', error);
+    logger.error('Google connection test failed:', error);
     return false;
   }
 }
@@ -114,7 +116,7 @@ async function testMicrosoftConnection(config: SSOProvider): Promise<boolean> {
     const data = await response.json();
     return !!data.authorization_endpoint;
   } catch (error) {
-    console.error('Microsoft connection test failed:', error);
+    logger.error('Microsoft connection test failed:', error);
     return false;
   }
 }
@@ -132,7 +134,7 @@ async function testOktaConnection(config: SSOProvider): Promise<boolean> {
     const data = await response.json();
     return !!data.authorization_endpoint;
   } catch (error) {
-    console.error('Okta connection test failed:', error);
+    logger.error('Okta connection test failed:', error);
     return false;
   }
 }

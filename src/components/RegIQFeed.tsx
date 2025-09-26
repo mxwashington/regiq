@@ -27,6 +27,7 @@ import { RegIQDesktopFilters } from "./RegIQDesktopFilters";
 import { ThirdShiftStatusIndicator } from "./ThirdShiftStatusIndicator";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 
+import { logger } from '@/lib/logger';
 interface RegIQAlert {
   id: string;
   title: string;
@@ -247,7 +248,7 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
   // Convert to RegIQ format
   const alerts = useMemo(() => {
     const converted = (fetchedAlerts || []).map(convertToRegIQAlert);
-    console.log('[RegIQFeed] Converted alerts:', {
+    logger.info('[RegIQFeed] Converted alerts:', {
       fetchedCount: fetchedAlerts?.length || 0,
       convertedCount: converted.length,
       loading,
@@ -259,7 +260,7 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
   // Apply filters
   const filteredAlerts = useMemo(() => {
     let filtered = alerts;
-    console.log('[RegIQFeed] Starting filter process:', {
+    logger.info('[RegIQFeed] Starting filter process:', {
       totalAlerts: alerts.length,
       filters,
       sampleAlert: alerts[0]
@@ -267,7 +268,7 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
 
     // Time period filter
     filtered = filterByTimePeriod(filtered, filters.timePeriod);
-    console.log('[RegIQFeed] After time filter:', filtered.length);
+    logger.info('[RegIQFeed] After time filter:', filtered.length);
 
     // Agency filter - Enhanced to handle all agencies dynamically
     if (filters.agencies.length > 0) {
@@ -298,28 +299,28 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
           return false;
         });
       });
-      console.log('[RegIQFeed] After agency filter:', filtered.length);
+      logger.info('[RegIQFeed] After agency filter:', filtered.length);
     }
 
     // Industry filter
     if (filters.industries.length > 0) {
       filtered = filtered.filter(alert => filters.industries.includes(alert.industry));
-      console.log('[RegIQFeed] After industry filter:', filtered.length);
+      logger.info('[RegIQFeed] After industry filter:', filtered.length);
     }
 
     // Priority filter
     if (filters.priorities.length > 0) {
       filtered = filtered.filter(alert => filters.priorities.includes(alert.urgency));
-      console.log('[RegIQFeed] After priority filter:', filtered.length);
+      logger.info('[RegIQFeed] After priority filter:', filtered.length);
     }
 
     // Signal type filter
     if (filters.signalTypes.length > 0) {
       filtered = filtered.filter(alert => filters.signalTypes.includes(alert.signal_type));
-      console.log('[RegIQFeed] After signal type filter:', filtered.length);
+      logger.info('[RegIQFeed] After signal type filter:', filtered.length);
     }
 
-    console.log('[RegIQFeed] Final filtered alerts:', {
+    logger.info('[RegIQFeed] Final filtered alerts:', {
       count: filtered.length,
       sampleTitles: filtered.slice(0, 3).map(a => a.title)
     });
@@ -551,7 +552,7 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
                               rel="noopener noreferrer"
                               className="flex items-center gap-2"
                               onClick={(e) => {
-                                console.log('Clicking external URL:', alert.external_url);
+                                logger.info('Clicking external URL:', alert.external_url);
                               }}
                             >
                               <ExternalLink className="h-3 w-3" />

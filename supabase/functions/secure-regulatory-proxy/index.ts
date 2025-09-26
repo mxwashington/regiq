@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.0';
@@ -91,7 +93,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Secure regulatory proxy error:', error);
+    logger.error('Secure regulatory proxy error:', error);
     
     return new Response(JSON.stringify({
       error: error.message,
@@ -115,7 +117,7 @@ async function checkRateLimit(supabase: any, userId: string, limit: number): Pro
     .gte('created_at', windowStart.toISOString());
 
   if (error) {
-    console.error('Rate limit check error:', error);
+    logger.error('Rate limit check error:', error);
     return { allowed: true, remaining: limit, reset_time: Date.now() + 60000 };
   }
 
@@ -363,6 +365,6 @@ async function logAPIUsage(supabase: any, userId: string, source: string, endpoi
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Failed to log API usage:', error);
+    logger.error('Failed to log API usage:', error);
   }
 }

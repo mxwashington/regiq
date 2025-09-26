@@ -121,7 +121,7 @@ export const AdminAPIManager: React.FC = () => {
       allSources.sort((a, b) => a.name.localeCompare(b.name));
       setDataSources(allSources);
     } catch (error) {
-      console.error('Error fetching data sources:', error);
+      logger.error('Error fetching data sources:', error);
       toast.error('Failed to fetch data sources');
     } finally {
       setLoading(false);
@@ -248,7 +248,7 @@ export const AdminAPIManager: React.FC = () => {
       // Refresh the data sources list
       setTimeout(() => fetchDataSources(), 2000);
     } catch (error) {
-      console.error('Error in sync all operation:', error);
+      logger.error('Error in sync all operation:', error);
       toast.error('Failed to sync all data sources');
     } finally {
       setSyncing(false);

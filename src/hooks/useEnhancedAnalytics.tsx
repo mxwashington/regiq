@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface AnalyticsOverview {
   total_page_views: number;
   unique_visitors: number;
@@ -51,7 +52,7 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
         });
       }
     } catch (err) {
-      console.error('Error fetching analytics overview:', err);
+      logger.error('Error fetching analytics overview:', err);
       setError('Failed to fetch analytics overview');
     }
   };
@@ -116,7 +117,7 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
         top_sources: topSources
       });
     } catch (err) {
-      console.error('Error fetching alert analytics:', err);
+      logger.error('Error fetching alert analytics:', err);
       setError('Failed to fetch alert analytics');
     }
   };
@@ -155,7 +156,7 @@ export const useEnhancedAnalytics = (daysBack: number = 30) => {
         search_types: typeCount
       });
     } catch (err) {
-      console.error('Error fetching search analytics:', err);
+      logger.error('Error fetching search analytics:', err);
       setError('Failed to fetch search analytics');
     }
   };

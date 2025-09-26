@@ -7,6 +7,7 @@ import { Shield, AlertTriangle, CheckCircle, XCircle, Eye, RefreshCw } from 'luc
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface SecurityAlert {
   id: string;
   alert_type: string;
@@ -60,7 +61,7 @@ export const SecurityDashboardEnhanced: React.FC = () => {
       setSecurityAlerts(alertsData || []);
       setSecurityMetrics(metricsData as unknown as SecurityMetrics);
     } catch (error: any) {
-      console.error('Error fetching security data:', error);
+      logger.error('Error fetching security data:', error);
       toast({
         title: "Error",
         description: "Failed to load security dashboard data",
@@ -92,7 +93,7 @@ export const SecurityDashboardEnhanced: React.FC = () => {
         variant: "default"
       });
     } catch (error) {
-      console.error('Error resolving alert:', error);
+      logger.error('Error resolving alert:', error);
       toast({
         title: "Error",
         description: "Failed to resolve security alert",

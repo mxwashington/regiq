@@ -13,6 +13,7 @@ import {
   AGENCY_MAPPING
 } from './types';
 
+import { logger } from '@/lib/logger';
 export class RegulationsService {
   private cache = new Map<string, { data: any; expiry: number }>();
   private readonly CACHE_TTL = 30 * 60 * 1000; // 30 minutes
@@ -81,7 +82,7 @@ export class RegulationsService {
       
       return result;
     } catch (error) {
-      console.error('Error searching documents:', error);
+      logger.error('Error searching documents:', error);
       throw error;
     }
   }
@@ -114,7 +115,7 @@ export class RegulationsService {
       
       return result;
     } catch (error) {
-      console.error('Error getting document details:', error);
+      logger.error('Error getting document details:', error);
       throw error;
     }
   }
@@ -192,7 +193,7 @@ export class RegulationsService {
       
       return result;
     } catch (error) {
-      console.error('Error searching comments:', error);
+      logger.error('Error searching comments:', error);
       throw error;
     }
   }
@@ -246,7 +247,7 @@ export class RegulationsService {
 
       return data as { processed: number; message: string };
     } catch (error) {
-      console.error('Error syncing recent documents:', error);
+      logger.error('Error syncing recent documents:', error);
       throw error;
     }
   }

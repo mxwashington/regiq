@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.0';
@@ -87,7 +89,7 @@ serve(async (req) => {
     // Enhance query for regulatory compliance context
     const enhancedQuery = enhanceRegulatoryQuery(query, search_type, context);
 
-    console.log('Perplexity search request:', {
+    logger.info('Perplexity search request:', {
       user_id: user.id,
       query: enhancedQuery,
       search_type,
@@ -125,7 +127,7 @@ serve(async (req) => {
 
     if (!perplexityResponse.ok) {
       const errorText = await perplexityResponse.text();
-      console.error('Perplexity API error:', perplexityResponse.status, errorText);
+      logger.error('Perplexity API error:', perplexityResponse.status, errorText);
       throw new Error(`Perplexity API error: ${perplexityResponse.status}`);
     }
 
@@ -154,7 +156,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Secure Perplexity proxy error:', error);
+    logger.error('Secure Perplexity proxy error:', error);
     
     // Log failed usage attempt
     try {
@@ -171,7 +173,7 @@ serve(async (req) => {
         }
       }
     } catch (logError) {
-      console.error('Failed to log error:', logError);
+      logger.error('Failed to log error:', logError);
     }
     
     return new Response(JSON.stringify({
@@ -200,7 +202,7 @@ async function checkRateLimit(supabase: any, userId: string, limit: number, wind
     .gte('created_at', windowStart.toISOString());
 
   if (error) {
-    console.error('Rate limit check error:', error);
+    logger.error('Rate limit check error:', error);
     const resetTime = window === 'minute' ? 60000 : 3600000;
     return { allowed: true, remaining: limit, reset_time: Date.now() + resetTime };
   }
@@ -308,6 +310,6 @@ async function logPerplexityUsage(supabase: any, userId: string, query: string, 
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Failed to log Perplexity usage:', error);
+    logger.error('Failed to log Perplexity usage:', error);
   }
 }

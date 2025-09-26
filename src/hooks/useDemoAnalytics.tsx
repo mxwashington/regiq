@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+import { logger } from '@/lib/logger';
 interface DemoInteraction {
   action: string;
   details?: Record<string, any>;
@@ -32,7 +33,7 @@ export function useDemoAnalytics() {
         created_at: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Failed to log demo interaction:', error);
+      logger.error('Failed to log demo interaction:', error);
     }
   };
 

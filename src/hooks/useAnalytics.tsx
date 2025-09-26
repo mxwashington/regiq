@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
 
+import { logger } from '@/lib/logger';
 // Generate session ID that persists during browser session
 const getSessionId = () => {
   let sessionId = sessionStorage.getItem('analytics_session_id');
@@ -54,7 +55,7 @@ export const useAnalytics = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const loadTime = Date.now() - pageStartTime.current.getTime();
       
-      console.log('Tracking page view:', { 
+      logger.info('Tracking page view:', { 
         path: pagePath || location.pathname, 
         userId: user?.id,
         sessionId: sessionId.current 
@@ -73,12 +74,12 @@ export const useAnalytics = () => {
       });
       
       if (error) {
-        console.error('Page view insert error:', error);
+        logger.error('Page view insert error:', error);
       } else {
-        console.log('Page view tracked successfully');
+        logger.info('Page view tracked successfully');
       }
     } catch (error) {
-      console.error('Failed to track page view:', error);
+      logger.error('Failed to track page view:', error);
     }
   }, [location.pathname]);
 
@@ -102,7 +103,7 @@ export const useAnalytics = () => {
         interaction_data: additionalData || {}
       });
     } catch (error) {
-      console.error('Failed to track interaction:', error);
+      logger.error('Failed to track interaction:', error);
     }
   }, [location.pathname]);
 
@@ -124,7 +125,7 @@ export const useAnalytics = () => {
         interaction_data: additionalData || {}
       });
     } catch (error) {
-      console.error('Failed to track alert interaction:', error);
+      logger.error('Failed to track alert interaction:', error);
     }
   }, []);
 
@@ -148,7 +149,7 @@ export const useAnalytics = () => {
         filters_applied: filtersApplied || {}
       });
     } catch (error) {
-      console.error('Failed to track search:', error);
+      logger.error('Failed to track search:', error);
     }
   }, []);
 
@@ -158,7 +159,7 @@ export const useAnalytics = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const deviceInfo = getDeviceInfo();
       
-      console.log('Initializing analytics session:', { 
+      logger.info('Initializing analytics session:', { 
         sessionId: sessionId.current, 
         userId: user?.id,
         deviceInfo 
@@ -178,12 +179,12 @@ export const useAnalytics = () => {
       });
       
       if (error) {
-        console.error('Session upsert error:', error);
+        logger.error('Session upsert error:', error);
       } else {
-        console.log('Session initialized successfully');
+        logger.info('Session initialized successfully');
       }
     } catch (error) {
-      console.error('Failed to initialize session:', error);
+      logger.error('Failed to initialize session:', error);
     }
   }, []);
 
@@ -205,7 +206,7 @@ export const useAnalytics = () => {
         })
         .eq('session_id', sessionId.current);
     } catch (error) {
-      console.error('Failed to update session:', error);
+      logger.error('Failed to update session:', error);
     }
   }, []);
 
@@ -223,7 +224,7 @@ export const useAnalytics = () => {
         })
         .eq('session_id', sessionId.current);
     } catch (error) {
-      console.error('Failed to end session:', error);
+      logger.error('Failed to end session:', error);
     }
   }, []);
 

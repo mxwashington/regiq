@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface TaxonomyTag {
   id: string;
   name: string;
@@ -71,7 +72,7 @@ export const useTaxonomy = (): TaxonomyData => {
 
         setCategories(transformedCategories);
       } catch (err: any) {
-        console.error('Error fetching taxonomy:', err);
+        logger.error('Error fetching taxonomy:', err);
         setError(err.message || 'Failed to load taxonomy data');
         toast({
           title: 'Error',

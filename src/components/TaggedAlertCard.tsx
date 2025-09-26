@@ -7,6 +7,7 @@ import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 import { MobileButton } from '@/components/MobileButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+import { logger } from '@/lib/logger';
 interface AlertTag {
   id: string;
   tag: {
@@ -72,7 +73,7 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Share button clicked for alert:', alert.title);
+    logger.info('Share button clicked for alert:', alert.title);
     
     const shareText = `${alert.title}\n\n${alert.summary}\n\nSource: ${alert.source}`;
     const shareUrl = alert.external_url || window.location.href;
@@ -92,7 +93,7 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
         });
       }
     } catch (error) {
-      console.error('Error sharing:', error);
+      logger.error('Error sharing:', error);
       toast({
         title: "Share failed",
         description: "Unable to share this alert.",
@@ -103,7 +104,7 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
 
   const handleExternalLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('External link clicked for alert:', alert.title);
+    logger.info('External link clicked for alert:', alert.title);
     
     // Decode HTML entities in the URL
     const decodedUrl = alert.external_url
@@ -120,13 +121,13 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
 
   const handleSearch = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Search button clicked for alert:', alert.title);
+    logger.info('Search button clicked for alert:', alert.title);
     searchForAlert(alert.title, alert.source);
   };
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Dismiss button clicked for alert:', alert.title);
+    logger.info('Dismiss button clicked for alert:', alert.title);
     
     if (onDismissAlert) {
       onDismissAlert(alert.id);

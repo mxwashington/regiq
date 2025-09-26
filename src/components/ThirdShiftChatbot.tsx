@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface ChatMessage {
   id: string;
   type: 'user' | 'bot';
@@ -61,7 +62,7 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
     setIsLoading(true);
 
     try {
-      console.log('ThirdShift.ai: Starting search with query:', inputValue);
+      logger.info('ThirdShift.ai: Starting search with query:', inputValue);
       
       // Call Perplexity search function for better regulatory intelligence
       const { data, error } = await supabase.functions.invoke('perplexity-search', {
@@ -74,10 +75,10 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
         }
       });
 
-      console.log('ThirdShift.ai: API response:', { data, error });
+      logger.info('ThirdShift.ai: API response:', { data, error });
 
       if (error) {
-        console.error('ThirdShift.ai: Supabase function error:', error);
+        logger.error('ThirdShift.ai: Supabase function error:', error);
         throw error;
       }
 
@@ -111,9 +112,9 @@ export function ThirdShiftChatbot({ isOpen, onToggle }: ThirdShiftChatbotProps) 
       }
 
     } catch (error) {
-      console.error('ThirdShift.ai: Complete error details:', error);
-      console.error('ThirdShift.ai: Error type:', typeof error);
-      console.error('ThirdShift.ai: Error keys:', error ? Object.keys(error) : 'no keys');
+      logger.error('ThirdShift.ai: Complete error details:', error);
+      logger.error('ThirdShift.ai: Error type:', typeof error);
+      logger.error('ThirdShift.ai: Error keys:', error ? Object.keys(error) : 'no keys');
       
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),

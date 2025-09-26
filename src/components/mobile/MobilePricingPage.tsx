@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
 
+import { logger } from '@/lib/logger';
 interface Plan {
   id: string;
   name: string;
@@ -88,7 +89,7 @@ export const MobilePricingPage: React.FC = () => {
   ];
 
   const handleSubscribe = async (planId: string) => {
-    console.log('CTA button clicked:', planId);
+    logger.info('CTA button clicked:', planId);
     
     if (!user) {
       window.location.href = '/auth?redirect=/pricing';

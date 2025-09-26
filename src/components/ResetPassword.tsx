@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Lock, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState('');
@@ -27,7 +28,7 @@ export default function ResetPassword() {
         const refreshToken = hashParams.get('refresh_token');
         const type = hashParams.get('type');
         
-        console.log('Hash params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+        logger.info('Hash params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
         
         if (type === 'recovery' && accessToken) {
           // We have a recovery token, set the session
@@ -37,7 +38,7 @@ export default function ResetPassword() {
           });
           
           if (error) {
-            console.error('Error setting recovery session:', error);
+            logger.error('Error setting recovery session:', error);
             setSessionValid(false);
             toast({
               title: 'Invalid reset link',
@@ -47,7 +48,7 @@ export default function ResetPassword() {
             return;
           }
           
-          console.log('Recovery session established successfully');
+          logger.info('Recovery session established successfully');
           setSessionValid(true);
           return;
         }
@@ -56,16 +57,16 @@ export default function ResetPassword() {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error checking session:', error);
+          logger.error('Error checking session:', error);
           setSessionValid(false);
           return;
         }
 
         if (session && session.user?.aud === 'authenticated') {
-          console.log('Valid session found for password reset');
+          logger.info('Valid session found for password reset');
           setSessionValid(true);
         } else {
-          console.log('No valid session found');
+          logger.info('No valid session found');
           setSessionValid(false);
           toast({
             title: 'Invalid reset link',
@@ -77,7 +78,7 @@ export default function ResetPassword() {
           }, 3000);
         }
       } catch (error) {
-        console.error('Error validating recovery session:', error);
+        logger.error('Error validating recovery session:', error);
         setSessionValid(false);
       }
     };

@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
@@ -56,7 +58,7 @@ serve(async (req) => {
 
     const { alert_ids, analyze_all = false } = await req.json();
     
-    console.log('Starting regulatory gap detection analysis', { alert_ids, analyze_all });
+    logger.info('Starting regulatory gap detection analysis', { alert_ids, analyze_all });
 
     // Get alerts to analyze
     let query = supabase
@@ -74,7 +76,7 @@ serve(async (req) => {
     const { data: alerts, error: alertsError } = await query;
 
     if (alertsError) {
-      console.error('Error fetching alerts:', alertsError);
+      logger.error('Error fetching alerts:', alertsError);
       throw alertsError;
     }
 
@@ -87,7 +89,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Analyzing ${alerts.length} alerts for regulatory gaps`);
+    logger.info(`Analyzing ${alerts.length} alerts for regulatory gaps`);
 
     const processFailures: ProcessFailurePattern[] = [];
     const importGaps: ImportComplianceGap[] = [];
@@ -109,7 +111,7 @@ serve(async (req) => {
 
         analyzed_count++;
       } catch (error) {
-        console.error(`Error analyzing alert ${alert.id}:`, error);
+        logger.error(`Error analyzing alert ${alert.id}:`, error);
       }
     }
 
@@ -120,9 +122,9 @@ serve(async (req) => {
         .upsert(processFailures, { onConflict: 'alert_id' });
 
       if (processError) {
-        console.error('Error saving process failure patterns:', processError);
+        logger.error('Error saving process failure patterns:', processError);
       } else {
-        console.log(`Saved ${processFailures.length} process failure patterns`);
+        logger.info(`Saved ${processFailures.length} process failure patterns`);
       }
     }
 
@@ -132,9 +134,9 @@ serve(async (req) => {
         .upsert(importGaps, { onConflict: 'alert_id' });
 
       if (importError) {
-        console.error('Error saving import compliance gaps:', importError);
+        logger.error('Error saving import compliance gaps:', importError);
       } else {
-        console.log(`Saved ${importGaps.length} import compliance gaps`);
+        logger.info(`Saved ${importGaps.length} import compliance gaps`);
       }
     }
 
@@ -163,7 +165,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in regulatory gap detector:', error);
+    logger.error('Error in regulatory gap detector:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 
@@ -407,9 +409,9 @@ async function generateGapIndicators(supabase: any, processFailures: ProcessFail
       .upsert(indicators, { onConflict: 'indicator_type' });
 
     if (error) {
-      console.error('Error saving gap indicators:', error);
+      logger.error('Error saving gap indicators:', error);
     } else {
-      console.log(`Generated ${indicators.length} gap indicators`);
+      logger.info(`Generated ${indicators.length} gap indicators`);
     }
   }
 }

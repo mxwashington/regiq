@@ -1,21 +1,22 @@
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 export async function triggerDataPipelineNow() {
   try {
-    console.log('🔄 Manually triggering data pipeline to fetch fresh data...');
+    logger.info('🔄 Manually triggering data pipeline to fetch fresh data...');
     
     const { data, error } = await supabase.functions.invoke('regulatory-data-pipeline');
     
     if (error) {
-      console.error('❌ Data pipeline failed:', error);
+      logger.error('❌ Data pipeline failed:', error);
       return { success: false, error: error.message };
     }
 
-    console.log('✅ Data pipeline completed successfully:', data);
+    logger.info('✅ Data pipeline completed successfully:', data);
     return data;
     
   } catch (error) {
-    console.error('❌ Error triggering data pipeline:', error);
+    logger.error('❌ Error triggering data pipeline:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

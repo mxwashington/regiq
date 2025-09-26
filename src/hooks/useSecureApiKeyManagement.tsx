@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEnhancedInputValidation } from './useEnhancedInputValidation';
 import { useAuth } from '@/contexts/AuthContext';
 
+import { logger } from '@/lib/logger';
 interface ApiKey {
   id: string;
   key_name: string;
@@ -44,7 +45,7 @@ export const useSecureApiKeyManagement = () => {
       
       setApiKeys(data || []);
     } catch (error) {
-      console.error('Error fetching API keys:', error);
+      logger.error('Error fetching API keys:', error);
       toast({
         title: "Error",
         description: "Failed to fetch API keys",
@@ -100,7 +101,7 @@ export const useSecureApiKeyManagement = () => {
       };
 
     } catch (error: any) {
-      console.error('Error creating API key:', error);
+      logger.error('Error creating API key:', error);
       
       let errorMessage = "Failed to create API key";
       if (error.message?.includes('Enterprise subscription required')) {
@@ -145,7 +146,7 @@ export const useSecureApiKeyManagement = () => {
           description: "Invalid API key ID format",
           variant: "destructive"
         });
-        console.warn('Invalid API key ID format attempted in revoke', { keyId, userId: user.id });
+        logger.warn('Invalid API key ID format attempted in revoke', { keyId, userId: user.id });
         return false;
       }
 
@@ -157,7 +158,7 @@ export const useSecureApiKeyManagement = () => {
           description: "API key not found in your account",
           variant: "destructive"
         });
-        console.warn('Attempt to revoke non-owned API key', { keyId, userId: user.id });
+        logger.warn('Attempt to revoke non-owned API key', { keyId, userId: user.id });
         return false;
       }
 
@@ -182,7 +183,7 @@ export const useSecureApiKeyManagement = () => {
 
       return true;
     } catch (error) {
-      console.error('Error revoking API key:', error);
+      logger.error('Error revoking API key:', error);
       toast({
         title: "Error",
         description: "Failed to revoke API key",
@@ -228,7 +229,7 @@ export const useSecureApiKeyManagement = () => {
           description: "Invalid API key ID format",
           variant: "destructive"
         });
-        console.warn('Invalid API key ID format attempted in rate limit update', { keyId, userId: user.id });
+        logger.warn('Invalid API key ID format attempted in rate limit update', { keyId, userId: user.id });
         return false;
       }
 
@@ -240,7 +241,7 @@ export const useSecureApiKeyManagement = () => {
           description: "API key not found in your account",
           variant: "destructive"
         });
-        console.warn('Attempt to update rate limit for non-owned API key', { keyId, userId: user.id });
+        logger.warn('Attempt to update rate limit for non-owned API key', { keyId, userId: user.id });
         return false;
       }
 
@@ -265,7 +266,7 @@ export const useSecureApiKeyManagement = () => {
 
       return true;
     } catch (error) {
-      console.error('Error updating rate limit:', error);
+      logger.error('Error updating rate limit:', error);
       toast({
         title: "Error",
         description: "Failed to update rate limit",
@@ -288,7 +289,7 @@ export const useSecureApiKeyManagement = () => {
 
       return data;
     } catch (error) {
-      console.error('Error testing API key:', error);
+      logger.error('Error testing API key:', error);
       return null;
     }
   }, []);

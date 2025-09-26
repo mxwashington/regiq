@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface UpdateNotificationProps {
   onUpdate?: () => void;
 }
@@ -45,7 +46,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
           );
         }
       } catch (error) {
-        console.log('Service worker version check failed:', error);
+        logger.info('Service worker version check failed:', error);
       }
     };
 
@@ -104,7 +105,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
       
       localStorage.setItem('last-data-clear', Date.now().toString());
       
-      console.log('Cleared stale session data');
+      logger.info('Cleared stale session data');
     }
   };
 
@@ -131,7 +132,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onUpdate
         window.location.reload();
       }
     } catch (error) {
-      console.error('Update failed:', error);
+      logger.error('Update failed:', error);
       toast({
         title: 'Update Failed',
         description: 'Please refresh manually to see the latest version.',

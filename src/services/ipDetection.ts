@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 interface IPDetectionConfig {
   maxRetries: number;
   retryDelay: number;
@@ -49,7 +51,7 @@ class IPDetectionService {
         this.circuitBreaker = JSON.parse(stored);
       }
     } catch (error) {
-      console.warn('Failed to load circuit breaker state:', error);
+      logger.warn('Failed to load circuit breaker state:', error);
     }
   }
 
@@ -57,7 +59,7 @@ class IPDetectionService {
     try {
       localStorage.setItem(this.CIRCUIT_BREAKER_KEY, JSON.stringify(this.circuitBreaker));
     } catch (error) {
-      console.warn('Failed to save circuit breaker state:', error);
+      logger.warn('Failed to save circuit breaker state:', error);
     }
   }
 
@@ -81,7 +83,7 @@ class IPDetectionService {
     // Open circuit after 3 failures
     if (this.circuitBreaker.failures >= 3) {
       this.circuitBreaker.isOpen = true;
-      console.warn('IP detection circuit breaker opened due to repeated failures');
+      logger.warn('IP detection circuit breaker opened due to repeated failures');
     }
     
     this.saveCircuitBreakerState();
@@ -110,7 +112,7 @@ class IPDetectionService {
       localStorage.removeItem(this.CACHE_KEY);
       return null;
     } catch (error) {
-      console.warn('Failed to read IP cache:', error);
+      logger.warn('Failed to read IP cache:', error);
       return null;
     }
   }
@@ -124,7 +126,7 @@ class IPDetectionService {
       };
       localStorage.setItem(this.CACHE_KEY, JSON.stringify(ipInfo));
     } catch (error) {
-      console.warn('Failed to cache IP:', error);
+      logger.warn('Failed to cache IP:', error);
     }
   }
 
@@ -155,7 +157,7 @@ class IPDetectionService {
       return data.ip || data.origin || null;
     } catch (error) {
       if (error instanceof Error) {
-        console.warn(`IP service ${url} failed:`, error.message);
+        logger.warn(`IP service ${url} failed:`, error.message);
       }
       return null;
     }
@@ -165,7 +167,7 @@ class IPDetectionService {
     try {
       // Check circuit breaker
       if (this.isCircuitOpen()) {
-        console.warn('IP detection circuit breaker is open, using cached IP if available');
+        logger.warn('IP detection circuit breaker is open, using cached IP if available');
         const cached = this.getCachedIP();
         return cached?.ip || null;
       }
@@ -173,13 +175,13 @@ class IPDetectionService {
       // Check cache first
       const cached = this.getCachedIP();
       if (cached) {
-        console.log('Using cached IP:', cached.ip);
+        logger.info('Using cached IP:', cached.ip);
         return cached.ip;
       }
 
       // Check throttling
       if (this.shouldThrottle()) {
-        console.warn('IP detection request throttled, using cached IP if available');
+        logger.warn('IP detection request throttled, using cached IP if available');
         return cached?.ip || null;
       }
 
@@ -203,7 +205,7 @@ class IPDetectionService {
         if (ip) {
           this.setCachedIP(ip, service);
           this.recordSuccess();
-          console.log('Successfully detected IP:', ip);
+          logger.info('Successfully detected IP:', ip);
           return ip;
         }
       }
@@ -211,7 +213,7 @@ class IPDetectionService {
       this.recordFailure();
       return null;
     } catch (error) {
-      console.error('IP detection failed:', error);
+      logger.error('IP detection failed:', error);
       this.recordFailure();
       return null;
     }
@@ -229,7 +231,7 @@ class IPDetectionService {
         }
       }
     } catch (error) {
-      console.warn('Failed to get fallback IP:', error);
+      logger.warn('Failed to get fallback IP:', error);
     }
     return null;
   }
@@ -240,7 +242,7 @@ class IPDetectionService {
       localStorage.removeItem(this.CIRCUIT_BREAKER_KEY);
       localStorage.removeItem('regiq_fallback_ip');
     } catch (error) {
-      console.warn('Failed to clear IP cache:', error);
+      logger.warn('Failed to clear IP cache:', error);
     }
   }
 

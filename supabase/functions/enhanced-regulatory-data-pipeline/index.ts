@@ -1,6 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
+
+// Simple logger for Supabase functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
+
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
@@ -43,7 +52,7 @@ interface ProcessedAlert {
 
 function logStep(message: string, data?: any) {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+  logger.info(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
 async function fetchDataSources(supabase: any): Promise<DataSource[]> {
@@ -78,24 +87,71 @@ async function shouldProcessSource(supabase: any, source: DataSource): Promise<b
 async function fetchRSSFeed(url: string, source: DataSource): Promise<any[]> {
   try {
     logStep(`Fetching RSS feed: ${url}`);
-    
+
+    // Enhanced headers for better compatibility with regulatory sites
+    const headers: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0 (compatible; RegIQ-Pipeline/2.0; +https://regiq.com/bot)',
+      'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive'
+    };
+
+    // Add specific headers for certain domains
+    if (url.includes('fda.gov')) {
+      headers['Referer'] = 'https://www.fda.gov/';
+    } else if (url.includes('canada.ca')) {
+      headers['Accept-Language'] = 'en-CA,en;q=0.9';
+    }
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'User-Agent': 'RegIQ-Global-Pipeline/2.0',
-        'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml'
-      }
+      headers,
+      // Add timeout to prevent hanging
+      signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
     if (!response.ok) {
-      logStep(`Failed to fetch RSS: ${response.status} - ${response.statusText}`);
+      // More detailed error logging
+      const statusText = response.statusText || 'Unknown Error';
+      const errorBody = await response.text().catch(() => '');
+
+      logStep(`Failed to fetch RSS: ${response.status} - ${statusText}`, {
+        url,
+        source: source.name,
+        agency: source.agency,
+        errorBody: errorBody.substring(0, 200)
+      });
+
+      // Don't fail completely for auth errors - try to continue with other sources
+      if (response.status === 403 || response.status === 401) {
+        logStep(`Authentication issue with ${source.agency} - ${url}, continuing with other sources`);
+      }
+
       return [];
     }
 
     const xmlText = await response.text();
-    return parseRSSFeed(xmlText, source);
+    const items = parseRSSFeed(xmlText, source);
+    logStep(`Successfully fetched ${items.length} items from ${source.agency}`);
+    return items;
+
   } catch (error) {
-    logStep(`Error fetching RSS feed ${url}:`, error);
+    // Enhanced error handling
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep(`Error fetching RSS feed ${url}:`, {
+      error: errorMessage,
+      source: source.name,
+      agency: source.agency,
+      isTimeout: errorMessage.includes('timeout'),
+      isNetworkError: errorMessage.includes('network') || errorMessage.includes('fetch')
+    });
+
+    // For timeout or network errors, don't mark source as completely failed
+    if (errorMessage.includes('timeout') || errorMessage.includes('AbortSignal')) {
+      logStep(`Timeout fetching ${source.agency} feed - will retry later`);
+    }
+
     return [];
   }
 }
@@ -325,33 +381,144 @@ function processRSSItem(item: any, source: DataSource): ProcessedAlert {
   };
 }
 
-async function isDuplicate(supabase: any, alert: ProcessedAlert): Promise<boolean> {
-  // Relaxed duplicate detection - use similarity instead of exact match
-  const { data } = await supabase
-    .from('alerts')
-    .select('id, title')
-    .eq('source', alert.source)
-    .gte('published_date', new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()) // Reduced to 3 days
-    .limit(50);
+// Enhanced string similarity calculation
+function calculateStringSimilarity(str1: string, str2: string): number {
+  if (str1 === str2) return 1.0;
 
-  if (!data || data.length === 0) return false;
+  // Normalize strings - remove special characters and extra whitespace
+  const normalize = (s: string) => s.toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  // Check for very similar titles (80% similarity or exact substring match)
-  const alertTitle = alert.title.toLowerCase().trim();
-  for (const existing of data) {
-    const existingTitle = existing.title.toLowerCase().trim();
-    
-    // Exact match
-    if (alertTitle === existingTitle) return true;
-    
-    // Substring match for shorter titles
-    if (alertTitle.length > 20 && (
-      alertTitle.includes(existingTitle) || 
-      existingTitle.includes(alertTitle)
-    )) return true;
+  const s1 = normalize(str1);
+  const s2 = normalize(str2);
+
+  if (s1 === s2) return 1.0;
+
+  // Levenshtein distance-based similarity
+  const maxLen = Math.max(s1.length, s2.length);
+  if (maxLen === 0) return 1.0;
+
+  const distance = levenshteinDistance(s1, s2);
+  return 1 - (distance / maxLen);
+}
+
+// Levenshtein distance calculation
+function levenshteinDistance(str1: string, str2: string): number {
+  const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+
+  for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+  for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+
+  for (let j = 1; j <= str2.length; j++) {
+    for (let i = 1; i <= str1.length; i++) {
+      const substitutionCost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j][i - 1] + 1,      // insertion
+        matrix[j - 1][i] + 1,      // deletion
+        matrix[j - 1][i - 1] + substitutionCost // substitution
+      );
+    }
   }
 
-  return false;
+  return matrix[str2.length][str1.length];
+}
+
+async function isDuplicate(supabase: any, alert: ProcessedAlert): Promise<boolean> {
+  try {
+    // Enhanced duplicate detection with better time windows and similarity matching
+    const lookbackDays = alert.source.includes('FDA') ? 14 : 7; // FDA sources need longer lookback
+    const lookbackDate = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000).toISOString();
+
+    // Check duplicates with more comprehensive query
+    const { data } = await supabase
+      .from('alerts')
+      .select('id, title, external_url, published_date, full_content')
+      .eq('source', alert.source)
+      .gte('published_date', lookbackDate)
+      .limit(100); // Increased limit for better deduplication
+
+    if (!data || data.length === 0) return false;
+
+    const alertTitle = alert.title.toLowerCase().trim();
+    const alertUrl = alert.external_url?.toLowerCase().trim() || '';
+    const alertDate = new Date(alert.published_date);
+
+    for (const existing of data) {
+      const existingTitle = existing.title.toLowerCase().trim();
+      const existingUrl = existing.external_url?.toLowerCase().trim() || '';
+      const existingDate = new Date(existing.published_date);
+
+      // 1. Exact title match - definitely duplicate
+      if (alertTitle === existingTitle) {
+        logStep(`Exact title match duplicate found: ${alert.title}`);
+        return true;
+      }
+
+      // 2. Same URL - definitely duplicate (common for regulatory sources)
+      if (alertUrl && existingUrl && alertUrl === existingUrl) {
+        logStep(`Same URL duplicate found: ${alert.external_url}`);
+        return true;
+      }
+
+      // 3. High similarity match (85%+) within similar timeframe
+      const similarity = calculateStringSimilarity(alertTitle, existingTitle);
+      const timeDiffHours = Math.abs(alertDate.getTime() - existingDate.getTime()) / (1000 * 60 * 60);
+
+      if (similarity >= 0.85 && timeDiffHours <= 72) { // 72 hour window for similar titles
+        logStep(`High similarity duplicate found: ${alert.title} (${Math.round(similarity * 100)}% similar)`);
+        return true;
+      }
+
+      // 4. Check for common regulatory patterns that indicate same alert
+      if (similarity >= 0.75) {
+        // Extract key identifiers (recall numbers, FDA numbers, etc.)
+        const alertIdentifiers = extractRegulatoryIdentifiers(alert.title + ' ' + alert.summary);
+        const existingIdentifiers = extractRegulatoryIdentifiers(existing.title + ' ' + (existing.full_content || ''));
+
+        // If we have matching regulatory IDs, it's likely a duplicate
+        const commonIdentifiers = alertIdentifiers.filter(id => existingIdentifiers.includes(id));
+        if (commonIdentifiers.length > 0) {
+          logStep(`Regulatory ID match duplicate found: ${alert.title} (IDs: ${commonIdentifiers.join(', ')})`);
+          return true;
+        }
+      }
+    }
+
+    return false;
+  } catch (error) {
+    logStep('Error in duplicate detection:', error);
+    return false; // On error, allow the alert through to avoid missing important updates
+  }
+}
+
+// Extract regulatory identifiers from text
+function extractRegulatoryIdentifiers(text: string): string[] {
+  const identifiers: string[] = [];
+  const normalizedText = text.toLowerCase();
+
+  // FDA recall numbers (F-XXXX-XXXX format)
+  const fdaRecallMatches = text.match(/F-\d{4}-\d{4}/gi);
+  if (fdaRecallMatches) identifiers.push(...fdaRecallMatches);
+
+  // FSIS recall numbers (typically numeric)
+  const fsisRecallMatches = text.match(/recall\s*(?:number|#)?\s*:?\s*(\d{3,})/gi);
+  if (fsisRecallMatches) identifiers.push(...fsisRecallMatches);
+
+  // CFR citations
+  const cfrMatches = text.match(/\b\d+\s*cfr\s*\d+(?:\.\d+)?\b/gi);
+  if (cfrMatches) identifiers.push(...cfrMatches);
+
+  // FDA application numbers
+  const fdaAppMatches = text.match(/(?:nda|anda|bla)\s*\d{6}/gi);
+  if (fdaAppMatches) identifiers.push(...fdaAppMatches);
+
+  // Warning letter numbers
+  const warningLetterMatches = text.match(/\b[A-Z]{2,}-\d{2,}-\d{2,}\b/gi);
+  if (warningLetterMatches) identifiers.push(...warningLetterMatches);
+
+  return identifiers.map(id => id.toLowerCase().trim());
 }
 
 async function saveAlert(supabase: any, alert: ProcessedAlert, openaiKey?: string): Promise<boolean> {
@@ -425,36 +592,89 @@ async function classifyAndTagAlert(supabase: any, alertId: string, alert: Proces
 async function fetchOpenFDAData(endpoint: string, source: DataSource): Promise<any[]> {
   try {
     logStep(`Fetching openFDA data from: ${endpoint}`);
-    
-    // Calculate date range (last 30 days)
+
+    // Calculate date range (last 14 days to reduce load and get more recent data)
     const endDate = new Date();
-    const startDate = new Date(endDate.getTime() - (30 * 24 * 60 * 60 * 1000));
-    
+    const startDate = new Date(endDate.getTime() - (14 * 24 * 60 * 60 * 1000));
+
     // Format dates for FDA API (YYYYMMDD format)
     const startDateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
     const endDateStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
-    
-    // Build query parameters
-    const searchParam = `report_date:[${startDateStr}+TO+${endDateStr}]`;
-    const url = `${source.base_url}/${endpoint}?search=${encodeURIComponent(searchParam)}&limit=100`;
-    
+
+    // Build query parameters with better date field handling
+    let dateField = 'report_date';
+    if (endpoint.includes('enforcement')) {
+      dateField = 'report_date';
+    } else if (endpoint.includes('event')) {
+      dateField = 'receiptdate';
+    } else if (endpoint.includes('drugsfda')) {
+      dateField = 'submission_status_date';
+    }
+
+    const searchParam = `${dateField}:[${startDateStr}+TO+${endDateStr}]`;
+    const url = `${source.base_url}/${endpoint}?search=${encodeURIComponent(searchParam)}&limit=50`; // Reduced limit to avoid rate limiting
+
+    const headers: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0 (compatible; RegIQ-Pipeline/2.0; +https://regiq.com/contact)',
+      'Accept': 'application/json',
+      'Accept-Language': 'en-US,en;q=0.9'
+    };
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
-        'Accept': 'application/json'
-      }
+      headers,
+      signal: AbortSignal.timeout(45000) // 45 second timeout for API calls
     });
 
     if (!response.ok) {
-      logStep(`Failed to fetch openFDA data: ${response.status} - ${response.statusText}`);
+      const statusText = response.statusText || 'Unknown Error';
+      const errorBody = await response.text().catch(() => '');
+
+      logStep(`Failed to fetch openFDA data: ${response.status} - ${statusText}`, {
+        endpoint,
+        url,
+        source: source.name,
+        errorBody: errorBody.substring(0, 300)
+      });
+
+      // Handle rate limiting specifically
+      if (response.status === 429) {
+        logStep(`Rate limited by openFDA API - will retry ${endpoint} later`);
+        // Don't mark as complete failure, just skip this run
+        return [];
+      }
+
+      // Handle other errors gracefully
+      if (response.status >= 500) {
+        logStep(`Server error from openFDA - ${endpoint} may be temporarily unavailable`);
+        return [];
+      }
+
       return [];
     }
 
     const data = await response.json();
-    return data.results || [];
+
+    // Handle openFDA response structure
+    const results = data.results || [];
+    logStep(`Successfully fetched ${results.length} items from openFDA ${endpoint}`);
+
+    return results;
+
   } catch (error) {
-    logStep(`Error fetching openFDA data from ${endpoint}:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep(`Error fetching openFDA data from ${endpoint}:`, {
+      error: errorMessage,
+      source: source.name,
+      isTimeout: errorMessage.includes('timeout') || errorMessage.includes('AbortSignal'),
+      isNetworkError: errorMessage.includes('network') || errorMessage.includes('fetch')
+    });
+
+    // For critical endpoints, log as higher priority
+    if (endpoint.includes('enforcement') || endpoint.includes('recall')) {
+      logStep(`CRITICAL: Failed to fetch FDA enforcement data from ${endpoint}`, { error: errorMessage });
+    }
+
     return [];
   }
 }

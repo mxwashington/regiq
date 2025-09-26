@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface PullToRefreshConfig {
   threshold?: number;
   maxPullDistance?: number;
@@ -44,7 +45,7 @@ export const useMobilePullToRefresh = (
 
       await onRefresh();
     } catch (error) {
-      console.error('Refresh failed:', error);
+      logger.error('Refresh failed:', error);
       toast({
         title: 'Refresh Failed',
         description: 'Please try again',

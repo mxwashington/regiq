@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -8,7 +10,7 @@ const corsHeaders = {
 
 function logStep(message: string, data?: any) {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+  logger.info(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
 // This function is designed to be called by a cron job

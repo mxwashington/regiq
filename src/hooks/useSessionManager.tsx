@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface SessionState {
   user: User | null;
   session: Session | null;
@@ -42,7 +43,7 @@ export const useSessionManager = () => {
     }
     lastAuthStateChange.current = now;
 
-    console.log('Auth state change:', {
+    logger.info('Auth state change:', {
       event,
       hasSession: !!session,
       userId: session?.user?.id,
@@ -51,14 +52,14 @@ export const useSessionManager = () => {
 
     // Handle token refresh errors
     if (event === 'TOKEN_REFRESHED' && !session) {
-      console.error('Token refresh failed - session is null');
+      logger.error('Token refresh failed - session is null');
       updateSessionState(null, 'Token refresh failed');
       return;
     }
 
     // Handle sign out
     if (event === 'SIGNED_OUT') {
-      console.log('User signed out');
+      logger.info('User signed out');
       updateSessionState(null);
       return;
     }
@@ -85,17 +86,17 @@ export const useSessionManager = () => {
 
   const signOut = useCallback(async () => {
     try {
-      console.log('Signing out user...');
+      logger.info('Signing out user...');
       await supabase.auth.signOut();
     } catch (error) {
-      console.error('Error during sign out:', error);
+      logger.error('Error during sign out:', error);
     }
   }, []);
 
   useEffect(() => {
     if (initializedRef.current) return; // Prevent re-initialization
     
-    console.log('=== SESSION MANAGER INITIALIZATION ===');
+    logger.info('=== SESSION MANAGER INITIALIZATION ===');
     initializedRef.current = true;
     
     // Set up auth state listener first
@@ -104,7 +105,7 @@ export const useSessionManager = () => {
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error('Error getting initial session:', error);
+        logger.error('Error getting initial session:', error);
         setState(prev => ({
           ...prev,
           session: null,
@@ -114,7 +115,7 @@ export const useSessionManager = () => {
           lastError: error.message
         }));
       } else {
-        console.log('Initial session check:', {
+        logger.info('Initial session check:', {
           hasSession: !!session,
           userId: session?.user?.id,
           sessionExpires: session?.expires_at

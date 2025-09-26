@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 // Code of Federal Regulations (CFR) API Client
 // Integrates with GovInfo API and eCFR scraping for live CFR access
 
@@ -151,7 +153,7 @@ export class CFRApiClient {
       return searchResult;
 
     } catch (error) {
-      console.error('CFR search error:', error);
+      logger.error('CFR search error:', error);
       throw new Error('Failed to search CFR data');
     }
   }
@@ -166,7 +168,7 @@ export class CFRApiClient {
         return await this.getCFRFromECFR(title, part, section);
       }
     } catch (error) {
-      console.error(`Error fetching CFR ${title} CFR ${part}${section ? `.${section}` : ''}:`, error);
+      logger.error(`Error fetching CFR ${title} CFR ${part}${section ? `.${section}` : ''}:`, error);
       throw error;
     }
   }
@@ -209,7 +211,7 @@ export class CFRApiClient {
         const titleResults = await this.searchTitleForTerms(titleNum, searchTerms);
         results.push(...titleResults);
       } catch (error) {
-        console.error(`Error searching CFR Title ${titleNum}:`, error);
+        logger.error(`Error searching CFR Title ${titleNum}:`, error);
       }
     }
 
@@ -439,7 +441,7 @@ export class CFRApiClient {
         const sections = await this.getCFRSection(21, part);
         results.push(...sections);
       } catch (error) {
-        console.error(`Error fetching 21 CFR ${part}:`, error);
+        logger.error(`Error fetching 21 CFR ${part}:`, error);
       }
     }
     
@@ -455,7 +457,7 @@ export class CFRApiClient {
         const sections = await this.getCFRSection(21, part);
         results.push(...sections);
       } catch (error) {
-        console.error(`Error fetching 21 CFR ${part}:`, error);
+        logger.error(`Error fetching 21 CFR ${part}:`, error);
       }
     }
     
@@ -471,7 +473,7 @@ export class CFRApiClient {
         const sections = await this.getCFRSection(21, part);
         results.push(...sections);
       } catch (error) {
-        console.error(`Error fetching 21 CFR ${part}:`, error);
+        logger.error(`Error fetching 21 CFR ${part}:`, error);
       }
     }
     

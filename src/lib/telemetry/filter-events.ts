@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 // Telemetry events for Source Filter Engine
 export interface FilterTelemetryEvents {
   'filter.query.started': { 
@@ -84,7 +86,7 @@ export class FilterTelemetryLogger {
         }
       });
     } catch (error) {
-      console.error('Failed to log telemetry event:', error);
+      logger.error('Failed to log telemetry event:', error);
     }
   }
 
@@ -103,7 +105,7 @@ export class FilterTelemetryLogger {
         }
       });
     } catch (error) {
-      console.error('Failed to track performance metric:', error);
+      logger.error('Failed to track performance metric:', error);
     }
   }
 
@@ -120,7 +122,7 @@ export class FilterTelemetryLogger {
         }
       });
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      logger.error('Failed to log security event:', error);
     }
   }
 }

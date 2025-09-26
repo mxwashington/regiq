@@ -1,6 +1,8 @@
+import { logger } from '@/lib/logger';
+
 // Test hybrid pipeline with focus on FDA sources
 const testHybridPipeline = async () => {
-    console.log('🚀 Testing Hybrid FDA Pipeline...');
+    logger.info('🚀 Testing Hybrid FDA Pipeline...');
     const startTime = Date.now();
     
     try {
@@ -21,14 +23,14 @@ const testHybridPipeline = async () => {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`❌ Pipeline failed (${response.status}):`, errorText);
+            logger.error(`❌ Pipeline failed (${response.status}):`, errorText);
             return;
         }
 
         const result = await response.json();
         
-        console.log(`✅ Pipeline completed in ${executionTime} seconds`);
-        console.log('📊 Results:', JSON.stringify(result, null, 2));
+        logger.info(`✅ Pipeline completed in ${executionTime} seconds`);
+        logger.info('📊 Results:', JSON.stringify(result, null, 2));
         
         // Check for FDA compliance alerts specifically
         if (result.results) {
@@ -39,13 +41,13 @@ const testHybridPipeline = async () => {
                     return acc;
                 }, {});
             
-            console.log('🏥 FDA-specific results:', fdaResults);
+            logger.info('🏥 FDA-specific results:', fdaResults);
         }
         
     } catch (error) {
         const endTime = Date.now();
         const executionTime = (endTime - startTime) / 1000;
-        console.error(`💥 Pipeline error after ${executionTime}s:`, error.message);
+        logger.error(`💥 Pipeline error after ${executionTime}s:`, error.message);
     }
 };
 

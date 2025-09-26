@@ -13,6 +13,7 @@ import {
   RefreshCw 
 } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 export function ThirdShiftAI() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ export function ThirdShiftAI() {
       throw new Error('ThirdShift AI service is currently unavailable. Please try again later.');
       
     } catch (err: any) {
-      console.error('ThirdShift AI error:', err);
+      logger.error('ThirdShift AI error:', err);
       setError(err.message || 'Failed to get AI response');
       setConnectionStatus('error');
     } finally {

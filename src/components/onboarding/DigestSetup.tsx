@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import { logger } from '@/lib/logger';
 export const DigestSetup: React.FC<{ onNext: () => void, onBack: () => void }>=({ onNext, onBack })=>{
   const { user } = useAuth();
   const [time, setTime] = useState("08:00");
@@ -34,7 +35,7 @@ export const DigestSetup: React.FC<{ onNext: () => void, onBack: () => void }>=(
       toast.success('Digest preferences saved');
       onNext();
     } catch (e) {
-      console.error('Error saving digest preferences:', e);
+      logger.error('Error saving digest preferences:', e);
       toast.error('Failed to save preferences');
     } finally {
       setLoading(false);

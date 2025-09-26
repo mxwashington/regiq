@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 export interface Task {
   id: string;
   user_id: string;
@@ -101,7 +102,7 @@ export const useTaskManagement = () => {
       const typedTasks = (data || []).map(convertDbTask);
       setTasks(typedTasks);
     } catch (error) {
-      console.error('Error fetching tasks:', error);
+      logger.error('Error fetching tasks:', error);
       toast({
         title: "Error",
         description: "Failed to load tasks",
@@ -122,7 +123,7 @@ export const useTaskManagement = () => {
       const typedMembers = (data || []).map(convertDbTeamMember);
       setTeamMembers(typedMembers);
     } catch (error) {
-      console.error('Error fetching team members:', error);
+      logger.error('Error fetching team members:', error);
     }
   };
 
@@ -161,7 +162,7 @@ export const useTaskManagement = () => {
 
       return typedTask;
     } catch (error) {
-      console.error('Error creating task:', error);
+      logger.error('Error creating task:', error);
       toast({
         title: "Error",
         description: "Failed to create task",
@@ -197,7 +198,7 @@ export const useTaskManagement = () => {
 
       return typedTask;
     } catch (error) {
-      console.error('Error updating task:', error);
+      logger.error('Error updating task:', error);
       toast({
         title: "Error",
         description: "Failed to update task",
@@ -223,7 +224,7 @@ export const useTaskManagement = () => {
         description: "Task deleted successfully"
       });
     } catch (error) {
-      console.error('Error deleting task:', error);
+      logger.error('Error deleting task:', error);
       toast({
         title: "Error",
         description: "Failed to delete task",
@@ -270,7 +271,7 @@ export const useTaskManagement = () => {
 
       return data;
     } catch (error) {
-      console.error('Error adding comment:', error);
+      logger.error('Error adding comment:', error);
       toast({
         title: "Error",
         description: "Failed to add comment",
@@ -292,7 +293,7 @@ export const useTaskManagement = () => {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      logger.error('Error fetching comments:', error);
       return [];
     }
   };
@@ -326,7 +327,7 @@ export const useTaskManagement = () => {
 
       return typedMember;
     } catch (error) {
-      console.error('Error inviting team member:', error);
+      logger.error('Error inviting team member:', error);
       toast({
         title: "Error",
         description: "Failed to invite team member",

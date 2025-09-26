@@ -3,6 +3,7 @@ import { useSecurityValidation } from './useSecurityValidation';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface FormValidationOptions {
   maxLength?: number;
   required?: boolean;
@@ -100,7 +101,7 @@ export const useSecureFormValidation = () => {
         metadata_param: metadata
       });
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      logger.error('Failed to log security event:', error);
       // Don't block user actions if logging fails
     }
   }, []);

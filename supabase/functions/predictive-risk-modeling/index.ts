@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -35,7 +37,7 @@ serve(async (req) => {
 
     const { entityType, entityId, predictionHorizon = 30, includeRecommendations = true }: RiskModelingRequest = await req.json();
 
-    console.log('Processing risk prediction request:', { entityType, entityId, predictionHorizon });
+    logger.info('Processing risk prediction request:', { entityType, entityId, predictionHorizon });
 
     // Get historical data based on entity type
     const historicalData = await getHistoricalData(supabase, entityType, entityId);
@@ -69,7 +71,7 @@ serve(async (req) => {
       .single();
 
     if (saveError) {
-      console.error('Error saving risk prediction:', saveError);
+      logger.error('Error saving risk prediction:', saveError);
       throw saveError;
     }
 
@@ -91,7 +93,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in predictive risk modeling:', error);
+    logger.error('Error in predictive risk modeling:', error);
     
     return new Response(
       JSON.stringify({ 
@@ -157,7 +159,7 @@ async function getHistoricalData(supabase: any, entityType: string, entityId: st
     historicalData.complianceMetrics = complianceMetrics || [];
     
   } catch (error) {
-    console.error('Error fetching historical data:', error);
+    logger.error('Error fetching historical data:', error);
     historicalData.error = error.message;
   }
 
@@ -395,7 +397,7 @@ async function updateRiskPatterns(supabase: any, entityType: string, riskPredict
         });
     }
   } catch (error) {
-    console.error('Error updating risk patterns:', error);
+    logger.error('Error updating risk patterns:', error);
   }
 }
 

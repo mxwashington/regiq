@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { buildMagicLinkRedirectUrl } from '@/lib/domain';
 
+import { logger } from '@/lib/logger';
 export const useMagicLinkAuth = () => {
   const { toast } = useToast();
 
@@ -11,9 +12,9 @@ export const useMagicLinkAuth = () => {
     try {
       const redirectUrl = buildMagicLinkRedirectUrl();
       
-      console.log('=== MAGIC LINK SIGN IN ===');
-      console.log('Email:', email);
-      console.log('Redirect URL:', redirectUrl);
+      logger.info('=== MAGIC LINK SIGN IN ===');
+      logger.info('Email:', email);
+      logger.info('Redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -25,12 +26,12 @@ export const useMagicLinkAuth = () => {
         }
       });
       
-      console.log('Magic link request result:', { error });
+      logger.info('Magic link request result:', { error });
       
       if (error) {
-        console.error('=== MAGIC LINK ERROR ===');
-        console.error('Error message:', error.message);
-        console.error('Error code:', error.status);
+        logger.error('=== MAGIC LINK ERROR ===');
+        logger.error('Error message:', error.message);
+        logger.error('Error code:', error.status);
         
         // Enhanced rate limiting detection
         const isRateLimit = error.message?.includes('rate limit') || 
@@ -38,7 +39,7 @@ export const useMagicLinkAuth = () => {
                            error.status === 429;
         
         if (isRateLimit) {
-          console.error('Rate limit detected');
+          logger.error('Rate limit detected');
           toast({
             title: "Rate limit exceeded",
             description: "Please wait a moment before requesting another magic link.",
@@ -52,7 +53,7 @@ export const useMagicLinkAuth = () => {
           });
         }
       } else {
-        console.log('Magic link sent successfully');
+        logger.info('Magic link sent successfully');
         toast({
           title: "Check your email",
           description: "We've sent you a magic link to sign in.",
@@ -61,8 +62,8 @@ export const useMagicLinkAuth = () => {
       
       return { error };
     } catch (error: any) {
-      console.error('=== UNEXPECTED MAGIC LINK ERROR ===');
-      console.error('Error:', error);
+      logger.error('=== UNEXPECTED MAGIC LINK ERROR ===');
+      logger.error('Error:', error);
       
       toast({
         title: "Magic link failed",

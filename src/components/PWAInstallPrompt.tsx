@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Download, X, Smartphone, Monitor } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -43,7 +44,7 @@ export const PWAInstallPrompt: React.FC = () => {
 
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
-      console.log('PWA: beforeinstallprompt event fired');
+      logger.info('PWA: beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
       
@@ -57,7 +58,7 @@ export const PWAInstallPrompt: React.FC = () => {
 
     // Listen for app installed event
     const handleAppInstalled = () => {
-      console.log('PWA: App was installed');
+      logger.info('PWA: App was installed');
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
@@ -92,19 +93,19 @@ export const PWAInstallPrompt: React.FC = () => {
       const choiceResult = await deferredPrompt.userChoice;
       
       if (choiceResult.outcome === 'accepted') {
-        console.log('PWA: User accepted the install prompt');
+        logger.info('PWA: User accepted the install prompt');
         toast({
           title: 'Installing RegIQ...',
           description: 'The app will be available on your home screen shortly.',
         });
       } else {
-        console.log('PWA: User dismissed the install prompt');
+        logger.info('PWA: User dismissed the install prompt');
       }
       
       setDeferredPrompt(null);
       setShowPrompt(false);
     } catch (error) {
-      console.error('PWA: Error during installation:', error);
+      logger.error('PWA: Error during installation:', error);
       toast({
         title: 'Installation Error',
         description: 'There was an issue installing the app. Please try again.',

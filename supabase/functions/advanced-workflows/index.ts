@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -51,7 +53,7 @@ serve(async (req) => {
     const requestData: WorkflowRequest = await req.json();
     const { action } = requestData;
 
-    console.log('Processing workflow request:', { action, ...requestData });
+    logger.info('Processing workflow request:', { action, ...requestData });
 
     const userId = await getUserIdFromRequest(req, supabase);
     if (!userId && action !== 'get_templates') {
@@ -116,7 +118,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in advanced workflows:', error);
+    logger.error('Error in advanced workflows:', error);
     
     return new Response(
       JSON.stringify({ 

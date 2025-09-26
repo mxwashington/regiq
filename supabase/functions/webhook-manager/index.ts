@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
@@ -59,7 +61,7 @@ serve(async (req) => {
         throw new Error('Invalid action');
     }
   } catch (error) {
-    console.error('Error in webhook-manager function:', error);
+    logger.error('Error in webhook-manager function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
@@ -369,15 +371,15 @@ async function deliverWebhookWithRetry(supabase: any, webhook: any, payload: any
       .eq('id', deliveryId);
 
     if (result.success) {
-      console.log(`Webhook delivered successfully on attempt ${attempt}`);
+      logger.info(`Webhook delivered successfully on attempt ${attempt}`);
       return;
     }
 
     if (attempt < maxRetries) {
-      console.log(`Webhook delivery failed, retrying in ${retryDelay} seconds (attempt ${attempt}/${maxRetries})`);
+      logger.info(`Webhook delivery failed, retrying in ${retryDelay} seconds (attempt ${attempt}/${maxRetries})`);
       await new Promise(resolve => setTimeout(resolve, retryDelay * 1000));
     } else {
-      console.log(`Webhook delivery failed after ${maxRetries} attempts`);
+      logger.info(`Webhook delivery failed after ${maxRetries} attempts`);
     }
   }
 }

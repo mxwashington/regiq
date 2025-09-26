@@ -10,6 +10,7 @@ import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 import { Link } from 'react-router-dom';
 import { Search, AlertCircle, Bookmark, Zap } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface UsageData {
   usage_type: string;
   usage_count: number;
@@ -43,7 +44,7 @@ export const UsageDashboard: React.FC = () => {
       if (error) throw error;
       setUsageData(data || []);
     } catch (error) {
-      console.error('Error fetching usage data:', error);
+      logger.error('Error fetching usage data:', error);
     } finally {
       setLoading(false);
     }

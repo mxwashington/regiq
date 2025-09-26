@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Trash2 } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 
+import { logger } from '@/lib/logger';
 const Suppliers: React.FC = () => {
   const { user } = useAuth();
   const [suppliers, setSuppliers] = useState<Array<{ id: string; supplier_name: string; created_at: string }>>([]);
@@ -31,7 +32,7 @@ const Suppliers: React.FC = () => {
       if (error) throw error;
       setSuppliers(data || []);
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       toast.error(err?.message || 'Failed to load suppliers');
     } finally {
       setLoading(false);
@@ -57,7 +58,7 @@ const Suppliers: React.FC = () => {
       setNewSupplier("");
       await loadSuppliers();
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       toast.error(err?.message || 'Failed to add supplier');
     } finally {
       setAdding(false);
@@ -72,7 +73,7 @@ const Suppliers: React.FC = () => {
       toast.success('Supplier removed');
       setSuppliers((prev) => prev.filter((s) => s.id !== id));
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       toast.error(err?.message || 'Failed to remove supplier');
     }
   };

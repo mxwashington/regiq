@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface SSOProvider {
   id: string;
   name: string;
@@ -60,7 +61,7 @@ export const useSSO = () => {
         setSettings(settingsData.setting_value as unknown as SSOSettings);
       }
     } catch (error) {
-      console.error('Error loading SSO config:', error);
+      logger.error('Error loading SSO config:', error);
     } finally {
       setLoading(false);
     }
@@ -158,7 +159,7 @@ export const useSSO = () => {
 
       return true;
     } catch (error) {
-      console.error('Error provisioning SSO user:', error);
+      logger.error('Error provisioning SSO user:', error);
       toast({
         title: "Provisioning Failed",
         description: "Failed to set up your account after SSO login",
@@ -183,7 +184,7 @@ export const useSSO = () => {
 
       return data.allowed || false;
     } catch (error) {
-      console.error('Error validating SSO access:', error);
+      logger.error('Error validating SSO access:', error);
       return false;
     }
   };

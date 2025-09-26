@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface SecurityAlert {
   id: string;
   alert_type: string;
@@ -36,7 +37,7 @@ export const useEnhancedSecurity = () => {
       });
 
       if (error) {
-        console.error('Rate limit check failed:', error);
+        logger.error('Rate limit check failed:', error);
         return { allowed: true, limit_type: 'none', user_requests: 0, ip_requests: 0, retry_after: 0 };
       }
 
@@ -53,7 +54,7 @@ export const useEnhancedSecurity = () => {
 
       return result;
     } catch (error) {
-      console.error('Rate limit check error:', error);
+      logger.error('Rate limit check error:', error);
       return { allowed: true, limit_type: 'none', user_requests: 0, ip_requests: 0, retry_after: 0 };
     }
   }, [toast]);
@@ -71,7 +72,7 @@ export const useEnhancedSecurity = () => {
         threat_level_param: threatLevel
       });
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      logger.error('Failed to log security event:', error);
     }
   }, []);
 
@@ -90,7 +91,7 @@ export const useEnhancedSecurity = () => {
         sensitive_fields: sensitiveFields
       });
     } catch (error) {
-      console.error('Failed to log sensitive data access:', error);
+      logger.error('Failed to log sensitive data access:', error);
     }
   }, []);
 
@@ -107,7 +108,7 @@ export const useEnhancedSecurity = () => {
       if (error) throw error;
       setSecurityAlerts(data as SecurityAlert[] || []);
     } catch (error) {
-      console.error('Failed to fetch security alerts:', error);
+      logger.error('Failed to fetch security alerts:', error);
       toast({
         title: "Error",
         description: "Failed to fetch security alerts",
@@ -147,7 +148,7 @@ export const useEnhancedSecurity = () => {
         variant: "default"
       });
     } catch (error) {
-      console.error('Failed to resolve alert:', error);
+      logger.error('Failed to resolve alert:', error);
       toast({
         title: "Error", 
         description: "Failed to resolve security alert",
@@ -172,7 +173,7 @@ export const useEnhancedSecurity = () => {
         require_admin: true
       });
     } catch (error) {
-      console.error('Failed to log admin action:', error);
+      logger.error('Failed to log admin action:', error);
     }
   }, []);
 
@@ -184,13 +185,13 @@ export const useEnhancedSecurity = () => {
       });
 
       if (error) {
-        console.error('Account lockout check failed:', error);
+        logger.error('Account lockout check failed:', error);
         return { is_locked: false, retry_after_seconds: 0 };
       }
 
       return data as { is_locked: boolean; retry_after_seconds: number; failed_attempts?: number };
     } catch (error) {
-      console.error('Account lockout check error:', error);
+      logger.error('Account lockout check error:', error);
       return { is_locked: false, retry_after_seconds: 0 };
     }
   }, []);
@@ -203,13 +204,13 @@ export const useEnhancedSecurity = () => {
       });
 
       if (error) {
-        console.error('Session extension failed:', error);
+        logger.error('Session extension failed:', error);
         return { success: false, error: error.message };
       }
 
       return data as { success: boolean; extended_until: string; hours_extended: number };
     } catch (error) {
-      console.error('Session extension error:', error);  
+      logger.error('Session extension error:', error);  
       return { success: false, error: 'Failed to extend session' };
     }
   }, []);

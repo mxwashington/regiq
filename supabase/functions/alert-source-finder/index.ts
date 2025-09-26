@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -45,7 +47,7 @@ serve(async (req) => {
       .limit(20) // Process more alerts
 
     if (error) {
-      console.error('Error fetching alerts:', error)
+      logger.error('Error fetching alerts:', error)
       return new Response(JSON.stringify({ error: 'Failed to fetch alerts' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -71,7 +73,7 @@ serve(async (req) => {
     // Process each alert with enhanced source finding
     for (const alert of alerts) {
       try {
-        console.log(`Processing alert: ${alert.title.substring(0, 50)}...`)
+        logger.info(`Processing alert: ${alert.title.substring(0, 50)}...`)
         
         const sourceResults = await enhancedSourceFinding(alert)
         
@@ -106,14 +108,14 @@ serve(async (req) => {
               method: bestResult.method
             })
           } else {
-            console.error(`Update error for alert ${alert.id}:`, updateError)
+            logger.error(`Update error for alert ${alert.id}:`, updateError)
           }
         }
         
         // Add delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 800))
       } catch (error) {
-        console.error(`Error processing alert ${alert.id}:`, error)
+        logger.error(`Error processing alert ${alert.id}:`, error)
       }
     }
 
@@ -135,7 +137,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in enhanced alert-source-finder function:', error)
+    logger.error('Error in enhanced alert-source-finder function:', error)
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -179,14 +181,14 @@ async function perplexitySourceSearch(alert: Alert): Promise<SourceResult[]> {
   try {
     const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY')
     if (!perplexityApiKey) {
-      console.warn('PERPLEXITY_API_KEY not found, skipping Perplexity source search')
+      logger.warn('PERPLEXITY_API_KEY not found, skipping Perplexity source search')
       return results
     }
 
     // Construct a search query to find the official source URL
     const searchQuery = `Find the official government source URL for this alert: "${alert.title}" from ${alert.source}. Include published date ${alert.published_date}. Focus on finding the direct link to the original regulatory alert, recall notice, or safety communication.`
 
-    console.log(`Using Perplexity to find source for: ${alert.title.substring(0, 60)}...`)
+    logger.info(`Using Perplexity to find source for: ${alert.title.substring(0, 60)}...`)
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -218,7 +220,7 @@ async function perplexitySourceSearch(alert: Alert): Promise<SourceResult[]> {
     })
 
     if (!response.ok) {
-      console.error('Perplexity API error:', response.status, await response.text())
+      logger.error('Perplexity API error:', response.status, await response.text())
       return results
     }
 
@@ -231,12 +233,12 @@ async function perplexitySourceSearch(alert: Alert): Promise<SourceResult[]> {
 
     // Filter and score the URLs
     for (const url of foundUrls) {
-      console.log(`Checking URL: ${url} for source: ${alert.source}`)
+      logger.info(`Checking URL: ${url} for source: ${alert.source}`)
       
       if (isHighQualityGovernmentURL(url, alert.source)) {
         const confidence = calculatePerplexityConfidence(url, alert, content)
         
-        console.log(`✓ Accepted URL: ${url} with confidence: ${confidence}`)
+        logger.info(`✓ Accepted URL: ${url} with confidence: ${confidence}`)
         
         results.push({
           url: url,
@@ -246,14 +248,14 @@ async function perplexitySourceSearch(alert: Alert): Promise<SourceResult[]> {
           method: 'perplexity_ai_search'
         })
       } else {
-        console.log(`✗ Rejected URL: ${url} (doesn't match quality criteria)`)
+        logger.info(`✗ Rejected URL: ${url} (doesn't match quality criteria)`)
       }
     }
 
-    console.log(`Perplexity found ${results.length} potential sources for alert: ${alert.title.substring(0, 60)}...`)
+    logger.info(`Perplexity found ${results.length} potential sources for alert: ${alert.title.substring(0, 60)}...`)
 
   } catch (error) {
-    console.error('Error in Perplexity source search:', error)
+    logger.error('Error in Perplexity source search:', error)
   }
   
   return results
@@ -336,7 +338,7 @@ async function checkScrapedCache(alert: Alert): Promise<SourceResult[]> {
       }
     }
   } catch (error) {
-    console.error('Error checking scraped cache:', error)
+    logger.error('Error checking scraped cache:', error)
   }
   
   return results
@@ -389,7 +391,7 @@ async function fuzzyMatchScrapedData(alert: Alert): Promise<SourceResult[]> {
       }
     }
   } catch (error) {
-    console.error('Error in fuzzy matching:', error)
+    logger.error('Error in fuzzy matching:', error)
   }
   
   return results
@@ -440,7 +442,7 @@ async function dateBasedMatching(alert: Alert): Promise<SourceResult[]> {
       }
     }
   } catch (error) {
-    console.error('Error in date-based matching:', error)
+    logger.error('Error in date-based matching:', error)
   }
   
   return results
@@ -590,7 +592,7 @@ async function searchGovernmentSites(alert: Alert): Promise<SourceResult[]> {
         }
       }
     } catch (error) {
-      console.error(`Government site search failed:`, error)
+      logger.error(`Government site search failed:`, error)
     }
   }
   

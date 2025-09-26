@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, Chrome, Users } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface SSOProvider {
   id: string;
   name: string;
@@ -55,7 +56,7 @@ export const SSOLoginButtons: React.FC<SSOLoginButtonsProps> = ({
         setSSORequired(globalSettings.ssoRequired || false);
       }
     } catch (error) {
-      console.error('Error loading SSO providers:', error);
+      logger.error('Error loading SSO providers:', error);
     }
   };
 
@@ -107,7 +108,7 @@ export const SSOLoginButtons: React.FC<SSOLoginButtonsProps> = ({
       // The redirect will happen automatically
       onSuccess?.();
     } catch (error: any) {
-      console.error('SSO sign-in error:', error);
+      logger.error('SSO sign-in error:', error);
       toast({
         title: "Sign-in Failed",
         description: error.message || "Failed to sign in with SSO provider",

@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { fallbackAlerts } from '@/lib/debug-utils';
 
+import { logger } from '@/lib/logger';
 interface OptimizedAlert {
   id: string;
   title: string;
@@ -133,11 +134,11 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
       setLoading(false);
 
     } catch (err: any) {
-      console.error(`[useOptimizedAlerts] Attempt ${currentRetryCount + 1} failed:`, err);
+      logger.error(`[useOptimizedAlerts] Attempt ${currentRetryCount + 1} failed:`, err);
       
       if (currentRetryCount >= maxRetries) {
         // Use fallback data
-        console.warn('[useOptimizedAlerts] Using fallback data');
+        logger.warn('[useOptimizedAlerts] Using fallback data');
         setAlerts(fallbackAlerts.map(alert => ({ 
           ...alert, 
           urgency: alert.urgency as OptimizedAlert['urgency'], 
@@ -221,7 +222,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
         setHasMore(false);
       }
     } catch (err: any) {
-      console.error('[useOptimizedAlerts] Load more failed:', err);
+      logger.error('[useOptimizedAlerts] Load more failed:', err);
       toast({
         title: 'Error',
         description: 'Failed to load more alerts',
@@ -255,7 +256,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
         throw error;
       }
     } catch (err: any) {
-      console.error('[useOptimizedAlerts] Dismiss failed:', err);
+      logger.error('[useOptimizedAlerts] Dismiss failed:', err);
       toast({
         title: 'Error',
         description: 'Failed to dismiss alert',
@@ -287,7 +288,7 @@ export const useOptimizedAlerts = (options: UseOptimizedAlertsOptions = {}) => {
         description: 'All alerts cleared'
       });
     } catch (err: any) {
-      console.error('[useOptimizedAlerts] Clear all failed:', err);
+      logger.error('[useOptimizedAlerts] Clear all failed:', err);
       toast({
         title: 'Error',
         description: 'Failed to clear alerts',

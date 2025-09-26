@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -41,7 +43,7 @@ serve(async (req) => {
       .rpc('validate_enterprise_api_key', { api_key_input: providedApiKey });
 
     if (validationError) {
-      console.error("API key validation error:", validationError);
+      logger.error("API key validation error:", validationError);
       return new Response(JSON.stringify({ error: "API validation failed" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -58,7 +60,7 @@ serve(async (req) => {
     }
 
     const validatedUser = validationResult[0];
-    console.log(`API access granted to user: ${validatedUser.user_id}`);
+    logger.info(`API access granted to user: ${validatedUser.user_id}`);
 
     // Helpers
     const cap = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));

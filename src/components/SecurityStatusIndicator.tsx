@@ -4,6 +4,7 @@ import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface SecurityStatus {
   level: 'secure' | 'warning' | 'critical';
   message: string;
@@ -29,7 +30,7 @@ export const SecurityStatusIndicator: React.FC = () => {
           .order('created_at', { ascending: false });
 
         if (error && error.code !== 'PGRST116') {
-          console.warn('Could not check security events:', error);
+          logger.warn('Could not check security events:', error);
           setStatus({
             level: 'warning',
             message: 'Security Status Unknown',
@@ -75,7 +76,7 @@ export const SecurityStatusIndicator: React.FC = () => {
           });
         }
       } catch (error) {
-        console.error('Security check error:', error);
+        logger.error('Security check error:', error);
         setStatus({
           level: 'warning',
           message: 'Security Check Failed'

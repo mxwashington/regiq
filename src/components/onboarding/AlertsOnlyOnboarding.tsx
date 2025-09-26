@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
 import { toast } from 'sonner';
 
+import { logger } from '@/lib/logger';
 interface OnboardingStep {
   step: number;
   title: string;
@@ -106,7 +107,7 @@ export const AlertsOnlyOnboarding: React.FC = () => {
       setCurrentStep(3);
       toast.success('Facility added successfully');
     } catch (error) {
-      console.error('Error adding facility:', error);
+      logger.error('Error adding facility:', error);
       toast.error('Failed to add facility');
     } finally {
       setLoading(false);
@@ -139,7 +140,7 @@ export const AlertsOnlyOnboarding: React.FC = () => {
       setCurrentStep(4);
       toast.success('Preferences saved successfully');
     } catch (error) {
-      console.error('Error saving preferences:', error);
+      logger.error('Error saving preferences:', error);
       toast.error('Failed to save preferences');
     } finally {
       setLoading(false);

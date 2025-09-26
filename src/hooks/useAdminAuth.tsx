@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface AdminProfile {
   role: string;
   is_admin: boolean;
@@ -10,47 +10,15 @@ interface AdminProfile {
 }
 
 export const useAdminAuth = () => {
-  const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isAdmin, adminRole, loading } = useAuth();
 
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) {
-        setIsAdmin(false);
-        setAdminProfile(null);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('role, is_admin, full_name, email')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching admin status:', error);
-          setIsAdmin(false);
-          setAdminProfile(null);
-        } else {
-          const adminStatus = profile?.role === 'admin' || profile?.is_admin === true;
-          setIsAdmin(adminStatus);
-          setAdminProfile(profile as AdminProfile);
-        }
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
-        setAdminProfile(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user]);
+  // Create a mock admin profile from the auth context data
+  const adminProfile: AdminProfile | null = user && isAdmin ? {
+    role: adminRole || 'admin',
+    is_admin: isAdmin,
+    full_name: user.user_metadata?.full_name || '',
+    email: user.email || ''
+  } : null;
 
   const logAdminActivity = async (action: string, targetType?: string, targetId?: string, details?: any) => {
     if (!user || !isAdmin) return;
@@ -68,7 +36,7 @@ export const useAdminAuth = () => {
           user_agent: navigator.userAgent
         });
     } catch (error) {
-      console.error('Error logging admin activity:', error);
+      logger.error('Error logging admin activity:', error);
     }
   };
 

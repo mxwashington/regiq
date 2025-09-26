@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 export interface SupplierWatch {
   id: string;
   user_id: string;
@@ -39,7 +40,7 @@ export const useSupplierRiskMonitoring = () => {
       setSuppliers(data || []);
       return data || [];
     } catch (error) {
-      console.error('Error fetching suppliers:', error);
+      logger.error('Error fetching suppliers:', error);
       toast({
         title: "Error",
         description: "Failed to load supplier watches",
@@ -117,7 +118,7 @@ export const useSupplierRiskMonitoring = () => {
       setSupplierRisks(risks);
       return risks;
     } catch (error) {
-      console.error('Error calculating supplier risks:', error);
+      logger.error('Error calculating supplier risks:', error);
       toast({
         title: "Error",
         description: "Failed to calculate supplier risks",
@@ -157,7 +158,7 @@ export const useSupplierRiskMonitoring = () => {
 
       return data;
     } catch (error) {
-      console.error('Error adding supplier watch:', error);
+      logger.error('Error adding supplier watch:', error);
       toast({
         title: "Error",
         description: "Failed to add supplier watch",
@@ -186,7 +187,7 @@ export const useSupplierRiskMonitoring = () => {
         description: "Removed supplier from watch list"
       });
     } catch (error) {
-      console.error('Error removing supplier watch:', error);
+      logger.error('Error removing supplier watch:', error);
       toast({
         title: "Error", 
         description: "Failed to remove supplier watch",

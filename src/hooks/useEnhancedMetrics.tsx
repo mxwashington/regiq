@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+import { logger } from '@/lib/logger';
 export interface EnhancedMetrics {
   complianceScore: number;
   alertTrends: {
@@ -54,7 +55,7 @@ export const useEnhancedMetrics = (daysBack: number = 30) => {
       const completedTasks = allTasks.filter(t => t.status === 'completed').length;
       return Math.round((completedTasks / allTasks.length) * 100);
     } catch (error) {
-      console.error('Error calculating compliance score:', error);
+      logger.error('Error calculating compliance score:', error);
       return 0;
     }
   };
@@ -99,7 +100,7 @@ export const useEnhancedMetrics = (daysBack: number = 30) => {
 
       return trends;
     } catch (error) {
-      console.error('Error getting alert trends:', error);
+      logger.error('Error getting alert trends:', error);
       return [];
     }
   };
@@ -127,7 +128,7 @@ export const useEnhancedMetrics = (daysBack: number = 30) => {
         percentage: Math.round((count / total) * 100)
       }));
     } catch (error) {
-      console.error('Error getting category breakdown:', error);
+      logger.error('Error getting category breakdown:', error);
       return [];
     }
   };
@@ -147,7 +148,7 @@ export const useEnhancedMetrics = (daysBack: number = 30) => {
         alertCount: Math.floor(Math.random() * 10) // Mock data for now
       })).slice(0, 10) || [];
     } catch (error) {
-      console.error('Error getting supplier risk heatmap:', error);
+      logger.error('Error getting supplier risk heatmap:', error);
       return [];
     }
   };
@@ -173,7 +174,7 @@ export const useEnhancedMetrics = (daysBack: number = 30) => {
         priority: task.priority || 'medium'
       })) || [];
     } catch (error) {
-      console.error('Error getting upcoming deadlines:', error);
+      logger.error('Error getting upcoming deadlines:', error);
       return [];
     }
   };
@@ -223,7 +224,7 @@ export const useEnhancedMetrics = (daysBack: number = 30) => {
 
       return forecast;
     } catch (error) {
-      console.error('Error getting workload forecast:', error);
+      logger.error('Error getting workload forecast:', error);
       return [];
     }
   };
@@ -260,7 +261,7 @@ export const useEnhancedMetrics = (daysBack: number = 30) => {
         workloadForecast
       });
     } catch (error) {
-      console.error('Error fetching enhanced metrics:', error);
+      logger.error('Error fetching enhanced metrics:', error);
       setError('Failed to load analytics data');
     } finally {
       setLoading(false);

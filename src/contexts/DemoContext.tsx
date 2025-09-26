@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 // Define direct interfaces to avoid dependency on potentially empty types file
 interface DemoContentRow {
   id: string;
@@ -104,7 +105,7 @@ export const DemoProvider = ({ children }: { children: React.ReactNode }) => {
       
       setDemoContent(typedData);
     } catch (error) {
-      console.error('Error loading demo content:', error);
+      logger.error('Error loading demo content:', error);
     }
   };
 
@@ -162,7 +163,7 @@ export const DemoProvider = ({ children }: { children: React.ReactNode }) => {
         duration: 3000,
       });
     } catch (error) {
-      console.error('Error creating demo session:', error);
+      logger.error('Error creating demo session:', error);
       toast({
         title: "Error",
         description: "Failed to start demo session",
@@ -190,7 +191,7 @@ export const DemoProvider = ({ children }: { children: React.ReactNode }) => {
 
       setCurrentSession(null);
     } catch (error) {
-      console.error('Error ending demo session:', error);
+      logger.error('Error ending demo session:', error);
     }
   };
 
@@ -257,7 +258,7 @@ export const DemoProvider = ({ children }: { children: React.ReactNode }) => {
         duration: 3000,
       });
     } catch (error) {
-      console.error('Error resetting demo data:', error);
+      logger.error('Error resetting demo data:', error);
       toast({
         title: "Error",
         description: "Failed to reset demo data",

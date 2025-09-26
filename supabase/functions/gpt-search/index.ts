@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -11,7 +13,7 @@ const corsHeaders = {
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[ENHANCED-GPT-SEARCH] ${step}${detailsStr}`);
+  logger.info(`[ENHANCED-GPT-SEARCH] ${step}${detailsStr}`);
 };
 
 interface SearchRequest {

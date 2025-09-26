@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -35,7 +37,7 @@ serve(async (req) => {
 
     const { email, provider, providers }: ValidationRequest = await req.json();
 
-    console.log('Validating SSO access:', { email, provider, providers });
+    logger.info('Validating SSO access:', { email, provider, providers });
 
     // Extract domain from email
     const domain = email.split('@')[1];
@@ -93,7 +95,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error validating SSO access:', error);
+    logger.error('Error validating SSO access:', error);
     
     return new Response(
       JSON.stringify({ 

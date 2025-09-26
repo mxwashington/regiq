@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+import { logger } from '@/lib/logger';
 export interface ProcessFailurePattern {
   id: string;
   alert_id: string;
@@ -80,7 +81,7 @@ export const useRegulatoryGapDetection = () => {
         .limit(50);
 
       if (processError) {
-        console.error('Error loading process failures:', processError);
+        logger.error('Error loading process failures:', processError);
       } else {
         setProcessFailures((processData || []).map(item => ({
           ...item,
@@ -98,7 +99,7 @@ export const useRegulatoryGapDetection = () => {
         .limit(50);
 
       if (importError) {
-        console.error('Error loading import gaps:', importError);
+        logger.error('Error loading import gaps:', importError);
       } else {
         setImportGaps((importData || []).map(item => ({
           ...item,
@@ -116,7 +117,7 @@ export const useRegulatoryGapDetection = () => {
         .limit(20);
 
       if (indicatorError) {
-        console.error('Error loading gap indicators:', indicatorError);
+        logger.error('Error loading gap indicators:', indicatorError);
       } else {
         setGapIndicators((indicatorData || []).map(item => ({
           ...item,
@@ -126,7 +127,7 @@ export const useRegulatoryGapDetection = () => {
       }
 
     } catch (error) {
-      console.error('Error in loadGapData:', error);
+      logger.error('Error in loadGapData:', error);
       toast.error('Failed to load regulatory gap data');
     } finally {
       setLoading(false);
@@ -151,7 +152,7 @@ export const useRegulatoryGapDetection = () => {
       });
 
       if (error) {
-        console.error('Gap analysis error:', error);
+        logger.error('Gap analysis error:', error);
         throw error;
       }
 
@@ -167,7 +168,7 @@ export const useRegulatoryGapDetection = () => {
       }
 
     } catch (error: any) {
-      console.error('Error running gap analysis:', error);
+      logger.error('Error running gap analysis:', error);
       toast.error(error.message || 'Failed to run gap analysis');
     } finally {
       setAnalyzing(false);

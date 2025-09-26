@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
@@ -63,7 +65,7 @@ serve(async (req) => {
         throw new Error('Invalid action');
     }
   } catch (error) {
-    console.error('Error in custom-data-sources function:', error);
+    logger.error('Error in custom-data-sources function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
@@ -388,5 +390,5 @@ async function processScraperSource(config: any, testMode: boolean) {
 
 async function scheduleSync(supabase: any, sourceId: string) {
   // In a real implementation, this would schedule a background job
-  console.log(`Sync scheduled for data source: ${sourceId}`);
+  logger.info(`Sync scheduled for data source: ${sourceId}`);
 }

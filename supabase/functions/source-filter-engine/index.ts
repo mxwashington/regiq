@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.0';
@@ -95,7 +97,7 @@ class SourceFilterEngine {
     let cache_hits = 0;
     let cache_misses = 0;
 
-    console.log('Executing filter query:', JSON.stringify(query, null, 2));
+    logger.info('Executing filter query:', JSON.stringify(query, null, 2));
 
     // Execute filters for enabled sources
     const enabled_sources = query.sources.filter(source => source.enabled);
@@ -111,7 +113,7 @@ class SourceFilterEngine {
           cache_misses++;
         }
       } catch (error) {
-        console.error(`Error executing filter for ${source_filter.source_type}:`, error);
+        logger.error(`Error executing filter for ${source_filter.source_type}:`, error);
         results.push({
           source: source_filter.source_type,
           success: false,
@@ -165,7 +167,7 @@ class SourceFilterEngine {
     const cached_result = await this.checkCache(cache_key);
     
     if (cached_result) {
-      console.log(`Cache hit for ${source_type}`);
+      logger.info(`Cache hit for ${source_type}`);
       return {
         source: source_type,
         success: true,
@@ -419,7 +421,7 @@ class SourceFilterEngine {
 
       return data.result_data as NormalizedResult[];
     } catch (error) {
-      console.error('Cache check error:', error);
+      logger.error('Cache check error:', error);
       return null;
     }
   }
@@ -437,7 +439,7 @@ class SourceFilterEngine {
           expires_at: expires_at.toISOString()
         });
     } catch (error) {
-      console.error('Cache store error:', error);
+      logger.error('Cache store error:', error);
     }
   }
 
@@ -452,7 +454,7 @@ class SourceFilterEngine {
           metadata: event
         });
     } catch (error) {
-      console.error('Telemetry logging error:', error);
+      logger.error('Telemetry logging error:', error);
     }
   }
 }
@@ -478,7 +480,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in source-filter-engine function:', error);
+    logger.error('Error in source-filter-engine function:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,

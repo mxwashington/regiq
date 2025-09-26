@@ -15,6 +15,7 @@ import { UsageDashboard } from "@/components/UsageDashboard";
 import { SecurityDashboardEnhanced } from "@/components/SecurityDashboardEnhanced";
 import { AdminAPIManager } from "@/components/AdminAPIManager";
 
+import { logger } from '@/lib/logger';
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
@@ -27,7 +28,7 @@ const LoadingScreen = () => (
 const AdminDashboard: React.FC = () => {
   const { loading, isAuthenticated, isAdmin } = useAuthGuard(true); // require admin
 
-  console.log('[AdminDashboard] Auth state:', { loading, isAuthenticated, isAdmin });
+  logger.info('[AdminDashboard] Auth state:', { loading, isAuthenticated, isAdmin });
 
   if (loading) return <LoadingScreen />;
 

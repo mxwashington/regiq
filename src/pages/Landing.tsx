@@ -14,6 +14,7 @@ import { MobileAlertCard } from "@/components/MobileAlertCard";
 import { MobileSearchInterface } from "@/components/MobileSearchInterface";
 import { MobileButton } from "@/components/MobileButton";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
+import { logger } from '@/lib/logger';
 // Removed alert-related imports
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";
 import { SEOHead } from '@/components/SEO/SEOHead';
@@ -31,7 +32,7 @@ import { ROICalculator } from "@/components/marketing/ROICalculator";
 import { SocialProof } from "@/components/marketing/SocialProof";
 
 const Landing = () => {
-  console.log('Landing component is loading - updated version!');
+  logger.info('Landing component is loading - updated version!');
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminAuth();
   const { toast } = useToast();
@@ -51,7 +52,7 @@ const Landing = () => {
   const handleEmailSignup = (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: Implement email signup
-    console.log('Signup with email:', email);
+    logger.info('Signup with email:', email);
   };
 
   // Removed alert interaction handlers

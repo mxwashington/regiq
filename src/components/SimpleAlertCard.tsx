@@ -8,6 +8,7 @@ import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileButton } from '@/components/MobileButton';
 
+import { logger } from '@/lib/logger';
 interface SimpleAlert {
   id: string;
   title: string;
@@ -56,7 +57,7 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Share button clicked for alert:', alert.title);
+    logger.info('Share button clicked for alert:', alert.title);
     
     const shareText = `${alert.title}\n\n${alert.summary}\n\nSource: ${alert.source}`;
     const shareUrl = alert.external_url || window.location.href;
@@ -76,7 +77,7 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
         });
       }
     } catch (error) {
-      console.error('Error sharing:', error);
+      logger.error('Error sharing:', error);
       toast({
         title: "Share failed",
         description: "Unable to share this alert.",
@@ -87,7 +88,7 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
 
   const handleSearchForAlert = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Search button clicked for alert:', alert.title);
+    logger.info('Search button clicked for alert:', alert.title);
     
     try {
       await searchForAlert(alert.title, alert.source);
@@ -96,7 +97,7 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
         description: "Opening search results in new tab...",
       });
     } catch (error) {
-      console.error('Search failed:', error);
+      logger.error('Search failed:', error);
       toast({
         title: "Search Failed",
         description: "Unable to search for this alert.",
@@ -107,7 +108,7 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
 
   const handleExternalLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('External link clicked for alert:', alert.title);
+    logger.info('External link clicked for alert:', alert.title);
     
     try {
       // Decode HTML entities in the URL
@@ -119,11 +120,11 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
         ?.replace(/&#39;/g, "'");
       
       if (decodedUrl) {
-        console.log('Opening external link:', decodedUrl);
+        logger.info('Opening external link:', decodedUrl);
         window.open(decodedUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
-      console.error('Error opening external link:', error);
+      logger.error('Error opening external link:', error);
       toast({
         title: "Link Error",
         description: "Unable to open the source link.",
@@ -134,7 +135,7 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Dismiss button clicked for alert:', alert.title);
+    logger.info('Dismiss button clicked for alert:', alert.title);
     
     if (onDismissAlert) {
       onDismissAlert(alert.id);

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminAuth } from './useAdminAuth';
 
+import { logger } from '@/lib/logger';
 interface TrialStatus {
   isTrialExpired: boolean;
   daysRemaining: number;
@@ -58,7 +59,7 @@ export const useTrialStatus = () => {
         loading: false
       });
     } catch (error) {
-      console.error('Error checking trial status:', error);
+      logger.error('Error checking trial status:', error);
       setTrialStatus(prev => ({ ...prev, loading: false }));
     }
   };
@@ -85,7 +86,7 @@ export const useTrialStatus = () => {
       // Refresh status
       await checkTrialStatus();
     } catch (error) {
-      console.error('Error starting trial:', error);
+      logger.error('Error starting trial:', error);
     }
   };
 

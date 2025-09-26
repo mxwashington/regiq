@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -53,7 +55,7 @@ serve(async (req) => {
     const alerts: Alert[] = []
     
     for (const source of sources as DataSource[]) {
-      console.log(`Processing source: ${source.name}`)
+      logger.info(`Processing source: ${source.name}`)
       
       try {
         let sourceAlerts: Alert[] = []
@@ -73,7 +75,7 @@ serve(async (req) => {
           .eq('id', source.id)
           
       } catch (error) {
-        console.error(`Error processing source ${source.name}:`, error)
+        logger.error(`Error processing source ${source.name}:`, error)
         continue
       }
     }
@@ -85,7 +87,7 @@ serve(async (req) => {
         .upsert(alerts, { onConflict: 'title,source,published_date' })
 
       if (insertError) {
-        console.error('Error inserting alerts:', insertError)
+        logger.error('Error inserting alerts:', insertError)
       }
     }
 
@@ -99,7 +101,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in regulatory-feeds-scraper:', error)
+    logger.error('Error in regulatory-feeds-scraper:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -132,7 +134,7 @@ async function fetchApiData(source: DataSource): Promise<Alert[]> {
       }
     }
   } catch (error) {
-    console.error(`Error fetching API data from ${source.url}:`, error)
+    logger.error(`Error fetching API data from ${source.url}:`, error)
   }
   
   return alerts
@@ -184,7 +186,7 @@ async function fetchRssData(source: DataSource): Promise<Alert[]> {
       }
     }
   } catch (error) {
-    console.error(`Error fetching RSS data from ${source.url}:`, error)
+    logger.error(`Error fetching RSS data from ${source.url}:`, error)
   }
   
   return alerts

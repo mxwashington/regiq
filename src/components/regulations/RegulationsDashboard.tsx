@@ -23,6 +23,7 @@ import {
   INDUSTRY_PRESETS
 } from '@/lib/regulations/types';
 
+import { logger } from '@/lib/logger';
 interface RegulationsDashboardProps {
   industryFocus?: keyof typeof INDUSTRY_PRESETS;
 }
@@ -41,7 +42,7 @@ export const RegulationsDashboard: React.FC<RegulationsDashboardProps> = ({ indu
       const data = await regulationsService.getRegulatoryIntelligence(industryFocus, { days: 30 });
       setIntelligence(data);
     } catch (error) {
-      console.error('Failed to load regulatory intelligence:', error);
+      logger.error('Failed to load regulatory intelligence:', error);
       toast({
         title: "Load Error",
         description: "Failed to load regulatory intelligence data.",
@@ -62,7 +63,7 @@ export const RegulationsDashboard: React.FC<RegulationsDashboardProps> = ({ indu
         description: result.message,
       });
     } catch (error) {
-      console.error('Refresh failed:', error);
+      logger.error('Refresh failed:', error);
       toast({
         title: "Refresh Error",
         description: "Failed to refresh regulatory data.",

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Shield, Database, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
+import { logger } from '@/lib/logger';
 interface LegalDocument {
   id: string;
   document_type: string;
@@ -35,7 +36,7 @@ export function LegalFramework() {
       if (error) throw error;
       setDocuments(data || []);
     } catch (error) {
-      console.error('Error fetching legal documents:', error);
+      logger.error('Error fetching legal documents:', error);
     } finally {
       setLoading(false);
     }

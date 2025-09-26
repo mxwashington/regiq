@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface PWAState {
   isInstalled: boolean;
   isInstallable: boolean;
@@ -26,7 +27,7 @@ export const usePWA = () => {
           const registration = await navigator.serviceWorker.register('/sw.js');
           setRegistration(registration);
           
-          console.log('PWA: Service worker registered successfully');
+          logger.info('PWA: Service worker registered successfully');
           
           // Check for updates
           registration.addEventListener('updatefound', () => {
@@ -51,7 +52,7 @@ export const usePWA = () => {
           });
 
         } catch (error) {
-          console.error('PWA: Service worker registration failed:', error);
+          logger.error('PWA: Service worker registration failed:', error);
         }
       }
     };

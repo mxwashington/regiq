@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
@@ -13,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🔐 Secure API validation request received');
+    logger.info('🔐 Secure API validation request received');
     
     const { apiKey } = await req.json();
     
@@ -40,7 +42,7 @@ serve(async (req) => {
       });
 
     if (error) {
-      console.error('API key validation error:', error);
+      logger.error('API key validation error:', error);
       return new Response(
         JSON.stringify({ 
           error: 'API key validation failed',
@@ -56,7 +58,7 @@ serve(async (req) => {
     const result = validationResult[0];
     
     if (!result || !result.is_valid) {
-      console.log('Invalid API key attempt');
+      logger.info('Invalid API key attempt');
       return new Response(
         JSON.stringify({ 
           valid: false,
@@ -69,7 +71,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('✅ Valid API key:', result.user_id);
+    logger.info('✅ Valid API key:', result.user_id);
 
     return new Response(
       JSON.stringify({ 
@@ -85,7 +87,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Secure API validation error:', error);
+    logger.error('Secure API validation error:', error);
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',

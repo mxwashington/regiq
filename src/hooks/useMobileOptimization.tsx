@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface MobileOptimizationConfig {
   enablePullToRefresh?: boolean;
   enableTouchFeedback?: boolean;
@@ -53,7 +54,7 @@ export const useMobileOptimization = (config: MobileOptimizationConfig = {}) => 
     }));
 
     if (enableMobileDebug) {
-      console.log('Mobile state updated:', {
+      logger.info('Mobile state updated:', {
         isMobile,
         isTablet,
         orientation,

@@ -2,6 +2,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts';
 
 const corsHeaders = {
+
+// Simple logger for Supabase functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
+
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
@@ -50,7 +59,7 @@ const RSS_FEEDS: RSSFeed[] = [
 
 function logStep(message: string, data?: any) {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+  logger.info(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
 async function fetchRSSFeed(feed: RSSFeed): Promise<any[]> {

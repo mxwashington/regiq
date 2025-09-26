@@ -120,7 +120,7 @@ export const AdminSecurityManager: React.FC = () => {
       setSelectedUser('');
       setPermissionToGrant('');
     } catch (error: any) {
-      console.error('Failed to grant permission:', error);
+      logger.error('Failed to grant permission:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to grant permission",
@@ -194,7 +194,7 @@ export const AdminSecurityManager: React.FC = () => {
 
       await fetchAdminUsers();
     } catch (error: any) {
-      console.error('Failed to revoke permission:', error);
+      logger.error('Failed to revoke permission:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to revoke permission",

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 export interface ComplianceMetric {
   id: string;
   user_id: string;
@@ -65,7 +66,7 @@ export const useComplianceAnalytics = () => {
       if (error) throw error;
       setMetrics(data || []);
     } catch (error) {
-      console.error('Error fetching metrics:', error);
+      logger.error('Error fetching metrics:', error);
       toast({
         title: "Error",
         description: "Failed to load compliance metrics",
@@ -86,7 +87,7 @@ export const useComplianceAnalytics = () => {
       if (error) throw error;
       setBenchmarks(data || []);
     } catch (error) {
-      console.error('Error fetching benchmarks:', error);
+      logger.error('Error fetching benchmarks:', error);
     }
   };
 
@@ -102,7 +103,7 @@ export const useComplianceAnalytics = () => {
       if (error) throw error;
       setReports((data || []) as AnalyticsReport[]);
     } catch (error) {
-      console.error('Error fetching reports:', error);
+      logger.error('Error fetching reports:', error);
     }
   };
 
@@ -150,7 +151,7 @@ export const useComplianceAnalytics = () => {
         assessment_date: today.toISOString().split('T')[0]
       };
     } catch (error) {
-      console.error('Error generating maturity score:', error);
+      logger.error('Error generating maturity score:', error);
       return null;
     }
   };
@@ -197,7 +198,7 @@ export const useComplianceAnalytics = () => {
         date_range: dateRange
       };
     } catch (error) {
-      console.error('Error generating regulatory trends:', error);
+      logger.error('Error generating regulatory trends:', error);
       return null;
     }
   };
@@ -242,7 +243,7 @@ export const useComplianceAnalytics = () => {
         roi_percentage: Math.round(((totalPotentialSavings - totalEstimatedCost) / totalEstimatedCost) * 100)
       };
     } catch (error) {
-      console.error('Error generating cost analysis:', error);
+      logger.error('Error generating cost analysis:', error);
       return null;
     }
   };
@@ -306,7 +307,7 @@ export const useComplianceAnalytics = () => {
         ]
       };
     } catch (error) {
-      console.error('Error generating risk assessment:', error);
+      logger.error('Error generating risk assessment:', error);
       return null;
     }
   };
@@ -339,7 +340,7 @@ export const useComplianceAnalytics = () => {
 
       return data;
     } catch (error) {
-      console.error('Error saving report:', error);
+      logger.error('Error saving report:', error);
       toast({
         title: "Error",
         description: "Failed to save report",

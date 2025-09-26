@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+import { logger } from '@/lib/logger';
 interface EntitlementFeature {
   feature_key: string;
   feature_value: any;
@@ -44,7 +45,7 @@ export const useEntitlements = (): UseEntitlementsReturn => {
 
       setEntitlements(data || []);
     } catch (err) {
-      console.error('Error fetching entitlements:', err);
+      logger.error('Error fetching entitlements:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch entitlements');
       // Default to basic entitlements on error
       setEntitlements([

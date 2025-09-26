@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSecurityValidation } from './useSecurityValidation';
 
+import { logger } from '@/lib/logger';
 export const useSecureProfileUpdate = () => {
   const { toast } = useToast();
   const { validateInput, sanitizeHtml } = useSecurityValidation();
@@ -66,7 +67,7 @@ export const useSecureProfileUpdate = () => {
       
       return true;
     } catch (error: any) {
-      console.error('Profile update error:', error);
+      logger.error('Profile update error:', error);
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update profile",

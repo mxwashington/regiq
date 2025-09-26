@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+import { logger } from '@/lib/logger';
 interface UpgradeOptions {
   targetPlan: string;
   annual?: boolean;
@@ -46,7 +47,7 @@ export const useSubscriptionUpgrade = (): UseSubscriptionUpgradeReturn => {
       }
 
     } catch (error) {
-      console.error('Upgrade error:', error);
+      logger.error('Upgrade error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to start upgrade process');
     } finally {
       setLoading(false);

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { regulationsService } from '@/lib/regulations/regulationsService';
+import { RegulatoryInputSanitizer } from '@/lib/security/input-sanitizer';
 import {
   RegulationsGovDocument,
   ProcessedRegulationDocument,
@@ -16,6 +17,7 @@ import {
   AGENCY_MAPPING
 } from '@/lib/regulations/types';
 
+import { logger } from '@/lib/logger';
 interface RegulationsSearchProps {
   onResultSelect?: (document: ProcessedRegulationDocument) => void;
   industryFocus?: keyof typeof INDUSTRY_PRESETS;
@@ -52,6 +54,17 @@ export const RegulationsSearch: React.FC<RegulationsSearchProps> = ({
       return;
     }
 
+    // Validate and sanitize search input
+    const searchValidation = RegulatoryInputSanitizer.sanitizeSearchQuery(searchTerm);
+    if (!searchValidation.isValid) {
+      toast({
+        title: "Invalid Search",
+        description: searchValidation.errors.join(', '),
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const startDate = new Date();
@@ -59,7 +72,7 @@ export const RegulationsSearch: React.FC<RegulationsSearchProps> = ({
 
       const processedResults = await regulationsService.getProcessedDocuments(
         industryFocus,
-        searchTerm,
+        searchValidation.sanitizedValue, // Use sanitized value
         { size: 50 }
       );
 
@@ -84,7 +97,7 @@ export const RegulationsSearch: React.FC<RegulationsSearchProps> = ({
         description: `Found ${filteredResults.length} relevant documents`,
       });
     } catch (error) {
-      console.error('Search error:', error);
+      logger.error('Search error:', error);
       toast({
         title: "Search Error",
         description: "Failed to search regulations. Please try again.",
@@ -136,7 +149,17 @@ export const RegulationsSearch: React.FC<RegulationsSearchProps> = ({
                 <Input
                   placeholder="Search regulations, keywords, topics..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const validation = RegulatoryInputSanitizer.sanitizeSearchQuery(value);
+
+                    if (validation.isValid || value.length === 0) {
+                      setSearchTerm(validation.sanitizedValue || value);
+                    } else {
+                      // Allow user to see their input but don't update state with invalid content
+                      setSearchTerm(value);
+                    }
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="flex-1"
                 />
@@ -321,7 +344,7 @@ const RecentDocuments: React.FC<{ industryFocus?: keyof typeof INDUSTRY_PRESETS 
         const results = await regulationsService.getProcessedDocuments(industryFocus, undefined, { size: 20 });
         setDocuments(results);
       } catch (error) {
-        console.error('Failed to load recent documents:', error);
+        logger.error('Failed to load recent documents:', error);
       } finally {
         setLoading(false);
       }
@@ -367,7 +390,7 @@ const OpenCommentPeriods: React.FC<{ industryFocus?: keyof typeof INDUSTRY_PRESE
         const result = await regulationsService.getOpenCommentPeriods(agencies, { size: 20 });
         setDocuments(result.data);
       } catch (error) {
-        console.error('Failed to load open comment periods:', error);
+        logger.error('Failed to load open comment periods:', error);
       } finally {
         setLoading(false);
       }

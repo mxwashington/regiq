@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 
+import { logger } from '@/lib/logger';
 const SecurityHeaders: React.FC = () => {
   useEffect(() => {
     // Client-side security header enforcement
@@ -8,7 +9,7 @@ const SecurityHeaders: React.FC = () => {
       // Prevent clickjacking by hiding body if in iframe
       if (window.self !== window.top) {
         document.body.style.display = 'none';
-        console.warn('RegIQ: Clickjacking attempt detected');
+        logger.warn('RegIQ: Clickjacking attempt detected');
         
         // Log security event if available
         if (window.logSecurityEvent) {

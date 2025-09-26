@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 export interface AlertRule {
   id: string;
   user_id: string;
@@ -50,7 +51,7 @@ export const useCustomAlertRules = () => {
         frequency: item.frequency as 'realtime' | 'daily' | 'weekly'
       })) || []);
     } catch (error: any) {
-      console.error('Error fetching alert rules:', error);
+      logger.error('Error fetching alert rules:', error);
       toast({
         title: "Error",
         description: "Failed to load alert rules",
@@ -116,7 +117,7 @@ export const useCustomAlertRules = () => {
       await fetchAlertRules();
       return true;
     } catch (error: any) {
-      console.error('Error creating alert rule:', error);
+      logger.error('Error creating alert rule:', error);
       toast({
         title: "Error",
         description: "Failed to create alert rule",
@@ -150,7 +151,7 @@ export const useCustomAlertRules = () => {
       await fetchAlertRules();
       return true;
     } catch (error: any) {
-      console.error('Error updating alert rule:', error);
+      logger.error('Error updating alert rule:', error);
       toast({
         title: "Error",
         description: "Failed to update alert rule",
@@ -179,7 +180,7 @@ export const useCustomAlertRules = () => {
       setAlertRules(prev => prev.filter(rule => rule.id !== ruleId));
       return true;
     } catch (error: any) {
-      console.error('Error deleting alert rule:', error);
+      logger.error('Error deleting alert rule:', error);
       toast({
         title: "Error",
         description: "Failed to delete alert rule",
@@ -205,7 +206,7 @@ export const useCustomAlertRules = () => {
         notification_status: item.notification_status as 'pending' | 'sent' | 'failed'
       })) || []) as AlertRuleMatch[];
     } catch (error) {
-      console.error('Error fetching matches:', error);
+      logger.error('Error fetching matches:', error);
       return [];
     }
   }, []);
@@ -225,7 +226,7 @@ export const useCustomAlertRules = () => {
 
       return true;
     } catch (error: any) {
-      console.error('Error triggering processing:', error);
+      logger.error('Error triggering processing:', error);
       toast({
         title: "Error",
         description: "Failed to trigger alert processing",

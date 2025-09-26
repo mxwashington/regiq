@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -16,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Compliance assistant request received');
+    logger.info('Compliance assistant request received');
 
     const { question, facilityType, products, currentCertifications } = await req.json();
     
@@ -24,7 +26,7 @@ serve(async (req) => {
       throw new Error('Question is required');
     }
 
-    console.log('Processing compliance question:', { question, facilityType, products });
+    logger.info('Processing compliance question:', { question, facilityType, products });
 
     // Create Supabase client for usage tracking
     const supabaseClient = createClient(
@@ -42,7 +44,7 @@ serve(async (req) => {
         const { data } = await supabaseClient.auth.getUser(token);
         userId = data.user?.id;
       } catch (error) {
-        console.error('Auth error:', error);
+        logger.error('Auth error:', error);
       }
     }
 
@@ -109,7 +111,7 @@ Format your response as:
     const data = await response.json();
     const complianceAdvice = data.choices[0].message.content;
 
-    console.log('Generated compliance advice successfully');
+    logger.info('Generated compliance advice successfully');
 
     // Track usage
     if (userId) {
@@ -125,9 +127,9 @@ Format your response as:
             timestamp: new Date().toISOString()
           }
         });
-        console.log('Usage tracked successfully');
+        logger.info('Usage tracked successfully');
       } catch (error) {
-        console.error('Error tracking usage:', error);
+        logger.error('Error tracking usage:', error);
       }
     }
 
@@ -146,7 +148,7 @@ Format your response as:
     });
 
   } catch (error) {
-    console.error('Error in compliance-assistant function:', error);
+    logger.error('Error in compliance-assistant function:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
       timestamp: new Date().toISOString()

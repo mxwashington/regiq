@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 interface ValidationResult {
   isValid: boolean;
   sanitizedValue: string;
@@ -31,7 +32,7 @@ export const useSecureInputValidation = () => {
       });
 
       if (error) {
-        console.error('Validation error:', error);
+        logger.error('Validation error:', error);
         return {
           isValid: false,
           sanitizedValue: input,
@@ -78,7 +79,7 @@ export const useSecureInputValidation = () => {
         errors
       };
     } catch (err) {
-      console.error('Input validation error:', err);
+      logger.error('Input validation error:', err);
       return {
         isValid: false,
         sanitizedValue: input,

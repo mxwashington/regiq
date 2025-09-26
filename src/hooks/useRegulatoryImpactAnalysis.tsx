@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+import { logger } from '@/lib/logger';
 export interface ImpactAnalysis {
   alert_id: string;
   title: string;
@@ -239,7 +240,7 @@ export const useRegulatoryImpactAnalysis = () => {
       
       return analyses;
     } catch (error) {
-      console.error('Error fetching impact analysis:', error);
+      logger.error('Error fetching impact analysis:', error);
       toast({
         title: "Error",
         description: "Failed to load regulatory impact analysis",

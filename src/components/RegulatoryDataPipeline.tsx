@@ -24,6 +24,7 @@ import {
   PlayCircle
 } from 'lucide-react';
 
+import { logger } from '@/lib/logger';
 interface RegulatoryDataSource {
   id: string;
   name: string;
@@ -107,7 +108,7 @@ export function RegulatoryDataPipeline() {
         fetchPipelineStats()
       ]);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logger.error('Error fetching data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load monitoring data',
@@ -205,7 +206,7 @@ export function RegulatoryDataPipeline() {
         description: `${dataSources.find(s => s.id === sourceId)?.name} has been ${isActive ? 'enabled' : 'disabled'}`,
       });
     } catch (error) {
-      console.error('Error updating source status:', error);
+      logger.error('Error updating source status:', error);
       toast({
         title: 'Error',
         description: 'Failed to update source status',
@@ -236,7 +237,7 @@ export function RegulatoryDataPipeline() {
       
       await fetchAllData();
     } catch (error) {
-      console.error('Error running pipeline:', error);
+      logger.error('Error running pipeline:', error);
       toast({
         title: 'Pipeline Error',
         description: `Failed to run pipeline for ${source.name}`,
@@ -263,7 +264,7 @@ export function RegulatoryDataPipeline() {
       
       await fetchAllData();
     } catch (error) {
-      console.error('Error running full pipeline:', error);
+      logger.error('Error running full pipeline:', error);
       toast({
         title: 'Pipeline Error',
         description: 'Failed to run full data pipeline',
