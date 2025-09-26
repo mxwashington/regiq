@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useEnhancedInputValidation } from './useEnhancedInputValidation';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { logger } from '@/lib/logger';

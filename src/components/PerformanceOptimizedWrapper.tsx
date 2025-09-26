@@ -4,7 +4,6 @@
  */
 
 import React from 'react';
-import { ErrorBoundaryEnhanced } from './ErrorBoundaryEnhanced';
 import { usePerformanceMonitor } from '@/hooks/useStateManager';
 
 interface PerformanceOptimizedWrapperProps {

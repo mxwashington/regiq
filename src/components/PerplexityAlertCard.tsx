@@ -8,8 +8,6 @@ import remarkGfm from 'remark-gfm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { MobileButton } from './MobileButton';
 import { 
   ExternalLink, 
   Share2, 
@@ -311,7 +309,7 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
             </div>
           )}
           <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
-            <MobileButton
+            <Button
               onClick={handlePerplexitySearch}
               disabled={isEnhancing}
               className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white"
@@ -324,42 +322,42 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
               <span className={isMobile ? 'text-xs' : 'text-xs'}>
                 {isEnhancing ? 'Enhancing...' : 'AI Sources'}
               </span>
-            </MobileButton>
+            </Button>
             
             {alert.external_url && alert.external_url.trim() && alert.external_url.startsWith('http') && (
-              <MobileButton
+              <Button
                 onClick={handleExternalLink}
                 className="flex items-center gap-1"
               >
                 <ExternalLink className="h-3 w-3" />
                 <span className={isMobile ? 'hidden' : 'text-xs'}>Original</span>
-              </MobileButton>
+              </Button>
             )}
             
-            <MobileButton
+            <Button
               onClick={handleShare}
               className="flex items-center gap-1"
             >
               <Share2 className="h-3 w-3" />
               <span className={isMobile ? 'hidden' : 'text-xs'}>Share</span>
-            </MobileButton>
+            </Button>
             
             {onSaveAlert && (
-              <MobileButton
+              <Button
                 onClick={handleSave}
                 className={`flex items-center gap-1 ${isSaved ? 'bg-blue-600 text-white' : ''}`}
               >
                 <span className="text-xs">{isSaved ? 'Saved' : 'Save'}</span>
-              </MobileButton>
+              </Button>
             )}
             
             {onDismissAlert && (
-              <MobileButton
+              <Button
                 onClick={handleDismiss}
                 className="flex items-center gap-1"
               >
                 <X className="h-3 w-3" />
-              </MobileButton>
+              </Button>
             )}
           </div>
         </div>

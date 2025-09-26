@@ -9,11 +9,6 @@ import { ArrowRight, Shield, Zap, Bell, Brain, Clock, TrendingUp, ExternalLink, 
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { MobileLayout } from "@/components/MobileLayout";
-import { MobileAlertCard } from "@/components/MobileAlertCard";
-import { MobileSearchInterface } from "@/components/MobileSearchInterface";
-import { MobileButton } from "@/components/MobileButton";
-import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import { logger } from '@/lib/logger';
 // Removed alert-related imports
 import { ConversationalChatbot } from "@/components/ConversationalChatbot";

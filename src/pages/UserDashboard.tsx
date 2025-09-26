@@ -1,771 +1,182 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Shield, Bell, TrendingUp, Settings, Search, Filter, ExternalLink, Globe, AlertCircle, Bot, MessageCircle, Download, Bookmark, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Bell, Search, Settings, User, AlertTriangle } from 'lucide-react';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
-import { useSavedAlerts } from '@/hooks/useSavedAlerts';
-import { formatDistanceToNow } from 'date-fns';
-import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ConversationalChatbot } from '@/components/ConversationalChatbot';
-import { EnhancedRecallDemo } from '@/components/EnhancedRecallDemo';
 import PerplexityAlertCard from '@/components/PerplexityAlertCard';
-import { ExportManager } from '@/components/ExportManager';
-import { FacilityManagement } from '@/components/FacilityManagement';
-import { FacilitySelector } from '@/components/FacilitySelector';
-import RiskPredictorPage from './RiskPredictorPage';
-import RiskDashboardPage from './RiskDashboardPage';
-import SupportWidget from '@/components/account/SupportWidget';
-import { logger } from '@/lib/logger';
-// Available regulatory sources for filtering
-const REGULATORY_SOURCES = [
-  'CDC', 'CFIA', 'Drugs.com', 'ECHA', 'EMA', 'EPA', 'FAO', 'FDA', 
-  'Federal Register', 'Food Safety', 'FSA', 'FSANZ', 'FSIS', 'FTC', 
-  'Health Canada', 'IAEA', 'MHLW', 'MHRA', 'OSHA', 'PMDA', 'GSA', 'TGA', 'USDA', 'WHO'
-].sort();
-import { TrialBanner } from '@/components/TrialBanner';
+import { ConversationalChatbot } from '@/components/ConversationalChatbot';
 import { TrialGate } from '@/components/TrialGate';
-import { TrialStatusIndicator } from '@/components/TrialStatusIndicator';
-import { FilterPanel } from '@/components/filters/FilterPanel';
-import { useSourceFilters } from '@/hooks/useSourceFilters';
 
-const UserDashboard = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const { alerts, loading } = useSimpleAlerts();
-  const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
-  
-  // State for dashboard functionality
-  const [selectedSources, setSelectedSources] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [preferencesOpen, setPreferencesOpen] = useState(false);
+const UserDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('alerts');
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [showExportManager, setShowExportManager] = useState(false);
-  const [showSourceFilters, setShowSourceFilters] = useState(false);
-  
-  // Source filters functionality
-  const { executeQuery, results: sourceFilterResults, loading: sourceFilterLoading, error: sourceFilterError } = useSourceFilters();
-  const [activeSourceFilters, setActiveSourceFilters] = useState<any>({
-    sources: [],
-    shared: {},
-    pagination: { limit: 50, offset: 0 },
-    sorting: { field: 'published_date', direction: 'desc' }
-  });
-  
-  // User preferences state
-  const [preferences, setPreferences] = useState({
-    emailNotifications: true,
-    urgencyThreshold: 'Medium',
-    preferredSources: ['FDA', 'USDA', 'EPA'],
-    industries: ['Food Safety']
-  });
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Get filtered alerts for display
-  const displayAlerts = useMemo(() => {
-    logger.info('[UserDashboard] Processing alerts:', {
-      totalAlerts: alerts.length,
-      searchQuery,
-      selectedSources,
-      sampleAlert: alerts[0]
-    });
-    
-    let filtered = alerts;
-    
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(alert => 
-        alert.title.toLowerCase().includes(query) ||
-        alert.summary.toLowerCase().includes(query) ||
-        alert.source.toLowerCase().includes(query)
-      );
-      logger.info('[UserDashboard] After search filter:', filtered.length);
-    }
-    
-    // Apply source filter
-    if (selectedSources.length > 0) {
-      filtered = filtered.filter(alert => {
-        const alertSource = alert.source?.toLowerCase() || '';
-        return selectedSources.some(source => 
-          alertSource.includes(source.toLowerCase()) ||
-          source.toLowerCase().includes(alertSource)
-        );
-      });
-      logger.info('[UserDashboard] After source filter:', filtered.length);
-    }
-    
-    const result = filtered; // Show all filtered alerts
-    logger.info('[UserDashboard] Final displayAlerts:', {
-      length: result.length,
-      loading,
-      sampleTitles: result.slice(0, 3).map(a => a.title)
-    });
-    
-    return result;
-  }, [alerts, selectedSources, searchQuery, loading]);
+  // Load alerts
+  const { alerts, loading, error, totalCount } = useSimpleAlerts(50);
 
-  // Source filter counts
-  const sourceCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    REGULATORY_SOURCES.forEach(source => {
-      counts[source] = alerts.filter(alert => {
-        const alertSource = alert.source?.toLowerCase() || '';
-        return alertSource.includes(source.toLowerCase()) ||
-               source.toLowerCase().includes(alertSource);
-      }).length;
-    });
-    return counts;
-  }, [alerts]);
-
-  const getAgencyColor = (source: string) => {
-    const sourceLower = source.toLowerCase();
-    if (sourceLower.includes('fda')) return 'text-red-600 bg-red-50 border-red-200';
-    if (sourceLower.includes('usda')) return 'text-green-600 bg-green-50 border-green-200';
-    if (sourceLower.includes('epa')) return 'text-blue-600 bg-blue-50 border-blue-200';
-    if (sourceLower.includes('cdc')) return 'text-purple-600 bg-purple-50 border-purple-200';
-    return 'text-gray-600 bg-gray-50 border-gray-200';
-  };
-
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency?.toLowerCase()) {
-      case 'high':
-      case 'critical':
-        return 'bg-red-100 text-red-800 border-red-300';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-300';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-    } catch {
-      return 'Recently';
-    }
-  };
-
-  const handlePreferencesUpdate = () => {
-    // TODO: Update user preferences in database
-    setPreferencesOpen(false);
-    logger.info('Updated preferences:', preferences);
-  };
-
-  const handleSourceToggle = (source: string) => {
-    setSelectedSources(prev => 
-      prev.includes(source)
-        ? prev.filter(s => s !== source)
-        : [...prev, source]
-    );
-  };
-
-  const clearFilters = () => {
-    setSelectedSources([]);
-    setSearchQuery('');
-  };
+  // Filter alerts based on search
+  const filteredAlerts = alerts.filter(alert =>
+    alert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    alert.summary.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <TrialGate feature="your dashboard and alerts">
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5">
+    <TrialGate>
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/" className="flex items-center space-x-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Home</span>
-                </Link>
-              </Button>
-              <div className="flex items-center space-x-2">
-                <Shield className="h-8 w-8 text-primary" />
-                <span className="font-bold text-2xl">RegIQ</span>
-              </div>
-            </div>
-        <nav className="flex items-center space-x-4">
-          <TrialStatusIndicator />
-          <Badge variant="secondary" className="hidden md:flex">
-            Welcome, {user?.email}
-          </Badge>
-              <Button 
-                variant="default" 
-                size="sm" 
-                asChild 
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md px-3 md:px-4"
-              >
-                <Link to="/search" className="flex items-center gap-1.5 md:gap-2">
-                  <Search className="h-4 w-4 shrink-0" />
-                  <span>Advanced Search</span>
-                  <Badge variant="secondary" className="bg-white/20 text-white text-xs px-1.5 py-0.5 shrink-0">
-                    PRO
-                  </Badge>
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={signOut}>
-                Sign Out
-              </Button>
-            </nav>
-          </div>
-        </header>
-
-        <div className="container mx-auto px-4 py-4">
-          <TrialBanner />
-        </div>
-
-        <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">{/* Extra padding bottom for mobile nav */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Your Regulatory Dashboard</h1>
-              <p className="text-muted-foreground">
-                Stay up to date with the latest regulatory alerts, chat with AI, and run advanced searches.
-              </p>
-            </div>
-            <FacilitySelector className="hidden md:flex" />
-          </div>
+          <h1 className="text-3xl font-bold mb-2">Regulatory Dashboard</h1>
+          <p className="text-muted-foreground">
+            Stay up to date with the latest regulatory alerts and compliance information.
+          </p>
         </div>
 
-        {/* Main Tabbed Interface */}
+        {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 gap-1 h-auto p-2">
-            <TabsTrigger value="alerts" className="flex items-center gap-1 px-2 py-2 text-sm">
-              <Bell className="h-4 w-4 shrink-0" />
-              <span>Alerts</span>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="alerts" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Alerts ({totalCount})
             </TabsTrigger>
-            <TabsTrigger 
-              value="search" 
-              className="flex items-center gap-1 px-2 py-2 text-sm cursor-pointer"
-              onClick={() => navigate('/search')}
-            >
-              <Search className="h-4 w-4 shrink-0" />
-              <span>Search</span>
+            <TabsTrigger value="search" className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              Search
             </TabsTrigger>
-            <TabsTrigger value="facilities" className="flex items-center gap-1 px-2 py-2 text-sm">
-              <Shield className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">Facilities</span>
-              <span className="sm:hidden">Sites</span>
-            </TabsTrigger>
-            <TabsTrigger value="risk" className="flex items-center gap-1 px-2 py-2 text-sm">
-              <TrendingUp className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">Risk</span>
-              <span className="sm:hidden">Risk</span>
-            </TabsTrigger>
-            <TabsTrigger value="saved" className="flex items-center gap-1 px-2 py-2 text-sm">
-              <Bookmark className="h-4 w-4 shrink-0" />
-              <span>Saved</span>
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-1 px-2 py-2 text-sm">
-              <MessageCircle className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">AI</span>
-              <span className="sm:hidden">AI</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-1 px-2 py-2 text-sm">
-              <Settings className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">Settings</span>
-              <span className="sm:hidden">Set</span>
+            <TabsTrigger value="account" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Account
             </TabsTrigger>
           </TabsList>
 
-          {/* Live Alerts Tab */}
-          <TabsContent value="alerts" className="space-y-6">
-            {/* Quick Stats */}
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Saved Alerts</CardTitle>
-                  <Bell className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{savedAlerts.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Total alerts saved
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Alerts</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{alerts.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {searchQuery || selectedSources.length > 0 ? `${displayAlerts.length} filtered` : 'All sources'}
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Data Freshness</CardTitle>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">Live</div>
-                  <p className="text-xs text-muted-foreground">
-                    Real-time monitoring
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+          {/* Alerts Tab */}
+          <TabsContent value="alerts" className="space-y-4">
+            {/* Search Bar */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Search alerts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button variant="outline">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Search and Filter Section */}
-            <div className="mb-6">
-              <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4">
-                <div className="flex-1 w-full md:w-auto">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search alerts by title, content, or agency..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
+            {/* Alerts List */}
+            {loading ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p>Loading alerts...</p>
                   </div>
-                </div>
-                
-                 <div className="flex flex-col gap-4">
-                   <div className="flex items-center justify-between">
-                     <label className="text-sm font-medium">Filter by Source:</label>
-                     {selectedSources.length > 0 && (
-                       <Button
-                         variant="ghost"
-                         size="sm"
-                         onClick={clearFilters}
-                         className="text-xs"
-                       >
-                         Clear All Filters
-                       </Button>
-                     )}
-                   </div>
-                   
-                   {selectedSources.length > 0 && (
-                     <div className="flex flex-wrap gap-2">
-                       {selectedSources.map((source) => (
-                         <Badge key={source} variant="secondary" className="flex items-center gap-1">
-                           <span className="text-xs">{source}</span>
-                           <Button
-                             variant="ghost"
-                             size="sm"
-                             className="h-auto p-0 w-4 h-4 hover:bg-transparent"
-                             onClick={() => handleSourceToggle(source)}
-                           >
-                             <X className="h-3 w-3" />
-                           </Button>
-                         </Badge>
-                       ))}
-                     </div>
-                   )}
-                   
-                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
-                     {REGULATORY_SOURCES.map((source) => {
-                       const count = sourceCounts[source] || 0;
-                       if (count === 0) return null;
-                       
-                       return (
-                         <div key={source} className="flex items-center space-x-2">
-                           <Checkbox
-                             id={`source-${source}`}
-                             checked={selectedSources.includes(source)}
-                             onCheckedChange={() => handleSourceToggle(source)}
-                           />
-                           <Label 
-                             htmlFor={`source-${source}`} 
-                             className="text-xs cursor-pointer flex-1"
-                           >
-                             {source} ({count})
-                           </Label>
-                         </div>
-                       );
-                     })}
-                   </div>
-                 </div>
-                </div>
-             </div>
-
-             {/* Main Feed Section */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold">
-                  {searchQuery || selectedSources.length > 0 ? 'Filtered Alerts' : 'Latest Regulatory Updates'}
-                </h2>
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  Live Feed • {displayAlerts.length} alerts
-                </Badge>
-              </div>
-              
-              {/* Alert Feed */}
-              <div className="grid gap-4">
-                {loading ? (
-                  // Loading skeletons
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardHeader>
-                        <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
-                        <div className="h-5 bg-muted rounded w-3/4 mb-2"></div>
-                        <div className="h-4 bg-muted rounded w-full"></div>
-                      </CardHeader>
-                    </Card>
-                  ))
-                ) : displayAlerts.length === 0 ? (
+                </CardContent>
+              </Card>
+            ) : error ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+                    <p className="text-red-600">{error}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {filteredAlerts.map((alert) => (
+                  <PerplexityAlertCard
+                    key={alert.id}
+                    alert={alert}
+                    showEnhancedDetails={true}
+                  />
+                ))}
+                {filteredAlerts.length === 0 && (
                   <Card>
-                    <CardContent className="text-center py-8">
-                      <p className="text-muted-foreground">
-                        No alerts found matching your current filters.
-                        {(searchQuery || selectedSources.length > 0) && (
-                          <Button variant="outline" onClick={clearFilters} className="mt-4 block mx-auto">
-                            Clear Filters
-                          </Button>
-                        )}
-                      </p>
+                    <CardContent className="pt-6">
+                      <div className="text-center py-8">
+                        <Bell className="h-8 w-8 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600">No alerts found matching your search.</p>
+                      </div>
                     </CardContent>
                   </Card>
-                ) : (
-                  displayAlerts.map((alert) => (
-                    <PerplexityAlertCard
-                      key={alert.id}
-                      alert={alert}
-                      onDismissAlert={() => {}} // TODO: Implement dismiss functionality
-                      onSaveAlert={(alert) => toggleSaveAlert(alert.id)}
-                      savedAlerts={[]} // TODO: Convert savedAlerts to proper format
-                    />
-                  ))
                 )}
               </div>
-            </div>
+            )}
           </TabsContent>
 
-          {/* Saved Items Tab */}
-          <TabsContent value="saved" className="space-y-6">
+          {/* Search Tab */}
+          <TabsContent value="search" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bookmark className="h-5 w-5" />
-                  Saved Alerts
-                </CardTitle>
+                <CardTitle>Advanced Search</CardTitle>
                 <CardDescription>
-                  View and manage your saved regulatory alerts
+                  Search regulatory databases and enhance results with AI
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {savedAlerts.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Bookmark className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No Saved Alerts</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Save important alerts to access them quickly later.
-                    </p>
-                    <Button variant="outline" onClick={() => setActiveTab('alerts')}>
-                      Browse Alerts
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        {savedAlerts.length} saved alert{savedAlerts.length !== 1 ? 's' : ''}
-                      </p>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          // Clear all saved alerts - TODO: Implement this functionality
-                          logger.info('Clear all saved alerts');
-                        }}
-                      >
-                        Clear All
-                      </Button>
-                    </div>
-                    {/* TODO: Display saved alerts using PerplexityAlertCard */}
-                    <div className="text-center py-4 text-muted-foreground">
-                      Saved alerts will be displayed here
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Facilities Tab */}
-          <TabsContent value="facilities" className="space-y-6">
-            <TrialGate feature="multi-facility management">
-              <FacilityManagement />
-            </TrialGate>
-          </TabsContent>
-
-          {/* Risk Intelligence Tab */}
-          <TabsContent value="risk" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Risk Predictor
-                  </CardTitle>
-                  <CardDescription>
-                    Analyze product descriptions for food safety risks
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Get instant risk assessments and recommendations for your food products.
-                  </p>
+                <div className="space-y-4">
                   <Button asChild className="w-full">
-                    <Link to="/risk-predictor">
-                      Start Risk Analysis
-                    </Link>
+                    <a href="/search">
+                      <Search className="mr-2 h-4 w-4" />
+                      Open Advanced Search
+                    </a>
                   </Button>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Risk Dashboard
-                  </CardTitle>
-                  <CardDescription>
-                    View risk trends and insights across categories
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Monitor food safety trends with interactive charts and key insights.
-                  </p>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/risk-dashboard">
-                      View Dashboard
-                    </Link>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsChatOpen(true)}
+                    className="w-full"
+                  >
+                    💬 Ask AI Assistant
                   </Button>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Risk Intelligence Overview</CardTitle>
-                <CardDescription>
-                  AI-powered food safety risk assessment and prediction
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">2.3</div>
-                    <p className="text-sm text-muted-foreground">Average Risk Score</p>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">8</div>
-                    <p className="text-sm text-muted-foreground">Product Categories</p>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">94%</div>
-                    <p className="text-sm text-muted-foreground">Prediction Accuracy</p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Chat Tab */}
-          <TabsContent value="chat" className="space-y-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-4">AI Assistant</h2>
-                <p className="text-muted-foreground text-lg">
-                  Ask questions about FDA, USDA, EPA regulations in plain English. Get fast answers with sources.
-                </p>
-              </div>
-              
-              <Card className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <MessageCircle className="h-6 w-6 text-primary" />
-                  <h3 className="text-xl font-semibold">AI Assistant</h3>
-                  <Badge variant="secondary">GPT-4.1 + Live Data</Badge>
+          {/* Account Tab */}
+          <TabsContent value="account" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Information</CardTitle>
+                <CardDescription>
+                  Manage your account settings and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p><strong>Email:</strong> {user?.email}</p>
+                  <p><strong>User ID:</strong> {user?.id}</p>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Tips</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• “Most recent FDA recalls”</li>
-                      <li>• “USDA labeling rules for poultry”</li>
-                      <li>• “EPA pesticide MRL updates this week”</li>
-                    </ul>
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Behavior</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Prioritizes your live dashboard alerts</li>
-                      <li>• Shows timestamps and sources</li>
-                      <li>• Plain-English answers</li>
-                    </ul>
-                  </div>
-                </div>
-                
-                <Button 
-                  onClick={() => setIsChatOpen(true)}
-                  className="w-full py-6 text-lg"
-                  size="lg"
-                >
-                  <MessageCircle className="w-5 h-5 mr-2" />
-                  Open AI Assistant
+                <Button asChild>
+                  <a href="/account">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Account Settings
+                  </a>
                 </Button>
-                
-                <p className="text-xs text-muted-foreground text-center mt-4">
-                  Answers cite sources and use your live dashboard first.
-                </p>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Preferences</CardTitle>
-                <CardDescription>
-                  Customize your RegIQ experience and notification settings.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="email-notifications"
-                    checked={preferences.emailNotifications}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ ...prev, emailNotifications: checked as boolean }))
-                    }
-                  />
-                  <label htmlFor="email-notifications" className="text-sm">
-                    Enable email notifications
-                  </label>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Urgency Threshold</label>
-                  <Select 
-                    value={preferences.urgencyThreshold} 
-                    onValueChange={(value) => 
-                      setPreferences(prev => ({ ...prev, urgencyThreshold: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Low">Low</SelectItem>
-                      <SelectItem value="Medium">Medium</SelectItem>
-                      <SelectItem value="High">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Preferred Sources</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['FDA', 'USDA', 'EPA', 'CDC', 'OSHA', 'FTC'].map(source => (
-                      <div key={source} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={source}
-                          checked={preferences.preferredSources.includes(source)}
-                          onCheckedChange={(checked) => {
-                            setPreferences(prev => ({
-                              ...prev,
-                              preferredSources: checked 
-                                ? [...prev.preferredSources, source]
-                                : prev.preferredSources.filter(s => s !== source)
-                            }));
-                          }}
-                        />
-                        <label htmlFor={source} className="text-sm">{source}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="pt-4 border-t">
-                  <Button onClick={handlePreferencesUpdate}>
-                    Save Preferences
-                  </Button>
-                </div>
               </CardContent>
             </Card>
-
-            {/* Export Data Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Download className="h-5 w-5" />
-                  Export Data
-                </CardTitle>
-                <CardDescription>
-                  Export your alerts, search history, and analytics for backup or analysis.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Export Your Data</p>
-                    <p className="text-sm text-muted-foreground">
-                      Download your regulatory alerts, AI search history, and usage analytics in various formats.
-                    </p>
-                  </div>
-                  <Button 
-                    onClick={() => setShowExportManager(true)}
-                    className="ml-4"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Data
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Export Manager Dialog */}
-            <Dialog open={showExportManager} onOpenChange={setShowExportManager}>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Export Data</DialogTitle>
-                  <DialogDescription>
-                    Download your RegIQ data in various formats for backup, analysis, or integration.
-                  </DialogDescription>
-                </DialogHeader>
-                <ExportManager 
-                  isOpen={showExportManager}
-                  onClose={() => setShowExportManager(false)}
-                />
-              </DialogContent>
-            </Dialog>
           </TabsContent>
         </Tabs>
+
+        {/* AI Chatbot */}
+        <ConversationalChatbot
+          isOpen={isChatOpen}
+          onToggle={() => setIsChatOpen(!isChatOpen)}
+        />
       </div>
-
-      {/* AI Chatbot */}
-      <ConversationalChatbot 
-        isOpen={isChatOpen} 
-        onToggle={() => setIsChatOpen(!isChatOpen)} 
-      />
-
-      {/* Support Widget */}
-      <SupportWidget />
-    </div>
-  </TrialGate>
-);
+    </TrialGate>
+  );
 };
 
 export default UserDashboard;

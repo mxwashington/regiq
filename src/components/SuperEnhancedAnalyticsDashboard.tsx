@@ -16,7 +16,6 @@ import {
   Activity,
   Users
 } from 'lucide-react';
-import { useEnhancedMetrics } from '@/hooks/useEnhancedMetrics';
 import { LineChart, Line, AreaChart, Area, PieChart as RechartsPieChart, Cell, Pie, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar } from 'recharts';
 
 const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#f97316'];

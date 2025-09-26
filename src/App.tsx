@@ -5,17 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
-import { EnhancedSecurityHeaders } from "@/components/EnhancedSecurityHeaders";
-import { EnhancedAuthHandler } from "@/components/EnhancedAuthHandler";
-import { AIAccessProvider } from "@/components/AIAccessProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { DemoProvider } from "@/contexts/DemoContext";
-import { SecurityProvider } from "@/components/SecurityProvider";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-
-import { usePWA } from "@/hooks/usePWA";
-import { useCacheBuster } from "@/hooks/useCacheBuster";
-import { useAnalytics } from "@/hooks/useAnalytics";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -23,52 +13,23 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 
-// Lazy load pages for better performance with error boundaries
-const Debug = React.lazy(() => import("./pages/Debug").catch(() => ({ default: () => <div>Debug unavailable</div> })));
-const DebugAuth = React.lazy(() => import("./pages/DebugAuth").catch(() => ({ default: () => <div>Auth debug unavailable</div> })));
-const EmergencyAlerts = React.lazy(() => import("./components/EmergencyAlertsDashboard").then(m => ({ default: m.EmergencyAlertsDashboard })).catch(() => ({ default: () => <div>Emergency alerts unavailable</div> })));
+// Core pages only - lazy loaded with error boundaries
 const Landing = React.lazy(() => import("./pages/Landing").catch(() => ({ default: () => <div>Landing unavailable</div> })));
 const UserDashboard = React.lazy(() => import("./pages/UserDashboard").catch(() => ({ default: () => <div>Dashboard unavailable</div> })));
 const Auth = React.lazy(() => import("./pages/Auth").catch(() => ({ default: () => <div>Auth unavailable</div> })));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback").catch(() => ({ default: () => <div>Callback unavailable</div> })));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard").catch(() => ({ default: () => <div>Admin unavailable</div> })));
 const SearchPage = React.lazy(() => import("./pages/SearchPage").catch(() => ({ default: () => <div>Search unavailable</div> })));
-const ComplianceAssistantPage = React.lazy(() => import("./pages/ComplianceAssistant").catch(() => ({ default: () => <div>Compliance Assistant unavailable</div> })));
 const NotFound = React.lazy(() => import("./pages/NotFound").catch(() => ({ default: () => <div>Page not found</div> })));
-const LegalFramework = React.lazy(() => import("./components/LegalFramework").then(m => ({ default: m.LegalFramework })).catch(() => ({ default: () => <div>Legal unavailable</div> })));
-const UnifiedAuth = React.lazy(() => import("./components/UnifiedAuth").catch(() => ({ default: () => <div>Auth component unavailable</div> })));
-const ResetPassword = React.lazy(() => import("./components/ResetPassword").catch(() => ({ default: () => <div>Reset unavailable</div> })));
-const AuthGuard = React.lazy(() => import("./hooks/useAuthGuard").then(m => ({ default: m.AdminProtectedRoute })).catch(() => ({ default: ({ children }: any) => children })));
-const RegIQFeedPage = React.lazy(() => import("./pages/RegIQFeedPage").catch(() => ({ default: () => <div>RegIQ Feed unavailable</div> })));
-const AgencyPage = React.lazy(() => import("./pages/AgencyPage").catch(() => ({ default: () => <div>Agency page unavailable</div> })));
 const AllAlertsPage = React.lazy(() => import("./pages/AllAlertsPage").catch(() => ({ default: () => <div>Alerts unavailable</div> })));
-const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage").catch(() => ({ default: () => <div>Food Safety unavailable</div> })));
-const RiskPredictorPage = React.lazy(() => import("./pages/RiskPredictorPage").catch(() => ({ default: () => <div>Risk Predictor unavailable</div> })));
-const RiskDashboardPage = React.lazy(() => import("./pages/RiskDashboardPage").catch(() => ({ default: () => <div>Risk Dashboard unavailable</div> })));
-const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ default: () => <div>Pricing unavailable</div> })));
 const Account = React.lazy(() => import("./pages/Account").catch(() => ({ default: () => <div>Account unavailable</div> })));
-const Suppliers = React.lazy(() => import("./pages/Suppliers").catch(() => ({ default: () => <div>Suppliers unavailable</div> })));
-
-const Onboarding = React.lazy(() => import("./pages/Onboarding").catch(() => ({ default: () => <div>Onboarding unavailable</div> })));
-const AdminAnalytics = React.lazy(() => import("./pages/AdminAnalytics").catch(() => ({ default: () => <div>Admin Analytics unavailable</div> })));
-const SecurityDashboard = React.lazy(() => import("@/components/SecurityDashboard").catch(() => ({ default: () => <div>Security Dashboard unavailable</div> })));
-const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch(() => ({ default: () => <div>Success page unavailable</div> })));
-const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
+const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ default: () => <div>Pricing unavailable</div> })));
 const Help = React.lazy(() => import("./pages/Help").catch(() => ({ default: () => <div>Help unavailable</div> })));
 const ApiDocs = React.lazy(() => import("./pages/ApiDocs").catch(() => ({ default: () => <div>API Docs unavailable</div> })));
-// New SEO pages
-const FoodSafetyCompliancePage = React.lazy(() => import("./pages/solutions/FoodSafetyCompliancePage").catch(() => ({ default: () => <div>Food Safety Compliance unavailable</div> })));
-const DairyManufacturingPage = React.lazy(() => import("./pages/industries/DairyManufacturingPage").catch(() => ({ default: () => <div>Dairy Manufacturing unavailable</div> })));
-const MeatPoultryPage = React.lazy(() => import("./pages/industries/MeatPoultryPage").catch(() => ({ default: () => <div>Meat & Poultry unavailable</div> })));
-const PackagedFoodsPage = React.lazy(() => import("./pages/industries/PackagedFoodsPage").catch(() => ({ default: () => <div>Packaged Foods unavailable</div> })));
-const BeverageProductionPage = React.lazy(() => import("./pages/industries/BeverageProductionPage").catch(() => ({ default: () => <div>Beverage Production unavailable</div> })));
-const MobilePricing = React.lazy(() => import("./pages/MobilePricing").catch(() => ({ default: () => <div>Mobile Pricing unavailable</div> })));
-
-const Blog = React.lazy(() => import("./pages/Blog").catch(() => ({ default: () => <div>Blog unavailable</div> })));
+const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage").catch(() => ({ default: () => <div>Food Safety unavailable</div> })));
+const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch(() => ({ default: () => <div>Success page unavailable</div> })));
+const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
 const CustomAlerts = React.lazy(() => import("./pages/CustomAlerts").catch(() => ({ default: () => <div>Custom Alerts unavailable</div> })));
-const BlogPost = React.lazy(() => import("./pages/BlogPost").catch(() => ({ default: () => <div>Blog post unavailable</div> })));
-const RegulatoryGapDetection = React.lazy(() => import("./pages/RegulatoryGapDetection").catch(() => ({ default: () => <div>Gap Detection unavailable</div> })));
-
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,199 +38,93 @@ const queryClient = new QueryClient({
         if (error?.status === 401 || error?.status === 403) {
           return false;
         }
-        return failureCount < 1; // Reduced retry attempts for faster loading
+        return failureCount < 1;
       },
-      retryDelay: attemptIndex => Math.min(300 * 2 ** attemptIndex, 3000), // Faster retries
-      staleTime: 5 * 60 * 1000, // 5 minutes - shorter cache for fresher data
-      gcTime: 15 * 60 * 1000, // 15 minutes cache
+      retryDelay: attemptIndex => Math.min(300 * 2 ** attemptIndex, 3000),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
     },
     mutations: {
       retry: (failureCount, error: any) => {
         if (error?.status >= 400 && error?.status < 500) {
           return false;
         }
-        return failureCount < 1; // Reduced retry attempts
+        return failureCount < 1;
       }
     }
   },
 });
 
-// Enhanced loading component with error fallback
+// Simple loading component
 const PageLoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
-      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-muted-foreground">Loading...</p>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+      <p className="mt-2 text-sm text-gray-600">Loading...</p>
     </div>
   </div>
 );
 
-// Ensure analytics runs within Router context
-const AnalyticsInitializer = () => {
-  useAnalytics();
-  return null;
-};
-
-// PWA-enabled App component
-const PWAApp = () => {
-  // Initialize PWA functionality
-  usePWA();
-  
-  // Analytics initialized inside Router context via AnalyticsInitializer
-  // Initialize cache busting with optimized settings
-  useCacheBuster({
-    checkInterval: 15 * 60 * 1000, // Check every 15 minutes (reduced frequency)
-    clearStaleDataInterval: 24 * 60 * 60 * 1000, // Clear stale data daily
-    enableAutoRefresh: false // Don't auto-refresh, let user choose
-  });
-  
+function App() {
   return (
-    <>
-      <Toaster />
-      <Sonner />
-      <EnhancedAuthHandler />
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <BrowserRouter>
+              <AuthProvider>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full">
+                    <AppSidebar />
+                    <main className="flex-1">
+                      <header className="border-b bg-background">
+                        <div className="flex h-16 items-center px-4">
+                          <SidebarTrigger />
+                        </div>
+                      </header>
 
-      <PWAInstallPrompt />
-      <AIAccessProvider>
-        <BrowserRouter>
-          <SidebarProvider>
-            <div className="flex min-h-screen w-full">
-              <AppSidebar />
-              
-              <div className="flex-1 flex flex-col">
-                {/* Mobile header with sidebar trigger */}
-                <header className="flex md:hidden items-center h-12 px-4 border-b bg-background">
-                  <SidebarTrigger className="mr-4" />
-                  <h1 className="font-semibold">RegIQ</h1>
-                </header>
-                
-                <main className="flex-1">
-                  <AnalyticsInitializer />
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<UnifiedAuth />} />
-              <Route path="/login" element={<UnifiedAuth />} />
-              <Route path="/signup" element={<UnifiedAuth />} />
-              <Route path="/auth/reset-password" element={<ResetPassword />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              
-              {/* Main user pages */}
-              <Route path="/dashboard" element={<AuthGuard><UserDashboard /></AuthGuard>} />
-              <Route path="/search" element={<AuthGuard><SearchPage /></AuthGuard>} />
-              <Route path="/compliance-assistant" element={<AuthGuard><ComplianceAssistantPage /></AuthGuard>} />
-              <Route path="/tasks" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/TaskManagement")))}</AuthGuard>} />
-              <Route path="/calendar" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/ComplianceCalendar")))}</AuthGuard>} />
-              <Route path="/analytics" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/SuperAnalyticsPage")))}</AuthGuard>} />
-              <Route path="/export" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/ExportPage")))}</AuthGuard>} />
-              <Route path="/ai-test" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/AIFeatureTester")))}</AuthGuard>} />
-              <Route path="/custom-data-sources" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/CustomDataSourceManager").then(m => ({ default: m.CustomDataSourceManager }))))}</AuthGuard>} />
-              <Route path="/webhooks" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/WebhookManager").then(m => ({ default: m.WebhookManager }))))}</AuthGuard>} />
-              <Route path="/predictive-risk" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/PredictiveRiskDashboard").then(m => ({ default: m.PredictiveRiskDashboard }))))}</AuthGuard>} />
-              <Route path="/advanced-workflows" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/AdvancedWorkflowsDashboard").then(m => ({ default: m.AdvancedWorkflowsDashboard }))))}</AuthGuard>} />
-              <Route path="/security" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/SecurityDashboard")))}</AuthGuard>} />
-              <Route path="/supplier-risk" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/UnifiedSupplierDashboard")))}</AuthGuard>} />
-              <Route path="/regulatory-impact" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/RegulatoryImpactAnalysis")))}</AuthGuard>} />
-              <Route path="/regulatory-gap-detection" element={<AuthGuard><RegulatoryGapDetection /></AuthGuard>} />
-              <Route path="/custom-alerts" element={<AuthGuard><CustomAlerts /></AuthGuard>} />
-              <Route path="/facilities" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/pages/FacilitiesPage")))}</AuthGuard>} />
-               <Route path="/pricing" element={<Pricing />} />
-               <Route path="/mobile-pricing" element={<MobilePricing />} />
-               <Route path="/account" element={<Account />} />
-              <Route path="/suppliers" element={<AuthGuard>{React.createElement(React.lazy(() => import("@/components/UnifiedSupplierDashboard")))}</AuthGuard>} />
-              <Route path="/onboarding" element={<Onboarding />} />
-               <Route path="/payment-success" element={<PaymentSuccess />} />
-               <Route path="/payment-canceled" element={<PaymentCanceled />} />
-               <Route path="/help" element={<Help />} />
-               <Route path="/api-docs" element={<AuthGuard><ApiDocs /></AuthGuard>} />
-               <Route path="/blog" element={<Blog />} />
-               <Route path="/blog/:slug" element={<BlogPost />} />
-              
-              {/* Solution Pages - SEO Optimized */}
-              <Route path="/solutions/food-safety-compliance" element={<FoodSafetyCompliancePage />} />
-              <Route path="/solutions/fda-alerts" element={<FoodSafetyCompliancePage />} />
-              <Route path="/solutions/usda-monitoring" element={<FoodSafetyCompliancePage />} />
-              <Route path="/solutions/haccp-automation" element={<FoodSafetyCompliancePage />} />
-              <Route path="/solutions/fsma-compliance" element={<FoodSafetyCompliancePage />} />
-              
-              {/* Industry Pages - SEO Optimized */}
-              <Route path="/industries/dairy-manufacturing" element={<DairyManufacturingPage />} />
-              <Route path="/industries/meat-poultry" element={<MeatPoultryPage />} />
-              <Route path="/industries/packaged-foods" element={<PackagedFoodsPage />} />
-              <Route path="/industries/beverage-production" element={<BeverageProductionPage />} />
-              
-              {/* Feature Pages - SEO Optimized */}
-              <Route path="/features/recall-monitoring" element={<FoodSafetyCompliancePage />} />
-              <Route path="/features/inspection-readiness" element={<FoodSafetyCompliancePage />} />
-              <Route path="/features/supplier-verification" element={<FoodSafetyCompliancePage />} />
-              <Route path="/features/allergen-management" element={<FoodSafetyCompliancePage />} />
-              
-              {/* SEO-optimized alert pages */}
-              <Route path="/alerts" element={<AuthGuard><AllAlertsPage /></AuthGuard>} />
-              <Route path="/alerts/:agency" element={<AuthGuard><AgencyPage /></AuthGuard>} />
-              
-              {/* Industry-specific pages */}
-              <Route path="/food-safety" element={<FoodSafetyPage />} />
-              <Route path="/pharma-compliance" element={<FoodSafetyPage />} />
-              <Route path="/agricultural-alerts" element={<FoodSafetyPage />} />
-              
-              {/* Risk Intelligence pages */}
-              <Route path="/risk-predictor" element={<AuthGuard><RiskPredictorPage /></AuthGuard>} />
-              <Route path="/risk-dashboard" element={<AuthGuard><RiskDashboardPage /></AuthGuard>} />
-              
-              {/* Admin routes */}
-              <Route path="/admin/*" element={
-                <AuthGuard>
-                  <AdminDashboard />
-                </AuthGuard>
-              } />
-              <Route path="/admin/analytics" element={
-                <AuthGuard>
-                  <AdminAnalytics />
-                </AuthGuard>
-              } />
-              <Route path="/admin/security" element={
-                <AuthGuard>
-                  <SecurityDashboard />
-                </AuthGuard>
-              } />
-              
-              {/* Other pages */}
-              <Route path="/legal" element={<LegalFramework />} />
-              <Route path="/debug" element={<Debug />} />
-              <Route path="/debug-auth" element={<DebugAuth />} />
-              <Route path="/emergency-alerts" element={<EmergencyAlerts />} />
-              <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
-                </main>
-              </div>
-            </div>
-            
-          </SidebarProvider>
-        </BrowserRouter>
-      </AIAccessProvider>
-    </>
+                      <div className="flex-1">
+                        <Suspense fallback={<PageLoadingFallback />}>
+                          <DashboardErrorBoundary>
+                            <Routes>
+                              {/* Core Routes */}
+                              <Route path="/" element={<Landing />} />
+                              <Route path="/dashboard" element={<UserDashboard />} />
+                              <Route path="/auth" element={<Auth />} />
+                              <Route path="/auth/callback" element={<AuthCallback />} />
+                              <Route path="/admin" element={<AdminDashboard />} />
+                              <Route path="/search" element={<SearchPage />} />
+                              <Route path="/alerts" element={<AllAlertsPage />} />
+                              <Route path="/account" element={<Account />} />
+                              <Route path="/pricing" element={<Pricing />} />
+                              <Route path="/help" element={<Help />} />
+                              <Route path="/api-docs" element={<ApiDocs />} />
+                              <Route path="/food-safety" element={<FoodSafetyPage />} />
+                              <Route path="/custom-alerts" element={<CustomAlerts />} />
+
+                              {/* Payment Routes */}
+                              <Route path="/payment/success" element={<PaymentSuccess />} />
+                              <Route path="/payment/canceled" element={<PaymentCanceled />} />
+
+                              {/* 404 */}
+                              <Route path="*" element={<NotFound />} />
+                            </Routes>
+                          </DashboardErrorBoundary>
+                        </Suspense>
+                      </div>
+                    </main>
+                  </div>
+                </SidebarProvider>
+
+                <Toaster />
+                <Sonner />
+              </AuthProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
-};
-
-const App = () => (
-  <ErrorBoundary>
-    <HelmetProvider>
-      <EnhancedSecurityHeaders />
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SecurityProvider>
-            <DemoProvider>
-              <TooltipProvider>
-                <PWAApp />
-              </TooltipProvider>
-            </DemoProvider>
-          </SecurityProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
-  </ErrorBoundary>
-);
+}
 
 export default App;

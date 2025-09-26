@@ -7,12 +7,10 @@ import { FDAAnalyticsDashboard } from "@/components/FDAAnalyticsDashboard";
 import { SourceLinkManager } from "@/components/SourceLinkManager";
 import { AdminNavigation } from "@/components/AdminNavigation";
 import { AdminSecurityManager } from "@/components/AdminSecurityManager";
-import { SecurityMonitoringDashboard } from "@/components/SecurityMonitoringDashboard";
 import { SSOConfiguration } from "@/components/SSOConfiguration";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
-import { SecurityDashboardEnhanced } from "@/components/SecurityDashboardEnhanced";
 import { AdminAPIManager } from "@/components/AdminAPIManager";
 
 import { logger } from '@/lib/logger';

@@ -9,7 +9,6 @@ import { FDASearch } from '@/components/FDASearch';
 import { CombinedSearch } from '@/components/CombinedSearch';
 import { FDAAnalyticsDashboard } from '@/components/FDAAnalyticsDashboard';
 import { FDAProfessionalTools } from '@/components/FDAProfessionalTools';
-import { EnhancedRecallDemo } from '@/components/EnhancedRecallDemo';
 import { IntegrationEnhancements } from '@/components/IntegrationEnhancements';
 import { CFRSearch } from '@/components/CFRSearch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

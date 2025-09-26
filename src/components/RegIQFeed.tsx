@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Calendar, 
   ExternalLink, 
@@ -22,7 +21,6 @@ import {
   Search,
   Globe
 } from "lucide-react";
-import { RegIQMobileFilters } from "./RegIQMobileFilters";
 import { RegIQDesktopFilters } from "./RegIQDesktopFilters";
 import { ThirdShiftStatusIndicator } from "./ThirdShiftStatusIndicator";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";

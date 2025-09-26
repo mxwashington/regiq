@@ -8,7 +8,6 @@ import { Users, Settings, Database, User, Search, Eye, Bot, Shield, Link, Cpu, W
 import { AdminAlertManager } from "./AdminAlertManager";
 import { DataPipelineManager } from "./DataPipelineManager";
 import { SessionHealthMonitor } from "./SessionHealthMonitor";
-import AuthTestingPanel from "./AuthTestingPanel";
 import { PWASettings } from "./PWASettings";
 import { ThirdShiftChatbot } from "./ThirdShiftChatbot";
 import { AlertSourceFinder } from "./AlertSourceFinder";

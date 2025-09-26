@@ -1,5 +1,4 @@
 import React from 'react';
-import { MobilePricingPage } from '@/components/mobile/MobilePricingPage';
 import { SEOHead } from '@/components/SEO/SEOHead';
 
 const MobilePricing = () => {

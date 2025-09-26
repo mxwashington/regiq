@@ -4,8 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Clock, AlertTriangle, X, Share2, Search, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
-import { MobileButton } from '@/components/MobileButton';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 import { logger } from '@/lib/logger';
 interface AlertTag {
@@ -183,7 +181,7 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
             {Object.entries(tagsByCategory).map(([categoryName, tags]) => (
               <div key={categoryName} className="flex flex-wrap gap-1">
                 {tags.map((alertTag) => (
-                  <MobileButton
+                  <Button
                     key={alertTag.id}
                     variant="ghost"
                     className="h-6 px-2 text-xs hover:shadow-sm transition-all"
@@ -203,7 +201,7 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
                         </span>
                       )}
                     </span>
-                  </MobileButton>
+                  </Button>
                 ))}
               </div>
             ))}
@@ -216,32 +214,32 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
             {alert.alert_tags?.length || 0} tags
           </div>
           <div className="flex items-center gap-2">
-            <MobileButton onClick={handleShare}>
+            <Button onClick={handleShare}>
               <Share2 className="h-3 w-3 mr-1" />
               <span className="hidden sm:inline">Share</span>
-            </MobileButton>
+            </Button>
             {onDismissAlert && (
-              <MobileButton onClick={handleDismiss}>
+              <Button onClick={handleDismiss}>
                 <X className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">Dismiss</span>
-              </MobileButton>
+              </Button>
             )}
             {isValidSourceUrl(alert.external_url) ? (
               <>
-                <MobileButton onClick={handleExternalLink}>
+                <Button onClick={handleExternalLink}>
                   <ExternalLink className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">View Source</span>
-                </MobileButton>
-                <MobileButton onClick={handleSearch}>
+                </Button>
+                <Button onClick={handleSearch}>
                   <Globe className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">Search</span>
-                </MobileButton>
+                </Button>
               </>
             ) : (
-              <MobileButton onClick={handleSearch}>
+              <Button onClick={handleSearch}>
                 <Search className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">Find Source</span>
-              </MobileButton>
+              </Button>
             )}
           </div>
         </div>

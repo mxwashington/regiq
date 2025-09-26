@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { TestTube, BarChart3, Download, Brain, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const NavigationUpdater: React.FC = () => {

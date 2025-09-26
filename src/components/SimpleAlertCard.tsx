@@ -5,8 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Clock, AlertTriangle, X, Share2, Search, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { searchForAlert, isValidSourceUrl } from '@/lib/alert-search';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { MobileButton } from '@/components/MobileButton';
 
 import { logger } from '@/lib/logger';
 interface SimpleAlert {
@@ -186,49 +184,49 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
             </div>
           )}
           <div className={`flex items-center ${isMobile ? 'gap-0.5' : 'gap-1'}`}>
-            <MobileButton
+            <Button
               onClick={handleShare}
               className="flex items-center gap-1"
             >
               <Share2 className="h-3 w-3" />
               <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Share</span>
-            </MobileButton>
+            </Button>
             
             {onDismissAlert && (
-              <MobileButton
+              <Button
                 onClick={handleDismiss}
                 className="flex items-center gap-1"
               >
                 <X className="h-3 w-3" />
                 <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Hide</span>
-              </MobileButton>
+              </Button>
             )}
             
             {isValidSourceUrl(alert.external_url) ? (
               <>
-                <MobileButton
+                <Button
                   onClick={handleExternalLink}
                   className="flex items-center gap-1"
                 >
                   <ExternalLink className="h-3 w-3" />
                   <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Source</span>
-                </MobileButton>
-                <MobileButton
+                </Button>
+                <Button
                   onClick={handleSearchForAlert}
                   className="flex items-center gap-1"
                 >
                   <Globe className="h-3 w-3" />
                   <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Search</span>
-                </MobileButton>
+                </Button>
               </>
             ) : (
-              <MobileButton
+              <Button
                 onClick={handleSearchForAlert}
                 className="flex items-center gap-1"
               >
                 <Search className="h-3 w-3" />
                 <span className={isMobile ? 'inline' : 'hidden sm:inline'}>Find</span>
-              </MobileButton>
+              </Button>
             )}
           </div>
         </div>

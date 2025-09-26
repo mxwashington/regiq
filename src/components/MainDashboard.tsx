@@ -4,7 +4,6 @@ import { DashboardNavigation } from './DashboardNavigation';
 import { RegIQFeed } from './RegIQFeed';
 import { SearchInterface } from './SearchInterface';
 import { SavedItems } from './SavedItems';
-import { ThirdShiftAI } from './ThirdShiftAI';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
 

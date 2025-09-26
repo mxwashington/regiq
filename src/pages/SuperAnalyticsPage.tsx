@@ -1,5 +1,4 @@
 import React from 'react';
-import { SuperEnhancedAnalyticsDashboard } from '@/components/SuperEnhancedAnalyticsDashboard';
 import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
 

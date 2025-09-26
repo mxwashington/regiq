@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet-async";
 import Welcome from "@/components/onboarding/Welcome";
 import CompanySetup from "@/components/onboarding/CompanySetup";
 import AlertPreferences from "@/components/onboarding/AlertPreferences";
-import SupplierSetup from "@/components/onboarding/SupplierSetup";
 import DigestSetup from "@/components/onboarding/DigestSetup";
 import DashboardTour from "@/components/onboarding/DashboardTour";
 
