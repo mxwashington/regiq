@@ -10,7 +10,7 @@ import {
   CheckCircle,
   AlertCircle,
   Database,
-  Sync,
+  ArrowUpDown,
   BarChart3,
   Calendar,
   RefreshCw
@@ -205,7 +205,7 @@ export const AdminDataManager: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <Sync className="w-5 h-5 text-orange-500" />
+              <ArrowUpDown className="w-5 h-5 text-orange-500" />
               <div>
                 <p className="text-sm font-medium">Last Sync</p>
                 <p className="text-xs text-muted-foreground">
