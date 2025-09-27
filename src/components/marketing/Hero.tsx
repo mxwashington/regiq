@@ -42,10 +42,10 @@ export const Hero: React.FC = () => {
         </div>
 
         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight hyphens-none">
-          <span className="whitespace-nowrap">Food manufacturers</span> waste 195 hours annually on <span className="whitespace-nowrap">broken regulatory</span> search
+          Stop Losing <span className="text-primary">$34,487 Per Year</span> on Failed Regulatory Searches
         </h1>
         <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed mb-6 md:mb-8 max-w-3xl mx-auto px-4 hyphens-none">
-          <span className="whitespace-nowrap">95% of food companies</span> can't find the regulatory answers they need
+          Food regulatory professionals waste <strong>15.5 hours weekly</strong> on searches that fail 30-70% of the time. RegIQ's AI-powered platform delivers instant, plain-English answers to FDA/USDA questions.
         </p>
 
         <div className="flex flex-col gap-3 md:gap-4 justify-center items-center mb-6 md:mb-8 px-4">
