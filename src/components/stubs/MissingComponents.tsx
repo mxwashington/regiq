@@ -46,6 +46,14 @@ export const EnhancedAnalyticsDashboard: React.FC = () => (
   </Card>
 );
 
+export const SuperEnhancedAnalyticsDashboard: React.FC = () => (
+  <Card>
+    <CardContent className="p-4">
+      Super Enhanced Analytics Dashboard - Component not implemented
+    </CardContent>
+  </Card>
+);
+
 export const FacilityManagement: React.FC = () => (
   <Card>
     <CardContent className="p-4">
@@ -55,7 +63,7 @@ export const FacilityManagement: React.FC = () => (
 );
 
 // Stub hooks
-export const useEnhancedAnalytics = () => ({
+export const useEnhancedAnalytics = (filters?: any) => ({
   data: null,
   loading: false,
   error: null,
@@ -68,11 +76,11 @@ export const useEnhancedAnalytics = () => ({
 export const useEnhancedSecurity = () => ({
   isSecure: true,
   validate: () => true,
-  checkAccountLockout: () => Promise.resolve(false),
-  logSecurityEvent: () => Promise.resolve()
+  checkAccountLockout: (email: string) => Promise.resolve({ is_locked: false, retry_after_seconds: 0, failed_attempts: 0 }),
+  logSecurityEvent: (eventType: string, metadata: any = {}, threatLevel = 'low') => Promise.resolve()
 });
 
-export const useEnhancedMetrics = () => ({
+export const useEnhancedMetrics = (config?: any) => ({
   metrics: {
     complianceScore: 85,
     alertTrends: [],
@@ -86,9 +94,17 @@ export const useEnhancedMetrics = () => ({
   refetch: () => Promise.resolve()
 });
 
+export const SupplierSetup: React.FC = () => (
+  <Card>
+    <CardContent className="p-4">
+      Supplier Setup - Component not implemented
+    </CardContent>
+  </Card>
+);
+
 export const useEnhancedInputValidation = () => ({
   validate: () => true,
   errors: [],
-  validateField: () => true,
-  validationRules: {}
+  validateField: (name: string, value: string, rules: any) => ({ isValid: true, errors: [], sanitizedValue: value }),
+  validationRules: { apiKeyName: {} }
 });

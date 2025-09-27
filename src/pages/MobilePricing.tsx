@@ -1,4 +1,5 @@
 import React from 'react';
+import { NewPricingSection } from '@/components/marketing/NewPricingSection';
 import { SEOHead } from '@/components/SEO/SEOHead';
 
 const MobilePricing = () => {
@@ -10,7 +11,9 @@ const MobilePricing = () => {
         keywords="RegIQ mobile pricing, compliance software mobile, regulatory alerts mobile app"
         canonical="https://regiq.com/mobile-pricing"
       />
-      <MobilePricingPage />
+      <div className="container mx-auto py-8">
+        <NewPricingSection />
+      </div>
     </>
   );
 };

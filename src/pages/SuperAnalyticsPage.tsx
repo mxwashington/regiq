@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePlanRestrictions } from '@/hooks/usePlanRestrictions';
 import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
+import { SuperEnhancedAnalyticsDashboard } from '@/components/stubs/MissingComponents';
 
 const SuperAnalyticsPage: React.FC = () => {
   const { checkFeatureAccess } = usePlanRestrictions();

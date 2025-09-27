@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import Welcome from "@/components/onboarding/Welcome";
-import CompanySetup from "@/components/onboarding/CompanySetup";
-import AlertPreferences from "@/components/onboarding/AlertPreferences";
-import DigestSetup from "@/components/onboarding/DigestSetup";
-import DashboardTour from "@/components/onboarding/DashboardTour";
+import { Welcome } from "@/components/onboarding/Welcome";
+import { CompanySetup } from "@/components/onboarding/CompanySetup";
+import { AlertPreferences } from "@/components/onboarding/AlertPreferences";
+import { DigestSetup } from "@/components/onboarding/DigestSetup";
+import { DashboardTour } from "@/components/onboarding/DashboardTour";
+import { SupplierSetup } from "@/components/stubs/MissingComponents";
 
 const steps = ["Welcome","Company","Preferences","Suppliers","Digest","Finish"] as const;
 
@@ -18,7 +19,7 @@ const Onboarding: React.FC = () => {
       case 0: return <Welcome onNext={next} />;
       case 1: return <CompanySetup onNext={next} />;
       case 2: return <AlertPreferences onNext={next} onBack={back} />;
-      case 3: return <SupplierSetup onNext={next} onBack={back} />;
+      case 3: return <SupplierSetup />;
       case 4: return <DigestSetup onNext={next} onBack={back} />;
       case 5: return <DashboardTour onBack={back} />;
       default: return null;

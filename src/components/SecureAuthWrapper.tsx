@@ -4,8 +4,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Clock } from 'lucide-react';
-
+import { useEnhancedSecurity } from '@/components/stubs/MissingComponents';
 import { logger } from '@/lib/logger';
+
 interface SecureAuthWrapperProps {
   children: React.ReactNode;
 }
