@@ -60,6 +60,16 @@ interface DuplicateAlert {
   created_at: string;
 }
 
+// Alert type definition for duplicates  
+interface AlertType {
+  id: string;
+  title: string;
+  source: string;
+  published_date: string;
+  urgency?: string;
+  summary?: string;
+}
+
 interface DuplicatesResponse {
   groups: DuplicateGroup[];
   total_duplicates: number;
@@ -114,7 +124,15 @@ export function DuplicatesWidget() {
   const loadGroupAlerts = useCallback(async (groupId: string) => {
     const data = await execute(`/api/admin/duplicates/${groupId}/alerts`);
     if (data) {
-      setGroupAlerts(data.alerts || []);
+      setGroupAlerts(data.alerts?.map(alert => ({
+        id: alert.id,
+        title: alert.title,
+        external_id: alert.id,
+        source: alert.source,
+        date_published: alert.published_date,
+        severity: alert.urgency === 'Critical' ? 90 : alert.urgency === 'High' ? 75 : alert.urgency === 'Medium' ? 50 : 25,
+        created_at: alert.published_date
+      })) || []);
     }
   }, [execute]);
 
