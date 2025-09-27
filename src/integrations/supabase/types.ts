@@ -3939,6 +3939,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      start_sync_log: {
+        Args: {
+          p_source: string
+        }
+        Returns: string
+      }
+      finish_sync_log: {
+        Args: {
+          p_log_id: string
+          p_status: string
+          p_results?: Json
+        }
+        Returns: void
+      }
     }
     Enums: {
       [_ in never]: never

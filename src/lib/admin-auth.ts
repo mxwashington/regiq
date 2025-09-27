@@ -1,9 +1,8 @@
 // Admin Authentication Utilities
 // Server-side admin verification and profile management
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface AdminProfile {
   user_id: string;
@@ -16,7 +15,6 @@ export interface AdminProfile {
 
 export async function getAdminProfile(): Promise<AdminProfile | null> {
   try {
-    const supabase = createServerComponentClient({ cookies });
 
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -45,7 +43,7 @@ export async function getAdminProfile(): Promise<AdminProfile | null> {
       created_at: profile.created_at,
     };
   } catch (error) {
-    console.error('Admin auth check failed:', error);
+    logger.error('Admin auth check failed:', error);
     return null;
   }
 }
@@ -54,7 +52,8 @@ export async function requireAdmin(): Promise<AdminProfile> {
   const profile = await getAdminProfile();
 
   if (!profile) {
-    redirect('/auth/login?redirect=/admin');
+    // In client-side, handle redirect in the component
+    throw new Error('Admin access required');
   }
 
   return profile;
@@ -62,8 +61,6 @@ export async function requireAdmin(): Promise<AdminProfile> {
 
 export async function verifyAdminFromRequest(request: Request): Promise<AdminProfile | null> {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
     // Extract auth token from request
     const authHeader = request.headers.get('authorization');
@@ -100,7 +97,7 @@ export async function verifyAdminFromRequest(request: Request): Promise<AdminPro
       created_at: profile.created_at,
     };
   } catch (error) {
-    console.error('Admin verification failed:', error);
+    logger.error('Admin verification failed:', error);
     return null;
   }
 }

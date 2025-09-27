@@ -33,7 +33,7 @@ interface SyncResult {
   updated: number;
   skipped: number;
   errors: string[];
-  duration: number;
+  duration?: number;
 }
 
 export function SyncControls() {

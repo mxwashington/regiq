@@ -68,7 +68,7 @@ interface LogFilters {
   dateFrom: string;
   dateTo: string;
   triggerType: string;
-  page: number;
+  page: string | number;
   pageSize: number;
 }
 
@@ -488,16 +488,16 @@ export function LogsTable() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Showing {(filters.page - 1) * filters.pageSize + 1} to{' '}
-                {Math.min(filters.page * filters.pageSize, total)} of {formatNumber(total)} logs
+                Showing {(Number(filters.page) - 1) * filters.pageSize + 1} to{' '}
+                {Math.min(Number(filters.page) * filters.pageSize, total)} of {formatNumber(total)} logs
               </div>
 
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleFilterChange('page', filters.page - 1)}
-                  disabled={filters.page === 1 || loading}
+                  onClick={() => handleFilterChange('page', Number(filters.page) - 1)}
+                  disabled={Number(filters.page) === 1 || loading}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -506,7 +506,7 @@ export function LogsTable() {
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNum = Math.max(1, Math.min(
                       totalPages - 4,
-                      filters.page - 2
+                      Number(filters.page) - 2
                     )) + i;
 
                     if (pageNum > totalPages) return null;
@@ -529,8 +529,8 @@ export function LogsTable() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleFilterChange('page', filters.page + 1)}
-                  disabled={filters.page === totalPages || loading}
+                  onClick={() => handleFilterChange('page', Number(filters.page) + 1)}
+                  disabled={Number(filters.page) === totalPages || loading}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

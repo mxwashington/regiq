@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -29,9 +29,9 @@ export function CookieConsent() {
 
   useEffect(() => {
     checkCookieConsent();
-  }, [user]);
+  }, [user, checkCookieConsent]);
 
-  const checkCookieConsent = async () => {
+  const checkCookieConsent = useCallback(async () => {
     // Check if user has already given consent
     const stored = localStorage.getItem('cookie-consent');
     if (stored) {
@@ -65,7 +65,7 @@ export function CookieConsent() {
 
     // Show banner if no consent found
     setShowBanner(true);
-  };
+  }, [user, setPreferences, setShowBanner]);
 
   // Generate a visitor ID for non-authenticated users
   const generateVisitorId = () => {

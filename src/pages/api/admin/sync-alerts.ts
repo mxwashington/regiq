@@ -1,14 +1,22 @@
 // Admin Manual Sync API Route
 // Secure endpoint for admin-triggered alert synchronization
 
-import { NextApiRequest, NextApiResponse } from 'next';
-import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/integrations/supabase/client';
 import { comprehensiveAlertSyncService } from '@/services/ComprehensiveAlertSyncService';
+import { logger } from '@/lib/logger';
 
 interface SyncResponse {
   success: boolean;
   message: string;
-  results?: any[];
+  results?: Array<{
+    success: boolean;
+    source: string;
+    alertsFetched: number;
+    alertsInserted: number;
+    alertsUpdated: number;
+    alertsSkipped: number;
+    errors: string[];
+  }>;
   summary?: {
     totalFetched: number;
     totalInserted: number;
@@ -20,9 +28,8 @@ interface SyncResponse {
   error?: string;
 }
 
-async function verifyAdminAccess(req: NextApiRequest, res: NextApiResponse): Promise<boolean> {
+async function verifyAdminAccess(): Promise<boolean> {
   try {
-    const supabase = createPagesServerClient({ req, res });
 
     // Get the current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -49,9 +56,22 @@ async function verifyAdminAccess(req: NextApiRequest, res: NextApiResponse): Pro
   }
 }
 
+interface SyncRequest {
+  method: string;
+  body: {
+    sinceDays?: number;
+  };
+}
+
+interface SyncResponseObject {
+  status: (code: number) => {
+    json: (data: SyncResponse) => void;
+  };
+}
+
 export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<SyncResponse>
+  req: SyncRequest,
+  res: SyncResponseObject
 ) {
   // Only allow POST requests
   if (req.method !== 'POST') {
@@ -63,7 +83,7 @@ export default async function handler(
 
   try {
     // Verify admin access
-    const isAdmin = await verifyAdminAccess(req, res);
+    const isAdmin = await verifyAdminAccess();
     if (!isAdmin) {
       return res.status(403).json({
         success: false,
@@ -71,7 +91,7 @@ export default async function handler(
       });
     }
 
-    console.log('Admin sync triggered');
+    logger.info('Admin sync triggered');
 
     // Parse request parameters
     const { sinceDays = 1 } = req.body;
@@ -105,7 +125,7 @@ export default async function handler(
     const allSuccessful = results.every(r => r.success);
     const hasData = summary.totalInserted + summary.totalUpdated > 0;
 
-    console.log('Admin sync completed:', {
+    logger.info('Admin sync completed:', {
       success: allSuccessful,
       summary,
       sources: results.map(r => ({
@@ -127,7 +147,7 @@ export default async function handler(
     });
 
   } catch (error) {
-    console.error('Admin sync failed:', error);
+    logger.error('Admin sync failed:', error);
 
     return res.status(500).json({
       success: false,
