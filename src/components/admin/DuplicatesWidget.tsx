@@ -66,6 +66,10 @@ interface DuplicatesResponse {
   total_groups: number;
   potential_space_saved: number;
   last_scan: string | null;
+  alerts?: AlertType[];
+  removedCount?: number;
+  affectedSources?: string[];
+  duration?: number;
 }
 
 interface ScanProgress {

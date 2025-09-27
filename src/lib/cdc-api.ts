@@ -12,6 +12,7 @@ const CDCOutbreakSchema = z.object({
   investigation_start_date: z.string(),
   investigation_status: z.string(),
   date_updated: z.string().optional(),
+  pub_date: z.string().optional(),
   states_affected: z.array(z.string()).default([]),
   food_vehicle: z.array(z.string()).default([]),
   pathogen: z.string().optional(),

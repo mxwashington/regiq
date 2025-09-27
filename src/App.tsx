@@ -31,11 +31,17 @@ const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch((
 const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
 const CustomAlerts = React.lazy(() => import("./pages/CustomAlerts").catch(() => ({ default: () => <div>Custom Alerts unavailable</div> })));
 
+interface QueryError {
+  status?: number;
+  message?: string;
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
-        if (error?.status === 401 || error?.status === 403) {
+      retry: (failureCount, error: QueryError | Error | unknown) => {
+        const errorObj = error as QueryError;
+        if (errorObj?.status === 401 || errorObj?.status === 403) {
           return false;
         }
         return failureCount < 1;
@@ -45,8 +51,9 @@ const queryClient = new QueryClient({
       gcTime: 15 * 60 * 1000,
     },
     mutations: {
-      retry: (failureCount, error: any) => {
-        if (error?.status >= 400 && error?.status < 500) {
+      retry: (failureCount, error: QueryError | Error | unknown) => {
+        const errorObj = error as QueryError;
+        if (errorObj?.status >= 400 && errorObj?.status < 500) {
           return false;
         }
         return failureCount < 1;

@@ -2,6 +2,49 @@ import { supabase } from '@/integrations/supabase/client';
 import { fdaApi, fsisApi } from '@/lib/fda-api';
 import { logger } from '@/lib/logger';
 
+interface FDARecallData {
+  results?: Array<{
+    recall_number?: string;
+    classification?: string;
+    product_description?: string;
+    reason_for_recall?: string;
+    recalling_firm?: string;
+    distribution_pattern?: string;
+    state?: string;
+    country?: string;
+    report_date?: string;
+    recall_initiation_date?: string;
+  }>;
+}
+
+interface FSISRecallData {
+  recallNumber?: string;
+  healthHazard?: string;
+  productName?: string;
+  problemDescription?: string;
+  establishmentNumber?: string;
+  establishmentName?: string;
+  recallDate?: string;
+  pressReleaseURL?: string;
+  statesAffected?: string[];
+}
+
+interface AlertData {
+  title: string;
+  summary: string;
+  full_content: string;
+  agency: string;
+  source: string;
+  urgency: string;
+  urgency_score: number;
+  published_date: string;
+  external_url?: string;
+  metadata: Record<string, unknown>;
+  ai_summary: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AlertSyncResult {
   success: boolean;
   source: string;
@@ -93,7 +136,7 @@ export class AlertSyncService {
           await this.insertAlert(alert);
           result.alertsImported++;
         } catch (error) {
-          const errorMsg = `Failed to import FSIS recall ${recall.recallCaseNumber}: ${error}`;
+          const errorMsg = `Failed to import FSIS recall ${recall.recallNumber}: ${error}`;
           logger.error(`[AlertSync] ${errorMsg}`);
           result.errors.push(errorMsg);
         }
@@ -151,7 +194,7 @@ export class AlertSyncService {
   /**
    * Transform FDA recall data to our alert format
    */
-  private transformFDARecallToAlert(recall: any, agency: string) {
+  private transformFDARecallToAlert(recall: FDARecallData, agency: string): AlertData {
     const recallData = recall.results?.[0];
     if (!recallData) {
       throw new Error('No recall data found in FDA response');
@@ -205,7 +248,7 @@ export class AlertSyncService {
   /**
    * Transform FSIS recall data to our alert format
    */
-  private transformFSISRecallToAlert(recall: any) {
+  private transformFSISRecallToAlert(recall: FSISRecallData): AlertData {
     // Determine urgency based on recall class or health hazard
     let urgency = 'medium';
     let urgencyScore = 5;
@@ -232,7 +275,7 @@ export class AlertSyncService {
       published_date: recall.recallDate || new Date().toISOString(),
       external_url: recall.pressReleaseURL || `https://www.fsis.usda.gov/recalls-alerts`,
       metadata: {
-        recall_case_number: recall.recallCaseNumber,
+        recall_case_number: recall.recallNumber,
         establishment_number: recall.establishmentNumber,
         establishment_name: recall.establishmentName,
         product_name: recall.productName,
@@ -249,7 +292,7 @@ export class AlertSyncService {
   /**
    * Insert alert into database with duplicate prevention
    */
-  private async insertAlert(alertData: any) {
+  private async insertAlert(alertData: AlertData) {
     // Check for existing alert to prevent duplicates
     const { data: existing } = await supabase
       .from('alerts')
