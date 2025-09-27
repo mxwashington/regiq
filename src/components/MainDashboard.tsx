@@ -3,6 +3,7 @@ import { DashboardMetrics } from './DashboardMetrics';
 import { DashboardNavigation } from './DashboardNavigation';
 import { RegIQFeed } from './RegIQFeed';
 import { SearchInterface } from './SearchInterface';
+import { ThirdShiftAI } from '@/components/stubs/MissingComponents';
 import { SavedItems } from './SavedItems';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';

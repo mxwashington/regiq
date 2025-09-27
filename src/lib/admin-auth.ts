@@ -1,9 +1,7 @@
 // Admin Authentication Utilities
 // Server-side admin verification and profile management
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface AdminProfile {
   user_id: string;

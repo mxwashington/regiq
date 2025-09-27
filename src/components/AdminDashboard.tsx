@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { AuthTestingPanel } from '@/components/stubs/MissingComponents';
 import { Badge } from '@/components/ui/badge';
 import { Users, Settings, Database, User, Search, Eye, Bot, Shield, Link, Cpu, Wrench } from 'lucide-react';
 import { AdminAlertManager } from "./AdminAlertManager";

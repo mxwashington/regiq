@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { ErrorBoundaryEnhanced } from '@/components/stubs/MissingComponents';
 import { usePerformanceMonitor } from '@/hooks/useStateManager';
 
 interface PerformanceOptimizedWrapperProps {
@@ -26,7 +27,7 @@ export const PerformanceOptimizedWrapper: React.FC<PerformanceOptimizedWrapperPr
   }, [name, measureRender]);
 
   return (
-    <ErrorBoundaryEnhanced level={level} enablePerformanceMonitoring>
+    <ErrorBoundaryEnhanced>
       {children}
     </ErrorBoundaryEnhanced>
   );

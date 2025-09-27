@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { RegIQMobileFilters } from '@/components/stubs/MissingComponents';
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
 // import { useIsMobile } from "@/hooks/use-mobile";
 import { 

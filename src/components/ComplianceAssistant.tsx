@@ -1,5 +1,6 @@
 import React from 'react';
 import { Brain } from 'lucide-react';
+import { AIComplianceChat } from '@/components/stubs/MissingComponents';
 
 export const ComplianceAssistant: React.FC = () => {
   return (
