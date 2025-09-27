@@ -16,41 +16,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Search, Filter, RotateCcw } from 'lucide-react';
 import { useAlertFilters, type AgencySource } from '@/hooks/useAlertFilters';
+import { useSourceCounts } from '@/hooks/useSourceCounts';
+import { AGENCY_CONFIG } from '@/lib/source-mapping';
 
-// Agency metadata with colors and icons
-const AGENCY_CONFIG = {
-  FDA: {
-    label: 'FDA',
-    fullName: 'Food & Drug Administration',
-    color: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-    selectedColor: 'bg-blue-600 text-white hover:bg-blue-700',
-  },
-  FSIS: {
-    label: 'FSIS',
-    fullName: 'USDA Food Safety & Inspection Service',
-    color: 'bg-green-100 text-green-800 hover:bg-green-200',
-    selectedColor: 'bg-green-600 text-white hover:bg-green-700',
-  },
-  CDC: {
-    label: 'CDC',
-    fullName: 'Centers for Disease Control',
-    color: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
-    selectedColor: 'bg-orange-600 text-white hover:bg-orange-700',
-  },
-  EPA: {
-    label: 'EPA',
-    fullName: 'Environmental Protection Agency',
-    color: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
-    selectedColor: 'bg-purple-600 text-white hover:bg-purple-700',
-  },
-} as const;
 
 interface AgencyFilterProps {
-  sourceCounts?: Partial<Record<AgencySource, number>>;
   className?: string;
 }
 
-export function AgencyFilter({ sourceCounts, className }: AgencyFilterProps) {
+export function AgencyFilter({ className }: AgencyFilterProps) {
   const {
     filters,
     isLoading,
@@ -61,9 +35,11 @@ export function AgencyFilter({ sourceCounts, className }: AgencyFilterProps) {
     resetFilters,
   } = useAlertFilters();
 
+  const { sourceCounts, loading: countsLoading } = useSourceCounts();
+
   const totalSelectedSources = filters.sources.length;
   const hasActiveFilters =
-    totalSelectedSources < 4 ||
+    totalSelectedSources < 5 ||
     filters.sinceDays !== 30 ||
     filters.minSeverity !== null ||
     filters.searchQuery.trim() !== '';
@@ -117,7 +93,7 @@ export function AgencyFilter({ sourceCounts, className }: AgencyFilterProps) {
               Data Sources
             </label>
             <span className="text-xs text-muted-foreground">
-              {totalSelectedSources} of 4 selected
+              {totalSelectedSources} of 5 selected
             </span>
           </div>
 
@@ -129,7 +105,7 @@ export function AgencyFilter({ sourceCounts, className }: AgencyFilterProps) {
             {(Object.keys(AGENCY_CONFIG) as AgencySource[]).map((source) => {
               const config = AGENCY_CONFIG[source];
               const isSelected = filters.sources.includes(source);
-              const count = sourceCounts?.[source];
+              const count = sourceCounts[source];
 
               return (
                 <Button
@@ -228,7 +204,7 @@ export function AgencyFilter({ sourceCounts, className }: AgencyFilterProps) {
             <div className="space-y-2">
               <span className="text-sm font-medium">Active Filters:</span>
               <div className="flex flex-wrap gap-1">
-                {totalSelectedSources < 4 && (
+                {totalSelectedSources < 5 && (
                   <Badge variant="secondary" className="text-xs">
                     {filters.sources.join(', ')}
                   </Badge>

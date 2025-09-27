@@ -6,6 +6,7 @@ import { SearchInterface } from './SearchInterface';
 import { ThirdShiftAI } from '@/components/stubs/MissingComponents';
 import { SavedItems } from './SavedItems';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
+import { useAlertFilters } from '@/hooks/useAlertFilters';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
 
 interface DashboardFilters {
@@ -19,8 +20,11 @@ export function MainDashboard() {
   const [activeTab, setActiveTab] = useState('alerts');
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>({});
   
-  // Fetch all alerts without limit
-  const { alerts, loading, error, totalCount } = useSimpleAlerts();
+  // Use alert filters hook for filtering
+  const { filters } = useAlertFilters();
+  
+  // Fetch all alerts with current filters
+  const { alerts, loading, error, totalCount } = useSimpleAlerts(50, filters);
   const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
   
   // Calculate metrics

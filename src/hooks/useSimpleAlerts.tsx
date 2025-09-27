@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { fallbackAlerts } from '@/lib/debug-utils';
-
+import { AgencySource, getDatabaseSources } from '@/lib/source-mapping';
+import { AlertFilters } from '@/hooks/useAlertFilters';
 import { logger } from '@/lib/logger';
 interface SimpleAlert {
   id: string;
@@ -30,7 +31,7 @@ interface UseSimpleAlertsReturn {
   loadMore: () => void;
 }
 
-export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
+export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimpleAlertsReturn => {
   const [alerts, setAlerts] = useState<SimpleAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
   const loadAlertsWithRetry = async (maxRetries = 3) => {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        logger.info(`[useSimpleAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading alerts...`, { limit });
+        logger.info(`[useSimpleAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading alerts...`, { limit, filters });
         setLoading(true);
         setError(null);
 
@@ -77,6 +78,38 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
           `, { count: 'exact' })
           .order('published_date', { ascending: false });
 
+        // Apply filters if provided
+        if (filters) {
+          // Filter by sources - map filter categories to database sources
+          if (filters.sources.length > 0 && filters.sources.length < 5) {
+            const databaseSources: string[] = [];
+            filters.sources.forEach(filterCategory => {
+              databaseSources.push(...getDatabaseSources(filterCategory));
+            });
+            if (databaseSources.length > 0) {
+              query = query.in('source', databaseSources);
+            }
+          }
+
+          // Filter by date range
+          if (filters.sinceDays && filters.sinceDays > 0) {
+            const sinceDate = new Date();
+            sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
+            query = query.gte('published_date', sinceDate.toISOString());
+          }
+
+          // Filter by minimum severity (urgency_score)
+          if (filters.minSeverity !== null && filters.minSeverity > 0) {
+            query = query.gte('urgency_score', filters.minSeverity);
+          }
+
+          // Filter by search query (title and summary)
+          if (filters.searchQuery && filters.searchQuery.trim()) {
+            const searchTerm = filters.searchQuery.trim();
+            query = query.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
+          }
+        }
+
         // Only apply limit if specified
         if (limit && limit > 0) {
           query = query.limit(limit);
@@ -97,6 +130,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
           count: data.length, 
           totalCount: count,
           limit,
+          filters,
           sampleTitles: data.slice(0, 3).map(a => a.title) 
         });
         
@@ -137,7 +171,7 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
 
   useEffect(() => {
     loadAlertsWithRetry();
-  }, [limit, toast]);
+  }, [limit, filters, toast]);
 
   // Load more for pagination
   const loadMore = async () => {
@@ -165,9 +199,41 @@ export const useSimpleAlerts = (limit?: number): UseSimpleAlertsReturn => {
         .order('published_date', { ascending: false })
         .lt('published_date', lastAlert.published_date);
 
-      if (limit && limit > 0) {
-        query = query.limit(limit);
-      }
+        // Apply filters to pagination too  
+        if (filters) {
+          // Filter by sources
+          if (filters.sources.length > 0 && filters.sources.length < 5) {
+            const databaseSources: string[] = [];
+            filters.sources.forEach(filterCategory => {
+              databaseSources.push(...getDatabaseSources(filterCategory));
+            });
+            if (databaseSources.length > 0) {
+              query = query.in('source', databaseSources);
+            }
+          }
+
+          // Filter by date range
+          if (filters.sinceDays && filters.sinceDays > 0) {
+            const sinceDate = new Date();
+            sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
+            query = query.gte('published_date', sinceDate.toISOString());
+          }
+
+          // Filter by minimum severity
+          if (filters.minSeverity !== null && filters.minSeverity > 0) {
+            query = query.gte('urgency_score', filters.minSeverity);
+          }
+
+          // Filter by search query
+          if (filters.searchQuery && filters.searchQuery.trim()) {
+            const searchTerm = filters.searchQuery.trim();
+            query = query.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
+          }
+        }
+
+        if (limit && limit > 0) {
+          query = query.limit(limit);
+        }
 
       const { data, error: fetchError } = await query;
 

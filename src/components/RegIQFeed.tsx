@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RegIQMobileFilters } from '@/components/stubs/MissingComponents';
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
+import { useAlertFilters } from "@/hooks/useAlertFilters";
 // import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Calendar, 
@@ -265,8 +266,11 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  // Fetch alerts data without limit
-  const { alerts: fetchedAlerts, loading } = useSimpleAlerts();
+  // Use alert filters hook for filtering 
+  const { filters: alertFilters } = useAlertFilters();
+  
+  // Fetch alerts data with filters
+  const { alerts: fetchedAlerts, loading } = useSimpleAlerts(50, alertFilters);
 
   // Convert to RegIQ format
   const alerts = useMemo(() => {

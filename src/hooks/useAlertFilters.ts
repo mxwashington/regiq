@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SafeAuthContext';
 import { debounce } from 'lodash';
 
-export type AgencySource = 'FDA' | 'FSIS' | 'CDC' | 'EPA';
+export type AgencySource = 'FDA' | 'CDC' | 'WHO' | 'MHRA' | 'Federal_Register';
 
 export interface AlertFilters {
   sources: AgencySource[];
@@ -17,7 +17,7 @@ export interface AlertFilters {
 }
 
 const DEFAULT_FILTERS: AlertFilters = {
-  sources: ['FDA', 'FSIS', 'CDC', 'EPA'],
+  sources: ['FDA', 'CDC', 'WHO', 'MHRA', 'Federal_Register'],
   sinceDays: 30,
   minSeverity: null,
   searchQuery: '',
@@ -40,7 +40,7 @@ export function useAlertFilters() {
     if (sourceParam) {
       const sourcesParam = sourceParam.split(',');
       const validSources = sourcesParam.filter((s: string) =>
-        ['FDA', 'FSIS', 'CDC', 'EPA'].includes(s)
+        ['FDA', 'CDC', 'WHO', 'MHRA', 'Federal_Register'].includes(s)
       ) as AgencySource[];
       if (validSources.length > 0) {
         urlFilters.sources = validSources;
@@ -75,7 +75,7 @@ export function useAlertFilters() {
   const updateUrl = useCallback((newFilters: AlertFilters) => {
     const searchParams = new URLSearchParams(location.search);
 
-    if (newFilters.sources.length > 0 && newFilters.sources.length < 4) {
+    if (newFilters.sources.length > 0 && newFilters.sources.length < 5) {
       searchParams.set('source', newFilters.sources.join(','));
     } else {
       searchParams.delete('source');

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Search, Settings, User, AlertTriangle } from 'lucide-react';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
+import { useAlertFilters } from '@/hooks/useAlertFilters';
 import PerplexityAlertCard from '@/components/PerplexityAlertCard';
 import { ConversationalChatbot } from '@/components/ConversationalChatbot';
 import { TrialGate } from '@/components/TrialGate';
@@ -17,8 +18,11 @@ const UserDashboard: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Load alerts
-  const { alerts, loading, error, totalCount } = useSimpleAlerts(50);
+  // Use alert filters hook for filtering
+  const { filters } = useAlertFilters();
+  
+  // Load alerts with filters
+  const { alerts, loading, error, totalCount } = useSimpleAlerts(50, filters);
 
   // Filter alerts based on search
   const filteredAlerts = alerts.filter(alert =>
