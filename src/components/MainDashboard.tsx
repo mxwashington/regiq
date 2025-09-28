@@ -3,7 +3,8 @@ import { DashboardMetrics } from './DashboardMetrics';
 import { DashboardNavigation } from './DashboardNavigation';
 import { RegIQFeed } from './RegIQFeed';
 import { SearchInterface } from './SearchInterface';
-import { ThirdShiftAI } from '@/components/stubs/MissingComponents';
+import { RiskIntelligenceDashboard } from './RiskIntelligenceDashboard';
+import { ThirdShiftAI } from './ThirdShiftAI';
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
 import { ConversationalChatbot } from './ConversationalChatbot';
@@ -130,6 +131,8 @@ export function MainDashboard() {
             onUnsaveAlert={toggleSaveAlert}
           />
         );
+      case 'risk':
+        return <RiskIntelligenceDashboard />;
       case 'thirdshift':
         return <ThirdShiftAI />;
       case 'account':
