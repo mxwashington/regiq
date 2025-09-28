@@ -14,6 +14,19 @@ const logger = {
   error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
 };
 
+// Data source interface from database
+interface DataSource {
+  id: string;
+  name: string;
+  source_type: string;
+  url: string | null;
+  agency: string | null;
+  is_active: boolean;
+  priority: number;
+  polling_interval_minutes: number;
+  metadata: any;
+}
+
 interface ProcessedAlert {
   title: string;
   source: string;
@@ -32,13 +45,28 @@ function logStep(message: string, data?: any) {
   logger.info(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
-// EPA ECHO Enforcement Data - Updated 2025 endpoint
-async function fetchEPAEnforcement(): Promise<ProcessedAlert[]> {
+// Fetch active data sources from database
+async function fetchDataSources(supabase: any): Promise<DataSource[]> {
+  const { data, error } = await supabase
+    .from('data_sources')
+    .select('*')
+    .eq('is_active', true)
+    .order('priority', { ascending: false });
+  
+  if (error) {
+    logStep('Error fetching data sources:', error);
+    throw new Error(`Failed to fetch data sources: ${error.message}`);
+  }
+  
+  return data as DataSource[];
+}
+
+// EPA ECHO Enforcement Adapter
+async function collectFromEPAEcho(ds: DataSource): Promise<ProcessedAlert[]> {
   try {
-    logStep('Fetching EPA ECHO enforcement data');
+    logStep(`Fetching EPA ECHO enforcement data from ${ds.name}`);
     
-    // Updated EPA ECHO API endpoint (2025)
-    const url = new URL('https://echo.epa.gov/api/case_rest_services.get_cases');
+    const url = new URL('https://echo.epa.gov/echo/case_rest_services.get_cases');
     url.searchParams.set('output', 'JSON');
     url.searchParams.set('p_act_date_range', 'LAST365');
     url.searchParams.set('rows', '50');
@@ -70,15 +98,15 @@ async function fetchEPAEnforcement(): Promise<ProcessedAlert[]> {
 
         alerts.push({
           title: `EPA Enforcement: ${item.DefendantEntity || item.FacilityName || 'Environmental Violation'}`,
-          source: 'EPA ECHO Enforcement',
+          source: ds.name, // Use data source name
           urgency,
           summary: `EPA enforcement action. ${item.ViolationTypes ? `Violations: ${item.ViolationTypes}` : ''} ${penaltyAmount > 0 ? `Penalty: $${penaltyAmount.toLocaleString()}` : ''}`,
           published_date: new Date(item.SettlementDate || item.FiledDate || Date.now()).toISOString(),
           external_url: 'https://echo.epa.gov/',
           full_content: JSON.stringify(item),
           region: 'US',
-          agency: 'EPA',
-          data_classification: 'live'
+          agency: ds.agency || 'EPA', // Use data source agency
+          data_classification: 'enforcement'
         });
       }
     }
@@ -87,216 +115,170 @@ async function fetchEPAEnforcement(): Promise<ProcessedAlert[]> {
     return alerts;
 
   } catch (error) {
-    logStep('Error fetching EPA enforcement data:', error);
+    logStep(`Error in EPA ECHO adapter for ${ds.name}:`, error);
     return [];
   }
 }
 
-// USDA/FSIS Recall API Data - Updated 2025 endpoint
-async function fetchFSISRecalls(): Promise<ProcessedAlert[]> {
+// FSIS RSS Adapter  
+async function collectFromFSISRSS(ds: DataSource): Promise<ProcessedAlert[]> {
   try {
-    logStep('Fetching FSIS recall data via API');
+    logStep(`Fetching FSIS RSS data from ${ds.name}`);
     
     const alerts: ProcessedAlert[] = [];
+    const rssUrl = ds.url || 'https://www.fsis.usda.gov/wps/wcm/connect/fsis-content/internet/main/topics/recalls-and-public-health-alerts/recall-summaries/rss';
     
-    // Use official FSIS Recall API (launched 2023)
-    const apiUrl = 'https://www.fsis.usda.gov/recalls/api/latest';
-    
-    const response = await fetch(apiUrl, {
+    const response = await fetch(rssUrl, {
       headers: {
         'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
-        'Accept': 'application/json'
+        'Accept': 'application/rss+xml, application/xml, text/xml'
       }
     });
 
     if (!response.ok) {
-      logStep(`FSIS API error: ${response.status}`);
-      
-      // Fallback to RSS if API fails
-      const rssUrls = [
-        'https://www.fsis.usda.gov/news-events/recalls-public-health-alerts/rss'
-      ];
-
-      for (const rssUrl of rssUrls) {
-        try {
-          const rssResponse = await fetch(rssUrl, {
-            headers: {
-              'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
-              'Accept': 'application/rss+xml, application/xml, text/xml'
-            }
-          });
-
-          if (!rssResponse.ok) continue;
-
-          const xmlText = await rssResponse.text();
-          
-          // Parse RSS items
-          const itemPattern = /<item[^>]*>([\s\S]*?)<\/item>/gi;
-          let match;
-          
-          while ((match = itemPattern.exec(xmlText)) !== null && alerts.length < 25) {
-            const itemXml = match[1];
-            
-            const titleMatch = itemXml.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
-            const descMatch = itemXml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
-            const linkMatch = itemXml.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
-            const pubDateMatch = itemXml.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i);
-            
-            const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : '';
-            const description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : '';
-            const link = linkMatch ? linkMatch[1].trim() : '';
-            const pubDate = pubDateMatch ? pubDateMatch[1].trim() : '';
-            
-            if (title && (title.toLowerCase().includes('recall') || title.toLowerCase().includes('alert'))) {
-              let urgency = 'Medium';
-              const content = (title + ' ' + description).toLowerCase();
-              
-              if (content.includes('class i') || content.includes('serious') || content.includes('death')) {
-                urgency = 'Critical';
-              } else if (content.includes('class ii') || content.includes('illness') || content.includes('contamination')) {
-                urgency = 'High';
-              }
-
-              alerts.push({
-                title: `FSIS: ${title}`,
-                source: 'FSIS Recalls',
-                urgency,
-                summary: description || title,
-                published_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-                external_url: link,
-                full_content: itemXml,
-                region: 'US',
-                agency: 'USDA',
-                data_classification: 'live'
-              });
-            }
-          }
-        } catch (error) {
-          logStep(`Error fetching FSIS RSS ${rssUrl}:`, error);
-        }
-      }
-      
-      logStep(`Retrieved ${alerts.length} FSIS recall alerts (RSS fallback)`);
-      return alerts;
+      logStep(`FSIS RSS error: ${response.status}`);
+      return [];
     }
 
-    const data = await response.json();
+    const xmlText = await response.text();
     
-    if (data.recalls && Array.isArray(data.recalls)) {
-      for (const recall of data.recalls.slice(0, 25)) {
+    // Parse RSS items
+    const itemPattern = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+    let match;
+    
+    while ((match = itemPattern.exec(xmlText)) !== null && alerts.length < 25) {
+      const itemXml = match[1];
+      
+      const titleMatch = itemXml.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
+      const descMatch = itemXml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+      const linkMatch = itemXml.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
+      const pubDateMatch = itemXml.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i);
+      
+      const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : '';
+      const description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : '';
+      const link = linkMatch ? linkMatch[1].trim() : '';
+      const pubDate = pubDateMatch ? pubDateMatch[1].trim() : '';
+      
+      if (title && (title.toLowerCase().includes('recall') || title.toLowerCase().includes('alert'))) {
         let urgency = 'Medium';
-        const healthHazard = (recall.health_hazard_evaluation || '').toLowerCase();
+        const content = (title + ' ' + description).toLowerCase();
         
-        if (healthHazard.includes('high') || healthHazard.includes('serious')) urgency = 'Critical';
-        else if (healthHazard.includes('moderate')) urgency = 'High';
-        else if (healthHazard.includes('low')) urgency = 'Medium';
+        if (content.includes('class i') || content.includes('serious') || content.includes('death')) {
+          urgency = 'Critical';
+        } else if (content.includes('class ii') || content.includes('illness') || content.includes('contamination')) {
+          urgency = 'High';
+        }
 
         alerts.push({
-          title: `FSIS Recall: ${recall.product_name || 'Meat/Poultry Product'}`,
-          source: 'FSIS Recalls',
+          title: `FSIS: ${title}`,
+          source: ds.name, // Use data source name
           urgency,
-          summary: `${recall.reason_for_recall || recall.health_hazard_evaluation || 'Product recall'} - Est. ${recall.establishment_number || 'N/A'}`,
-          published_date: new Date(recall.recall_date || recall.date_opened || Date.now()).toISOString(),
-          external_url: recall.press_release_url || 'https://www.fsis.usda.gov/recalls',
-          full_content: JSON.stringify(recall),
+          summary: description || title,
+          published_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+          external_url: link,
+          full_content: itemXml,
           region: 'US',
-          agency: 'USDA',
-          data_classification: 'live'
+          agency: ds.agency || 'FSIS', // Use data source agency
+          data_classification: 'recall'
         });
       }
     }
-
+    
     logStep(`Retrieved ${alerts.length} FSIS recall alerts`);
     return alerts;
 
   } catch (error) {
-    logStep('Error fetching FSIS recalls:', error);
+    logStep(`Error in FSIS RSS adapter for ${ds.name}:`, error);
     return [];
   }
 }
 
-// FDA RSS Feeds - Updated 2025 endpoints (Form 483s not publicly available)
-async function fetchFDACompliance(): Promise<ProcessedAlert[]> {
+// FDA Compliance Adapter
+async function collectFromFDACompliance(ds: DataSource): Promise<ProcessedAlert[]> {
   try {
-    logStep('Fetching FDA RSS feeds');
+    logStep(`Fetching FDA compliance data from ${ds.name}`);
     
     const alerts: ProcessedAlert[] = [];
-    const rssFeeds = [
-      { url: 'https://www.fda.gov/media/121504/rss', name: 'Warning Letters' },
-      { url: 'https://www.fda.gov/media/121203/rss', name: 'Import Alerts' },
-      { url: 'https://www.accessdata.fda.gov/scripts/drugshortages/rss.xml', name: 'Drug Shortages' }
-    ];
+    const documentType = ds.metadata?.document_type || 'warning_letters';
+    
+    let rssUrl = ds.url;
+    let feedName = 'Compliance';
+    
+    // Map document types to RSS feeds
+    if (documentType === '483') {
+      // Note: Form 483s are not publicly available via RSS
+      logStep(`Form 483 observations are not publicly available via RSS feed`);
+      return [];
+    } else if (documentType === 'warning_letters' || !rssUrl) {
+      rssUrl = 'https://www.fda.gov/media/121504/rss';
+      feedName = 'Warning Letters';
+    }
 
-    for (const feed of rssFeeds) {
-      try {
-        const response = await fetch(feed.url, {
-          headers: {
-            'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
-            'Accept': 'application/rss+xml, application/xml, text/xml'
-          }
+    const response = await fetch(rssUrl, {
+      headers: {
+        'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
+        'Accept': 'application/rss+xml, application/xml, text/xml'
+      }
+    });
+
+    if (!response.ok) {
+      logStep(`FDA RSS error: ${response.status}`);
+      return [];
+    }
+
+    const xmlText = await response.text();
+    
+    // Parse RSS items
+    const itemPattern = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+    let match;
+    
+    while ((match = itemPattern.exec(xmlText)) !== null && alerts.length < 25) {
+      const itemXml = match[1];
+      
+      const titleMatch = itemXml.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
+      const descMatch = itemXml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+      const linkMatch = itemXml.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
+      const pubDateMatch = itemXml.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i);
+      
+      const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : '';
+      const description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : '';
+      const link = linkMatch ? linkMatch[1].trim() : '';
+      const pubDate = pubDateMatch ? pubDateMatch[1].trim() : '';
+      
+      if (title) {
+        let urgency = 'Medium';
+        const content = (title + ' ' + description).toLowerCase();
+        
+        if (content.includes('warning letter') || content.includes('import alert')) urgency = 'High';
+        
+        alerts.push({
+          title: `FDA ${feedName}: ${title}`,
+          source: ds.name, // Use data source name
+          urgency,
+          summary: description || title,
+          published_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+          external_url: link || 'https://www.fda.gov',
+          full_content: itemXml,
+          region: 'US',
+          agency: ds.agency || 'FDA', // Use data source agency
+          data_classification: documentType === 'warning_letters' ? 'enforcement' : 'compliance'
         });
-
-        if (!response.ok) continue;
-
-        const xmlText = await response.text();
-        
-        // Parse RSS items
-        const itemPattern = /<item[^>]*>([\s\S]*?)<\/item>/gi;
-        let match;
-        
-        while ((match = itemPattern.exec(xmlText)) !== null && alerts.length < 50) {
-          const itemXml = match[1];
-          
-          const titleMatch = itemXml.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
-          const descMatch = itemXml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
-          const linkMatch = itemXml.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
-          const pubDateMatch = itemXml.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i);
-          
-          const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : '';
-          const description = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : '';
-          const link = linkMatch ? linkMatch[1].trim() : '';
-          const pubDate = pubDateMatch ? pubDateMatch[1].trim() : '';
-          
-          if (title) {
-            let urgency = 'Medium';
-            const content = (title + ' ' + description).toLowerCase();
-            
-            if (content.includes('warning letter') || content.includes('import alert')) urgency = 'High';
-            else if (content.includes('shortage')) urgency = 'Medium';
-
-            alerts.push({
-              title: `FDA ${feed.name}: ${title}`,
-              source: `FDA ${feed.name}`,
-              urgency,
-              summary: description || title,
-              published_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-              external_url: link || 'https://www.fda.gov',
-              full_content: itemXml,
-              region: 'US',
-              agency: 'FDA',
-              data_classification: 'live'
-            });
-          }
-        }
-
-      } catch (error) {
-        logStep(`Error fetching FDA RSS ${feed.url}:`, error);
       }
     }
 
-    logStep(`Retrieved ${alerts.length} FDA RSS alerts`);
+    logStep(`Retrieved ${alerts.length} FDA compliance alerts`);
     return alerts;
 
   } catch (error) {
-    logStep('Error fetching FDA RSS feeds:', error);
+    logStep(`Error in FDA compliance adapter for ${ds.name}:`, error);
     return [];
   }
 }
 
-// Federal Register Real Regulations (not GSA speeches)
-async function fetchFederalRegisterRegulations(): Promise<ProcessedAlert[]> {
+// Federal Register Adapter
+async function collectFromFederalRegister(ds: DataSource): Promise<ProcessedAlert[]> {
   try {
-    logStep('Fetching Federal Register regulatory documents');
+    logStep(`Fetching Federal Register data from ${ds.name}`);
     
     const alerts: ProcessedAlert[] = [];
     const agencies = ['food-and-drug-administration', 'environmental-protection-agency', 'animal-and-plant-health-inspection-service'];
@@ -330,24 +312,17 @@ async function fetchFederalRegisterRegulations(): Promise<ProcessedAlert[]> {
 
           alerts.push({
             title: `${agencyName}: ${item.title || 'New Regulation'}`,
-            source: 'Federal Register',
+            source: ds.name, // Use data source name
             urgency,
             summary: item.abstract || item.summary || 'New regulatory document published in Federal Register.',
             published_date: new Date(item.publication_date).toISOString(),
             external_url: item.html_url,
             full_content: JSON.stringify(item),
             region: 'US',
-            agency: item.agencies?.[0]?.name?.includes('Environmental Protection') ? 'EPA' : 
-                   item.agencies?.[0]?.name?.includes('Food and Drug') ? 'FDA' : 
-                   (item.agencies?.[0]?.name?.includes('Agriculture') || item.agencies?.[0]?.name?.includes('Animal and Plant')) ? 'USDA' : 
-                   agency === 'environmental-protection-agency' ? 'EPA' :
-                   agency === 'food-and-drug-administration' ? 'FDA' :
-                   agency === 'animal-and-plant-health-inspection-service' ? 'USDA' :
-                   'Federal',
-            data_classification: 'live'
+            agency: ds.agency || 'Federal Register', // Use data source agency
+            data_classification: 'federal_register'
           });
         }
-
       } catch (error) {
         logStep(`Error fetching Federal Register for ${agency}:`, error);
       }
@@ -357,11 +332,29 @@ async function fetchFederalRegisterRegulations(): Promise<ProcessedAlert[]> {
     return alerts;
 
   } catch (error) {
-    logStep('Error fetching Federal Register data:', error);
+    logStep(`Error in Federal Register adapter for ${ds.name}:`, error);
     return [];
   }
 }
 
+// Central adapter dispatcher
+async function collectFromSource(ds: DataSource): Promise<ProcessedAlert[]> {
+  switch (ds.source_type) {
+    case 'epa_echo':
+      return await collectFromEPAEcho(ds);
+    case 'rss_fsis':
+      return await collectFromFSISRSS(ds);
+    case 'fda_compliance':
+      return await collectFromFDACompliance(ds);
+    case 'federal_register':
+      return await collectFromFederalRegister(ds);
+    default:
+      logStep(`Unknown source type: ${ds.source_type} for ${ds.name}`);
+      return [];
+  }
+}
+
+// Check for duplicates
 async function isDuplicate(supabase: any, alert: ProcessedAlert): Promise<boolean> {
   const { data, error } = await supabase
     .from('alerts')
@@ -379,27 +372,35 @@ async function isDuplicate(supabase: any, alert: ProcessedAlert): Promise<boolea
   return data && data.length > 0;
 }
 
-async function saveAlert(supabase: any, alert: ProcessedAlert): Promise<boolean> {
+// Save alert to database
+async function saveAlert(supabase: any, alert: ProcessedAlert, ds: DataSource): Promise<boolean> {
   try {
-    if (await isDuplicate(supabase, alert)) {
+    // Enforce database alignment
+    const alignedAlert = {
+      ...alert,
+      source: ds.name, // Exact DB source label
+      agency: ds.agency || alert.agency // Prefer DS.agency if provided
+    };
+
+    if (await isDuplicate(supabase, alignedAlert)) {
       return false;
     }
 
     const { data, error } = await supabase
       .from('alerts')
-      .insert([alert])
+      .insert([alignedAlert])
       .select();
 
     if (error) {
-      logStep('Error saving alert:', error);
+      logStep(`Error saving alert for ${ds.name}:`, error.message);
       return false;
     }
 
-    logStep(`Saved new alert: ${alert.title}`);
+    logStep(`Saved new alert from ${ds.name}: ${alignedAlert.title}`);
     return true;
 
   } catch (error) {
-    logStep('Error in saveAlert:', error);
+    logStep(`Error in saveAlert for ${ds.name}:`, error);
     return false;
   }
 }
@@ -410,86 +411,153 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const runId = crypto.randomUUID();
+  const runStart = new Date();
+  let attempted = 0, succeeded = 0, failed = 0;
+  const details: any = {};
+
   try {
-    logStep('Enhanced Regulatory Data Collection started');
+    logStep('Enhanced Regulatory Data Collection started (Database-driven)', { runId });
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    let totalSaved = 0;
-    let totalProcessed = 0;
+    // Fetch active data sources from database
+    const sources = await fetchDataSources(supabase);
+    attempted = sources.length;
+    
+    logStep(`Found ${sources.length} active data sources`);
 
-    // Fetch from all enhanced sources in parallel
-    const [epaAlerts, fsisAlerts, fdaAlerts, fedRegAlerts] = await Promise.all([
-      fetchEPAEnforcement(),
-      fetchFSISRecalls(),
-      fetchFDACompliance(),
-      fetchFederalRegisterRegulations()
-    ]);
+    // Process each source
+    for (const ds of sources) {
+      const sourceStart = Date.now();
+      
+      try {
+        logStep(`Processing source: ${ds.name} (${ds.source_type})`);
+        
+        const alerts = await collectFromSource(ds);
+        let savedCount = 0;
+        
+        // Save alerts for this source
+        for (const alert of alerts) {
+          if (await saveAlert(supabase, alert, ds)) {
+            savedCount++;
+          }
+        }
 
-    // Process all alerts
-    const allAlerts = [...epaAlerts, ...fsisAlerts, ...fdaAlerts, ...fedRegAlerts];
-    totalProcessed = allAlerts.length;
+        // Update data freshness tracking
+        await supabase.from('data_freshness').upsert({
+          source_name: ds.name,
+          fetch_status: 'success',
+          last_successful_fetch: new Date().toISOString(),
+          last_attempt: new Date().toISOString(),
+          records_fetched: savedCount,
+          error_message: null,
+          last_error_count: 0,
+          updated_at: new Date().toISOString()
+        });
 
-    for (const alert of allAlerts) {
-      if (await saveAlert(supabase, alert)) {
-        totalSaved++;
+        succeeded++;
+        details[ds.name] = {
+          attempted: alerts.length,
+          saved: savedCount,
+          processing_time_ms: Date.now() - sourceStart,
+          source_type: ds.source_type
+        };
+
+        logStep(`Completed ${ds.name}: ${alerts.length} fetched, ${savedCount} saved`);
+
+      } catch (error) {
+        failed++;
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        
+        // Update data freshness with error
+        await supabase.from('data_freshness').upsert({
+          source_name: ds.name,
+          fetch_status: 'error',
+          last_attempt: new Date().toISOString(),
+          error_message: errorMsg,
+          last_error_count: 1, // Could increment existing count
+          updated_at: new Date().toISOString()
+        });
+
+        details[ds.name] = {
+          error: errorMsg,
+          processing_time_ms: Date.now() - sourceStart,
+          source_type: ds.source_type
+        };
+
+        logStep(`Error processing ${ds.name}:`, errorMsg);
       }
     }
 
-    // Update data freshness tracking
-    const sources = ['EPA ECHO Enforcement', 'FSIS Recalls', 'FDA Warning Letters', 'FDA Import Alerts', 'FDA Drug Shortages', 'Federal Register'];
-    
-    for (const sourceName of sources) {
-      await supabase
-        .from('data_freshness')
-        .upsert([{
-          source_name: sourceName,
-          last_successful_fetch: new Date().toISOString(),
-          fetch_status: 'success',
-          records_fetched: sourceName === 'EPA ECHO Enforcement' ? epaAlerts.length :
-                          sourceName === 'FSIS Recalls' ? fsisAlerts.length :
-                          sourceName.startsWith('FDA') ? fdaAlerts.length :
-                          fedRegAlerts.length
-        }], { onConflict: 'source_name' });
-    }
+    // Log pipeline run
+    await supabase.from('pipeline_runs').insert({
+      started_at: runStart,
+      finished_at: new Date(),
+      status: failed > 0 ? 'partial_success' : 'success',
+      sources_attempted: attempted,
+      sources_succeeded: succeeded,
+      sources_failed: failed,
+      details,
+      error_summary: failed > 0 ? `${failed} sources failed; see details` : null
+    });
 
     logStep('Enhanced Regulatory Data Collection completed', {
-      totalProcessed,
-      totalSaved,
-      sources: {
-        epa: epaAlerts.length,
-        fsis: fsisAlerts.length,
-        fda: fdaAlerts.length,
-        federalRegister: fedRegAlerts.length
-      }
+      runId,
+      attempted,
+      succeeded,
+      failed,
+      total_runtime_ms: Date.now() - runStart.getTime()
     });
 
     return new Response(JSON.stringify({
       success: true,
-      totalProcessed,
-      totalSaved,
-      sources: {
-        epa: epaAlerts.length,
-        fsis: fsisAlerts.length,
-        fda: fdaAlerts.length,
-        federalRegister: fedRegAlerts.length
-      }
+      runId,
+      sources_attempted: attempted,
+      sources_succeeded: succeeded,
+      sources_failed: failed,
+      details
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     });
 
   } catch (error) {
-    logStep('Error in Enhanced Regulatory Data Collection:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    
+    // Log failed pipeline run
+    try {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      
+      await supabase.from('pipeline_runs').insert({
+        started_at: runStart,
+        finished_at: new Date(),
+        status: 'error',
+        error_summary: errorMsg,
+        details,
+        sources_attempted: attempted,
+        sources_succeeded: succeeded,
+        sources_failed: failed
+      });
+    } catch (logError) {
+      logStep('Error logging pipeline failure:', logError);
+    }
+
+    logStep('Critical error in Enhanced Regulatory Data Collection:', errorMsg);
     
     return new Response(JSON.stringify({
-      error: (error as Error).message || 'Unknown error occurred'
+      success: false,
+      error: errorMsg,
+      runId
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });

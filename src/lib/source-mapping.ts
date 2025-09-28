@@ -8,6 +8,7 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
   // FDA sources
   'FDA': 'FDA',
   'FDA Warning Letters': 'FDA',
+  'FDA Form 483 Observations': 'FDA',
   'FDA Enforcement Reports': 'FDA',
   'FDA Safety Communications': 'FDA',
   'Health and Human Services Department': 'FDA',
@@ -45,7 +46,7 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
 
 // Reverse mapping - filter category to database sources
 export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
-  'FDA': ['FDA', 'FDA Warning Letters', 'FDA Enforcement Reports', 'FDA Safety Communications', 'Health and Human Services Department'],
+  'FDA': ['FDA', 'FDA Warning Letters', 'FDA Form 483 Observations', 'FDA Enforcement Reports', 'FDA Safety Communications', 'Health and Human Services Department'],
   'EPA': ['EPA', 'EPA ECHO Enforcement', 'EPA Enforcement Actions', 'Environmental Protection Agency'],
   'USDA': ['USDA', 'USDA Food Safety Alerts', 'USDA FSIS Recalls'],
   'FSIS': ['FSIS', 'FSIS Recalls', 'FSIS Meat & Poultry Recalls'],
