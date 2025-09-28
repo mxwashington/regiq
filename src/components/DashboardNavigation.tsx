@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   AlertCircle,
-  Search,
   Bookmark,
   TrendingUp,
   User,
@@ -27,12 +26,6 @@ export function DashboardNavigation({
       label: 'Alerts',
       icon: AlertCircle,
       description: 'Regulatory feed and updates'
-    },
-    {
-      id: 'search',
-      label: 'AskRegIQ',
-      icon: Search,
-      description: 'Ask RegIQ questions about regulations'
     },
     {
       id: 'saved',

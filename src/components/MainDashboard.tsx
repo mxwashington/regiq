@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { DashboardMetrics } from './DashboardMetrics';
 import { DashboardNavigation } from './DashboardNavigation';
 import { RegIQFeed } from './RegIQFeed';
-import { SearchInterface } from './SearchInterface';
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
 
@@ -119,14 +118,6 @@ export function MainDashboard() {
             savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
           />
         );
-      case 'search':
-        return (
-          <SearchInterface 
-            alerts={alerts}
-            onSaveAlert={(alertId: string) => toggleSaveAlert(alertId)}
-            savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
-          />
-        );
       case 'saved':
         return (
           <SavedItems 
@@ -234,7 +225,7 @@ export function MainDashboard() {
           {/* Filter Toggle Button */}
           <div className={cn(
             "fixed top-4 left-4 z-40",
-            activeTab === 'alerts' || activeTab === 'search' ? 'block' : 'hidden'
+            activeTab === 'alerts' ? 'block' : 'hidden'
           )}>
             <Button
               variant="outline"
@@ -300,7 +291,7 @@ export function MainDashboard() {
               )}
 
               {/* Filter Status Bar */}
-              {(activeTab === 'alerts' || activeTab === 'search') && (
+              {activeTab === 'alerts' && (
                 <div className="mb-4 p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
