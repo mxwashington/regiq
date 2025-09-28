@@ -3,25 +3,49 @@
 
 export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC';
 
-// Maps database sources to filter categories
+// Maps database sources to filter categories - Enhanced Pipeline Support
 export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
+  // FDA sources
   'FDA': 'FDA',
+  'FDA Warning Letters': 'FDA',
+  'FDA Enforcement Reports': 'FDA',
+  'FDA Safety Communications': 'FDA',
+  'Health and Human Services Department': 'FDA',
+  
+  // EPA sources
   'EPA': 'EPA',
-  'USDA': 'USDA', 
+  'EPA ECHO Enforcement': 'EPA',
+  'EPA Enforcement Actions': 'EPA',
+  'Environmental Protection Agency': 'EPA',
+  
+  // USDA sources  
+  'USDA': 'USDA',
+  'USDA Food Safety Alerts': 'USDA',
+  'USDA FSIS Recalls': 'USDA',
+  
+  // FSIS sources (specialized USDA)
   'FSIS': 'FSIS',
+  'FSIS Meat & Poultry Recalls': 'FSIS',
+  
+  // CDC sources
   'CDC': 'CDC',
+  'CDC Health Advisories': 'CDC',
+  'CDC Food Safety Alerts': 'CDC',
+  
+  // Federal Register sources
   'Federal Register': 'Federal_Register',
   'Federal_Register': 'Federal_Register',
+  'Federal Register Rules': 'Federal_Register',
 };
 
 // Reverse mapping - filter category to database sources
 export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
-  'FDA': ['FDA'],
-  'EPA': ['EPA'],
-  'USDA': ['USDA'],
-  'FSIS': ['FSIS'],
-  'CDC': ['CDC'],
-  'Federal_Register': ['Federal Register', 'Federal_Register'],
+  'FDA': ['FDA', 'FDA Warning Letters', 'FDA Enforcement Reports', 'FDA Safety Communications', 'Health and Human Services Department'],
+  'EPA': ['EPA', 'EPA ECHO Enforcement', 'EPA Enforcement Actions', 'Environmental Protection Agency'],
+  'USDA': ['USDA', 'USDA Food Safety Alerts', 'USDA FSIS Recalls'],
+  'FSIS': ['FSIS', 'FSIS Meat & Poultry Recalls'],
+  'CDC': ['CDC', 'CDC Health Advisories', 'CDC Food Safety Alerts'],
+  'Federal_Register': ['Federal Register', 'Federal_Register', 'Federal Register Rules'],
 };
 
 // Get filter category from database source name
