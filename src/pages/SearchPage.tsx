@@ -251,28 +251,28 @@ export default function SearchPage() {
 
         {/* Comprehensive FDA Search System */}
         <Tabs defaultValue="web-intelligence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 h-auto p-2">
-            <TabsTrigger value="web-intelligence" className="flex items-center gap-1 px-2 py-2 text-sm">
+          <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-3 lg:grid-cols-5 md:h-10 gap-1 p-2">
+            <TabsTrigger value="web-intelligence" className="flex items-center gap-1 px-2 py-2 text-sm w-full justify-start md:justify-center">
               <Globe className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Web Intel</span>
               <span className="sm:hidden">Web</span>
             </TabsTrigger>
-            <TabsTrigger value="fda-database" className="flex items-center gap-1 px-2 py-2 text-sm">
+            <TabsTrigger value="fda-database" className="flex items-center gap-1 px-2 py-2 text-sm w-full justify-start md:justify-center">
               <Database className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">FDA API</span>
               <span className="sm:hidden">FDA</span>
             </TabsTrigger>
-            <TabsTrigger value="cfr-regulations" className="flex items-center gap-1 px-2 py-2 text-sm">
+            <TabsTrigger value="cfr-regulations" className="flex items-center gap-1 px-2 py-2 text-sm w-full justify-start md:justify-center">
               <BookOpen className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">CFR</span>
               <span className="sm:hidden">CFR</span>
             </TabsTrigger>
-            <TabsTrigger value="combined-search" className="flex items-center gap-1 px-2 py-2 text-sm">
+            <TabsTrigger value="combined-search" className="flex items-center gap-1 px-2 py-2 text-sm w-full justify-start md:justify-center">
               <Activity className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Combined</span>
               <span className="sm:hidden">Multi</span>
             </TabsTrigger>
-            <TabsTrigger value="professional" className="flex items-center gap-1 px-2 py-2 text-sm">
+            <TabsTrigger value="professional" className="flex items-center gap-1 px-2 py-2 text-sm w-full justify-start md:justify-center">
               <Settings className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Pro Tools</span>
               <span className="sm:hidden">Pro</span>
