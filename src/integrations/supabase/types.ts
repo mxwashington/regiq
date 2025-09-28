@@ -4035,6 +4035,10 @@ export type Database = {
         Args: { p_metadata?: Json; p_source: string }
         Returns: string
       }
+      trigger_enhanced_data_pipeline: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_user_activity: {
         Args: { ip_address_param?: unknown; user_id_param: string }
         Returns: undefined

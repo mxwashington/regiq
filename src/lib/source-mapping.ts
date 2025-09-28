@@ -49,7 +49,21 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
 };
 
 // Get filter category from database source name
-export function getFilterCategory(databaseSource: string): AgencySource | null {
+export function getFilterCategory(databaseSource: string, alertAgency?: string): AgencySource | null {
+  // Handle Federal Register and other multi-agency sources
+  if (databaseSource === 'Federal Register' && alertAgency) {
+    if (alertAgency === 'EPA') return 'EPA';
+    if (alertAgency === 'FDA') return 'FDA'; 
+    if (alertAgency === 'USDA') return 'USDA';
+  }
+  
+  // Handle Enhanced Federal Register Rules
+  if (databaseSource === 'Enhanced Federal Register Rules' && alertAgency) {
+    if (alertAgency === 'EPA') return 'EPA';
+    if (alertAgency === 'FDA') return 'FDA'; 
+    if (alertAgency === 'USDA') return 'USDA';
+  }
+  
   return SOURCE_TO_FILTER_MAP[databaseSource] || null;
 }
 
@@ -59,9 +73,8 @@ export function getDatabaseSources(filterCategory: AgencySource): string[] {
 }
 
 // Check if a database source matches a filter category
-export function sourceMatchesFilter(databaseSource: string, filterCategory: AgencySource): boolean {
-  const sources = getDatabaseSources(filterCategory);
-  return sources.includes(databaseSource);
+export function sourceMatchesFilter(databaseSource: string, filterCategory: AgencySource, alertAgency?: string): boolean {
+  return getFilterCategory(databaseSource, alertAgency) === filterCategory;
 }
 
 // Agency display configuration
