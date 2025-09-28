@@ -33,7 +33,7 @@ export function AppSidebar() {
   const navItems: NavItem[] = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
-    { path: '/search', icon: Search, label: 'AskRegIQ' },
+    { path: '/search', icon: Search, label: 'Search' },
     { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts' },
     { path: user ? '/account' : '/auth', icon: User, label: user ? 'Account' : 'Sign In' },
     { path: '/pricing', icon: TrendingUp, label: 'Pricing' },

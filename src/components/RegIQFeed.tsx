@@ -70,7 +70,7 @@ export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">AskRegIQ</h1>
+          <h1 className="text-2xl font-bold">RegIQ Feed</h1>
           <p className="text-muted-foreground">
             {alerts.length} regulatory updates • Real-time intelligence
           </p>
