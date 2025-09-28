@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SafeAuthContext';
 import { debounce } from 'lodash';
 
-export type AgencySource = 'FDA' | 'CDC' | 'WHO' | 'MHRA' | 'Federal_Register';
+export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register';
 
 export interface AlertFilters {
   sources: AgencySource[];
@@ -17,7 +17,7 @@ export interface AlertFilters {
 }
 
 const DEFAULT_FILTERS: AlertFilters = {
-  sources: ['FDA', 'CDC', 'WHO', 'MHRA', 'Federal_Register'],
+  sources: ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register'],
   sinceDays: 30,
   minSeverity: null,
   searchQuery: '',
@@ -40,7 +40,7 @@ export function useAlertFilters() {
     if (sourceParam) {
       const sourcesParam = sourceParam.split(',');
       const validSources = sourcesParam.filter((s: string) =>
-        ['FDA', 'CDC', 'WHO', 'MHRA', 'Federal_Register'].includes(s)
+        ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register'].includes(s)
       ) as AgencySource[];
       if (validSources.length > 0) {
         urlFilters.sources = validSources;

@@ -29,9 +29,9 @@ export const useSourceCounts = () => {
         // Group by filter category and count
         const counts: Record<AgencySource, number> = {
           FDA: 0,
-          CDC: 0, 
-          WHO: 0,
-          MHRA: 0,
+          EPA: 0, 
+          USDA: 0,
+          FSIS: 0,
           Federal_Register: 0,
         };
         
@@ -53,9 +53,9 @@ export const useSourceCounts = () => {
         // Fallback to zero counts
         setSourceCounts({
           FDA: 0,
-          CDC: 0,
-          WHO: 0,
-          MHRA: 0,
+          EPA: 0,
+          USDA: 0,
+          FSIS: 0,
           Federal_Register: 0,
         });
       } finally {

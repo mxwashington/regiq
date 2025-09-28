@@ -1,26 +1,24 @@
 // Source mapping utilities for filtering
 // Maps database source names to filter categories
 
-export type AgencySource = 'FDA' | 'CDC' | 'WHO' | 'MHRA' | 'Federal_Register';
+export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register';
 
 // Maps database sources to filter categories
 export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
-  'CDC': 'CDC',
-  'CDC Health Alerts': 'CDC',
-  'FDA': 'FDA', 
-  'WHO': 'WHO',
-  'WHO Health Alerts': 'WHO',
-  'MHRA': 'MHRA',
+  'FDA': 'FDA',
+  'EPA': 'EPA',
+  'USDA': 'USDA', 
+  'FSIS': 'FSIS',
   'Federal Register': 'Federal_Register',
   'Federal_Register': 'Federal_Register',
 };
 
 // Reverse mapping - filter category to database sources
 export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
-  'CDC': ['CDC', 'CDC Health Alerts'],
   'FDA': ['FDA'],
-  'WHO': ['WHO', 'WHO Health Alerts'], 
-  'MHRA': ['MHRA'],
+  'EPA': ['EPA'],
+  'USDA': ['USDA'],
+  'FSIS': ['FSIS'],
   'Federal_Register': ['Federal Register', 'Federal_Register'],
 };
 
@@ -48,21 +46,21 @@ export const AGENCY_CONFIG = {
     color: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
     selectedColor: 'bg-blue-600 text-white hover:bg-blue-700',
   },
-  CDC: {
-    label: 'CDC',
-    fullName: 'Centers for Disease Control',
-    color: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
-    selectedColor: 'bg-orange-600 text-white hover:bg-orange-700',
-  },
-  WHO: {
-    label: 'WHO',
-    fullName: 'World Health Organization',
+  EPA: {
+    label: 'EPA',
+    fullName: 'Environmental Protection Agency',
     color: 'bg-green-100 text-green-800 hover:bg-green-200',
     selectedColor: 'bg-green-600 text-white hover:bg-green-700',
   },
-  MHRA: {
-    label: 'MHRA',
-    fullName: 'UK Medicines & Healthcare Regulatory Agency',
+  USDA: {
+    label: 'USDA',
+    fullName: 'US Department of Agriculture',
+    color: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
+    selectedColor: 'bg-orange-600 text-white hover:bg-orange-700',
+  },
+  FSIS: {
+    label: 'FSIS',
+    fullName: 'Food Safety Inspection Service',
     color: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
     selectedColor: 'bg-purple-600 text-white hover:bg-purple-700',
   },
