@@ -276,7 +276,7 @@ export function MainDashboard() {
 
           {/* Mobile Filter Sidebar - Slide in from right */}
           <div className={cn(
-            "lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-background border-l shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
+            "lg:hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 max-w-[85vw] bg-background border-l shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
             isFilterSidebarOpen ? "translate-x-0" : "translate-x-full"
           )}>
             <div className="p-4 h-full flex flex-col">
@@ -299,7 +299,7 @@ export function MainDashboard() {
           {/* Mobile Filter Backdrop */}
           {isFilterSidebarOpen && (
             <div 
-              className="lg:hidden fixed inset-0 bg-black/20 z-40" 
+              className="lg:hidden fixed inset-0 bg-black/20 z-40 top-16" 
               onClick={() => setIsFilterSidebarOpen(false)}
             />
           )}

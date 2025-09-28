@@ -1,7 +1,7 @@
 // Alert Filters Hook
 // Manages agency filter state with URL sync and persistence
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SafeAuthContext';
@@ -31,6 +31,7 @@ export function useAlertFilters() {
   const { user } = useAuth();
   const [filters, setFilters] = useState<AlertFilters>(DEFAULT_FILTERS);
   const [isLoading, setIsLoading] = useState(true);
+  const initialized = useRef(false);
 
   // Parse URL parameters into filters
   const parseUrlFilters = useCallback((searchParams: URLSearchParams): Partial<AlertFilters> => {
@@ -178,8 +179,11 @@ export function useAlertFilters() {
 
   // Initialize filters on mount
   useEffect(() => {
+    if (initialized.current) return;
+    
     const initializeFilters = async () => {
       setIsLoading(true);
+      initialized.current = true;
 
       try {
         // Priority: URL > User Preferences > localStorage > Defaults
@@ -196,11 +200,6 @@ export function useAlertFilters() {
         };
 
         setFilters(mergedFilters);
-
-        // If URL didn't have complete filters, update it
-        if (Object.keys(urlFilters).length === 0) {
-          updateUrl(mergedFilters);
-        }
       } catch (error) {
         console.error('Failed to initialize filters:', error);
         setFilters(DEFAULT_FILTERS);
@@ -210,7 +209,7 @@ export function useAlertFilters() {
     };
 
     initializeFilters();
-  }, [location.search, user?.id, parseUrlFilters, loadFromUserPreferences, loadFromLocalStorage, updateUrl]);
+  }, [location.search, user?.id]);
 
   // Update filters
   const updateFilters = useCallback((newFilters: Partial<AlertFilters>) => {
