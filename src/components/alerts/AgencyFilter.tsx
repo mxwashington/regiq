@@ -66,7 +66,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
         {/* Search Input */}
         <div className="space-y-2">
           <label htmlFor="alert-search" className="text-sm font-medium">

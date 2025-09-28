@@ -271,9 +271,9 @@ export function MainDashboard() {
           {/* Mobile Filter Sidebar Overlay */}
           {isFilterSidebarOpen && (
             <div className="lg:hidden fixed inset-0 z-50 bg-black/50" onClick={() => setIsFilterSidebarOpen(false)}>
-              <div className="fixed right-0 top-0 h-full w-80 bg-background shadow-xl transform transition-transform" onClick={(e) => e.stopPropagation()}>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-4">
+              <div className="fixed right-0 top-0 h-full w-80 bg-background shadow-xl transform transition-transform overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-4 flex-shrink-0">
                     <h2 className="text-lg font-semibold">Filters</h2>
                     <Button
                       variant="ghost"
@@ -283,7 +283,9 @@ export function MainDashboard() {
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                  <AgencyFilter />
+                  <div className="flex-1 overflow-y-auto">
+                    <AgencyFilter />
+                  </div>
                 </div>
               </div>
             </div>

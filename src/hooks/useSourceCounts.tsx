@@ -13,70 +13,71 @@ export const useSourceCounts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchSourceCounts = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch source counts from recent alerts (last 90 days)
-        const { data, error } = await supabase
-          .from('alerts')
-          .select('source, agency')
-          .gte('published_date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+  const fetchSourceCounts = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch source counts from recent alerts (last 90 days)
+      const { data, error } = await supabase
+        .from('alerts')
+        .select('source, agency')
+        .gte('published_date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Group by filter category and count
-        const counts: Record<AgencySource, number> = {
-          FDA: 0,
-          EPA: 0,
-          USDA: 0,
-          FSIS: 0,
-          Federal_Register: 0,
-          CDC: 0,
-          REGULATIONS_GOV: 0
-        };
-        
-        data?.forEach(alert => {
-          if (alert.source) {
-            const filterCategory = getFilterCategory(alert.source, alert.agency);
-            if (filterCategory) {
-              counts[filterCategory] = (counts[filterCategory] || 0) + 1;
-            }
+      // Group by filter category and count
+      const counts: Record<AgencySource, number> = {
+        FDA: 0,
+        EPA: 0,
+        USDA: 0,
+        FSIS: 0,
+        Federal_Register: 0,
+        CDC: 0,
+        REGULATIONS_GOV: 0
+      };
+      
+      data?.forEach(alert => {
+        if (alert.source) {
+          const filterCategory = getFilterCategory(alert.source, alert.agency);
+          if (filterCategory) {
+            counts[filterCategory] = (counts[filterCategory] || 0) + 1;
           }
-        });
+        }
+      });
 
-        setSourceCounts(counts);
-        setError(null);
-      } catch (err) {
-        logger.error('Error fetching source counts:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch source counts');
-        
-        // Fallback to zero counts
-        setSourceCounts({
-          FDA: 0,
-          EPA: 0,
-          USDA: 0,
-          FSIS: 0,
-          Federal_Register: 0,
-          CDC: 0,
-          REGULATIONS_GOV: 0
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+      setSourceCounts(counts);
+      setError(null);
+    } catch (err) {
+      logger.error('Error fetching source counts:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch source counts');
+      
+      // Fallback to zero counts
+      setSourceCounts({
+        FDA: 0,
+        EPA: 0,
+        USDA: 0,
+        FSIS: 0,
+        Federal_Register: 0,
+        CDC: 0,
+        REGULATIONS_GOV: 0
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchSourceCounts();
   }, []);
+
+  const refetch = () => {
+    fetchSourceCounts();
+  };
 
   return {
     sourceCounts,
     loading,
     error,
-    refetch: () => {
-      setLoading(true);
-      setSourceCounts({} as Record<AgencySource, number>);
-    }
+    refetch
   };
 };
