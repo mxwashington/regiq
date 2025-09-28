@@ -1247,7 +1247,15 @@ export type Database = {
           source_name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_data_freshness_source"
+            columns: ["source_name"]
+            isOneToOne: true
+            referencedRelation: "data_sources"
+            referencedColumns: ["name"]
+          },
+        ]
       }
       data_sources: {
         Row: {
@@ -1857,6 +1865,42 @@ export type Database = {
           success?: boolean | null
           tokens_used?: number | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      pipeline_runs: {
+        Row: {
+          details: Json | null
+          error_summary: string | null
+          finished_at: string | null
+          id: string
+          sources_attempted: number | null
+          sources_failed: number | null
+          sources_succeeded: number | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          sources_attempted?: number | null
+          sources_failed?: number | null
+          sources_succeeded?: number | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          details?: Json | null
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          sources_attempted?: number | null
+          sources_failed?: number | null
+          sources_succeeded?: number | null
+          started_at?: string
+          status?: string
         }
         Relationships: []
       }
