@@ -93,10 +93,11 @@ export class ComprehensiveAlertSyncService {
       errors: [],
     };
 
-    // Start sync log - using simplified version
+    // Start sync log with metadata
     const { data: logId, error: logError } = await supabase
       .rpc('start_sync_log', {
-        p_source: 'FDA'
+        p_source: 'FDA',
+        p_metadata: { endpoint: 'enforcement-reports', daysBack }
       });
 
     if (logError) {
@@ -152,10 +153,16 @@ export class ComprehensiveAlertSyncService {
       result.success = result.errors.length === 0 || result.alertsInserted > 0 || result.alertsUpdated > 0;
       result.endTime = new Date();
 
-      // Finish sync log - simplified
+      // Finish sync log with detailed metrics
       await supabase.rpc('finish_sync_log', {
         p_log_id: logId,
-        p_status: result.success ? 'completed' : 'partial'
+        p_status: result.success ? 'completed' : 'partial',
+        p_alerts_fetched: result.alertsFetched,
+        p_alerts_inserted: result.alertsInserted,
+        p_alerts_updated: result.alertsUpdated,
+        p_alerts_skipped: result.alertsSkipped,
+        p_errors: result.errors.map(String),
+        p_results: { message: `Processed ${result.alertsFetched} FDA alerts`, totalProcessed: result.alertsFetched }
       });
 
       console.log(`FDA sync completed: ${result.alertsInserted} inserted, ${result.alertsUpdated} updated`);
@@ -165,9 +172,13 @@ export class ComprehensiveAlertSyncService {
       result.errors.push(error instanceof Error ? error.message : 'Unknown error');
       result.endTime = new Date();
 
+      // Finish sync log with error details
       await supabase.rpc('finish_sync_log', {
         p_log_id: logId,
-        p_status: 'failed'
+        p_status: 'failed',
+        p_alerts_fetched: 0,
+        p_errors: result.errors.map(String),
+        p_results: { error: error instanceof Error ? error.message : 'Unknown error' }
       });
 
       return result;
@@ -191,7 +202,8 @@ export class ComprehensiveAlertSyncService {
 
     const { data: logId, error: logError } = await supabase
       .rpc('start_sync_log', {
-        p_source: 'FSIS'
+        p_source: 'FSIS',
+        p_metadata: { endpoint: 'fsis-recalls', daysBack }
       });
 
     if (logError) {
@@ -220,9 +232,16 @@ export class ComprehensiveAlertSyncService {
       result.success = result.errors.length === 0 || result.alertsInserted > 0 || result.alertsUpdated > 0;
       result.endTime = new Date();
 
+      // Finish sync log with detailed metrics
       await supabase.rpc('finish_sync_log', {
         p_log_id: logId,
-        p_status: result.success ? 'completed' : 'partial'
+        p_status: result.success ? 'completed' : 'partial',
+        p_alerts_fetched: result.alertsFetched,
+        p_alerts_inserted: result.alertsInserted,
+        p_alerts_updated: result.alertsUpdated,
+        p_alerts_skipped: result.alertsSkipped,
+        p_errors: result.errors.map(String),
+        p_results: { message: `Processed ${result.alertsFetched} FSIS alerts`, totalProcessed: result.alertsFetched }
       });
 
       console.log(`FSIS sync completed: ${result.alertsInserted} inserted, ${result.alertsUpdated} updated`);
@@ -232,9 +251,13 @@ export class ComprehensiveAlertSyncService {
       result.errors.push(error instanceof Error ? error.message : 'Unknown error');
       result.endTime = new Date();
 
+      // Finish sync log with error details
       await supabase.rpc('finish_sync_log', {
         p_log_id: logId,
-        p_status: 'failed'
+        p_status: 'failed',
+        p_alerts_fetched: 0,
+        p_errors: result.errors.map(String),
+        p_results: { error: error instanceof Error ? error.message : 'Unknown error' }
       });
 
       return result;
@@ -258,7 +281,8 @@ export class ComprehensiveAlertSyncService {
 
     const { data: logId, error: logError } = await supabase
       .rpc('start_sync_log', {
-        p_source: 'CDC'
+        p_source: 'CDC',
+        p_metadata: { endpoint: 'health-alerts', daysBack }
       });
 
     if (logError) {
@@ -305,7 +329,18 @@ export class ComprehensiveAlertSyncService {
       result.success = result.errors.length === 0 || result.alertsInserted > 0 || result.alertsUpdated > 0;
       result.endTime = new Date();
 
-      // Skip remaining database calls for now
+      // Finish sync log with detailed metrics
+      await supabase.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: result.success ? 'completed' : 'partial',
+        p_alerts_fetched: result.alertsFetched,
+        p_alerts_inserted: result.alertsInserted,
+        p_alerts_updated: result.alertsUpdated,
+        p_alerts_skipped: result.alertsSkipped,
+        p_errors: result.errors.map(String),
+        p_results: { message: `Processed ${result.alertsFetched} CDC alerts`, totalProcessed: result.alertsFetched }
+      });
+
       console.log(`CDC sync completed: ${result.alertsInserted} inserted, ${result.alertsUpdated} updated`);
       return result;
 
@@ -313,8 +348,14 @@ export class ComprehensiveAlertSyncService {
       result.errors.push(error instanceof Error ? error.message : 'Unknown error');
       result.endTime = new Date();
 
-      // Skip remaining database calls for now  
-      console.log(`CDC sync completed: ${result.alertsInserted} inserted, ${result.alertsUpdated} updated`);
+      // Finish sync log with error details
+      await supabase.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: 'failed',
+        p_alerts_fetched: 0,
+        p_errors: result.errors.map(String),
+        p_results: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
 
       return result;
     }
@@ -337,7 +378,8 @@ export class ComprehensiveAlertSyncService {
 
     const { data: logId, error: logError } = await supabase
       .rpc('start_sync_log', {
-        p_source: 'EPA'  
+        p_source: 'EPA',
+        p_metadata: { endpoint: 'enforcement-actions', daysBack }
       });
 
     if (logError) {
@@ -366,7 +408,18 @@ export class ComprehensiveAlertSyncService {
       result.success = result.errors.length === 0 || result.alertsInserted > 0 || result.alertsUpdated > 0;
       result.endTime = new Date();
 
-      // Skip remaining database calls for now
+      // Finish sync log with detailed metrics
+      await supabase.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: result.success ? 'completed' : 'partial',
+        p_alerts_fetched: result.alertsFetched,
+        p_alerts_inserted: result.alertsInserted,
+        p_alerts_updated: result.alertsUpdated,
+        p_alerts_skipped: result.alertsSkipped,
+        p_errors: result.errors.map(String),
+        p_results: { message: `Processed ${result.alertsFetched} EPA alerts`, totalProcessed: result.alertsFetched }
+      });
+
       console.log(`EPA sync completed: ${result.alertsInserted} inserted, ${result.alertsUpdated} updated`);
       return result;
 
@@ -374,8 +427,14 @@ export class ComprehensiveAlertSyncService {
       result.errors.push(error instanceof Error ? error.message : 'Unknown error');
       result.endTime = new Date();
 
-      // Skip remaining database calls for now
-      console.log(`EPA sync completed: ${result.alertsInserted} inserted, ${result.alertsUpdated} updated`);
+      // Finish sync log with error details
+      await supabase.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: 'failed',
+        p_alerts_fetched: 0,
+        p_errors: result.errors.map(String),
+        p_results: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
 
       return result;
     }
@@ -439,7 +498,7 @@ export class ComprehensiveAlertSyncService {
           p_locations: validated.locations,
           p_product_types: validated.product_types,
           p_category: validated.category,
-          p_severity: validated.severity,
+          p_severity: String(validated.severity),
           p_raw: validated.raw as any,
           p_hash: validated.hash,
         });
@@ -487,7 +546,7 @@ export class ComprehensiveAlertSyncService {
           p_locations: validated.locations,
           p_product_types: validated.product_types,
           p_category: validated.category,
-          p_severity: validated.severity,
+          p_severity: String(validated.severity),
           p_raw: validated.raw as any,
           p_hash: validated.hash,
         });
@@ -545,7 +604,7 @@ export class ComprehensiveAlertSyncService {
           p_locations: validated.locations,
           p_product_types: validated.product_types,
           p_category: validated.category,
-          p_severity: validated.severity,
+          p_severity: String(validated.severity),
           p_raw: validated.raw as any,
           p_hash: validated.hash,
         });
@@ -604,7 +663,7 @@ export class ComprehensiveAlertSyncService {
           p_locations: validated.locations,
           p_product_types: validated.product_types,
           p_category: validated.category,
-          p_severity: validated.severity,
+          p_severity: String(validated.severity),
           p_raw: validated.raw as any,
           p_hash: validated.hash,
         });

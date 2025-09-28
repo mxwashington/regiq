@@ -316,6 +316,51 @@ export type Database = {
           },
         ]
       }
+      alert_sync_logs: {
+        Row: {
+          alerts_fetched: number | null
+          alerts_inserted: number | null
+          alerts_skipped: number | null
+          alerts_updated: number | null
+          created_at: string
+          errors: string[] | null
+          id: string
+          metadata: Json | null
+          run_finished: string | null
+          run_started: string
+          source: string
+          status: string
+        }
+        Insert: {
+          alerts_fetched?: number | null
+          alerts_inserted?: number | null
+          alerts_skipped?: number | null
+          alerts_updated?: number | null
+          created_at?: string
+          errors?: string[] | null
+          id?: string
+          metadata?: Json | null
+          run_finished?: string | null
+          run_started?: string
+          source: string
+          status?: string
+        }
+        Update: {
+          alerts_fetched?: number | null
+          alerts_inserted?: number | null
+          alerts_skipped?: number | null
+          alerts_updated?: number | null
+          created_at?: string
+          errors?: string[] | null
+          id?: string
+          metadata?: Json | null
+          run_finished?: string | null
+          run_started?: string
+          source?: string
+          status?: string
+        }
+        Relationships: []
+      }
       alert_tags: {
         Row: {
           alert_id: string
@@ -415,6 +460,30 @@ export type Database = {
           updated_at?: string
           urgency?: string
           urgency_score?: number | null
+        }
+        Relationships: []
+      }
+      alerts_summary: {
+        Row: {
+          created_at: string
+          recent_alerts: number
+          source: string
+          total_alerts: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          recent_alerts?: number
+          source: string
+          total_alerts?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          recent_alerts?: number
+          source?: string
+          total_alerts?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3482,75 +3551,6 @@ export type Database = {
         }
         Relationships: []
       }
-      alerts_summary: {
-        Row: {
-          source: string
-          total_alerts: number
-          recent_alerts: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          source: string
-          total_alerts?: number
-          recent_alerts?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          source?: string
-          total_alerts?: number
-          recent_alerts?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      alert_sync_logs: {
-        Row: {
-          id: string
-          source: string
-          status: string
-          run_started: string
-          run_finished: string | null
-          alerts_fetched: number | null
-          alerts_inserted: number | null
-          alerts_updated: number | null
-          alerts_skipped: number | null
-          errors: string[] | null
-          metadata: Json | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          source: string
-          status?: string
-          run_started?: string
-          run_finished?: string | null
-          alerts_fetched?: number | null
-          alerts_inserted?: number | null
-          alerts_updated?: number | null
-          alerts_skipped?: number | null
-          errors?: string[] | null
-          metadata?: Json | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          source?: string
-          status?: string
-          run_started?: string
-          run_finished?: string | null
-          alerts_fetched?: number | null
-          alerts_inserted?: number | null
-          alerts_updated?: number | null
-          alerts_skipped?: number | null
-          errors?: string[] | null
-          metadata?: Json | null
-          created_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -3684,6 +3684,19 @@ export type Database = {
       extend_user_session_secure: {
         Args: { hours_to_extend?: number }
         Returns: Json
+      }
+      finish_sync_log: {
+        Args: {
+          p_alerts_fetched?: number
+          p_alerts_inserted?: number
+          p_alerts_skipped?: number
+          p_alerts_updated?: number
+          p_errors?: string[]
+          p_log_id: string
+          p_results?: Json
+          p_status: string
+        }
+        Returns: undefined
       }
       generate_api_key: {
         Args: Record<PropertyKey, never>
@@ -3958,6 +3971,10 @@ export type Database = {
         Args: { current_ip?: unknown; user_id_param: string }
         Returns: boolean
       }
+      start_sync_log: {
+        Args: { p_metadata?: Json; p_source: string }
+        Returns: string
+      }
       update_user_activity: {
         Args: { ip_address_param?: unknown; user_id_param: string }
         Returns: undefined
@@ -3974,6 +3991,28 @@ export type Database = {
           profile_user_id: string
         }
         Returns: undefined
+      }
+      upsert_alert: {
+        Args: {
+          p_category?: string
+          p_date_published?: string
+          p_date_updated?: string
+          p_external_id: string
+          p_hash?: string
+          p_jurisdiction?: string
+          p_link_url?: string
+          p_locations?: string[]
+          p_product_types?: string[]
+          p_raw?: Json
+          p_severity?: string
+          p_source: string
+          p_summary: string
+          p_title: string
+        }
+        Returns: {
+          action: string
+          id: string
+        }[]
       }
       upsert_system_setting: {
         Args: {
@@ -4007,48 +4046,6 @@ export type Database = {
       validate_security_configuration: {
         Args: Record<PropertyKey, never>
         Returns: Json
-      }
-      start_sync_log: {
-        Args: {
-          p_source: string
-          p_metadata?: Json
-        }
-        Returns: string
-      }
-      finish_sync_log: {
-        Args: {
-          p_log_id: string
-          p_status: string
-          p_alerts_fetched?: number
-          p_alerts_inserted?: number
-          p_alerts_updated?: number
-          p_alerts_skipped?: number
-          p_errors?: string[]
-          p_results?: Json
-        }
-        Returns: void
-      }
-      upsert_alert: {
-        Args: {
-          p_external_id: string
-          p_source: string
-          p_title: string
-          p_summary: string
-          p_link_url: string | null
-          p_date_published: string
-          p_date_updated: string | null
-          p_jurisdiction: string | null
-          p_locations: string[] | null
-          p_product_types: string[] | null
-          p_category: string
-          p_severity: string
-          p_raw: Json
-          p_hash: string
-        }
-        Returns: {
-          action: string
-          id: string
-        }[]
       }
     }
     Enums: {
