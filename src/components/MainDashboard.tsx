@@ -3,8 +3,6 @@ import { DashboardMetrics } from './DashboardMetrics';
 import { DashboardNavigation } from './DashboardNavigation';
 import { RegIQFeed } from './RegIQFeed';
 import { SearchInterface } from './SearchInterface';
-import { RiskIntelligenceDashboard } from './RiskIntelligenceDashboard';
-
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
 import { SourceMappingDebug } from './debug/SourceMappingDebug';
@@ -14,6 +12,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useAlertFilters } from '@/hooks/useAlertFilters';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
+import { SystemStatus } from '@/components/ui/SystemStatus';
+import { SupportWidget } from '@/components/support/SupportWidget';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Filter, X, User, Settings, Clock, CheckCircle, AlertCircle } from 'lucide-react';
@@ -135,8 +135,6 @@ export function MainDashboard() {
             onUnsaveAlert={handleSaveAlert}
           />
         );
-      case 'risk':
-        return <RiskIntelligenceDashboard />;
       case 'account':
         return (
           <Card>
@@ -276,7 +274,7 @@ export function MainDashboard() {
 
           {/* Mobile Filter Sidebar - Slide in from right */}
           <div className={cn(
-            "lg:hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 max-w-[85vw] bg-background border-l shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
+            "lg:hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 max-w-[85vw] bg-background border-l shadow-2xl z-20 transform transition-transform duration-300 ease-in-out",
             isFilterSidebarOpen ? "translate-x-0" : "translate-x-full"
           )}>
             <div className="p-4 h-full flex flex-col">
@@ -340,6 +338,9 @@ export function MainDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Support Widget */}
+      <SupportWidget />
 
       {/* AI Chatbot */}
       <ConversationalChatbot

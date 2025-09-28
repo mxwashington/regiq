@@ -46,12 +46,6 @@ export function DashboardNavigation({
       label: 'Account',
       icon: User,
       description: 'Account settings and preferences'
-    },
-    {
-      id: 'risk',
-      label: 'Risk Intelligence',
-      icon: TrendingUp,
-      description: 'Food safety risk prediction and analysis'
     }
   ];
 
