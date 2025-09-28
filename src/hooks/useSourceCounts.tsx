@@ -29,11 +29,12 @@ export const useSourceCounts = () => {
         // Group by filter category and count
         const counts: Record<AgencySource, number> = {
           FDA: 0,
-          EPA: 0, 
+          EPA: 0,
           USDA: 0,
           FSIS: 0,
           Federal_Register: 0,
           CDC: 0,
+          REGULATIONS_GOV: 0
         };
         
         data?.forEach(alert => {
@@ -59,6 +60,7 @@ export const useSourceCounts = () => {
           FSIS: 0,
           Federal_Register: 0,
           CDC: 0,
+          REGULATIONS_GOV: 0
         });
       } finally {
         setLoading(false);

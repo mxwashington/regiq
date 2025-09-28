@@ -1,7 +1,7 @@
 // Source mapping utilities for filtering
 // Maps database source names to filter categories
 
-export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC';
+export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC' | 'REGULATIONS_GOV';
 
 // Maps database sources to filter categories - Enhanced Pipeline Support
 export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
@@ -37,6 +37,10 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
   'Federal Register': 'Federal_Register',
   'Federal_Register': 'Federal_Register',
   'Federal Register Rules': 'Federal_Register',
+  
+  // Regulations.gov sources
+  'REGULATIONS_GOV': 'REGULATIONS_GOV',
+  'Regulations.gov': 'REGULATIONS_GOV',
 };
 
 // Reverse mapping - filter category to database sources
@@ -47,6 +51,7 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
   'FSIS': ['FSIS', 'FSIS Recalls', 'FSIS Meat & Poultry Recalls'],
   'CDC': ['CDC', 'CDC Health Advisories', 'CDC Food Safety Alerts'],
   'Federal_Register': ['Federal Register', 'Federal_Register', 'Federal Register Rules'],
+  'REGULATIONS_GOV': ['REGULATIONS_GOV', 'Regulations.gov'],
 };
 
 // Get filter category from database source name
@@ -115,5 +120,11 @@ export const AGENCY_CONFIG = {
     fullName: 'Federal Register',
     color: 'bg-gray-100 text-gray-800 hover:bg-gray-200',
     selectedColor: 'bg-gray-600 text-white hover:bg-gray-700',
+  },
+  REGULATIONS_GOV: {
+    label: 'Regulations.gov',
+    fullName: 'Regulations.gov',
+    color: 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200',
+    selectedColor: 'bg-indigo-600 text-white hover:bg-indigo-700',
   },
 } as const;

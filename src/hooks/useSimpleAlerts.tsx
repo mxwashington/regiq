@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { fallbackAlerts } from '@/lib/debug-utils';
-import { AgencySource, getDatabaseSources } from '@/lib/source-mapping';
+import { AgencySource, sourceMatchesFilter } from '@/lib/source-mapping';
 import { AlertFilters } from '@/hooks/useAlertFilters';
 import { logger } from '@/lib/logger';
 interface SimpleAlert {
@@ -11,6 +11,7 @@ interface SimpleAlert {
   summary: string;
   urgency: string;
   source: string;
+  agency?: string;
   published_date: string;
   external_url?: string;
   ai_summary?: string;
@@ -69,6 +70,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
             summary,
             urgency,
             source,
+            agency,
             published_date,
             external_url,
             dismissed_by,
@@ -80,15 +82,10 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
 
         // Apply filters if provided
         if (filters) {
-          // Filter by sources - map filter categories to database sources
-          if (filters.sources.length > 0 && filters.sources.length < 5) {
-            const databaseSources: string[] = [];
-            filters.sources.forEach(filterCategory => {
-              databaseSources.push(...getDatabaseSources(filterCategory));
-            });
-            if (databaseSources.length > 0) {
-              query = query.in('source', databaseSources);
-            }
+          // Filter by sources - use proper agency-aware filtering
+          if (filters.sources.length > 0 && filters.sources.length < 7) {
+            // For client-side filtering, we'll fetch all alerts and filter them
+            // This is necessary because we need both source and agency for proper categorization
           }
 
           // Filter by date range
@@ -134,9 +131,19 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
           sampleTitles: data.slice(0, 3).map(a => a.title) 
         });
         
-        setAlerts(data);
-        setTotalCount(count || 0);
-        setHasMore(limit ? data.length >= limit : false);
+        // Apply client-side source filtering if needed
+        let filteredData = data;
+        if (filters && filters.sources.length > 0 && filters.sources.length < 7) {
+          filteredData = data.filter(alert => 
+            filters.sources.some(filterCategory => 
+              sourceMatchesFilter(alert.source, filterCategory, alert.agency)
+            )
+          );
+        }
+        
+        setAlerts(filteredData);
+        setTotalCount(filteredData.length);
+        setHasMore(limit ? filteredData.length >= limit : false);
         setRetryCount(0);
         setLoading(false);
         return;
@@ -189,6 +196,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
           summary,
           urgency,
           source,
+          agency,
           published_date,
           external_url,
           dismissed_by,
@@ -201,17 +209,8 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
 
         // Apply filters to pagination too  
         if (filters) {
-          // Filter by sources
-          if (filters.sources.length > 0 && filters.sources.length < 5) {
-            const databaseSources: string[] = [];
-            filters.sources.forEach(filterCategory => {
-              databaseSources.push(...getDatabaseSources(filterCategory));
-            });
-            if (databaseSources.length > 0) {
-              query = query.in('source', databaseSources);
-            }
-          }
-
+          // We'll apply client-side filtering for source matching
+          
           // Filter by date range
           if (filters.sinceDays && filters.sinceDays > 0) {
             const sinceDate = new Date();
@@ -235,13 +234,27 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
           query = query.limit(limit);
         }
 
-      const { data, error: fetchError } = await query;
+        const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
 
       if (data && data.length > 0) {
-        setAlerts(prev => [...prev, ...data]);
-        setHasMore(limit ? data.length >= limit : false);
+        // Apply client-side source filtering to pagination results too
+        let filteredData = data;
+        if (filters && filters.sources.length > 0 && filters.sources.length < 7) {
+          filteredData = data.filter(alert => 
+            filters.sources.some(filterCategory => 
+              sourceMatchesFilter(alert.source, filterCategory, alert.agency)
+            )
+          );
+        }
+        
+        if (filteredData.length > 0) {
+          setAlerts(prev => [...prev, ...filteredData]);
+          setHasMore(limit ? data.length >= limit : false);
+        } else {
+          setHasMore(false);
+        }
       } else {
         setHasMore(false);
       }
