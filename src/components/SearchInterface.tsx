@@ -220,7 +220,7 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
             <span>Ask RegIQ</span>
           </CardTitle>
           <CardDescription>
-            Search for real-time regulatory intelligence using AI and official government databases
+            Ask RegIQ questions about real-time regulatory intelligence using AI and official government databases
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
