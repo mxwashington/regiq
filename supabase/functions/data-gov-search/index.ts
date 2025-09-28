@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
     }
 
     // Generate cache key
-    const cacheKey = `data_gov_${Buffer.from(JSON.stringify(params)).toString('base64')}`;
+    const cacheKey = `data_gov_${btoa(JSON.stringify(params))}`;
     
     // Check cache first
     const cachedResults = await getCachedResults(supabase, cacheKey);

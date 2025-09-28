@@ -243,7 +243,7 @@ async function fetchFDACompliance(): Promise<any[]> {
     return [];
   }
 }
-async function fetchFDACompliance(): Promise<ProcessedAlert[]> {
+async function fetchFDACompliance2(): Promise<ProcessedAlert[]> {
   try {
     logStep('Fetching FDA compliance data (483s and Warning Letters)');
     
@@ -533,7 +533,7 @@ Deno.serve(async (req) => {
     
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       message: 'Enhanced Regulatory Data Collection failed'
     }), {
       status: 500,

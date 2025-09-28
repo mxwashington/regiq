@@ -199,7 +199,7 @@ async function fetchClassIRecalls(supabase: any) {
     });
 
   } catch (error) {
-    throw new Error(`Failed to fetch Class I recalls: ${error.message}`);
+    throw new Error(`Failed to fetch Class I recalls: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -256,7 +256,7 @@ async function fetchDrugShortages(supabase: any) {
     });
 
   } catch (error) {
-    throw new Error(`Failed to fetch drug shortages: ${error.message}`);
+    throw new Error(`Failed to fetch drug shortages: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

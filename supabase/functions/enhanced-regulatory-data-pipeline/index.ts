@@ -116,7 +116,7 @@ async function shouldProcessSource(supabase: any, source: DataSource): Promise<b
 
   const now = Date.now();
   const lastRunTime = data?.setting_value?.timestamp || 0;
-  const intervalMs = source.polling_interval_minutes * 60 * 1000;
+  const intervalMs = (source.polling_interval_minutes || 60) * 60 * 1000;
 
   // Always process for now to ensure fresh data collection
   return true;
@@ -1149,7 +1149,7 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
     await supabase
       .from('data_sources')
       .update({
-        last_error: error.message || 'Unknown error'
+        last_error: error instanceof Error ? error.message : String(error) || 'Unknown error'
       })
       .eq('id', source.id);
     
@@ -1309,7 +1309,7 @@ Deno.serve(async (req) => {
     
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         success: false,
         timestamp: new Date().toISOString()
       }),

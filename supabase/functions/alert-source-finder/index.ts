@@ -226,7 +226,7 @@ async function perplexitySourceSearch(alert: Alert): Promise<SourceResult[]> {
     })
 
     if (!response.ok) {
-      logger.error('Perplexity API error:', response.status, await response.text())
+      logger.error('Perplexity API error:', { status: response.status, text: await response.text() });
       return results
     }
 

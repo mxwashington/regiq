@@ -59,7 +59,7 @@ serve(async (req) => {
     const requestData: WorkflowRequest = await req.json();
     const { action } = requestData;
 
-    logger.info('Processing workflow request:', { action, ...requestData });
+    logger.info('Processing workflow request:', requestData);
 
     const userId = await getUserIdFromRequest(req, supabase);
     if (!userId && action !== 'get_templates') {
@@ -129,7 +129,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

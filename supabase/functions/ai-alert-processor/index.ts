@@ -82,7 +82,7 @@ async function generateAlertSummary(alertContent: string, alertTitle: string): P
       };
     }
   } catch (error) {
-    logStep('Perplexity API error', { error: error.message });
+    logStep('Perplexity API error', { error: error instanceof Error ? error.message : String(error) });
     // Fallback urgency scoring
     return {
       summary: 'AI processing unavailable - please review alert manually',
@@ -177,7 +177,7 @@ serve(async (req) => {
           await new Promise(resolve => setTimeout(resolve, 500));
 
         } catch (error) {
-          logStep("Error processing individual alert", { alertId: alert.id, error: error.message });
+          logStep("Error processing individual alert", { alertId: alert.id, error: error instanceof Error ? error.message : String(error) });
           errors++;
         }
       }

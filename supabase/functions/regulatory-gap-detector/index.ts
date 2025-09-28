@@ -1,4 +1,10 @@
-import { logger } from '@/lib/logger';
+// Simple logger for edge functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
