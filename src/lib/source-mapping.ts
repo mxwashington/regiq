@@ -76,6 +76,68 @@ export function sourceMatchesFilter(databaseSource: string, filterCategory: Agen
   return getFilterCategory(databaseSource, alertAgency) === filterCategory;
 }
 
+// Validate source mappings - check for unmapped sources
+export async function validateSourceMappings(): Promise<{
+  mappedSources: string[];
+  unmappedSources: string[];
+  sourceStats: Record<string, { count: number; sampleAgencies: string[] }>;
+}> {
+  try {
+    // Import supabase dynamically to avoid circular imports
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    const { data, error } = await supabase
+      .from('alerts')
+      .select('source, agency')
+      .gte('published_date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+
+    if (error) throw error;
+
+    const sourceStats: Record<string, { count: number; sampleAgencies: string[] }> = {};
+    const mappedSources: string[] = [];
+    const unmappedSources: string[] = [];
+
+    data?.forEach(alert => {
+      if (alert.source) {
+        // Track source statistics
+        if (!sourceStats[alert.source]) {
+          sourceStats[alert.source] = { count: 0, sampleAgencies: [] };
+        }
+        sourceStats[alert.source].count++;
+        
+        if (alert.agency && !sourceStats[alert.source].sampleAgencies.includes(alert.agency)) {
+          sourceStats[alert.source].sampleAgencies.push(alert.agency);
+        }
+
+        // Check if source is mapped
+        const filterCategory = getFilterCategory(alert.source, alert.agency);
+        if (filterCategory) {
+          if (!mappedSources.includes(alert.source)) {
+            mappedSources.push(alert.source);
+          }
+        } else {
+          if (!unmappedSources.includes(alert.source)) {
+            unmappedSources.push(alert.source);
+          }
+        }
+      }
+    });
+
+    return {
+      mappedSources: mappedSources.sort(),
+      unmappedSources: unmappedSources.sort(),
+      sourceStats
+    };
+  } catch (error) {
+    console.error('Error validating source mappings:', error);
+    return {
+      mappedSources: [],
+      unmappedSources: [],
+      sourceStats: {}
+    };
+  }
+}
+
 // Agency display configuration
 export const AGENCY_CONFIG = {
   FDA: {

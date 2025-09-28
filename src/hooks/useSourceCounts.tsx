@@ -20,7 +20,7 @@ export const useSourceCounts = () => {
       // Fetch source counts from recent alerts (last 90 days)
       const { data, error } = await supabase
         .from('alerts')
-        .select('source, agency')
+        .select('source, agency, title')
         .gte('published_date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
 
       if (error) throw error;
@@ -39,8 +39,26 @@ export const useSourceCounts = () => {
       data?.forEach(alert => {
         if (alert.source) {
           const filterCategory = getFilterCategory(alert.source, alert.agency);
+          
+          // Debug key source mappings
+          if (alert.source === 'Federal Register' || alert.source === 'Enhanced Federal Register Rules') {
+            console.log('[SourceCounts] Federal Register classification:', {
+              source: alert.source,
+              agency: alert.agency,
+              filterCategory: filterCategory,
+              title: alert.title?.substring(0, 50) + '...'
+            });
+          }
+          
           if (filterCategory) {
             counts[filterCategory] = (counts[filterCategory] || 0) + 1;
+          } else {
+            // Track unmapped sources
+            console.warn('[SourceCounts] Unmapped source:', {
+              source: alert.source,
+              agency: alert.agency,
+              count: 1
+            });
           }
         }
       });

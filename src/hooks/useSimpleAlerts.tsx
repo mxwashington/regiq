@@ -134,11 +134,26 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
         // Apply client-side source filtering if needed
         let filteredData = data;
         if (filters && filters.sources.length > 0 && filters.sources.length < 7) {
-          filteredData = data.filter(alert => 
-            filters.sources.some(filterCategory => 
+          console.log('[Filtering] Applying filters:', filters.sources);
+          filteredData = data.filter(alert => {
+            const matchesAnyFilter = filters.sources.some(filterCategory => 
               sourceMatchesFilter(alert.source, filterCategory, alert.agency)
-            )
-          );
+            );
+            
+            // Debug Federal Register filtering
+            if (alert.source === 'Federal Register') {
+              console.log('[Filtering] Federal Register decision:', {
+                source: alert.source,
+                agency: alert.agency,
+                requestedFilters: filters.sources,
+                matchesAnyFilter: matchesAnyFilter,
+                title: alert.title?.substring(0, 50) + '...'
+              });
+            }
+            
+            return matchesAnyFilter;
+          });
+          console.log('[Filtering] Result:', { originalCount: data.length, filteredCount: filteredData.length });
         }
         
         setAlerts(filteredData);

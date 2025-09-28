@@ -7,6 +7,7 @@ import { RiskIntelligenceDashboard } from './RiskIntelligenceDashboard';
 
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
+import { SourceMappingDebug } from './debug/SourceMappingDebug';
 import { ConversationalChatbot } from './ConversationalChatbot';
 import { TrialGate } from './TrialGate';
 import { useAuth } from '@/contexts/AuthContext';
@@ -293,6 +294,11 @@ export function MainDashboard() {
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
+            {/* Temporary Debug Component */}
+            <div className="mb-4">
+              <SourceMappingDebug />
+            </div>
+
             {/* Filter Status Bar for Mobile */}
             {(activeTab === 'alerts' || activeTab === 'search') && (
               <div className="lg:hidden mb-4 p-3 bg-muted/30 rounded-lg">
