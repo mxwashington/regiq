@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Brain, MessageSquare, Zap, Clock, CheckCircle, AlertTriangle, Send, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Brain, MessageSquare, Zap, Clock, CheckCircle, AlertTriangle, Send, Loader2, Building, Package, Award } from 'lucide-react';
+import { useAIComplianceAssistant } from '@/hooks/useAIComplianceAssistant';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessage {
   id: string;
@@ -18,13 +22,18 @@ export function ThirdShiftAI() {
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I\'m your ThirdShift AI assistant. I can help you analyze regulatory alerts, predict compliance risks, and provide insights about food safety trends. What would you like to know?',
+      content: 'Hello! I\'m your ThirdShift AI compliance assistant. I can help you analyze regulatory alerts, predict compliance risks, and provide insights about food safety trends based on your facility context. Please tell me about your facility so I can provide more personalized assistance.',
       timestamp: new Date()
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [aiStatus, setAiStatus] = useState<'connected' | 'loading' | 'error'>('connected');
+  const [facilityType, setFacilityType] = useState('');
+  const [products, setProducts] = useState('');
+  const [currentCertifications, setCurrentCertifications] = useState('');
+  const [showFacilitySetup, setShowFacilitySetup] = useState(true);
+  
+  const { loading, queryCount, askQuestion } = useAIComplianceAssistant();
+  const { toast } = useToast();
 
   const quickPrompts = [
     'Analyze recent FDA recalls for patterns',
@@ -45,21 +54,47 @@ export function ThirdShiftAI() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputMessage;
     setInputMessage('');
-    setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
+    try {
+      const response = await askQuestion({
+        question: currentInput,
+        facilityType: facilityType || undefined,
+        products: products || undefined,
+        currentCertifications: currentCertifications || undefined
+      });
+
+      if (response) {
+        const aiResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response.answer,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+
+        // Show usage info if approaching limit
+        if (response.queriesUsedToday >= 45) {
+          toast({
+            title: "Query Usage",
+            description: `You've used ${response.queriesUsedToday}/${response.dailyLimit} daily queries`,
+            variant: "default"
+          });
+        }
+      }
+    } catch (error) {
+      // Error handling is done in the hook
+      const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I understand you're asking about "${inputMessage}". This is a simulated response. In the full implementation, I would analyze your regulatory data, cross-reference with current compliance requirements, and provide detailed insights with actionable recommendations.`,
+        content: 'I apologize, but I encountered an error processing your request. Please try again or contact support if the issue persists.',
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 2000);
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleQuickPrompt = (prompt: string) => {
@@ -77,26 +112,88 @@ export function ThirdShiftAI() {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Brain className="h-6 w-6 text-blue-600" />
-            ThirdShift AI Assistant
+            ThirdShift AI Compliance Assistant
           </h2>
           <p className="text-muted-foreground">
             AI-powered regulatory intelligence and compliance analysis
           </p>
         </div>
-        <Badge 
-          variant="outline" 
-          className={`${
-            aiStatus === 'connected' ? 'border-green-500 text-green-700' :
-            aiStatus === 'loading' ? 'border-yellow-500 text-yellow-700' :
-            'border-red-500 text-red-700'
-          }`}
-        >
-          {aiStatus === 'connected' && <CheckCircle className="h-3 w-3 mr-1" />}
-          {aiStatus === 'loading' && <Clock className="h-3 w-3 mr-1" />}
-          {aiStatus === 'error' && <AlertTriangle className="h-3 w-3 mr-1" />}
-          {aiStatus === 'connected' ? 'Online' : aiStatus === 'loading' ? 'Connecting' : 'Offline'}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="border-green-500 text-green-700">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Connected
+          </Badge>
+          {queryCount > 0 && (
+            <Badge variant="outline" className="text-xs">
+              Queries: {queryCount}/50
+            </Badge>
+          )}
+        </div>
       </div>
+
+      {/* Facility Context Setup */}
+      {showFacilitySetup && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Building className="h-5 w-5 text-blue-600" />
+              Facility Context Setup
+            </CardTitle>
+            <CardDescription>
+              Help me understand your facility to provide more personalized compliance assistance
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="facility-type">Facility Type</Label>
+                <Select value={facilityType} onValueChange={setFacilityType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select facility type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="food-processing">Food Processing</SelectItem>
+                    <SelectItem value="restaurant">Restaurant</SelectItem>
+                    <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="packaging">Packaging</SelectItem>
+                    <SelectItem value="distribution">Distribution</SelectItem>
+                    <SelectItem value="retail">Retail</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="products">Main Products</Label>
+                <Input
+                  id="products"
+                  placeholder="e.g., dairy products, meat, beverages"
+                  value={products}
+                  onChange={(e) => setProducts(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="certifications">Current Certifications</Label>
+                <Input
+                  id="certifications"
+                  placeholder="e.g., HACCP, SQF, BRC, organic"
+                  value={currentCertifications}
+                  onChange={(e) => setCurrentCertifications(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => setShowFacilitySetup(false)}
+                size="sm"
+              >
+                Continue to Chat
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* AI Capabilities */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -175,11 +272,11 @@ export function ThirdShiftAI() {
               </div>
             ))}
             
-            {isLoading && (
+            {loading && (
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">AI is thinking...</span>
+                  <span className="text-sm">Analyzing regulatory context...</span>
                 </div>
               </div>
             )}
@@ -219,7 +316,7 @@ export function ThirdShiftAI() {
             />
             <Button 
               onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading}
+              disabled={!inputMessage.trim() || loading}
               className="self-end"
             >
               <Send className="h-4 w-4" />
