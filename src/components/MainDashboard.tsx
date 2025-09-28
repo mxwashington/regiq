@@ -240,7 +240,7 @@ export function MainDashboard() {
 
       {/* Content with Filter Sidebar */}
       <div className="container mx-auto px-4 py-6">
-        <div className="flex gap-6">
+        <div className="flex gap-6 relative">
           {/* Filter Sidebar - Desktop */}
           <div className={cn(
             "hidden lg:block lg:w-80 flex-shrink-0 transition-all duration-300",
@@ -255,7 +255,7 @@ export function MainDashboard() {
 
           {/* Mobile Filter Toggle */}
           <div className={cn(
-            "lg:hidden fixed top-20 right-4 z-50",
+            "lg:hidden fixed top-4 right-4 z-40",
             activeTab === 'alerts' || activeTab === 'search' ? 'block' : 'hidden'
           )}>
             <Button
@@ -272,7 +272,7 @@ export function MainDashboard() {
           {/* Mobile Filter Sidebar Overlay */}
           {isFilterSidebarOpen && (
             <div className="lg:hidden fixed inset-0 z-50 bg-black/50" onClick={() => setIsFilterSidebarOpen(false)}>
-              <div className="fixed right-0 top-0 h-full w-80 bg-background shadow-xl transform transition-transform overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="fixed right-0 top-0 h-full w-80 max-w-[90vw] bg-background shadow-xl transform transition-transform overflow-hidden" onClick={(e) => e.stopPropagation()}>
                 <div className="p-4 h-full flex flex-col">
                   <div className="flex items-center justify-between mb-4 flex-shrink-0">
                     <h2 className="text-lg font-semibold">Filters</h2>
@@ -293,7 +293,7 @@ export function MainDashboard() {
           )}
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 relative z-10">
             {/* Temporary Debug Component */}
             <div className="mb-4">
               <SourceMappingDebug />

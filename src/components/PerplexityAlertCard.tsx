@@ -283,11 +283,11 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
   };
 
   return (
-    <Card className={`mobile-alert-card mobile-container-safe mobile-card-content border border-gray-200 hover:shadow-md transition-shadow ${isMobile ? 'mx-2 p-4' : ''}`}>
-      <CardHeader className={isMobile ? "px-3 py-3" : "pb-3"}>
+    <Card className={`w-full border border-gray-200 hover:shadow-md transition-shadow ${isMobile ? 'mx-0 my-2' : ''}`}>
+      <CardHeader className={isMobile ? "px-4 py-3" : "pb-3"}>
         <div className="flex items-start justify-between space-x-3">
           <div className="flex-1 min-w-0">
-            <h3 className={`font-semibold text-gray-900 leading-tight mobile-text-content alert-title break-words-mobile ${isMobile ? 'text-sm' : 'text-base'}`}>
+            <h3 className={`font-semibold text-gray-900 leading-tight break-words ${isMobile ? 'text-sm' : 'text-base'}`}>
               {alert.title}
             </h3>
             <div className={`flex items-center gap-2 text-muted-foreground mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>
@@ -318,21 +318,19 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
         </div>
       </CardHeader>
 
-      <CardContent className={isMobile ? "pt-0 px-3 pb-3" : "pt-0"}>
+      <CardContent className={isMobile ? "pt-0 px-4 pb-3" : "pt-0"}>
         {alert.summary && (
-          <p className={`text-muted-foreground mb-3 mobile-text-content break-words-mobile ${isMobile ? 'text-xs line-clamp-2' : 'text-sm line-clamp-3'}`}>
+          <p className={`text-muted-foreground mb-3 break-words ${isMobile ? 'text-xs' : 'text-sm'} ${isMobile ? 'line-clamp-3' : 'line-clamp-4'}`}>
             {alert.summary}
           </p>
         )}
 
         {/* Actions */}
-        <div className={`flex items-center ${isMobile ? 'justify-end' : 'justify-between'} mb-3`}>
-          {!isMobile && (
-            <div className="text-xs text-muted-foreground">
-              Real-time regulatory alert
-            </div>
-          )}
-          <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
+        <div className={`flex items-center ${isMobile ? 'justify-between' : 'justify-between'} mb-3 ${isMobile ? 'flex-wrap gap-2' : ''}`}>
+          <div className="text-xs text-muted-foreground">
+            Real-time regulatory alert
+          </div>
+          <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'} ${isMobile ? 'flex-wrap' : ''}`}>
             <Button
               onClick={handlePerplexitySearch}
               disabled={isEnhancing}

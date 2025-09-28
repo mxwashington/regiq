@@ -66,7 +66,7 @@ export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -79,7 +79,7 @@ export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
       </div>
 
       {/* Feed */}
-      <div className="space-y-4">
+      <div className="space-y-4 w-full">
         {alerts.length === 0 ? (
           <Card className="p-8 text-center">
             <div className="space-y-4">
