@@ -217,7 +217,7 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Search className="h-5 w-5" />
-            <span>AI Regulatory Search</span>
+            <span>Ask RegIQ</span>
           </CardTitle>
           <CardDescription>
             Search for real-time regulatory intelligence using AI and official government databases
@@ -225,12 +225,12 @@ export function SearchInterface({ alerts, onSaveAlert, savedAlerts }: SearchInte
         </CardHeader>
         <CardContent className="space-y-4">
           <Tabs value={searchType} onValueChange={(value) => setSearchType(value as any)}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="ai" className="flex items-center gap-2">
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-2 md:h-10">
+              <TabsTrigger value="ai" className="flex items-center gap-2 w-full justify-start md:justify-center">
                 <Globe className="h-4 w-4" />
                 AI Intelligence
               </TabsTrigger>
-              <TabsTrigger value="combined" className="flex items-center gap-2">
+              <TabsTrigger value="combined" className="flex items-center gap-2 w-full justify-start md:justify-center">
                 <Zap className="h-4 w-4" />
                 AI + FDA Data
               </TabsTrigger>
