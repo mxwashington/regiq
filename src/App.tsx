@@ -15,7 +15,7 @@ import { DashboardErrorBoundary } from "@/components/DashboardErrorBoundary";
 
 // Core pages only - lazy loaded with error boundaries
 const Landing = React.lazy(() => import("./pages/Landing").catch(() => ({ default: () => <div>Landing unavailable</div> })));
-const UserDashboard = React.lazy(() => import("./pages/UserDashboard").catch(() => ({ default: () => <div>Dashboard unavailable</div> })));
+const MainDashboard = React.lazy(() => import("./components/MainDashboard").then(m => ({ default: m.MainDashboard })).catch(() => ({ default: () => <div>Dashboard unavailable</div> })));
 const Auth = React.lazy(() => import("./pages/Auth").catch(() => ({ default: () => <div>Auth unavailable</div> })));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback").catch(() => ({ default: () => <div>Callback unavailable</div> })));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard").catch(() => ({ default: () => <div>Admin unavailable</div> })));
@@ -96,7 +96,7 @@ function App() {
                             <Routes>
                               {/* Core Routes */}
                               <Route path="/" element={<Landing />} />
-                              <Route path="/dashboard" element={<UserDashboard />} />
+                              <Route path="/dashboard" element={<MainDashboard />} />
                               <Route path="/auth" element={<Auth />} />
                               <Route path="/auth/callback" element={<AuthCallback />} />
                               <Route path="/admin" element={<AdminDashboard />} />

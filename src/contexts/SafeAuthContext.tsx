@@ -125,7 +125,7 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id, is_admin, role, permissions') // Include admin fields
+        .select('user_id, is_admin, role, admin_permissions, subscription_tier, subscription_end') // Include admin and subscription fields
         .eq('user_id', userId)
         .single();
 
@@ -194,34 +194,36 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
       return;
     }
 
-// Comment out broken database queries to fix build
-    // const profileData = await safeProfileQuery(userIdToUse, 'admin check');
-
-    // Mock profile data for now to fix build
-    const profileData = {
-      is_admin: false,
-      role: null,
-      permissions: [],
-      subscription_tier: 'growth',
-      subscription_end: null
-    };
+    // Restore database query for admin checking
+    const profileData = await safeProfileQuery(userIdToUse, 'admin check');
 
     if (profileData) {
       setState(prev => ({
         ...prev,
         isAdmin: Boolean(profileData.is_admin),
         adminRole: profileData.role || null,
-        adminPermissions: Array.isArray(profileData.permissions) ? profileData.permissions : [],
-        subscribed: true, // Enable subscribed status for all authenticated users
+        adminPermissions: Array.isArray(profileData.admin_permissions) ? profileData.admin_permissions : [],
+        subscribed: Boolean(profileData.subscription_tier), // Check if user has subscription tier
         subscriptionTier: profileData.subscription_tier || 'growth', // Default to growth for trial users
         subscriptionEnd: profileData.subscription_end || null
       }));
     } else {
-      // If no profile data exists, still give authenticated users trial access
+      // Fallback when profile query fails - check for known admin emails
+      const knownAdminEmails = ['marcus@regiq.org', 'marcus@fsqahelp.org'];
+      const isKnownAdmin = user?.email && knownAdminEmails.includes(user.email);
+
+      safeLogger.warn('Profile query failed, using fallback admin detection', {
+        userEmail: user?.email,
+        isKnownAdmin
+      });
+      // Set fallback admin status for known admin emails
       setState(prev => ({
         ...prev,
+        isAdmin: isKnownAdmin,
+        adminRole: isKnownAdmin ? 'super_admin' : null,
+        adminPermissions: isKnownAdmin ? ['super_admin'] : [],
         subscribed: true,
-        subscriptionTier: 'growth', // Trial access for authenticated users
+        subscriptionTier: isKnownAdmin ? 'enterprise' : 'growth', // Enterprise for admins, growth for others
         subscriptionEnd: null
       }));
     }

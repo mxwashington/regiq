@@ -1,13 +1,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  AlertCircle, 
-  Search, 
-  Bookmark, 
+import {
+  AlertCircle,
+  Search,
+  Bookmark,
   Brain,
   TrendingUp,
-  Building2,
+  User,
   ChevronRight
 } from 'lucide-react';
 
@@ -45,10 +45,10 @@ export function DashboardNavigation({
       badge: savedItemsCount > 0 ? savedItemsCount : undefined
     },
     {
-      id: 'facilities',
-      label: 'Facilities',
-      icon: Building2,
-      description: 'Multi-facility management'
+      id: 'account',
+      label: 'Account',
+      icon: User,
+      description: 'Account settings and preferences'
     },
     {
       id: 'risk',

@@ -6,12 +6,17 @@ import { SearchInterface } from './SearchInterface';
 import { ThirdShiftAI } from '@/components/stubs/MissingComponents';
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
+import { ConversationalChatbot } from './ConversationalChatbot';
+import { TrialGate } from './TrialGate';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useAlertFilters } from '@/hooks/useAlertFilters';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
 import { Button } from '@/components/ui/button';
-import { Filter, X } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Filter, X, User, Settings, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface DashboardFilters {
   timePeriod?: string;
@@ -24,13 +29,36 @@ export function MainDashboard() {
   const [activeTab, setActiveTab] = useState('alerts');
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>({});
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
-  // Use alert filters hook for filtering
+  // Auth and filtering
+  const { user } = useAuth();
   const { filters } = useAlertFilters();
-  
+
   // Fetch all alerts with current filters
   const { alerts, loading, error, totalCount } = useSimpleAlerts(50, filters);
   const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
+
+  // Simple freshness indicator logic
+  const getDataFreshness = () => {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+    // Check if we have recent alerts
+    const recentAlerts = alerts.filter(alert =>
+      new Date(alert.published_date) >= oneHourAgo
+    ).length;
+
+    if (recentAlerts > 0) {
+      return { status: 'fresh', label: 'Fresh', icon: CheckCircle, color: 'text-green-600' };
+    } else if (alerts.length > 0) {
+      return { status: 'stale', label: 'Updating...', icon: Clock, color: 'text-yellow-600' };
+    } else {
+      return { status: 'error', label: 'Check Connection', icon: AlertCircle, color: 'text-red-600' };
+    }
+  };
+
+  const freshness = getDataFreshness();
   
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -104,6 +132,38 @@ export function MainDashboard() {
         );
       case 'thirdshift':
         return <ThirdShiftAI />;
+      case 'account':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>
+                Manage your account settings and preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p><strong>Email:</strong> {user?.email}</p>
+                <p><strong>User ID:</strong> {user?.id}</p>
+              </div>
+              <div className="space-y-2">
+                <Button asChild className="w-full">
+                  <a href="/account">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Account Settings
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsChatOpen(true)}
+                  className="w-full"
+                >
+                  💬 Ask AI Assistant
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
       default:
         return (
           <RegIQFeed
@@ -137,14 +197,21 @@ export function MainDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <TrialGate>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Regulatory Intelligence Dashboard
-            </h1>
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <h1 className="text-3xl font-bold text-foreground">
+                Regulatory Intelligence Dashboard
+              </h1>
+              <Badge variant="outline" className={`${freshness.color} border-current`}>
+                <freshness.icon className="h-3 w-3 mr-1" />
+                {freshness.label}
+              </Badge>
+            </div>
             <p className="text-muted-foreground">
               Stay informed with real-time regulatory updates from FDA, USDA, EPA, and more
             </p>
@@ -239,6 +306,13 @@ export function MainDashboard() {
           </div>
         </div>
       </div>
+
+      {/* AI Chatbot */}
+      <ConversationalChatbot
+        isOpen={isChatOpen}
+        onToggle={() => setIsChatOpen(!isChatOpen)}
+      />
     </div>
+    </TrialGate>
   );
 }
