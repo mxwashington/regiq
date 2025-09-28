@@ -82,12 +82,6 @@ serve(async (req) => {
     const emailError = null; // Placeholder for email sending
     
     logger.info(`Would send lifecycle email to ${userEmail}: ${subject}`);
-      html: emailHtml,
-    });
-
-    if (emailError) {
-      throw emailError;
-    }
 
     logStep("Email sent successfully", { type, userId, email: userEmail });
 
