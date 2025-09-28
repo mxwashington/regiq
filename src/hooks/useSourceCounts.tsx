@@ -33,6 +33,7 @@ export const useSourceCounts = () => {
           USDA: 0,
           FSIS: 0,
           Federal_Register: 0,
+          CDC: 0,
         };
         
         data?.forEach(alert => {

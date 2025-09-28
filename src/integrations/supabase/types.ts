@@ -463,6 +463,66 @@ export type Database = {
         }
         Relationships: []
       }
+      alerts_archive: {
+        Row: {
+          agency: string | null
+          ai_summary: string | null
+          created_at: string | null
+          data_classification: string | null
+          dismissed_by: string[] | null
+          external_url: string | null
+          full_content: string | null
+          id: string | null
+          perplexity_processed: boolean | null
+          published_date: string | null
+          region: string | null
+          source: string | null
+          summary: string | null
+          title: string | null
+          updated_at: string | null
+          urgency: string | null
+          urgency_score: number | null
+        }
+        Insert: {
+          agency?: string | null
+          ai_summary?: string | null
+          created_at?: string | null
+          data_classification?: string | null
+          dismissed_by?: string[] | null
+          external_url?: string | null
+          full_content?: string | null
+          id?: string | null
+          perplexity_processed?: boolean | null
+          published_date?: string | null
+          region?: string | null
+          source?: string | null
+          summary?: string | null
+          title?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          urgency_score?: number | null
+        }
+        Update: {
+          agency?: string | null
+          ai_summary?: string | null
+          created_at?: string | null
+          data_classification?: string | null
+          dismissed_by?: string[] | null
+          external_url?: string | null
+          full_content?: string | null
+          id?: string | null
+          perplexity_processed?: boolean | null
+          published_date?: string | null
+          region?: string | null
+          source?: string | null
+          summary?: string | null
+          title?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          urgency_score?: number | null
+        }
+        Relationships: []
+      }
       alerts_summary: {
         Row: {
           created_at: string
