@@ -104,7 +104,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message,
+        error: (error as any)?.message || 'Unknown error',
         details: 'Failed to generate risk prediction'
       }),
       { 
@@ -166,7 +166,7 @@ async function getHistoricalData(supabase: any, entityType: string, entityId: st
     
   } catch (error) {
     logger.error('Error fetching historical data:', error);
-    historicalData.error = error.message;
+    historicalData.error = (error as any)?.message || 'Unknown error';
   }
 
   return historicalData;

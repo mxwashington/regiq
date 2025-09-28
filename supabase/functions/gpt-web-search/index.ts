@@ -80,7 +80,7 @@ serve(async (req) => {
       cacheKey = btoa(safeQuery).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
       logStep("Cache key generated successfully", { cacheKey });
     } catch (error) {
-      logStep("Cache key generation failed, using fallback", { error: error.message });
+      logStep("Cache key generation failed, using fallback", { error: (error as any)?.message || 'Unknown error' });
       cacheKey = btoa(searchRequest.query.replace(/[^\w\s-]/g, '')).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
     }
 
@@ -311,7 +311,7 @@ async function performWebSearch(query: string): Promise<SearchResult[]> {
     return results;
     
   } catch (error) {
-    logStep("Web search error", { error: error.message });
+    logStep("Web search error", { error: (error as any)?.message || 'Unknown error' });
     // Return empty results if search fails
     return [];
   }

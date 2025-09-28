@@ -133,7 +133,7 @@ serve(async (req) => {
 
     if (!perplexityResponse.ok) {
       const errorText = await perplexityResponse.text();
-      logger.error('Perplexity API error:', perplexityResponse.status, errorText);
+      logger.error('Perplexity API error:', `${perplexityResponse.status} - ${errorText}`);
       throw new Error(`Perplexity API error: ${perplexityResponse.status}`);
     }
 
@@ -183,7 +183,7 @@ serve(async (req) => {
     }
     
     return new Response(JSON.stringify({
-      error: error.message,
+      error: (error as any)?.message || 'Unknown error',
       timestamp: new Date().toISOString()
     }), {
       status: 500,

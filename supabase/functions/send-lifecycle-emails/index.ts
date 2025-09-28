@@ -27,7 +27,7 @@ const logStep = (step: string, details?: any) => {
   logger.info(`[LIFECYCLE-EMAILS] ${step}`, details || '');
 };
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+// const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

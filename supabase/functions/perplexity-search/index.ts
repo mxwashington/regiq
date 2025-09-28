@@ -77,7 +77,7 @@ serve(async (req) => {
       cacheKey = btoa(safeQuery).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
       logStep("Cache key generated successfully", { cacheKey });
     } catch (error) {
-      logStep("Cache key generation failed, using fallback", { error: error.message });
+      logStep("Cache key generation failed, using fallback", { error: (error as any)?.message || 'Unknown error' });
       cacheKey = btoa(searchRequest.query.replace(/[^\w\s-]/g, '')).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
     }
     const cacheExpiry = new Date();
@@ -224,7 +224,7 @@ serve(async (req) => {
 
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
+      if ((error as any)?.name === 'AbortError') {
         logStep("Perplexity API request timed out");
         throw new Error('Request timed out. Please try again with a shorter query.');
       }

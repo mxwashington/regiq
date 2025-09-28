@@ -102,7 +102,7 @@ serve(async (req) => {
     logger.error('Secure regulatory proxy error:', error);
     
     return new Response(JSON.stringify({
-      error: error.message,
+      error: (error as any)?.message || 'Unknown error',
       timestamp: new Date().toISOString()
     }), {
       status: 500,

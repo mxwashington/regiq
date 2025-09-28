@@ -268,8 +268,8 @@ async function performWebSearch(query: string, agencies?: string[]): Promise<Web
             error: errorText 
           });
         }
-      } catch (tavilyError) {
-        logStep("Tavily search failed", { error: tavilyError.message });
+      } catch (tavilyError: any) {
+        logStep("Tavily search failed", { error: tavilyError?.message || 'Unknown error' });
       }
     } else {
       logStep("No Tavily API key found, using fallback");
@@ -295,8 +295,8 @@ async function performWebSearch(query: string, agencies?: string[]): Promise<Web
             logStep("Added FDA API recall results", { count: fdaData.results.length });
           }
         }
-      } catch (fdaError) {
-        logStep("FDA API call failed", { error: fdaError.message });
+      } catch (fdaError: any) {
+        logStep("FDA API call failed", { error: fdaError?.message || 'Unknown error' });
       }
     }
 
@@ -337,8 +337,8 @@ async function performWebSearch(query: string, agencies?: string[]): Promise<Web
     logStep("Web search completed", { resultsCount: results.length });
     return results;
     
-  } catch (error) {
-    logStep("Web search error", { error: error.message });
+  } catch (error: any) {
+    logStep("Web search error", { error: error?.message || 'Unknown error' });
     return [];
   }
 }
@@ -442,7 +442,7 @@ async function searchDatabaseAlerts(supabaseClient: any, query: string, agencies
     return freshAlerts;
     
   } catch (error) {
-    logStep("Database search error", { error: error.message });
+    logStep("Database search error", { error: (error as any)?.message || 'Unknown error' });
     return [];
   }
 }
@@ -475,7 +475,7 @@ async function searchRSSFeeds(supabaseClient: any, query: string, agencies?: str
     return dataSources || [];
     
   } catch (error) {
-    logStep("RSS feeds search error", { error: error.message });
+    logStep("RSS feeds search error", { error: (error as any)?.message || 'Unknown error' });
     return [];
   }
 }

@@ -173,7 +173,7 @@ serve(async (req) => {
   } catch (error) {
     logger.error('Error in regulatory gap detector:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: (error as any)?.message || 'Unknown error',
       success: false 
     }), {
       status: 500,

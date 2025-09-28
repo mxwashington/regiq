@@ -231,10 +231,6 @@ async function deliverAlert(
     // });
     logger.info(`Would send email to ${profile.email}: ${alert.urgency}: ${alert.title}`);
 
-    if (emailError) {
-      throw emailError;
-    }
-
     // Mark as delivered
     const { error: updateError } = await supabaseClient
       .from('alert_delivery_queue')
