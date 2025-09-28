@@ -352,11 +352,11 @@ export const AdminDataManager: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="manual" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="manual">Manual Sync</TabsTrigger>
-              <TabsTrigger value="all">All Sources</TabsTrigger>
-              <TabsTrigger value="fda">FDA Food</TabsTrigger>
-              <TabsTrigger value="fsis">USDA FSIS</TabsTrigger>
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-4 md:h-10">
+              <TabsTrigger value="manual" className="w-full justify-start md:justify-center">Manual Sync</TabsTrigger>
+              <TabsTrigger value="all" className="w-full justify-start md:justify-center">All Sources</TabsTrigger>
+              <TabsTrigger value="fda" className="w-full justify-start md:justify-center">FDA Food</TabsTrigger>
+              <TabsTrigger value="fsis" className="w-full justify-start md:justify-center">USDA FSIS</TabsTrigger>
             </TabsList>
 
             <TabsContent value="manual" className="space-y-4">

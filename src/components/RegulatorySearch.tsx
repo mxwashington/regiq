@@ -198,20 +198,20 @@ export function RegulatorySearch() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Tabs value={filters.searchType} onValueChange={(value) => setFilters(prev => ({ ...prev, searchType: value }))}>
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-2">
-              <TabsTrigger value="general" className="flex items-center gap-2 px-3 py-2 text-sm">
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-4 md:h-10 gap-1 p-2">
+              <TabsTrigger value="general" className="flex items-center gap-2 px-3 py-2 text-sm w-full justify-start md:justify-center">
                 <Search className="h-4 w-4 shrink-0" />
                 <span>General</span>
               </TabsTrigger>
-              <TabsTrigger value="recalls" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <TabsTrigger value="recalls" className="flex items-center gap-2 px-3 py-2 text-sm w-full justify-start md:justify-center">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
                 <span>Recalls</span>
               </TabsTrigger>
-              <TabsTrigger value="deadlines" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <TabsTrigger value="deadlines" className="flex items-center gap-2 px-3 py-2 text-sm w-full justify-start md:justify-center">
                 <Calendar className="h-4 w-4 shrink-0" />
                 <span>Deadlines</span>
               </TabsTrigger>
-              <TabsTrigger value="guidance" className="flex items-center gap-2 px-3 py-2 text-sm">
+              <TabsTrigger value="guidance" className="flex items-center gap-2 px-3 py-2 text-sm w-full justify-start md:justify-center">
                 <FileText className="h-4 w-4 shrink-0" />
                 <span>Guidance</span>
               </TabsTrigger>
