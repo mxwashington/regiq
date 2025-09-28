@@ -1,7 +1,7 @@
 // Source mapping utilities for filtering
 // Maps database source names to filter categories
 
-export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register';
+export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC';
 
 // Maps database sources to filter categories
 export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
@@ -9,6 +9,7 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
   'EPA': 'EPA',
   'USDA': 'USDA', 
   'FSIS': 'FSIS',
+  'CDC': 'CDC',
   'Federal Register': 'Federal_Register',
   'Federal_Register': 'Federal_Register',
 };
@@ -19,6 +20,7 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
   'EPA': ['EPA'],
   'USDA': ['USDA'],
   'FSIS': ['FSIS'],
+  'CDC': ['CDC'],
   'Federal_Register': ['Federal Register', 'Federal_Register'],
 };
 
@@ -63,6 +65,12 @@ export const AGENCY_CONFIG = {
     fullName: 'Food Safety Inspection Service',
     color: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
     selectedColor: 'bg-purple-600 text-white hover:bg-purple-700',
+  },
+  CDC: {
+    label: 'CDC',
+    fullName: 'Centers for Disease Control',
+    color: 'bg-teal-100 text-teal-800 hover:bg-teal-200',
+    selectedColor: 'bg-teal-600 text-white hover:bg-teal-700',
   },
   Federal_Register: {
     label: 'Fed Register',

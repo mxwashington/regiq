@@ -4,6 +4,7 @@ export const AVAILABLE_AGENCIES = [
   "EPA",
   "USDA", 
   "FSIS",
+  "CDC",
   "Federal_Register"
 ] as const;
 
@@ -20,6 +21,8 @@ export const getAgencyDisplayName = (agency: string): string => {
       return 'USDA';
     case 'EPA':
       return 'EPA';
+    case 'CDC':
+      return 'CDC';
     default:
       return agency;
   }
@@ -34,6 +37,7 @@ export const doesSourceMatchAgency = (source: string, agency: string): boolean =
   if (agency === 'USDA' && (sourceLower.includes('usda') || sourceLower.includes('fsis'))) return true;
   if (agency === 'FSIS' && sourceLower.includes('fsis')) return true;
   if (agency === 'EPA' && sourceLower.includes('epa')) return true;
+  if (agency === 'CDC' && sourceLower.includes('cdc')) return true;
   if (agency === 'Federal_Register' && sourceLower.includes('federal')) return true;
   
   return sourceLower.includes(agencyLower) || sourceLower === agency;
