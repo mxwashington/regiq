@@ -46,8 +46,8 @@ export function DataFreshnessIndicator() {
   const triggerDataCollection = async (source: string) => {
     setTriggering(source);
     try {
-      const { error } = await supabase.functions.invoke('regulatory-data-pipeline', {
-        body: { scheduled: false, force_source: source }
+      const { error } = await supabase.functions.invoke('enhanced-regulatory-data-collection', {
+        body: { manual_trigger: true, force_source: source }
       });
 
       if (error) throw error;

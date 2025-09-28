@@ -60,11 +60,9 @@ export const AdminAlertManager = () => {
 
   const triggerDataCollection = async () => {
     try {
-      // Trigger all data collection functions
+      // Trigger enhanced data collection function
       const functions = [
-        'regulatory-data-pipeline',
-        'rss-alert-scraper', 
-        'regulatory-feeds-scraper'
+        'enhanced-regulatory-data-collection'
       ];
 
       for (const functionName of functions) {
