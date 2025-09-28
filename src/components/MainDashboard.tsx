@@ -107,28 +107,34 @@ export function MainDashboard() {
   // Get ThirdShift status from error boundary or service
   const thirdShiftStatus = 'connected'; // TODO: Implement real status check
 
+  // Handle save alert - convert Alert object to alertId string
+  const handleSaveAlert = (alert: any) => {
+    const alertId = typeof alert === 'string' ? alert : alert.id;
+    toggleSaveAlert(alertId);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'alerts':
         return (
           <RegIQFeed
-            onSaveAlert={toggleSaveAlert}
-            savedAlerts={savedAlerts}
+            onSaveAlert={handleSaveAlert}
+            savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
           />
         );
       case 'search':
         return (
           <SearchInterface 
             alerts={alerts}
-            onSaveAlert={toggleSaveAlert}
-            savedAlerts={savedAlerts}
+            onSaveAlert={(alertId: string) => toggleSaveAlert(alertId)}
+            savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
           />
         );
       case 'saved':
         return (
           <SavedItems 
-            savedAlerts={savedAlerts}
-            onUnsaveAlert={toggleSaveAlert}
+            savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
+            onUnsaveAlert={handleSaveAlert}
           />
         );
       case 'risk':
@@ -170,8 +176,8 @@ export function MainDashboard() {
       default:
         return (
           <RegIQFeed
-            onSaveAlert={toggleSaveAlert}
-            savedAlerts={savedAlerts}
+            onSaveAlert={handleSaveAlert}
+            savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
           />
         );
     }
