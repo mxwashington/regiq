@@ -5,7 +5,7 @@ import { RegIQFeed } from './RegIQFeed';
 import { SearchInterface } from './SearchInterface';
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
-import { ConversationalChatbot } from './ConversationalChatbot';
+
 import { TrialGate } from './TrialGate';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
@@ -30,7 +30,7 @@ export function MainDashboard() {
   const [activeTab, setActiveTab] = useState('alerts');
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>({});
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  
 
   // Auth and filtering
   const { user } = useAuth();
@@ -155,13 +155,6 @@ export function MainDashboard() {
                     Account Settings
                   </a>
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsChatOpen(true)}
-                  className="w-full"
-                >
-                  💬 Ask AI Assistant
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -238,21 +231,9 @@ export function MainDashboard() {
       {/* Content with Filter Sidebar */}
       <div className="container mx-auto px-4 py-6">
         <div className="flex gap-6 relative">
-          {/* Filter Sidebar - Desktop */}
+          {/* Filter Toggle Button */}
           <div className={cn(
-            "hidden lg:block lg:w-80 flex-shrink-0 transition-all duration-300",
-            activeTab === 'alerts' || activeTab === 'search' ? 'block' : 'hidden'
-          )}>
-            {(activeTab === 'alerts' || activeTab === 'search') && (
-              <div className="sticky top-6">
-                <AgencyFilter />
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Filter Toggle */}
-          <div className={cn(
-            "lg:hidden fixed top-4 right-4 z-40",
+            "fixed top-4 left-4 z-40",
             activeTab === 'alerts' || activeTab === 'search' ? 'block' : 'hidden'
           )}>
             <Button
@@ -271,10 +252,10 @@ export function MainDashboard() {
             </Button>
           </div>
 
-          {/* Mobile Filter Sidebar - Slide in from right */}
+          {/* Filter Sidebar - Slide in from left */}
           <div className={cn(
-            "lg:hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 max-w-[85vw] bg-background border-l shadow-2xl z-20 transform transition-transform duration-300 ease-in-out",
-            isFilterSidebarOpen ? "translate-x-0" : "translate-x-full"
+            "fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 max-w-[85vw] bg-background border-r shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
+            isFilterSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}>
             <div className="p-4 h-full flex flex-col">
               <div className="flex items-center justify-between mb-4 flex-shrink-0">
@@ -293,10 +274,10 @@ export function MainDashboard() {
             </div>
           </div>
 
-          {/* Mobile Filter Backdrop */}
+          {/* Filter Backdrop */}
           {isFilterSidebarOpen && (
             <div 
-              className="lg:hidden fixed inset-0 bg-black/20 z-40 top-16" 
+              className="fixed inset-0 bg-black/20 z-40 top-16" 
               onClick={() => setIsFilterSidebarOpen(false)}
             />
           )}
@@ -318,9 +299,9 @@ export function MainDashboard() {
                 </div>
               )}
 
-              {/* Filter Status Bar for Mobile */}
+              {/* Filter Status Bar */}
               {(activeTab === 'alerts' || activeTab === 'search') && (
-                <div className="lg:hidden mb-4 p-3 bg-muted/30 rounded-lg">
+                <div className="mb-4 p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
                       {totalCount === 0 ? 'No alerts to display' : `Showing ${totalCount} alerts`}
@@ -357,11 +338,6 @@ export function MainDashboard() {
       {/* Support Widget */}
       <SupportWidget />
 
-      {/* AI Chatbot */}
-      <ConversationalChatbot
-        isOpen={isChatOpen}
-        onToggle={() => setIsChatOpen(!isChatOpen)}
-      />
     </div>
     </TrialGate>
   );
