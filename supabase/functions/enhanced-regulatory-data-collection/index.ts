@@ -339,7 +339,10 @@ async function fetchFederalRegisterRegulations(): Promise<ProcessedAlert[]> {
             region: 'US',
             agency: item.agencies?.[0]?.name?.includes('Environmental Protection') ? 'EPA' : 
                    item.agencies?.[0]?.name?.includes('Food and Drug') ? 'FDA' : 
-                   item.agencies?.[0]?.name?.includes('Agriculture') || item.agencies?.[0]?.name?.includes('Animal and Plant') ? 'USDA' : 
+                   (item.agencies?.[0]?.name?.includes('Agriculture') || item.agencies?.[0]?.name?.includes('Animal and Plant')) ? 'USDA' : 
+                   agency === 'environmental-protection-agency' ? 'EPA' :
+                   agency === 'food-and-drug-administration' ? 'FDA' :
+                   agency === 'animal-and-plant-health-inspection-service' ? 'USDA' :
                    'Federal',
             data_classification: 'live'
           });

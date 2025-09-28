@@ -25,6 +25,7 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
   
   // FSIS sources (specialized USDA)
   'FSIS': 'FSIS',
+  'FSIS Recalls': 'FSIS',
   'FSIS Meat & Poultry Recalls': 'FSIS',
   
   // CDC sources
@@ -43,7 +44,7 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
   'FDA': ['FDA', 'FDA Warning Letters', 'FDA Enforcement Reports', 'FDA Safety Communications', 'Health and Human Services Department'],
   'EPA': ['EPA', 'EPA ECHO Enforcement', 'EPA Enforcement Actions', 'Environmental Protection Agency'],
   'USDA': ['USDA', 'USDA Food Safety Alerts', 'USDA FSIS Recalls'],
-  'FSIS': ['FSIS', 'FSIS Meat & Poultry Recalls'],
+  'FSIS': ['FSIS', 'FSIS Recalls', 'FSIS Meat & Poultry Recalls'],
   'CDC': ['CDC', 'CDC Health Advisories', 'CDC Food Safety Alerts'],
   'Federal_Register': ['Federal Register', 'Federal_Register', 'Federal Register Rules'],
 };

@@ -21,7 +21,7 @@ export const useSourceCounts = () => {
         // Fetch source counts from recent alerts (last 90 days)
         const { data, error } = await supabase
           .from('alerts')
-          .select('source')
+          .select('source, agency')
           .gte('published_date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
 
         if (error) throw error;
@@ -38,7 +38,7 @@ export const useSourceCounts = () => {
         
         data?.forEach(alert => {
           if (alert.source) {
-            const filterCategory = getFilterCategory(alert.source);
+            const filterCategory = getFilterCategory(alert.source, alert.agency);
             if (filterCategory) {
               counts[filterCategory] = (counts[filterCategory] || 0) + 1;
             }
