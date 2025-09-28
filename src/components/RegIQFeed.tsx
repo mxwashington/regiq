@@ -3,54 +3,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { RegIQMobileFilters } from '@/components/stubs/MissingComponents';
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
 import { useAlertFilters } from "@/hooks/useAlertFilters";
-// import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  Calendar, 
-  ExternalLink, 
-  ChevronDown, 
-  ChevronUp, 
+import {
+  Calendar,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
   Share2,
   Brain,
   TrendingUp,
   AlertTriangle,
   Info,
-  Filter,
-  X,
   CheckCircle,
   Bookmark,
-  Search,
   Globe
 } from "lucide-react";
-import { RegIQDesktopFilters } from "./RegIQDesktopFilters";
 import { ThirdShiftStatusIndicator } from "./ThirdShiftStatusIndicator";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
 
 import { logger } from '@/lib/logger';
-
-// Simple inline mobile hook to fix runtime error
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 768;
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return isMobile;
-}
 
 interface RegIQAlert {
   id: string;
@@ -67,29 +39,7 @@ interface RegIQAlert {
   tags: string[];
 }
 
-interface RegIQFilters {
-  timePeriod: string;
-  agencies: string[];
-  industries: string[];
-  priorities: string[];
-  signalTypes: string[];
-}
-
-const defaultFilters: RegIQFilters = {
-  timePeriod: "Last 30 days",
-  agencies: [],
-  industries: [],
-  priorities: [],
-  signalTypes: []
-};
-
 interface RegIQFeedProps {
-  initialFilters?: {
-    timePeriod?: string;
-    priorities?: string[];
-    agencies?: string[];
-    showSavedOnly?: boolean;
-  };
   onSaveAlert?: (alertId: string) => void;
   savedAlerts?: any[];
 }
@@ -216,63 +166,59 @@ const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   const now = new Date();
   const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-  
-  if (diffInMinutes < 60) {
+
+  if (diffInMinutes < 0) {
+    // Handle future dates (might be timezone issues)
+    return "Just published";
+  } else if (diffInMinutes < 60) {
     return `${diffInMinutes}m ago`;
   } else if (diffInMinutes < 1440) {
     return `${Math.floor(diffInMinutes / 60)}h ago`;
   } else if (diffInMinutes < 10080) { // 7 days
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   } else {
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   }
 };
 
-const filterByTimePeriod = (alerts: RegIQAlert[], timePeriod: string): RegIQAlert[] => {
-  if (timePeriod === "All time") return alerts;
-  
+const getAlertFreshness = (dateString: string) => {
+  const date = new Date(dateString);
   const now = new Date();
-  let cutoffDate = new Date();
-  
-  switch (timePeriod) {
-    case "Last 24 hours":
-      cutoffDate.setHours(now.getHours() - 24);
-      break;
-    case "Last 7 days":
-      cutoffDate.setDate(now.getDate() - 7);
-      break;
-    case "Last 30 days":
-      cutoffDate.setDate(now.getDate() - 30);
-      break;
-    case "Last 90 days":
-      cutoffDate.setDate(now.getDate() - 90);
-      break;
-    default:
-      return alerts;
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+
+  if (diffInMinutes < 60) {
+    return { level: 'new', label: 'NEW', color: 'bg-green-500 text-white' };
+  } else if (diffInMinutes < 720) { // 12 hours
+    return { level: 'recent', label: 'RECENT', color: 'bg-blue-500 text-white' };
+  } else if (diffInMinutes < 1440) { // 24 hours
+    return { level: 'today', label: 'TODAY', color: 'bg-orange-500 text-white' };
   }
-  
-  return alerts.filter(alert => new Date(alert.published_date) >= cutoffDate);
+  return null;
 };
 
-export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: RegIQFeedProps = {}) {
+const isAlertNew = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+  return diffInHours < 1; // Consider alerts less than 1 hour old as "new"
+};
+
+
+export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [readItems, setReadItems] = useState<Set<string>>(new Set());
-  const [filters, setFilters] = useState<RegIQFilters>({
-    ...defaultFilters,
-    timePeriod: initialFilters?.timePeriod || defaultFilters.timePeriod,
-    priorities: initialFilters?.priorities || [],
-    agencies: initialFilters?.agencies || []
-  });
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const isMobile = useIsMobile();
 
-  // Use alert filters hook for filtering 
+  // Use alert filters hook for filtering
   const { filters: alertFilters } = useAlertFilters();
-  
-  // Fetch alerts data with filters
+
+  // Fetch alerts data with filters (filtering is done at the hook level)
   const { alerts: fetchedAlerts, loading } = useSimpleAlerts(50, alertFilters);
 
-  // Convert to RegIQ format
+  // Convert to RegIQ format - filtering is already handled by useAlertFilters
   const alerts = useMemo(() => {
     const converted = (fetchedAlerts || []).map(convertToRegIQAlert);
     logger.info('[RegIQFeed] Converted alerts:', {
@@ -283,77 +229,6 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
     });
     return converted;
   }, [fetchedAlerts, loading]);
-
-  // Apply filters
-  const filteredAlerts = useMemo(() => {
-    let filtered = alerts;
-    logger.info('[RegIQFeed] Starting filter process:', {
-      totalAlerts: alerts.length,
-      filters,
-      sampleAlert: alerts[0]
-    });
-
-    // Time period filter
-    filtered = filterByTimePeriod(filtered, filters.timePeriod);
-    logger.info('[RegIQFeed] After time filter:', filtered.length);
-
-    // Agency filter - Enhanced to handle all agencies dynamically
-    if (filters.agencies.length > 0) {
-      filtered = filtered.filter(alert => {
-        const source = alert.source.toLowerCase();
-        const agency = alert.agency?.toLowerCase() || '';
-        
-        return filters.agencies.some(selectedAgency => {
-          const selectedLower = selectedAgency.toLowerCase();
-          
-          // Direct match with source or agency field
-          if (source === selectedLower || agency === selectedLower) return true;
-          
-          // Partial match for source
-          if (source.includes(selectedLower)) return true;
-          
-          // Special mappings for known agencies
-          if (selectedAgency === 'USDA' && (source.includes('usda') || source.includes('fsis'))) return true;
-          if (selectedAgency === 'FSIS' && source.includes('fsis')) return true;
-          if (selectedAgency === 'FDA' && source.includes('fda')) return true;
-          if (selectedAgency === 'CDC' && source.includes('cdc')) return true;
-          if (selectedAgency === 'EPA' && source.includes('epa')) return true;
-          if (selectedAgency === 'MHRA' && source.includes('mhra')) return true;
-          if (selectedAgency === 'WHO' && source.includes('who')) return true;
-          if (selectedAgency === 'Federal_Register' && source.includes('federal')) return true;
-          if (selectedAgency === 'Health_Canada' && source.includes('health_canada')) return true;
-          
-          return false;
-        });
-      });
-      logger.info('[RegIQFeed] After agency filter:', filtered.length);
-    }
-
-    // Industry filter
-    if (filters.industries.length > 0) {
-      filtered = filtered.filter(alert => filters.industries.includes(alert.industry));
-      logger.info('[RegIQFeed] After industry filter:', filtered.length);
-    }
-
-    // Priority filter
-    if (filters.priorities.length > 0) {
-      filtered = filtered.filter(alert => filters.priorities.includes(alert.urgency));
-      logger.info('[RegIQFeed] After priority filter:', filtered.length);
-    }
-
-    // Signal type filter
-    if (filters.signalTypes.length > 0) {
-      filtered = filtered.filter(alert => filters.signalTypes.includes(alert.signal_type));
-      logger.info('[RegIQFeed] After signal type filter:', filtered.length);
-    }
-
-    logger.info('[RegIQFeed] Final filtered alerts:', {
-      count: filtered.length,
-      sampleTitles: filtered.slice(0, 3).map(a => a.title)
-    });
-
-    return filtered;
-  }, [alerts, filters]);
 
   const toggleExpanded = (itemId: string) => {
     const newExpanded = new Set(expandedItems);
@@ -392,17 +267,6 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
     }
   };
 
-  const clearAllFilters = () => {
-    setFilters(defaultFilters);
-  };
-
-  const getActiveFilterCount = () => {
-    return filters.agencies.length + 
-           filters.industries.length + 
-           filters.priorities.length + 
-           filters.signalTypes.length +
-           (filters.timePeriod !== "Last 30 days" ? 1 : 0);
-  };
 
   if (loading) {
     return (
@@ -422,68 +286,46 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
         <div>
           <h1 className="text-2xl font-bold">RegIQ Feed</h1>
           <p className="text-muted-foreground">
-            {filteredAlerts.length} regulatory updates • Real-time intelligence
+            {alerts.length} regulatory updates • Real-time intelligence
           </p>
         </div>
         <ThirdShiftStatusIndicator />
       </div>
 
-      {/* Filters */}
-      {isMobile ? (
-        <>
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={() => setMobileFiltersOpen(true)}
-              className="relative"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-              {getActiveFilterCount() > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                >
-                  {getActiveFilterCount()}
-                </Badge>
-              )}
-            </Button>
-            {getActiveFilterCount() > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllFilters}
-              >
-                Clear All
-              </Button>
-            )}
-          </div>
-          <RegIQMobileFilters
-            isOpen={mobileFiltersOpen}
-            onClose={() => setMobileFiltersOpen(false)}
-            filters={filters}
-            onFiltersChange={setFilters}
-          />
-        </>
-      ) : (
-        <RegIQDesktopFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          onClearAll={clearAllFilters}
-        />
-      )}
 
       {/* Feed */}
       <div className="space-y-4">
-        {filteredAlerts.map((alert) => {
+        {alerts.length === 0 ? (
+          <Card className="p-8 text-center">
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                <Globe className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">No alerts found</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  {alertFilters.searchQuery
+                    ? "No alerts match your search criteria. Try adjusting your filters or search terms."
+                    : "No alerts match your current filters. Try expanding your date range or including more sources."
+                  }
+                </p>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          alerts.map((alert) => {
           const isExpanded = expandedItems.has(alert.id);
           const isRead = readItems.has(alert.id);
+          const freshness = getAlertFreshness(alert.published_date);
+          const isNew = isAlertNew(alert.published_date);
 
           return (
-            <Card 
-              key={alert.id} 
-              className={`overflow-hidden hover:shadow-md transition-shadow ${
+            <Card
+              key={alert.id}
+              className={`overflow-hidden hover:shadow-md transition-all duration-200 ${
                 isRead ? 'opacity-75' : ''
+              } ${
+                isNew ? 'ring-2 ring-green-200 shadow-lg' : ''
               }`}
             >
               <Collapsible>
@@ -492,10 +334,17 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
                     <div className="flex-1 space-y-3">
                       {/* Badges Row */}
                       <div className="flex items-center gap-2 flex-wrap">
+                        {/* Freshness Badge - Show first if present */}
+                        {freshness && (
+                          <Badge className={`text-xs font-medium ${freshness.color} animate-pulse`}>
+                            {freshness.label}
+                          </Badge>
+                        )}
+
                         <Badge className={`text-xs border ${getAgencyColor(alert.source)}`}>
                           {alert.source}
                         </Badge>
-                        
+
                         <Badge className={`text-xs border ${getPriorityColor(alert.urgency)}`}>
                           {getPriorityIcon(alert.urgency)}
                           <span className="ml-1">{alert.urgency}</span>
@@ -516,9 +365,7 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
                       </div>
 
                       {/* Title */}
-                      <h3 className={`text-lg font-semibold leading-tight hover:text-primary transition-colors cursor-pointer ${
-                        isMobile ? 'text-base' : ''
-                      }`}>
+                      <h3 className="text-lg font-semibold leading-tight hover:text-primary transition-colors cursor-pointer">
                         {alert.title}
                       </h3>
 
@@ -647,24 +494,7 @@ export function RegIQFeed({ initialFilters, onSaveAlert, savedAlerts = [] }: Reg
               </Collapsible>
             </Card>
           );
-        })}
-
-        {filteredAlerts.length === 0 && (
-          <Card className="p-8 text-center">
-            <div className="space-y-3">
-              <h4 className="font-medium text-lg">No regulatory updates found</h4>
-              <p className="text-muted-foreground">
-                Try adjusting your filters to see more results. Our AI is continuously monitoring for new updates.
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={clearAllFilters}
-                className="mt-4"
-              >
-                Clear All Filters
-              </Button>
-            </div>
-          </Card>
+          })
         )}
       </div>
     </div>
