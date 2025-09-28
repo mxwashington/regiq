@@ -30,9 +30,9 @@ export function DashboardNavigation({
     },
     {
       id: 'search',
-      label: 'Search',
+      label: 'AskRegIQ',
       icon: Search,
-      description: 'Find specific alerts and regulations'
+      description: 'Ask RegIQ questions about regulations'
     },
     {
       id: 'saved',
