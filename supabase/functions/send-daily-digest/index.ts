@@ -139,7 +139,7 @@ serve(async (req) => {
 
     let sent = 0;
     for (const user of users || []) {
-      if (!user.profiles?.email) continue;
+      if (!user.profiles?.[0]?.email) continue;
       
       try {
         const subject = alerts?.length 
@@ -153,11 +153,11 @@ serve(async (req) => {
         //   subject,
         //   html: htmlFor(alerts || [], user.profiles.full_name),
         // });
-        logger.info(`Would send email to ${user.profiles.email}: ${subject}`);
+        logger.info(`Would send email to ${user.profiles[0].email}: ${subject}`);
         sent++;
       } catch (e) {
         logStep("Error sending to recipient", { 
-          email: user.profiles?.email, 
+          email: user.profiles[0]?.email, 
           error: String(e) 
         });
       }

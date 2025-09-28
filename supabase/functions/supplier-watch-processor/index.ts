@@ -182,7 +182,7 @@ serve(async (req) => {
         } catch (error) {
           logStep("Error processing alert for suppliers", { 
             alertId: alert.id, 
-            error: error.message 
+            error: error instanceof Error ? error.message : String(error) 
           });
         }
       }

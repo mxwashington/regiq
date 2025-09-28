@@ -125,7 +125,7 @@ function mapFSIS(item: any): Alert {
     category: 'recall',
     severity,
     raw: item,
-    hash: computeAlertHash('FSIS', externalId, null, datePublished)
+    hash: computeAlertHash('FSIS', externalId, undefined, datePublished)
   };
 }
 
@@ -255,13 +255,13 @@ async function syncAlerts(): Promise<SyncResult[]> {
           fdaResult.errors.push(`Failed to upsert FDA alert ${alert.external_id}`);
         }
       } catch (error) {
-        fdaResult.errors.push(`Failed to process FDA item: ${error.message}`);
+        fdaResult.errors.push(`Failed to process FDA item: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
     fdaResult.success = fdaResult.errors.length === 0 || (fdaResult.alertsInserted + fdaResult.alertsUpdated) > 0;
   } catch (error) {
-    fdaResult.errors.push(`FDA sync failed: ${error.message}`);
+    fdaResult.errors.push(`FDA sync failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   fdaResult.endTime = new Date().toISOString();
@@ -301,7 +301,7 @@ async function syncAlerts(): Promise<SyncResult[]> {
           fsisResult.errors.push(`Failed to upsert FSIS alert ${alert.external_id}`);
         }
       } catch (error) {
-        fsisResult.errors.push(`Failed to process FSIS item: ${error.message}`);
+        fsisResult.errors.push(`Failed to process FSIS item: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 

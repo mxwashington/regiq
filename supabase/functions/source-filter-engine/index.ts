@@ -124,7 +124,7 @@ class SourceFilterEngine {
           source: source_filter.source_type,
           success: false,
           data: [],
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
         cache_misses++;
       }
@@ -489,7 +489,7 @@ serve(async (req) => {
     logger.error('Error in source-filter-engine function:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         results: [],
         total_results: 0,
         execution_time_ms: 0,
