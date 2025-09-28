@@ -107,7 +107,7 @@ serve(async (req) => {
       JSON.stringify({ 
         allowed: false, 
         reason: 'Validation error',
-        error: error.message 
+        error: error instanceof Error ? error.message : String(error) 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

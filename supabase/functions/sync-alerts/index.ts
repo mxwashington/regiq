@@ -307,7 +307,7 @@ async function syncAlerts(): Promise<SyncResult[]> {
 
     fsisResult.success = fsisResult.errors.length === 0 || (fsisResult.alertsInserted + fsisResult.alertsUpdated) > 0;
   } catch (error) {
-    fsisResult.errors.push(`FSIS sync failed: ${error.message}`);
+    fsisResult.errors.push(`FSIS sync failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   fsisResult.endTime = new Date().toISOString();
@@ -351,7 +351,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
       }),
       {

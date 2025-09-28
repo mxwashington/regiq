@@ -1264,15 +1264,10 @@ Deno.serve(async (req) => {
         logStep('Background processing completed');
       };
 
-      // Use EdgeRuntime.waitUntil to process background sources
-      if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
-        EdgeRuntime.waitUntil(backgroundProcessor());
-      } else {
-        // Fallback: start background processing without awaiting
-        backgroundProcessor().catch(error => 
-          logStep('Background processing failed:', error)
-        );
-      }
+      // Queue background processing for after response
+      backgroundProcessor().catch(error => 
+        logStep('Background processing failed:', error)
+      );
     }
 
     // Update data freshness tracking

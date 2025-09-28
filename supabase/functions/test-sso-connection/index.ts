@@ -81,7 +81,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: false, 
         message: 'Connection test failed',
-        error: error.message 
+        error: error instanceof Error ? error.message : String(error) 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

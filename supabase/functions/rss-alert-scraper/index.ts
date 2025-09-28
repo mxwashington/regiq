@@ -90,10 +90,10 @@ async function fetchRSSFeed(feed: RSSFeed): Promise<any[]> {
 
     for (const item of items) {
       try {
-        const title = (item as Element).querySelector('title')?.textContent?.trim() || '';
-        const description = (item as Element).querySelector('description')?.textContent?.trim() || '';
-        const link = (item as Element).querySelector('link')?.textContent?.trim() || '';
-        const pubDate = (item as Element).querySelector('pubDate')?.textContent?.trim() || '';
+        const title = (item as any).querySelector('title')?.textContent?.trim() || '';
+        const description = (item as any).querySelector('description')?.textContent?.trim() || '';
+        const link = (item as any).querySelector('link')?.textContent?.trim() || '';
+        const pubDate = (item as any).querySelector('pubDate')?.textContent?.trim() || '';
         
         if (title && description) {
           results.push({
