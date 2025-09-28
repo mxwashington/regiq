@@ -4,7 +4,7 @@ import { DashboardNavigation } from './DashboardNavigation';
 import { RegIQFeed } from './RegIQFeed';
 import { SearchInterface } from './SearchInterface';
 import { RiskIntelligenceDashboard } from './RiskIntelligenceDashboard';
-import { ThirdShiftAI } from './ThirdShiftAI';
+
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
 import { ConversationalChatbot } from './ConversationalChatbot';
@@ -104,9 +104,6 @@ export function MainDashboard() {
     setDashboardFilters({});
   }, []);
 
-  // Get ThirdShift status from error boundary or service
-  const thirdShiftStatus = 'connected'; // TODO: Implement real status check
-
   // Handle save alert - convert Alert object to alertId string
   const handleSaveAlert = (alert: any) => {
     const alertId = typeof alert === 'string' ? alert : alert.id;
@@ -139,8 +136,6 @@ export function MainDashboard() {
         );
       case 'risk':
         return <RiskIntelligenceDashboard />;
-      case 'thirdshift':
-        return <ThirdShiftAI />;
       case 'account':
         return (
           <Card>
@@ -240,7 +235,6 @@ export function MainDashboard() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         savedItemsCount={savedAlerts.length}
-        thirdShiftStatus={thirdShiftStatus}
       />
 
       {/* Content with Filter Sidebar */}

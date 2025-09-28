@@ -10,22 +10,6 @@ export const AuthTestingPanel: React.FC = () => (
   </Card>
 );
 
-export const AIComplianceChat: React.FC = () => (
-  <Card>
-    <CardContent className="p-4">
-      AI Compliance Chat - Component not implemented
-    </CardContent>
-  </Card>
-);
-
-export const ThirdShiftAI: React.FC = () => (
-  <Card>
-    <CardContent className="p-4">
-      Third Shift AI - Component not implemented
-    </CardContent>
-  </Card>
-);
-
 export const ErrorBoundaryEnhanced: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div>{children}</div>
 );

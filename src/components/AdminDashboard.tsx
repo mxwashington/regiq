@@ -10,7 +10,7 @@ import { AdminAlertManager } from "./AdminAlertManager";
 import { DataPipelineManager } from "./DataPipelineManager";
 import { SessionHealthMonitor } from "./SessionHealthMonitor";
 import { PWASettings } from "./PWASettings";
-import { ThirdShiftChatbot } from "./ThirdShiftChatbot";
+import { ConversationalChatbot } from "./ConversationalChatbot";
 import { AlertSourceFinder } from "./AlertSourceFinder";
 import { SourceLinkManager } from "./SourceLinkManager";
 
@@ -101,7 +101,7 @@ export const AdminDashboard = () => {
                 <p className="text-muted-foreground">
                   Interactive AI assistant for regulatory intelligence and compliance queries.
                 </p>
-                <ThirdShiftChatbot 
+                <ConversationalChatbot 
                   isOpen={isChatbotOpen} 
                   onToggle={() => setIsChatbotOpen(!isChatbotOpen)} 
                 />

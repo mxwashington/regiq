@@ -5,7 +5,6 @@ import {
   AlertCircle,
   Search,
   Bookmark,
-  Brain,
   TrendingUp,
   User,
   ChevronRight
@@ -15,14 +14,12 @@ interface DashboardNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   savedItemsCount?: number;
-  thirdShiftStatus?: 'connected' | 'error' | 'loading';
 }
 
 export function DashboardNavigation({ 
   activeTab, 
   onTabChange, 
-  savedItemsCount = 0,
-  thirdShiftStatus = 'connected'
+  savedItemsCount = 0
 }: DashboardNavigationProps) {
   const tabs = [
     {
@@ -55,23 +52,8 @@ export function DashboardNavigation({
       label: 'Risk Intelligence',
       icon: TrendingUp,
       description: 'Food safety risk prediction and analysis'
-    },
-    {
-      id: 'thirdshift',
-      label: 'ThirdShift AI',
-      icon: Brain,
-      description: 'AI-powered regulatory analysis',
-      status: thirdShiftStatus
     }
   ];
-
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'error': return 'text-red-500';
-      case 'loading': return 'text-yellow-500';
-      default: return 'text-green-500';
-    }
-  };
 
   return (
     <div className="border-b bg-background">
@@ -90,7 +72,7 @@ export function DashboardNavigation({
               onClick={() => onTabChange(tab.id)}
             >
               <div className="flex items-center gap-3 w-full">
-                <Icon className={`h-4 w-4 ${tab.status ? getStatusColor(tab.status) : ''}`} />
+                <Icon className="h-4 w-4" />
                 <div className="flex flex-col items-start">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{tab.label}</span>
@@ -98,9 +80,6 @@ export function DashboardNavigation({
                       <Badge variant="secondary" className="text-xs">
                         {tab.badge}
                       </Badge>
-                    )}
-                    {tab.status === 'loading' && (
-                      <div className="w-3 h-3 border border-yellow-500 border-t-transparent rounded-full animate-spin" />
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground hidden sm:block">
