@@ -17,6 +17,13 @@ const safeLogger = {
     } catch (e) {
       console.error('[AUTH] Log error:', e);
     }
+  },
+  warn: (...args: any[]) => {
+    try {
+      console.warn('[AUTH]', ...args);
+    } catch (e) {
+      console.warn('[AUTH] Log error:', e);
+    }
   }
 };
 
@@ -30,6 +37,8 @@ interface AuthContextType {
   isHealthy: boolean;
   lastError: string | null;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   checkAdminStatus: () => Promise<void>;
 }
@@ -125,7 +134,7 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id, is_admin, role, admin_permissions, subscription_tier, subscription_end') // Include admin and subscription fields
+        .select('user_id, is_admin, role, admin_permissions')
         .eq('user_id', userId)
         .single();
 
@@ -167,6 +176,55 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Sign in with email and password
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    try {
+      safeLogger.info('Signing in with password for:', email);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        safeLogger.error('Password sign in error:', error);
+        return { error };
+      }
+
+      safeLogger.info('Password sign in successful');
+      return { error: null };
+    } catch (error) {
+      safeLogger.error('Password sign in error:', error);
+      return { error };
+    }
+  }, []);
+
+  // Sign up with email and password
+  const signUp = useCallback(async (email: string, password: string) => {
+    try {
+      safeLogger.info('Signing up user:', email);
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        safeLogger.error('Sign up error:', error);
+        return { error };
+      }
+
+      safeLogger.info('Sign up successful');
+      return { error: null };
+    } catch (error) {
+      safeLogger.error('Sign up error:', error);
+      return { error };
+    }
+  }, []);
+
   // Enhanced sign out with proper cleanup
   const signOut = useCallback(async () => {
     try {
@@ -203,17 +261,17 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
         isAdmin: Boolean(profileData.is_admin),
         adminRole: profileData.role || null,
         adminPermissions: Array.isArray(profileData.admin_permissions) ? profileData.admin_permissions : [],
-        subscribed: Boolean(profileData.subscription_tier), // Check if user has subscription tier
-        subscriptionTier: profileData.subscription_tier || 'growth', // Default to growth for trial users
-        subscriptionEnd: profileData.subscription_end || null
+        subscribed: Boolean(profileData.is_admin), // Admins are subscribed
+        subscriptionTier: profileData.is_admin ? 'enterprise' : 'growth',
+        subscriptionEnd: null
       }));
     } else {
       // Fallback when profile query fails - check for known admin emails
       const knownAdminEmails = ['marcus@regiq.org', 'marcus@fsqahelp.org'];
-      const isKnownAdmin = user?.email && knownAdminEmails.includes(user.email);
+      const isKnownAdmin = state.user?.email && knownAdminEmails.includes(state.user.email);
 
       safeLogger.warn('Profile query failed, using fallback admin detection', {
-        userEmail: user?.email,
+        userEmail: state.user?.email,
         isKnownAdmin
       });
       // Set fallback admin status for known admin emails
@@ -367,6 +425,8 @@ function SafeAuthProviderInner({ children }: { children: React.ReactNode }) {
     isHealthy: state.isHealthy,
     lastError: state.lastError,
     signInWithMagicLink,
+    signInWithPassword,
+    signUp,
     signOut,
     checkAdminStatus,
   };

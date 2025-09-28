@@ -17,7 +17,8 @@ import {
   Info,
   CheckCircle,
   Bookmark,
-  Globe
+  Globe,
+  Search
 } from "lucide-react";
 import { ThirdShiftStatusIndicator } from "./ThirdShiftStatusIndicator";
 import { searchForAlert, isValidSourceUrl } from "@/lib/alert-search";
