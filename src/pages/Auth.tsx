@@ -38,7 +38,7 @@ export default function Auth() {
           .single();
         
         if (profile?.is_admin) {
-          navigateTo('/admin/dashboard');
+          navigateTo('/admin');
         } else {
           navigateTo('/dashboard');
         }
@@ -257,11 +257,11 @@ export default function Auth() {
             <SSOLoginButtons 
               onSuccess={() => {
                 if (email === 'marcus@regiq.org') {
-                  navigateTo('/admin/dashboard');
+                  navigateTo('/admin');
                 } else {
                   navigateTo('/dashboard');
                 }
-              }} 
+              }}
             />
             
             <div className="space-y-4">
