@@ -266,30 +266,42 @@ export function MainDashboard() {
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters
+              {filters.sources.length > 0 && filters.sources.length < 10 && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {filters.sources.length}
+                </Badge>
+              )}
             </Button>
           </div>
 
-          {/* Mobile Filter Sidebar Overlay */}
-          {isFilterSidebarOpen && (
-            <div className="lg:hidden fixed inset-0 z-50 bg-black/50" onClick={() => setIsFilterSidebarOpen(false)}>
-              <div className="fixed right-0 top-0 h-full w-80 max-w-[90vw] bg-background shadow-xl transform transition-transform overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                <div className="p-4 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                    <h2 className="text-lg font-semibold">Filters</h2>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsFilterSidebarOpen(false)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex-1 overflow-y-auto">
-                    <AgencyFilter />
-                  </div>
-                </div>
+          {/* Mobile Filter Sidebar - Slide in from right */}
+          <div className={cn(
+            "lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-background border-l shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
+            isFilterSidebarOpen ? "translate-x-0" : "translate-x-full"
+          )}>
+            <div className="p-4 h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <h2 className="text-lg font-semibold">Filters</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsFilterSidebarOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <AgencyFilter />
               </div>
             </div>
+          </div>
+
+          {/* Mobile Filter Backdrop */}
+          {isFilterSidebarOpen && (
+            <div 
+              className="lg:hidden fixed inset-0 bg-black/20 z-40" 
+              onClick={() => setIsFilterSidebarOpen(false)}
+            />
           )}
 
           {/* Main Content */}
@@ -306,10 +318,21 @@ export function MainDashboard() {
                   <span className="text-muted-foreground">
                     Showing {totalCount} alerts
                   </span>
-                  <span className="text-muted-foreground">
-                    {filters.sources.length < 5 ? `${filters.sources.length} sources` : 'All sources'}
-                    {filters.searchQuery && ' • Filtered'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {filters.sources.length > 0 && filters.sources.length < 10 && (
+                      <Badge variant="outline" className="text-xs">
+                        {filters.sources.length} sources
+                      </Badge>
+                    )}
+                    {filters.searchQuery && (
+                      <Badge variant="outline" className="text-xs">
+                        Search: {filters.searchQuery.slice(0, 10)}...
+                      </Badge>
+                    )}
+                    {filters.sources.length === 0 && !filters.searchQuery && (
+                      <span className="text-muted-foreground text-xs">All sources</span>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
