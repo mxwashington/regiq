@@ -109,36 +109,43 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
               const count = sourceCounts[source];
 
               return (
-                <div
-                  key={source}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id={`source-${source}`}
-                      checked={isSelected}
-                      onCheckedChange={() => toggleSource(source)}
-                      disabled={isLoading}
-                      aria-label={`${isSelected ? 'Remove' : 'Add'} ${config.fullName} alerts`}
-                    />
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor={`source-${source}`}
-                        className="text-sm font-medium cursor-pointer"
-                      >
-                        {config.label}
-                      </label>
-                      <span className="text-xs text-muted-foreground">
-                        {config.fullName}
-                      </span>
+                  <div
+                    key={source}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors touch-target"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id={`source-${source}`}
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSource(source)}
+                        disabled={isLoading}
+                        aria-label={`${isSelected ? 'Remove' : 'Add'} ${config.fullName} alerts`}
+                        className="touch-target"
+                      />
+                      <div className="flex flex-col">
+                        <label
+                          htmlFor={`source-${source}`}
+                          className="text-sm font-medium cursor-pointer touch-target"
+                        >
+                          {config.label}
+                        </label>
+                        <span className="text-xs text-muted-foreground">
+                          {config.fullName}
+                        </span>
+                      </div>
                     </div>
+                    {count !== undefined ? (
+                      <Badge variant="secondary" className="text-xs">
+                        {count}
+                      </Badge>
+                    ) : countsLoading ? (
+                      <div className="w-6 h-4 bg-muted animate-pulse rounded" />
+                    ) : (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        0
+                      </Badge>
+                    )}
                   </div>
-                  {count !== undefined && (
-                    <Badge variant="secondary" className="text-xs">
-                      {count}
-                    </Badge>
-                  )}
-                </div>
               );
             })}
           </div>

@@ -5,7 +5,6 @@ import { RegIQFeed } from './RegIQFeed';
 import { SearchInterface } from './SearchInterface';
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
-import { SourceMappingDebug } from './debug/SourceMappingDebug';
 import { ConversationalChatbot } from './ConversationalChatbot';
 import { TrialGate } from './TrialGate';
 import { useAuth } from '@/contexts/AuthContext';
@@ -302,35 +301,51 @@ export function MainDashboard() {
             />
           )}
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0 relative z-10">
-            {/* Temporary Debug Component */}
-            <div className="mb-4">
-              <SourceMappingDebug />
-            </div>
+            {/* Main Content */}
+            <div className="flex-1 min-w-0 relative z-10">
+              {/* Show empty state if no alerts */}
+              {!loading && totalCount === 0 && !error && (
+                <div className="mb-4 p-6 text-center bg-muted/30 rounded-lg">
+                  <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <h3 className="font-medium text-muted-foreground mb-2">No alerts available</h3>
+                  <p className="text-sm text-muted-foreground">
+                    The alerts database appears to be empty. This is normal for new installations.
+                  </p>
+                  <Button variant="outline" className="mt-3" onClick={() => window.location.reload()}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Refresh Data
+                  </Button>
+                </div>
+              )}
 
-            {/* Filter Status Bar for Mobile */}
-            {(activeTab === 'alerts' || activeTab === 'search') && (
-              <div className="lg:hidden mb-4 p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Showing {totalCount} alerts
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {filters.sources.length > 0 && filters.sources.length < 10 && (
-                      <Badge variant="outline" className="text-xs">
-                        {filters.sources.length} sources
-                      </Badge>
-                    )}
-                    {filters.searchQuery && (
-                      <Badge variant="outline" className="text-xs">
-                        Search: {filters.searchQuery.slice(0, 10)}...
-                      </Badge>
-                    )}
-                    {filters.sources.length === 0 && !filters.searchQuery && (
-                      <span className="text-muted-foreground text-xs">All sources</span>
-                    )}
-                  </div>
+              {/* Filter Status Bar for Mobile */}
+              {(activeTab === 'alerts' || activeTab === 'search') && (
+                <div className="lg:hidden mb-4 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {totalCount === 0 ? 'No alerts to display' : `Showing ${totalCount} alerts`}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {totalCount === 0 ? (
+                        <span className="text-muted-foreground text-xs">Database appears empty</span>
+                      ) : (
+                        <>
+                          {filters.sources.length > 0 && filters.sources.length < 7 && (
+                            <Badge variant="outline" className="text-xs">
+                              {filters.sources.length} sources
+                            </Badge>
+                          )}
+                          {filters.searchQuery && (
+                            <Badge variant="outline" className="text-xs">
+                              Search: {filters.searchQuery.slice(0, 10)}...
+                            </Badge>
+                          )}
+                          {filters.sources.length === 0 && !filters.searchQuery && (
+                            <span className="text-muted-foreground text-xs">All sources</span>
+                          )}
+                        </>
+                      )}
+                    </div>
                 </div>
               </div>
             )}

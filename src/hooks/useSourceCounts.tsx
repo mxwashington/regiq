@@ -23,7 +23,26 @@ export const useSourceCounts = () => {
         .select('source, agency, title')
         .gte('published_date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
 
-      if (error) throw error;
+      if (error) {
+        console.error('Source counts fetch error:', error);
+        throw error;
+      }
+
+      // If no data, that's not an error - just no alerts yet
+      if (!data || data.length === 0) {
+        logger.info('[useSourceCounts] No alerts found in database');
+        setSourceCounts({
+          FDA: 0,
+          EPA: 0,
+          USDA: 0,
+          FSIS: 0,
+          Federal_Register: 0,
+          CDC: 0,
+          REGULATIONS_GOV: 0
+        });
+        setError(null);
+        return;
+      }
 
       // Group by filter category and count
       const counts: Record<AgencySource, number> = {
@@ -85,7 +104,15 @@ export const useSourceCounts = () => {
   };
 
   useEffect(() => {
+    // Only fetch if database has data or this is the first load
     fetchSourceCounts();
+    
+    // Set up periodic refresh every 5 minutes
+    const interval = setInterval(() => {
+      fetchSourceCounts();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const refetch = () => {
