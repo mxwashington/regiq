@@ -635,7 +635,7 @@ export class ComprehensiveAlertSyncService {
   }> {
     const { data: summaryData } = await supabase
       .from('alerts_summary')
-      .select('*');
+      .select('source, total_alerts, recent_alerts');
 
     const { data: lastSync } = await supabase
       .from('alert_sync_logs')

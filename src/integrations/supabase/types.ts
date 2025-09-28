@@ -3482,6 +3482,75 @@ export type Database = {
         }
         Relationships: []
       }
+      alerts_summary: {
+        Row: {
+          source: string
+          total_alerts: number
+          recent_alerts: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          source: string
+          total_alerts?: number
+          recent_alerts?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          source?: string
+          total_alerts?: number
+          recent_alerts?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      alert_sync_logs: {
+        Row: {
+          id: string
+          source: string
+          status: string
+          run_started: string
+          run_finished: string | null
+          alerts_fetched: number | null
+          alerts_inserted: number | null
+          alerts_updated: number | null
+          alerts_skipped: number | null
+          errors: string[] | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          source: string
+          status?: string
+          run_started?: string
+          run_finished?: string | null
+          alerts_fetched?: number | null
+          alerts_inserted?: number | null
+          alerts_updated?: number | null
+          alerts_skipped?: number | null
+          errors?: string[] | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          source?: string
+          status?: string
+          run_started?: string
+          run_finished?: string | null
+          alerts_fetched?: number | null
+          alerts_inserted?: number | null
+          alerts_updated?: number | null
+          alerts_skipped?: number | null
+          errors?: string[] | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -3942,6 +4011,7 @@ export type Database = {
       start_sync_log: {
         Args: {
           p_source: string
+          p_metadata?: Json
         }
         Returns: string
       }
@@ -3949,9 +4019,36 @@ export type Database = {
         Args: {
           p_log_id: string
           p_status: string
+          p_alerts_fetched?: number
+          p_alerts_inserted?: number
+          p_alerts_updated?: number
+          p_alerts_skipped?: number
+          p_errors?: string[]
           p_results?: Json
         }
         Returns: void
+      }
+      upsert_alert: {
+        Args: {
+          p_external_id: string
+          p_source: string
+          p_title: string
+          p_summary: string
+          p_link_url: string | null
+          p_date_published: string
+          p_date_updated: string | null
+          p_jurisdiction: string | null
+          p_locations: string[] | null
+          p_product_types: string[] | null
+          p_category: string
+          p_severity: string
+          p_raw: Json
+          p_hash: string
+        }
+        Returns: {
+          action: string
+          id: string
+        }[]
       }
     }
     Enums: {
