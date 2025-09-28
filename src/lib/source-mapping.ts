@@ -56,21 +56,14 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
 
 // Get filter category from database source name
 export function getFilterCategory(databaseSource: string, alertAgency?: string): AgencySource | null {
-  // Handle Federal Register and other multi-agency sources
-  if (databaseSource === 'Federal Register' && alertAgency) {
-    if (alertAgency === 'EPA') return 'EPA';
-    if (alertAgency === 'FDA') return 'FDA'; 
-    if (alertAgency === 'USDA') return 'USDA';
+  // Always prioritize source mapping first - Federal Register alerts stay as Federal Register
+  // regardless of their agency classification
+  const directSourceMapping = SOURCE_TO_FILTER_MAP[databaseSource];
+  if (directSourceMapping) {
+    return directSourceMapping;
   }
   
-  // Handle Enhanced Federal Register Rules
-  if (databaseSource === 'Enhanced Federal Register Rules' && alertAgency) {
-    if (alertAgency === 'EPA') return 'EPA';
-    if (alertAgency === 'FDA') return 'FDA'; 
-    if (alertAgency === 'USDA') return 'USDA';
-  }
-  
-  return SOURCE_TO_FILTER_MAP[databaseSource] || null;
+  return null;
 }
 
 // Get all database source names for a filter category
