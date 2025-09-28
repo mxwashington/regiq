@@ -80,9 +80,8 @@ serve(async (req) => {
 
     // Note: Resend not available in current environment
     const emailError = null; // Placeholder for email sending
-      from: 'RegIQ <hello@regiq.com>',
-      to: [userEmail],
-      subject,
+    
+    logger.info(`Would send lifecycle email to ${userEmail}: ${subject}`);
       html: emailHtml,
     });
 
