@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enhanced Pipeline Trigger</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h2>🚀 Enhanced RegIQ Data Pipeline</h2>
+    
+    <button id="trigger-collection" onclick="triggerCollection()">
+        🔥 Trigger Enhanced Data Collection
+    </button>
+    
+    <button id="check-alerts" onclick="checkAlerts()">
+        📊 Check Recent Alerts
+    </button>
+    
+    <div id="results" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-family: monospace;">
+        <strong>Ready to test the enhanced pipeline...</strong>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://piyikxxgoekawboitrzz.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeWlreHhnb2VrYXdib2l0cnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MDM2MjUsImV4cCI6MjA2ODQ3OTYyNX0.YfgCG-BorBSfyXk4MdIxko9AHT4-ef0MfO24rCpjy94'
+        );
+
+        async function triggerCollection() {
+            const btn = document.getElementById('trigger-collection');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Running Enhanced Collection...';
+            results.innerHTML = '<strong>🔄 Triggering enhanced data collection pipeline...</strong><br>This will fetch from EPA, FSIS, FDA, and Federal Register...';
+            
+            const startTime = Date.now();
+            
+            try {
+                const { data, error } = await supabase.functions.invoke('enhanced-regulatory-data-collection', {
+                    body: { 
+                        manual_trigger: true,
+                        force_refresh: true 
+                    }
+                });
+                
+                const duration = Math.round((Date.now() - startTime) / 1000);
+                
+                if (error) {
+                    results.innerHTML = `<strong style="color: red;">❌ Error (${duration}s):</strong><br>${error.message}`;
+                } else {
+                    results.innerHTML = `
+                        <strong style="color: green;">✅ Success! (${duration}s)</strong><br>
+                        <strong>📊 Results:</strong><br>
+                        • Total Processed: ${data.totalProcessed || 0}<br>
+                        • Total Saved: ${data.totalSaved || 0}<br>
+                        • EPA Alerts: ${data.sources?.epa || 0}<br>
+                        • FSIS Alerts: ${data.sources?.fsis || 0}<br>
+                        • FDA Alerts: ${data.sources?.fda || 0}<br>
+                        • Federal Register: ${data.sources?.federalRegister || 0}<br>
+                        <br><strong>📋 Full Response:</strong><br>
+                        <pre style="background: #e9ecef; padding: 10px; border-radius: 4px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (err) {
+                const duration = Math.round((Date.now() - startTime) / 1000);
+                results.innerHTML = `<strong style="color: red;">❌ Exception (${duration}s):</strong><br>${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔥 Trigger Enhanced Data Collection';
+            }
+        }
+
+        async function checkAlerts() {
+            const btn = document.getElementById('check-alerts');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Checking Alerts...';
+            results.innerHTML = '<strong>🔍 Checking recent alerts from database...</strong>';
+            
+            try {
+                const { data, error } = await supabase
+                    .from('alerts')
+                    .select('id, title, source, agency, urgency, created_at, data_classification')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (error) {
+                    results.innerHTML = `<strong style="color: red;">❌ Database Error:</strong><br>${error.message}`;
+                } else {
+                    const alertsHtml = data.map(alert => `
+                        <div style="border-left: 3px solid ${alert.urgency === 'Critical' ? '#dc3545' : alert.urgency === 'High' ? '#fd7e14' : '#28a745'}; padding: 8px; margin: 8px 0; background: #f8f9fa;">
+                            <strong>${alert.title}</strong><br>
+                            <small>Source: ${alert.source} | Agency: ${alert.agency} | Urgency: ${alert.urgency} | ${new Date(alert.created_at).toLocaleString()}</small>
+                        </div>
+                    `).join('');
+
+                    const liveCount = data.filter(a => a.data_classification === 'live').length;
+                    const demoCount = data.filter(a => a.data_classification === 'demo').length;
+
+                    results.innerHTML = `
+                        <strong style="color: green;">📊 Recent Alerts (Last 10):</strong><br>
+                        <strong>📈 Summary:</strong> ${liveCount} Live | ${demoCount} Demo | Total: ${data.length}<br><br>
+                        ${alertsHtml || '<em>No alerts found</em>'}
+                    `;
+                }
+            } catch (err) {
+                results.innerHTML = `<strong style="color: red;">❌ Exception:</strong><br>${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📊 Check Recent Alerts';
+            }
+        }
+
+        // Auto-check alerts on load
+        setTimeout(checkAlerts, 1000);
+    </script>
+</body>
+</html>
