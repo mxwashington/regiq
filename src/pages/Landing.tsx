@@ -225,7 +225,7 @@ const Landing = () => {
           <div className="text-center mt-8">
             <Button size="lg" className="mb-2" asChild>
               <Link to="/pricing">
-                Start 7-Day Free Trial
+                Get Started Free
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
