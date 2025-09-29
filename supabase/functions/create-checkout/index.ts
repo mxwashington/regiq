@@ -58,12 +58,13 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Map tier to correct pricing (cents) - Growth $29, Professional $199
+    // Map tier to correct pricing (cents) - Growth $29, Professional $199, Teams $147 (3 seats)
     const normalized = (tier || 'growth').toLowerCase();
     const planMap: Record<string, { amount: number; name: string }> = {
       starter: { amount: 0, name: "RegIQ Starter (Free)" },
       growth: { amount: 2900, name: "RegIQ Growth" },
       professional: { amount: 19900, name: "RegIQ Professional" },
+      teams: { amount: 14700, name: "RegIQ Teams (3 seats minimum)" },
     };
     const selectedPlan = planMap[normalized] || planMap.growth;
     logStep("Plan selected", { amount_cents: selectedPlan.amount, name: selectedPlan.name });

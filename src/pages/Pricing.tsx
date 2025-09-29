@@ -25,7 +25,7 @@ const Pricing = () => {
         "description": "Free plan for individual users getting started with compliance"
       },
       {
-        "@type": "Offer", 
+        "@type": "Offer",
         "name": "Growth Plan",
         "price": "29",
         "priceCurrency": "USD",
@@ -37,6 +37,13 @@ const Pricing = () => {
         "price": "199",
         "priceCurrency": "USD",
         "description": "Enterprise-ready for power users with premium support"
+      },
+      {
+        "@type": "Offer",
+        "name": "Teams Plan", 
+        "price": "147",
+        "priceCurrency": "USD",
+        "description": "For compliance teams managing multiple sites (3-seat minimum at $49/seat)"
       }
     ]
   };
@@ -44,9 +51,9 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="RegIQ Pricing: Free Starter, Growth $29/mo, Professional $199/mo"
-        description="Individual compliance professional pricing. Start free with 5 AI summaries/month. Growth at $29/mo with 100 AI summaries. Professional at $199/mo for power users with premium support."
-        keywords="RegIQ pricing, regulatory compliance software cost, FDA alerts subscription, USDA monitoring pricing, EPA regulatory intelligence, compliance software individual plans"
+        title="RegIQ Pricing: Free Starter, Growth $29/mo, Professional $199/mo, Teams $49/seat"
+        description="Individual compliance professional pricing. Start free with 5 AI summaries/month. Growth at $29/mo with 100 AI summaries. Professional at $199/mo. Teams from $147/mo (3-seat minimum)."
+        keywords="RegIQ pricing, regulatory compliance software cost, FDA alerts subscription, USDA monitoring pricing, EPA regulatory intelligence, compliance software individual plans, team compliance software"
         canonical="https://regiq.com/pricing"
       />
       

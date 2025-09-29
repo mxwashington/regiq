@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, ArrowRight, TrendingUp, Shield, Users } from 'lucide-react';
+import { Check, Star, ArrowRight, TrendingUp, Shield, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
 import { cn } from '@/lib/utils';
@@ -88,6 +88,26 @@ export const NewPricingSection: React.FC = () => {
         'Phone support during business hours',
       ],
       cta: 'Get Started',
+    },
+    {
+      id: 'teams',
+      name: 'Teams',
+      monthlyPrice: 147, // Display price: 3 seats × $49
+      annualPrice: 1410, // 3 seats × $470 annual per seat
+      description: 'For compliance teams managing multiple sites or departments',
+      features: [
+        'Everything in Professional, plus:',
+        '3+ user accounts (billed per seat)',
+        '5,000 AI summaries per month (shared team pool)',
+        '2,500 AI searches per month (shared team pool)',
+        'Shared watchlists and saved alerts',
+        'Team activity dashboard',
+        'Centralized billing and admin controls',
+        'Role-based permissions (owner/admin/member)',
+        'Priority support for entire team',
+        'Dedicated account manager (10+ seats)',
+      ],
+      cta: 'Contact Sales',
     },
   ];
 
@@ -181,7 +201,7 @@ export const NewPricingSection: React.FC = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 mt-20 overflow-visible">
+        <div className="relative grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-6 mt-20 overflow-visible">
           {plans.map((plan) => (
             <Card 
               key={plan.id}
@@ -213,6 +233,30 @@ export const NewPricingSection: React.FC = () => {
                 </div>
               )}
 
+              {plan.id === 'teams' && (
+                <div 
+                  className="absolute z-[20] left-1/2 transform -translate-x-1/2"
+                  style={{ top: '-2px' }}
+                >
+                  <div 
+                    className="px-6 py-2 text-white font-semibold uppercase text-xs rounded-full flex items-center gap-2"
+                    style={{
+                      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                      letterSpacing: '1.2px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      padding: '8px 24px',
+                      borderRadius: '20px',
+                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    NEW!
+                  </div>
+                </div>
+              )}
+
               <CardHeader className="text-center pb-4 pt-8">
                 <CardTitle className="text-2xl font-bold mb-2">{plan.name}</CardTitle>
                 
@@ -225,7 +269,13 @@ export const NewPricingSection: React.FC = () => {
                     <span className="text-muted-foreground text-lg">/month</span>
                   </div>
                   
-                  {isAnnual && (
+                  {plan.id === 'teams' && (
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      3 users minimum at ${isAnnual ? 39 : 49}/seat
+                    </div>
+                  )}
+                  
+                  {isAnnual && plan.monthlyPrice > 0 && (
                     <div className="mt-2 space-y-1">
                       <div className="text-lg font-semibold text-primary">
                         ${plan.annualPrice}/year
@@ -242,6 +292,7 @@ export const NewPricingSection: React.FC = () => {
                   {plan.id === 'starter' && 'No credit card required'}
                   {plan.id === 'growth' && 'Cancel anytime'}
                   {plan.id === 'professional' && 'Cancel anytime'}
+                  {plan.id === 'teams' && 'Starting at 3 users'}
                 </p>
               </CardHeader>
 
@@ -252,7 +303,7 @@ export const NewPricingSection: React.FC = () => {
                     <li key={index} className="flex items-start gap-3 text-sm">
                       <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                       <span className={cn(
-                        feature.startsWith('Everything from') ? "font-medium text-primary" : "text-foreground"
+                        feature.startsWith('Everything in') || feature.startsWith('Everything from') ? "font-medium text-primary" : "text-foreground"
                       )}>
                         {feature}
                       </span>
@@ -283,6 +334,14 @@ export const NewPricingSection: React.FC = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Pricing Note */}
+        <div className="text-center mt-12 mb-8">
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            <strong>Need more seats?</strong> Teams pricing scales at $49/seat (monthly) or $39/seat (annual). 
+            Contact us for volume discounts on 20+ users.
+          </p>
         </div>
 
         {/* Trust Signals */}
