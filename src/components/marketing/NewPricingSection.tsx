@@ -13,8 +13,6 @@ interface PricingPlan {
   monthlyPrice: number;
   annualPrice: number;
   description: string;
-  target: string;
-  userLimit: string;
   popular?: boolean;
   features: string[];
   cta: string;
@@ -29,65 +27,65 @@ export const NewPricingSection: React.FC = () => {
     {
       id: 'starter',
       name: 'Starter',
-      monthlyPrice: 179,
-      annualPrice: 1908,
-      description: 'Perfect for small businesses getting started with compliance',
-      target: 'Small businesses, compliance teams',
-      userLimit: 'Up to 3 users',
+      monthlyPrice: 0,
+      annualPrice: 0,
+      description: 'Perfect for individual users getting started with compliance',
       features: [
         'Real-time regulatory alerts (FDA, USDA, EPA, CDC)',
+        'Email and mobile notifications',
         'Basic filtering and search functionality',
         'Mobile-responsive dashboard',
-        'AI alert summarization with Perplexity',
+        '5 AI alert summaries per month (powered by Perplexity)',
+        'Save up to 10 alerts',
         'Source verification and linking',
-        'Email notifications',
-        'User authentication and basic permissions',
-        'Basic customer support (email only)',
+        'Single user account',
+        'Community support',
       ],
-      cta: 'Start Free Trial',
+      cta: 'Start Free',
     },
     {
       id: 'growth',
       name: 'Growth',
-      monthlyPrice: 349,
-      annualPrice: 3718,
-      description: 'Ideal for growing businesses with advanced AI features',
-      target: 'Growing businesses, compliance professionals',
-      userLimit: 'Up to 10 users with role-based permissions',
-      popular: true,
+      monthlyPrice: 29,
+      annualPrice: 309,
+      description: 'Ideal for individual compliance professionals and consultants',
       features: [
-        'Everything from Starter Plan, plus:',
-        'AI-powered regulatory search with Perplexity',
+        'Everything in Starter, plus:',
+        '100 AI alert summaries per month',
+        '20 AI-powered searches per month with Perplexity',
+        'Unlimited passive monitoring and alerts',
         'Conversational AI chatbot for compliance questions',
+        'Save unlimited alerts',
+        'Export alerts to PDF/CSV (up to 50 per month)',
         'Advanced alert filtering and prioritization',
-        'Source enrichment and verification',
-        'Custom alert notifications',
-        'Enhanced user management and permissions',
-        'Phone support during business hours',
-        'Priority email support',
+        'Single user account',
+        'Email support (48-hour response time)',
       ],
       cta: 'Start Free Trial',
     },
     {
       id: 'professional',
       name: 'Professional',
-      monthlyPrice: 549,
-      annualPrice: 5858,
-      description: 'Enterprise-ready organizations with premium support',
-      target: 'Enterprise organizations, large compliance teams',
-      userLimit: 'Unlimited users',
+      monthlyPrice: 199,
+      annualPrice: 2125,
+      description: 'Enterprise-ready for power users with premium support',
+      popular: true,
       features: [
-        'Everything from Growth Plan, plus:',
-        'Unlimited user accounts',
-        'Advanced admin controls and permissions',
-        'Priority regulatory alert delivery',
-        'Enhanced search capabilities and filters',
+        'Everything in Growth, plus:',
+        '1,000 AI alert summaries per month',
+        '500 AI-powered searches per month',
+        'Advanced multi-source search capabilities',
+        'Compliance calendar',
+        'Analytics dashboard',
+        'Priority alert delivery (5-minute vs 15-minute delay)',
+        'Custom alert notifications and grouping',
         'Bulk alert management and actions',
+        'Unlimited exports to PDF/CSV',
+        'API access (5,000 calls per month)',
         'Advanced user activity monitoring',
-        'Custom alert grouping and organization',
-        'Dedicated customer success manager',
-        'Priority phone and email support',
-        'Custom onboarding and training',
+        'Single user account',
+        'Priority email support (24-hour response time)',
+        'Phone support during business hours',
       ],
       cta: 'Start Free Trial',
     },
@@ -119,7 +117,10 @@ export const NewPricingSection: React.FC = () => {
             Choose Your <span className="text-primary">RegIQ</span> Plan
           </h1>
           <p className="text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Transform regulatory compliance into competitive advantage. Most customers save 15+ hours weekly.
+            Individual plans for compliance professionals. Start free, upgrade as you grow.
+          </p>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            Additional AI summaries and searches available. Overage charges capped at next tier price.
           </p>
           
           {/* ROI Highlights */}
@@ -236,8 +237,7 @@ export const NewPricingSection: React.FC = () => {
                   )}
                 </div>
                 
-                <p className="text-muted-foreground text-sm mb-2">{plan.description}</p>
-                <div className="text-xs text-muted-foreground font-medium">{plan.userLimit}</div>
+                <p className="text-muted-foreground text-sm">{plan.description}</p>
               </CardHeader>
 
               <CardContent className="space-y-6">

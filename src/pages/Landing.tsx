@@ -73,8 +73,8 @@ const Landing = () => {
               "operatingSystem": "Web",
               "offers": {
                 "@type": "AggregateOffer",
-                "lowPrice": "99",
-                "highPrice": "799",
+                "lowPrice": "0",
+                "highPrice": "199",
                 "priceCurrency": "USD"
               }
             }
@@ -152,7 +152,7 @@ const Landing = () => {
             <p>❌ LexisNexis: <span className="whitespace-nowrap">Healthcare-focused</span>, requires legal expertise, $75K+ annually</p>
             <p>❌ Thomson Reuters: Banking regulations, complex UI, <span className="whitespace-nowrap">no mobile access</span></p>
             <p>❌ Government websites: <span className="whitespace-nowrap">30-70% search failure rate</span>, <span className="whitespace-nowrap">no cross-referencing</span></p>
-            <p>✅ RegIQ: <span className="whitespace-nowrap">Purpose-built</span> for food manufacturing, <span className="whitespace-nowrap">mobile-first</span>, starts at $99/month</p>
+            <p>✅ RegIQ: <span className="whitespace-nowrap">Purpose-built</span> for food manufacturing, <span className="whitespace-nowrap">mobile-first</span>, starts free</p>
           </div>
         </div>
       </section>
@@ -186,7 +186,7 @@ const Landing = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Brain className="h-5 w-5 text-primary" />
-                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                  <Badge variant="default" className="text-xs">GROWTH+</Badge>
                 </div>
                 <CardTitle className="text-lg">AI-Enhanced Search</CardTitle>
               </CardHeader>
@@ -212,7 +212,7 @@ const Landing = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Bot className="h-5 w-5 text-primary" />
-                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                  <Badge variant="default" className="text-xs">GROWTH+</Badge>
                 </div>
                 <CardTitle className="text-lg">Conversational AI Assistant</CardTitle>
               </CardHeader>
