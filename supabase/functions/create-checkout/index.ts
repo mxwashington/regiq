@@ -58,13 +58,15 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Map tier to correct pricing (cents) - Growth $29, Professional $199, Teams $147 (3 seats)
+    // Map tier to correct pricing (cents) - Growth $29, Professional $199
+    // TODO: Teams tier ($49/seat, 3-seat minimum) requires per-seat billing logic
+    // See TEAMS_INFRASTRUCTURE.md Section 6.2 for full Stripe implementation requirements
     const normalized = (tier || 'growth').toLowerCase();
     const planMap: Record<string, { amount: number; name: string }> = {
       starter: { amount: 0, name: "RegIQ Starter (Free)" },
       growth: { amount: 2900, name: "RegIQ Growth" },
       professional: { amount: 19900, name: "RegIQ Professional" },
-      teams: { amount: 14700, name: "RegIQ Teams (3 seats minimum)" },
+      // teams: { amount: 14700, name: "RegIQ Teams (3 seats minimum)" }, // Hidden until backend ready
     };
     const selectedPlan = planMap[normalized] || planMap.growth;
     logStep("Plan selected", { amount_cents: selectedPlan.amount, name: selectedPlan.name });

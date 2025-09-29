@@ -34,17 +34,19 @@ export const useFeatureAccess = () => {
       case 'priorityAlerts':
         return ['professional', 'teams'].includes(currentPlan);
       
+      // TODO: Teams tier features require organizations table and role-based permissions
+      // See TEAMS_INFRASTRUCTURE.md Section 4 for full requirements
       case 'teamCollaboration':
-        return currentPlan === 'teams';
+        return currentPlan === 'teams'; // Currently non-functional - backend not implemented
       
       case 'sharedWatchlists':
-        return currentPlan === 'teams';
+        return currentPlan === 'teams'; // Currently non-functional - backend not implemented
       
       case 'teamDashboard':
-        return currentPlan === 'teams';
+        return currentPlan === 'teams'; // Currently non-functional - backend not implemented
       
       case 'roleBasedPermissions':
-        return currentPlan === 'teams';
+        return currentPlan === 'teams'; // Currently non-functional - backend not implemented
       
       default:
         return false;

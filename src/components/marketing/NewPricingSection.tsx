@@ -23,6 +23,10 @@ export const NewPricingSection: React.FC = () => {
   const { upgradeToCustomPlan, loading } = useSubscriptionUpgrade();
   const [isAnnual, setIsAnnual] = useState(false);
 
+  // TODO: Teams tier requires organizations table and pooled usage tracking
+  // See TEAMS_INFRASTRUCTURE.md for full requirements
+  // Teams tier is hidden from production until backend infrastructure is built
+  
   const plans: PricingPlan[] = [
     {
       id: 'starter',
@@ -89,26 +93,28 @@ export const NewPricingSection: React.FC = () => {
       ],
       cta: 'Get Started',
     },
-    {
-      id: 'teams',
-      name: 'Teams',
-      monthlyPrice: 147, // Display price: 3 seats × $49
-      annualPrice: 1410, // 3 seats × $470 annual per seat
-      description: 'For compliance teams managing multiple sites or departments',
-      features: [
-        'Everything in Professional, plus:',
-        '3+ user accounts (billed per seat)',
-        '5,000 AI summaries per month (shared team pool)',
-        '2,500 AI searches per month (shared team pool)',
-        'Shared watchlists and saved alerts',
-        'Team activity dashboard',
-        'Centralized billing and admin controls',
-        'Role-based permissions (owner/admin/member)',
-        'Priority support for entire team',
-        'Dedicated account manager (10+ seats)',
-      ],
-      cta: 'Contact Sales',
-    },
+    // Teams tier hidden until backend infrastructure is ready
+    // Requires: organizations table, pooled usage tracking, per-seat billing
+    // {
+    //   id: 'teams',
+    //   name: 'Teams',
+    //   monthlyPrice: 147,
+    //   annualPrice: 1410,
+    //   description: 'For compliance teams managing multiple sites or departments',
+    //   features: [
+    //     'Everything in Professional, plus:',
+    //     '3+ user accounts (billed per seat)',
+    //     '5,000 AI summaries per month (shared team pool)',
+    //     '2,500 AI searches per month (shared team pool)',
+    //     'Shared watchlists and saved alerts',
+    //     'Team activity dashboard',
+    //     'Centralized billing and admin controls',
+    //     'Role-based permissions (owner/admin/member)',
+    //     'Priority support for entire team',
+    //     'Dedicated account manager (10+ seats)',
+    //   ],
+    //   cta: 'Contact Sales',
+    // },
   ];
 
   const handleSubscribe = async (planId: string) => {
@@ -200,8 +206,8 @@ export const NewPricingSection: React.FC = () => {
           )}
         </div>
 
-        {/* Pricing Cards */}
-        <div className="relative grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-6 mt-20 overflow-visible">
+        {/* Pricing Cards - Grid adjusts for 3 tiers (Teams hidden) */}
+        <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 mt-20 overflow-visible">
           {plans.map((plan) => (
             <Card 
               key={plan.id}
@@ -336,13 +342,15 @@ export const NewPricingSection: React.FC = () => {
           ))}
         </div>
 
-        {/* Pricing Note */}
+        {/* Pricing Note - Teams tier hidden */}
+        {/* 
         <div className="text-center mt-12 mb-8">
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
             <strong>Need more seats?</strong> Teams pricing scales at $49/seat (monthly) or $39/seat (annual). 
             Contact us for volume discounts on 20+ users.
           </p>
         </div>
+        */}
 
         {/* Trust Signals */}
         <div className="text-center mt-16 space-y-4">

@@ -65,9 +65,11 @@ export const useUsageLimits = () => {
     return TIER_LIMITS[tier as keyof typeof TIER_LIMITS] || TIER_LIMITS.starter;
   };
 
+  // TODO: Teams tier requires organizations table and pooled usage tracking
+  // See TEAMS_INFRASTRUCTURE.md for full requirements
   const checkAndLogUsage = async (
     usageType: 'ai_summary' | 'ai_search' | 'export' | 'api_call',
-    userTier: 'starter' | 'growth' | 'professional'
+    userTier: 'starter' | 'growth' | 'professional' | 'teams'
   ): Promise<UsageLimitResult> => {
     if (!user?.id) {
       throw new Error('User not authenticated');
@@ -77,6 +79,15 @@ export const useUsageLimits = () => {
     try {
       const limits = getTierLimits(userTier);
       const limit = limits[`${usageType}s` as keyof typeof limits] as number;
+
+      // TODO: For Teams tier, aggregate usage across all organization members
+      // Example implementation:
+      // if (userTier === 'teams') {
+      //   const organizationId = await getOrganizationId(user.id);
+      //   if (organizationId) {
+      //     return await checkOrganizationUsage(organizationId, usageType, limit);
+      //   }
+      // }
 
       // If unlimited (limit = -1), allow immediately without logging
       if (limit === -1) {
