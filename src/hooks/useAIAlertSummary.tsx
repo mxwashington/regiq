@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useUsageLimits } from './useUsageLimits';
 import { useUserProfile } from './useUserProfile';
 import { useAIAlertProcessor } from './useAIAlertProcessor';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { trackConversionEvent } from '@/lib/telemetry/conversion-events';
 
 interface UseAIAlertSummaryReturn {
   showLimitModal: boolean;
@@ -21,6 +23,7 @@ export const useAIAlertSummary = (): UseAIAlertSummaryReturn => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [currentAlert, setCurrentAlert] = useState<{ id: string; title: string } | null>(null);
   
+  const { user } = useAuth();
   const { checkAndLogUsage } = useUsageLimits();
   const { subscriptionTier } = useUserProfile();
   const { processAlert } = useAIAlertProcessor();
@@ -34,6 +37,15 @@ export const useAIAlertSummary = (): UseAIAlertSummaryReturn => {
     const result = await checkAndLogUsage('ai_summary', tier as any);
 
     if (!result.allowed) {
+      // Track conversion event when user hits limit
+      if (user) {
+        await trackConversionEvent('ai_summary_limit_reached', {
+          user_id: user.id,
+          tier: tier,
+          alert_id: alertId
+        });
+      }
+
       // Show upgrade modal for Starter users who hit limit
       setCurrentAlert({ id: alertId, title: alertTitle });
       setShowLimitModal(true);
@@ -53,9 +65,16 @@ export const useAIAlertSummary = (): UseAIAlertSummaryReturn => {
   /**
    * Handle upgrade modal visibility
    */
-  const handleUpgradeModal = (show: boolean) => {
+  const handleUpgradeModal = async (show: boolean) => {
     setShowLimitModal(show);
-    if (!show) {
+    
+    if (!show && user) {
+      // Track modal dismissed event
+      await trackConversionEvent('upgrade_modal_dismissed', {
+        user_id: user.id,
+        tier: subscriptionTier || 'starter',
+        context: 'ai_summary_limit'
+      });
       setCurrentAlert(null);
     }
   };

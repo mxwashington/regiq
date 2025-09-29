@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Star, ArrowRight, TrendingUp, Shield, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface PricingPlan {
@@ -21,8 +22,9 @@ interface PricingPlan {
 export const NewPricingSection: React.FC = () => {
   const { user } = useAuth();
   const { upgradeToCustomPlan, loading } = useSubscriptionUpgrade();
+  const { toast } = useToast();
   const [isAnnual, setIsAnnual] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
 
   // TODO: Teams tier requires organizations table and pooled usage tracking
   // See TEAMS_INFRASTRUCTURE.md for full requirements
@@ -46,7 +48,7 @@ export const NewPricingSection: React.FC = () => {
         'Single user account',
         'Community support',
       ],
-      cta: 'Get Started Free',
+      cta: 'Get Started - Free',
     },
     {
       id: 'growth',
@@ -66,7 +68,7 @@ export const NewPricingSection: React.FC = () => {
         'Single user account',
         'Email support (48-hour response time)',
       ],
-      cta: 'Get Started',
+      cta: 'Subscribe - $29/month',
     },
     {
       id: 'professional',
@@ -92,7 +94,7 @@ export const NewPricingSection: React.FC = () => {
         'Priority email support (24-hour response time)',
         'Phone support during business hours',
       ],
-      cta: 'Get Started',
+      cta: 'Subscribe - $199/month',
     },
     // Teams tier hidden until backend infrastructure is ready
     // Requires: organizations table, pooled usage tracking, per-seat billing
@@ -119,21 +121,46 @@ export const NewPricingSection: React.FC = () => {
   ];
 
   const handleSubscribe = async (planId: string) => {
-    if (!user) {
-      setIsRedirecting(true);
-      // Show brief loading message before redirect
-      setTimeout(() => {
-        window.location.href = '/auth?redirect=/pricing';
-      }, 800);
-      return;
-    }
+    setLoadingStates(prev => ({ ...prev, [planId]: true }));
 
-    setIsRedirecting(true);
-    await upgradeToCustomPlan({ 
-      targetPlan: planId,
-      annual: isAnnual 
-    });
-    setIsRedirecting(false);
+    try {
+      if (!user) {
+        // Show brief message before redirect
+        toast({
+          title: "Redirecting to sign up...",
+          description: "Creating your account",
+        });
+        setTimeout(() => {
+          window.location.href = '/auth?redirect=/pricing';
+        }, 500);
+        return;
+      }
+
+      if (planId === 'starter') {
+        window.location.href = '/dashboard';
+        return;
+      }
+
+      // Show message before Stripe redirect
+      toast({
+        title: "Taking you to secure checkout...",
+        description: "Powered by Stripe",
+      });
+
+      await upgradeToCustomPlan({ 
+        targetPlan: planId, 
+        annual: isAnnual 
+      });
+    } catch (error) {
+      console.error('Subscription error:', error);
+      toast({
+        title: "Checkout Failed",
+        description: "Please try again or contact support.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [planId]: false }));
+    }
   };
 
   const calculateSavings = (monthlyPrice: number, annualPrice: number) => {
@@ -326,7 +353,7 @@ export const NewPricingSection: React.FC = () => {
 
                 {/* Clarifying text for paid plans */}
                 {plan.monthlyPrice > 0 && (
-                  <p className="text-xs text-center text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground mb-4">
                     Click to create your account and complete payment. Billing starts immediately.
                   </p>
                 )}
@@ -334,7 +361,7 @@ export const NewPricingSection: React.FC = () => {
                 {/* CTA Button */}
                 <Button
                   onClick={() => handleSubscribe(plan.id)}
-                  disabled={loading || isRedirecting}
+                  disabled={loading || loadingStates[plan.id]}
                   className={cn(
                     "w-full py-6 text-base font-semibold transition-all duration-200",
                     "group hover:shadow-lg",
@@ -344,12 +371,12 @@ export const NewPricingSection: React.FC = () => {
                   )}
                   variant={plan.popular ? "default" : "outline"}
                 >
-                  {isRedirecting ? (
+                  {loadingStates[plan.id] ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="animate-spin">⏳</span>
-                      Taking you to secure checkout...
+                      {plan.id === 'starter' ? 'Redirecting...' : 'Taking you to checkout...'}
                     </span>
-                  ) : loading ? 'Processing...' : (
+                  ) : (
                     <span className="flex items-center justify-center gap-2">
                       {plan.cta}
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

@@ -8,6 +8,9 @@ import remarkGfm from 'remark-gfm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useAIAlertSummary } from '@/hooks/useAIAlertSummary';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { AISummaryLimitModal } from './AISummaryLimitModal';
 // import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   ExternalLink, 
@@ -105,6 +108,17 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const isSaved = savedAlerts.some(saved => saved.id === alert.id);
+  
+  // AI Summary integration
+  const { subscriptionTier } = useUserProfile();
+  const {
+    showLimitModal,
+    currentAlert,
+    canProcessSummary,
+    handleUpgradeModal,
+    handleReadManually,
+    processSummary
+  } = useAIAlertSummary();
 
   const formatDate = (dateString: string) => {
     try {
@@ -140,18 +154,28 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
     }
   };
 
-  const handlePerplexitySearch = async () => {
+  const handleAISummary = async () => {
     if (!user) {
       toast({
         title: "Authentication Required",
-        description: "Please sign in to use AI-powered source enhancement.",
+        description: "Please sign in to use AI summaries.",
         variant: "destructive",
       });
       return;
     }
 
+    // Check usage limits BEFORE processing
+    const canProcess = await canProcessSummary(alert.id, alert.title);
+    
+    if (!canProcess) {
+      // Modal will be shown automatically by useAIAlertSummary
+      return;
+    }
+
+    // Proceed with AI processing
     setIsEnhancing(true);
     try {
+      await processSummary(alert.id);
       // Create a focused query for the alert
       const query = `${alert.title} ${alert.summary || ''} ${alert.source} regulatory compliance details sources`.trim();
       
@@ -332,18 +356,23 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
           </div>
           <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'} ${isMobile ? 'flex-wrap' : ''}`}>
             <Button
-              onClick={handlePerplexitySearch}
+              onClick={handleAISummary}
               disabled={isEnhancing}
               className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white"
             >
               {isEnhancing ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span className={isMobile ? 'text-xs' : 'text-xs'}>Processing...</span>
+                </>
               ) : (
-                <Bot className="h-3 w-3" />
+                <>
+                  <Sparkles className="h-3 w-3" />
+                  <span className={isMobile ? 'text-xs' : 'text-xs'}>
+                    AI Summary {subscriptionTier === 'starter' ? '(5/mo)' : ''}
+                  </span>
+                </>
               )}
-              <span className={isMobile ? 'text-xs' : 'text-xs'}>
-                {isEnhancing ? 'Enhancing...' : 'AI Sources'}
-              </span>
             </Button>
             
             {alert.external_url && alert.external_url.trim() && alert.external_url.startsWith('http') && (
@@ -528,6 +557,14 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
           </Collapsible>
         )}
       </CardContent>
+      
+      {/* AI Summary Limit Modal */}
+      <AISummaryLimitModal
+        open={showLimitModal}
+        onClose={() => handleUpgradeModal(false)}
+        onReadManually={handleReadManually}
+        alertTitle={currentAlert?.title || ''}
+      />
     </Card>
   );
 };

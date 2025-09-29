@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Zap } from 'lucide-react';
 import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
+import { useAuth } from '@/contexts/AuthContext';
+import { trackConversionEvent } from '@/lib/telemetry/conversion-events';
 
 interface AISummaryLimitModalProps {
   open: boolean;
@@ -17,11 +19,33 @@ export const AISummaryLimitModal: React.FC<AISummaryLimitModalProps> = ({
   onReadManually,
   alertTitle
 }) => {
+  const { user } = useAuth();
   const { upgradeToCustomPlan, loading } = useSubscriptionUpgrade();
 
   const handleUpgrade = async () => {
+    // Track upgrade button click
+    if (user) {
+      await trackConversionEvent('upgrade_modal_clicked', {
+        user_id: user.id,
+        tier: 'starter',
+        target_plan: 'growth',
+        context: 'ai_summary_limit'
+      });
+    }
+    
     await upgradeToCustomPlan({ targetPlan: 'growth' });
   };
+
+  // Track modal shown event
+  React.useEffect(() => {
+    if (open && user) {
+      trackConversionEvent('upgrade_modal_shown', {
+        user_id: user.id,
+        tier: 'starter',
+        context: 'ai_summary_limit'
+      });
+    }
+  }, [open, user]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

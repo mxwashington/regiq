@@ -39,16 +39,15 @@ const PaymentSuccess: React.FC = () => {
       <div className="text-center max-w-md">
         <div className="mb-6">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold mb-2">Welcome to RegIQ!</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to RegIQ Professional!</h1>
           <p className="text-muted-foreground mb-6">
-            Your subscription is now active. You'll be billed monthly starting today.
+            Your subscription is now active.
           </p>
           <div className="bg-muted/50 rounded-lg p-4 mb-4 text-left">
-            <p className="text-sm font-medium mb-2">Your subscription includes:</p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>✓ Access all features immediately</li>
-              <li>✓ Cancel anytime from account settings</li>
-              <li>✓ Billing on the same day each month</li>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li>• You'll be billed monthly starting today</li>
+              <li>• Access all Professional features immediately</li>
+              <li>• Cancel anytime from your account settings</li>
             </ul>
           </div>
         </div>

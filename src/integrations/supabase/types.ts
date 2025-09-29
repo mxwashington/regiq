@@ -2107,9 +2107,7 @@ export type Database = {
           session_extended_until: string | null
           subscription_plan: string | null
           subscription_status: string | null
-          trial_ends_at: string | null
           trial_expired: boolean | null
-          trial_starts_at: string | null
           trusted_ips: unknown[] | null
           updated_at: string
           user_id: string | null
@@ -2129,9 +2127,7 @@ export type Database = {
           session_extended_until?: string | null
           subscription_plan?: string | null
           subscription_status?: string | null
-          trial_ends_at?: string | null
           trial_expired?: boolean | null
-          trial_starts_at?: string | null
           trusted_ips?: unknown[] | null
           updated_at?: string
           user_id?: string | null
@@ -2151,9 +2147,7 @@ export type Database = {
           session_extended_until?: string | null
           subscription_plan?: string | null
           subscription_status?: string | null
-          trial_ends_at?: string | null
           trial_expired?: boolean | null
-          trial_starts_at?: string | null
           trusted_ips?: unknown[] | null
           updated_at?: string
           user_id?: string | null
@@ -3957,10 +3951,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      get_trial_days_remaining: {
-        Args: { user_uuid: string }
-        Returns: number
-      }
       get_usage_summary: {
         Args: { user_uuid: string }
         Returns: Json
@@ -4020,10 +4010,6 @@ export type Database = {
       }
       is_team_admin_or_manager: {
         Args: { team_id_param: string; user_id_param: string }
-        Returns: boolean
-      }
-      is_trial_expired: {
-        Args: { user_uuid: string }
         Returns: boolean
       }
       log_admin_action: {
