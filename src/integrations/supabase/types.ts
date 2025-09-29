@@ -2000,6 +2000,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_popular: boolean | null
           name: string
           plan_id: string
           price_cents: number
@@ -2011,6 +2012,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_popular?: boolean | null
           name: string
           plan_id: string
           price_cents: number
@@ -2022,6 +2024,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_popular?: boolean | null
           name?: string
           plan_id?: string
           price_cents?: number

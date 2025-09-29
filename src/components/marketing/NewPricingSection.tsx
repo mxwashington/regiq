@@ -47,7 +47,7 @@ export const NewPricingSection: React.FC = () => {
       id: 'growth',
       name: 'Growth',
       monthlyPrice: 29,
-      annualPrice: 309,
+      annualPrice: 278, // 20% off: $29 × 12 × 0.8
       description: 'Ideal for individual compliance professionals and consultants',
       features: [
         'Everything in Starter, plus:',
@@ -67,7 +67,7 @@ export const NewPricingSection: React.FC = () => {
       id: 'professional',
       name: 'Professional',
       monthlyPrice: 199,
-      annualPrice: 2125,
+      annualPrice: 1910, // 20% off: $199 × 12 × 0.8
       description: 'Enterprise-ready for power users with premium support',
       popular: true,
       features: [
@@ -175,7 +175,7 @@ export const NewPricingSection: React.FC = () => {
           {isAnnual && (
             <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 px-4 py-2">
               <Star className="w-4 h-4 mr-2" />
-              Save 11% with annual billing
+              Save 20% with annual billing
             </Badge>
           )}
         </div>
