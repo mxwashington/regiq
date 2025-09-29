@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_tracking: {
+        Row: {
+          billing_period_end: string
+          billing_period_start: string
+          count: number
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          usage_type: string
+          user_id: string
+        }
+        Insert: {
+          billing_period_end: string
+          billing_period_start: string
+          count?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          usage_type: string
+          user_id: string
+        }
+        Update: {
+          billing_period_end?: string
+          billing_period_start?: string
+          count?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          usage_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       alert_delivery_queue: {
         Row: {
           alert_id: string
@@ -766,6 +799,30 @@ export type Database = {
           percentile_rank?: number | null
           valid_from?: string
           valid_to?: string | null
+        }
+        Relationships: []
+      }
+      billing_periods: {
+        Row: {
+          created_at: string | null
+          id: string
+          period_end: string
+          period_start: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          period_end: string
+          period_start: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -3693,6 +3750,14 @@ export type Database = {
         Args: { user_email_param: string }
         Returns: Json
       }
+      check_and_log_usage: {
+        Args: {
+          limit_count: number
+          usage_type_param: string
+          user_uuid: string
+        }
+        Returns: Json
+      }
       check_compliance_data_rate_limit: {
         Args: { operation_type: string; user_uuid: string }
         Returns: boolean
@@ -3822,6 +3887,13 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      get_current_billing_period: {
+        Args: { user_uuid: string }
+        Returns: {
+          period_end: string
+          period_start: string
+        }[]
+      }
       get_current_security_posture: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -3879,6 +3951,10 @@ export type Database = {
       get_trial_days_remaining: {
         Args: { user_uuid: string }
         Returns: number
+      }
+      get_usage_summary: {
+        Args: { user_uuid: string }
+        Returns: Json
       }
       get_user_active_teams: {
         Args: { user_id_param: string }

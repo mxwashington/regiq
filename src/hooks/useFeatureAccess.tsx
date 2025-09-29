@@ -6,44 +6,33 @@ export const useFeatureAccess = () => {
   const { subscribed } = useUserProfile();
 
   const hasFeature = (feature: string): boolean => {
-    if (!subscribed) return false;
-
     switch (feature) {
       case 'aiAssistant':
-        return currentPlan !== 'free';
+        return true; // All tiers have AI (with different limits)
+      
+      case 'aiSearch':
+        return ['growth', 'professional'].includes(currentPlan);
       
       case 'phoneSupport':
-        return ['growth', 'professional'].includes(currentPlan);
+        return currentPlan === 'professional';
       
       case 'apiAccess':
         return currentPlan === 'professional';
       
-      case 'whiteLabel':
-        return currentPlan === 'professional';
-      
-      case 'customIntegrations':
-        return currentPlan === 'professional';
-      
-      case 'dedicatedManager':
-        return currentPlan === 'professional';
-      
-      case 'multiFacility':
-        return currentPlan !== 'free';
-      
       case 'advancedAnalytics':
-        return ['growth', 'professional'].includes(currentPlan);
+        return currentPlan === 'professional';
       
       case 'complianceCalendar':
-        return ['starter', 'growth', 'professional'].includes(currentPlan);
-      
-      case 'taskManagement':
-        return ['starter', 'growth', 'professional'].includes(currentPlan);
-      
-      case 'supplierRisk':
         return currentPlan === 'professional';
       
-      case 'haccp':
+      case 'exports':
         return ['growth', 'professional'].includes(currentPlan);
+      
+      case 'unlimitedSaves':
+        return ['growth', 'professional'].includes(currentPlan);
+      
+      case 'priorityAlerts':
+        return currentPlan === 'professional';
       
       default:
         return false;
