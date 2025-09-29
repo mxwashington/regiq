@@ -64,6 +64,21 @@ export const usePlanLimits = () => {
           hasDedicatedManager: false,
         };
       
+      case 'teams':
+        return {
+          users: 3, // Minimum 3 users
+          facilities: 999999, // Unlimited facilities for teams
+          monthlyAlerts: 999999, // Unlimited passive monitoring
+          aiQueries: 5000, // 5000 AI summaries per month (pooled)
+          historyMonths: 12,
+          hasAiAssistant: true, // 5000 summaries + 2500 searches (pooled)
+          hasPhoneSupport: true, // Priority support for entire team
+          hasApiAccess: true, // Unlimited API calls
+          hasWhiteLabel: false,
+          hasCustomIntegrations: false,
+          hasDedicatedManager: false, // Only for 10+ seats
+        };
+      
       default:
         // Free tier (same as starter)
         return {

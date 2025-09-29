@@ -271,7 +271,7 @@ export const NewPricingSection: React.FC = () => {
                   
                   {plan.id === 'teams' && (
                     <div className="mt-2 text-sm text-muted-foreground">
-                      3 users minimum at ${isAnnual ? 39 : 49}/seat
+                      3 users minimum at $49/seat{isAnnual ? '/month' : ''}
                     </div>
                   )}
                   

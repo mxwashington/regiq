@@ -11,35 +11,47 @@ export const useFeatureAccess = () => {
         return true; // All tiers have AI (with different limits)
       
       case 'aiSearch':
-        return ['growth', 'professional'].includes(currentPlan);
+        return ['growth', 'professional', 'teams'].includes(currentPlan);
       
       case 'phoneSupport':
-        return currentPlan === 'professional';
+        return ['professional', 'teams'].includes(currentPlan);
       
       case 'apiAccess':
-        return currentPlan === 'professional';
+        return ['professional', 'teams'].includes(currentPlan);
       
       case 'advancedAnalytics':
-        return currentPlan === 'professional';
+        return ['professional', 'teams'].includes(currentPlan);
       
       case 'complianceCalendar':
-        return currentPlan === 'professional';
+        return ['professional', 'teams'].includes(currentPlan);
       
       case 'exports':
-        return ['growth', 'professional'].includes(currentPlan);
+        return ['growth', 'professional', 'teams'].includes(currentPlan);
       
       case 'unlimitedSaves':
-        return ['growth', 'professional'].includes(currentPlan);
+        return ['growth', 'professional', 'teams'].includes(currentPlan);
       
       case 'priorityAlerts':
-        return currentPlan === 'professional';
+        return ['professional', 'teams'].includes(currentPlan);
+      
+      case 'teamCollaboration':
+        return currentPlan === 'teams';
+      
+      case 'sharedWatchlists':
+        return currentPlan === 'teams';
+      
+      case 'teamDashboard':
+        return currentPlan === 'teams';
+      
+      case 'roleBasedPermissions':
+        return currentPlan === 'teams';
       
       default:
         return false;
     }
   };
 
-  const getRequiredPlan = (feature: string): 'starter' | 'growth' | 'professional' => {
+  const getRequiredPlan = (feature: string): 'starter' | 'growth' | 'professional' | 'teams' => {
     switch (feature) {
       case 'aiAssistant':
       case 'multiFacility':
@@ -58,6 +70,12 @@ export const useFeatureAccess = () => {
       case 'dedicatedManager':
       case 'supplierRisk':
         return 'professional';
+      
+      case 'teamCollaboration':
+      case 'sharedWatchlists':
+      case 'teamDashboard':
+      case 'roleBasedPermissions':
+        return 'teams';
       
       default:
         return 'starter';

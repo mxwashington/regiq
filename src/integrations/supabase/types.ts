@@ -2001,7 +2001,9 @@ export type Database = {
           id: string
           is_active: boolean
           is_popular: boolean | null
+          min_seats: number | null
           name: string
+          per_seat_pricing: boolean | null
           plan_id: string
           price_cents: number
           updated_at: string
@@ -2013,7 +2015,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_popular?: boolean | null
+          min_seats?: number | null
           name: string
+          per_seat_pricing?: boolean | null
           plan_id: string
           price_cents: number
           updated_at?: string
@@ -2025,7 +2029,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_popular?: boolean | null
+          min_seats?: number | null
           name?: string
+          per_seat_pricing?: boolean | null
           plan_id?: string
           price_cents?: number
           updated_at?: string

@@ -47,6 +47,13 @@ const TIER_LIMITS = {
     exports: -1, // unlimited
     api_calls: 5000,
     saved_alerts: -1 // unlimited
+  },
+  teams: {
+    ai_summaries: 5000, // pooled across team
+    ai_searches: 2500, // pooled across team
+    exports: -1, // unlimited
+    api_calls: -1, // unlimited
+    saved_alerts: -1 // unlimited
   }
 };
 
