@@ -58,15 +58,15 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Map tier to pricing (cents)
-    const normalized = (tier || 'professional').toLowerCase();
+    // Map tier to correct pricing (cents) - Growth $29, Professional $199
+    const normalized = (tier || 'growth').toLowerCase();
     const planMap: Record<string, { amount: number; name: string }> = {
-      starter: { amount: 9900, name: "RegIQ Starter" },
-      professional: { amount: 29900, name: "RegIQ Professional" },
-      enterprise: { amount: 79900, name: "RegIQ Enterprise" },
+      starter: { amount: 0, name: "RegIQ Starter (Free)" },
+      growth: { amount: 2900, name: "RegIQ Growth" },
+      professional: { amount: 19900, name: "RegIQ Professional" },
     };
-    const selectedPlan = planMap[normalized] || planMap.professional;
-    logStep("Plan selected", { amount_cents: selectedPlan.amount, name: selectedPlan.name, trial_days: 7 });
+    const selectedPlan = planMap[normalized] || planMap.growth;
+    logStep("Plan selected", { amount_cents: selectedPlan.amount, name: selectedPlan.name });
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
@@ -90,7 +90,6 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      subscription_data: { trial_period_days: 7 },
       success_url: `${req.headers.get("origin")}/payment-success`,
       cancel_url: `${req.headers.get("origin")}/payment-canceled`,
     });

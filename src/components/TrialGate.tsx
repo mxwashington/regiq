@@ -78,7 +78,7 @@ export const TrialGate: React.FC<TrialGateProps> = ({
           </Button>
           
           <p className="text-xs text-muted-foreground">
-            Cancel anytime • 30-day money-back guarantee
+            Or start with our Free tier • No credit card required
           </p>
         </CardContent>
       </Card>
