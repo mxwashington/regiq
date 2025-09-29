@@ -200,7 +200,7 @@ export const ScreenshotGallery = () => {
         {/* Call to Action */}
         <div className="text-center mt-12">
           <Button size="lg" className="mr-4">
-            Start Free Trial
+            Get Started
           </Button>
           <Button variant="outline" size="lg">
             Schedule Demo

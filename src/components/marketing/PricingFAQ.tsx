@@ -12,8 +12,8 @@ import { Shield, TrendingUp, Users, Zap } from 'lucide-react';
 export const PricingFAQ: React.FC = () => {
   const faqs = [
     {
-      question: "What's included in the 14-day free trial?",
-      answer: "Your free trial includes full access to all features of your chosen plan. No credit card required to start. You'll get real regulatory alerts, AI summarization, and can test our mobile-responsive platform. We'll help you get started with personalized onboarding."
+      question: "What's included in the free Starter plan?",
+      answer: "The free Starter plan includes real-time regulatory alerts from FDA, USDA, EPA, and CDC. You get 5 AI alert summaries per month, can save up to 10 alerts, and access our mobile-responsive dashboard. No credit card required to start. Upgrade anytime for more features and higher limits."
     },
     {
       question: "How quickly will I see ROI with RegIQ?",
@@ -92,7 +92,7 @@ export const PricingFAQ: React.FC = () => {
               We're so confident RegIQ will transform your regulatory compliance that we guarantee measurable ROI within 30 days. If you don't see significant time savings and compliance improvements, we'll refund your investment.
             </p>
             <Button size="lg" className="bg-primary hover:bg-primary/90">
-              Start Your Risk-Free Trial
+              Get Started Free
             </Button>
           </div>
         </div>

@@ -49,7 +49,7 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>195 hours lost to broken regulatory search | RegIQ</title>
-        <meta name="description" content="95% can't find answers. $34,487 wasted per professional. FDA/USDA confusion. Mobile-first. 7-day free trial — no credit card." />
+        <meta name="description" content="95% can't find answers. $34,487 wasted per professional. FDA/USDA confusion. Mobile-first. Start free, upgrade anytime — no credit card." />
         <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory search" />
         <link rel="canonical" href="https://regiq.com" />
         

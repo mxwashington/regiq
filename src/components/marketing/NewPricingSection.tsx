@@ -41,7 +41,7 @@ export const NewPricingSection: React.FC = () => {
         'Single user account',
         'Community support',
       ],
-      cta: 'Start Free',
+      cta: 'Get Started Free',
     },
     {
       id: 'growth',
@@ -61,7 +61,7 @@ export const NewPricingSection: React.FC = () => {
         'Single user account',
         'Email support (48-hour response time)',
       ],
-      cta: 'Start Free Trial',
+      cta: 'Get Started',
     },
     {
       id: 'professional',
@@ -87,7 +87,7 @@ export const NewPricingSection: React.FC = () => {
         'Priority email support (24-hour response time)',
         'Phone support during business hours',
       ],
-      cta: 'Start Free Trial',
+      cta: 'Get Started',
     },
   ];
 
@@ -237,7 +237,12 @@ export const NewPricingSection: React.FC = () => {
                   )}
                 </div>
                 
-                <p className="text-muted-foreground text-sm">{plan.description}</p>
+                <p className="text-muted-foreground text-sm mb-2">{plan.description}</p>
+                <p className="text-xs font-medium text-primary">
+                  {plan.id === 'starter' && 'No credit card required'}
+                  {plan.id === 'growth' && 'Cancel anytime'}
+                  {plan.id === 'professional' && 'Cancel anytime'}
+                </p>
               </CardHeader>
 
               <CardContent className="space-y-6">
@@ -285,7 +290,7 @@ export const NewPricingSection: React.FC = () => {
           <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-500" />
-              14-day free trial
+              Start free, no credit card
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-500" />
