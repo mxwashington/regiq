@@ -253,6 +253,11 @@ export default function Auth() {
               Enter your email to receive a secure sign-in link
             </CardDescription>
           </CardHeader>
+          <div className="px-6 pb-4 text-center text-sm text-muted-foreground border-b">
+            <p className="font-medium mb-1">New to RegIQ? → Click "Sign Up"</p>
+            <p>Already have an account? → Click "Sign In"</p>
+            <p className="mt-2 text-xs">Recommended: Use "Continue with Google" for instant access</p>
+          </div>
           <CardContent>
             <SSOLoginButtons 
               onSuccess={() => {

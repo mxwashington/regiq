@@ -34,13 +34,13 @@ export const TrialGate: React.FC<TrialGateProps> = ({
             <CreditCard className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="flex items-center justify-center gap-2">
-            Trial Expired
+            Upgrade Required
             <Badge variant="destructive">Action Required</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-muted-foreground">
-            Your 7-day free trial has ended. Upgrade to RegIQ Professional to continue accessing {feature} and all premium features.
+            Upgrade to unlock {feature} and all premium features.
           </p>
           
           <div className="bg-muted rounded-lg p-4">
@@ -78,7 +78,7 @@ export const TrialGate: React.FC<TrialGateProps> = ({
           </Button>
           
           <p className="text-xs text-muted-foreground">
-            Or start with our Free tier • No credit card required
+            Billing starts immediately • Cancel anytime
           </p>
         </CardContent>
       </Card>

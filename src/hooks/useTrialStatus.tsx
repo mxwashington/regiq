@@ -30,7 +30,7 @@ export const useTrialStatus = () => {
     }
 
     try {
-      // Get user profile with trial info
+      // Get user profile with subscription info
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('trial_starts_at, trial_ends_at, subscription_status')
@@ -45,17 +45,17 @@ export const useTrialStatus = () => {
 
       if (daysError) throw daysError;
 
-      // Call the database function to check if trial is expired
+      // Call the database function to check subscription status
       const { data: expiredData, error: expiredError } = await supabase
         .rpc('is_trial_expired', { user_uuid: user.id });
 
       if (expiredError) throw expiredError;
 
       setTrialStatus({
-        isTrialExpired: isAdmin ? false : (expiredData || false), // Admins never have expired trials
+        isTrialExpired: isAdmin ? false : (expiredData || false), // Admins always have access
         daysRemaining: isAdmin ? -1 : (daysData || 0), // -1 indicates unlimited for admins
         trialEndsAt: profile?.trial_ends_at || null,
-        subscriptionStatus: isAdmin ? 'admin' : (profile?.subscription_status || 'trial'),
+        subscriptionStatus: isAdmin ? 'admin' : (profile?.subscription_status || 'free'),
         loading: false
       });
     } catch (error) {
@@ -68,16 +68,17 @@ export const useTrialStatus = () => {
     if (!user) return;
 
     try {
+      // Legacy function - no longer creates trials, kept for backward compatibility
       const trialStartsAt = new Date();
       const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialStartsAt.getDate() + 7); // 7-day trial
+      trialEndsAt.setDate(trialStartsAt.getDate() + 7);
 
       const { error } = await supabase
         .from('profiles')
         .update({
           trial_starts_at: trialStartsAt.toISOString(),
           trial_ends_at: trialEndsAt.toISOString(),
-          subscription_status: 'trial'
+          subscription_status: 'free'
         })
         .eq('user_id', user.id);
 
@@ -86,7 +87,7 @@ export const useTrialStatus = () => {
       // Refresh status
       await checkTrialStatus();
     } catch (error) {
-      logger.error('Error starting trial:', error);
+      logger.error('Error updating subscription status:', error);
     }
   };
 

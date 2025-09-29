@@ -404,7 +404,7 @@ const Landing = () => {
           <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground flex-wrap">
             <span>✅ Real-time Government Data</span>
             <span>✅ Built by Food Industry Professionals</span>
-            <span>✅ 7-day free trial • Cancel anytime</span>
+            <span>✅ Start free • Cancel anytime</span>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
             Direct government data feeds for food safety compliance
@@ -455,9 +455,9 @@ const Landing = () => {
 
             <div className="flex flex-col gap-2 justify-center items-center">
               <Button size="lg" className="w-full sm:w-auto" asChild>
-                <Link to="/pricing">Start Free Trial</Link>
+                <Link to="/pricing">Get Started Free</Link>
               </Button>
-              <p className="text-sm text-muted-foreground">7-day free trial • Cancel anytime • No credit card required</p>
+              <p className="text-sm text-muted-foreground">Start free • No credit card required • Cancel anytime</p>
             </div>
 
             <div className="text-xs md:text-sm text-muted-foreground mt-6">

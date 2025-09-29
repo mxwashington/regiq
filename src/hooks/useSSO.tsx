@@ -114,7 +114,7 @@ export const useSSO = () => {
             email: ssoUser.email,
             full_name: ssoUser.name,
             role: settings.defaultRole,
-            subscription_status: 'trial'
+            subscription_status: 'free'
           });
 
         if (insertError) throw insertError;

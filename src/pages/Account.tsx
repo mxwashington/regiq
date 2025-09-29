@@ -100,14 +100,14 @@ const Account: React.FC = () => {
 
     setTrialLoading(true);
     try {
-      logger.info('Starting trial for user:', user.id);
+      logger.info('Starting subscription checkout for user:', user.id);
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { user_id: user.id }
       });
 
       if (error) {
-        logger.error('Trial creation error:', error);
-        toast.error(`Could not start trial: ${error.message}`);
+        logger.error('Checkout error:', error);
+        toast.error(`Could not open checkout: ${error.message}`);
         return;
       }
 
@@ -119,8 +119,8 @@ const Account: React.FC = () => {
         toast.error('No checkout URL received');
       }
     } catch (e) {
-      logger.error('Trial error:', e);
-      toast.error('An error occurred while starting trial');
+      logger.error('Checkout error:', e);
+      toast.error('An error occurred while opening checkout');
     } finally {
       setTrialLoading(false);
     }
@@ -224,7 +224,7 @@ const Account: React.FC = () => {
                   onClick={startTrial}
                   disabled={trialLoading}
                 >
-                  {trialLoading ? 'Loading...' : 'Start Free Trial'}
+                  {trialLoading ? 'Loading...' : 'Upgrade Plan'}
                 </Button>
               )}
               <Button

@@ -22,6 +22,7 @@ export const NewPricingSection: React.FC = () => {
   const { user } = useAuth();
   const { upgradeToCustomPlan, loading } = useSubscriptionUpgrade();
   const [isAnnual, setIsAnnual] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // TODO: Teams tier requires organizations table and pooled usage tracking
   // See TEAMS_INFRASTRUCTURE.md for full requirements
@@ -119,14 +120,20 @@ export const NewPricingSection: React.FC = () => {
 
   const handleSubscribe = async (planId: string) => {
     if (!user) {
-      window.location.href = '/auth?redirect=/pricing';
+      setIsRedirecting(true);
+      // Show brief loading message before redirect
+      setTimeout(() => {
+        window.location.href = '/auth?redirect=/pricing';
+      }, 800);
       return;
     }
 
+    setIsRedirecting(true);
     await upgradeToCustomPlan({ 
       targetPlan: planId,
       annual: isAnnual 
     });
+    setIsRedirecting(false);
   };
 
   const calculateSavings = (monthlyPrice: number, annualPrice: number) => {
@@ -317,10 +324,17 @@ export const NewPricingSection: React.FC = () => {
                   ))}
                 </ul>
 
+                {/* Clarifying text for paid plans */}
+                {plan.monthlyPrice > 0 && (
+                  <p className="text-xs text-center text-muted-foreground mb-2">
+                    Click to create your account and complete payment. Billing starts immediately.
+                  </p>
+                )}
+
                 {/* CTA Button */}
                 <Button
                   onClick={() => handleSubscribe(plan.id)}
-                  disabled={loading}
+                  disabled={loading || isRedirecting}
                   className={cn(
                     "w-full py-6 text-base font-semibold transition-all duration-200",
                     "group hover:shadow-lg",
@@ -330,7 +344,12 @@ export const NewPricingSection: React.FC = () => {
                   )}
                   variant={plan.popular ? "default" : "outline"}
                 >
-                  {loading ? 'Processing...' : (
+                  {isRedirecting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="animate-spin">⏳</span>
+                      Taking you to secure checkout...
+                    </span>
+                  ) : loading ? 'Processing...' : (
                     <span className="flex items-center justify-center gap-2">
                       {plan.cta}
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
