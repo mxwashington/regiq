@@ -27,6 +27,7 @@ const Pricing = React.lazy(() => import("./pages/Pricing").catch(() => ({ defaul
 const Help = React.lazy(() => import("./pages/Help").catch(() => ({ default: () => <div>Help unavailable</div> })));
 const ApiDocs = React.lazy(() => import("./pages/ApiDocs").catch(() => ({ default: () => <div>API Docs unavailable</div> })));
 const FoodSafetyPage = React.lazy(() => import("./pages/FoodSafetyPage").catch(() => ({ default: () => <div>Food Safety unavailable</div> })));
+const FoodDataPage = React.lazy(() => import("./pages/FoodDataPage").catch(() => ({ default: () => <div>Food Data unavailable</div> })));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess").catch(() => ({ default: () => <div>Success page unavailable</div> })));
 const PaymentCanceled = React.lazy(() => import("./pages/PaymentCanceled").catch(() => ({ default: () => <div>Cancel page unavailable</div> })));
 const CustomAlerts = React.lazy(() => import("./pages/CustomAlerts").catch(() => ({ default: () => <div>Custom Alerts unavailable</div> })));
@@ -107,6 +108,7 @@ function App() {
                               <Route path="/help" element={<Help />} />
                               <Route path="/api-docs" element={<ApiDocs />} />
                               <Route path="/food-safety" element={<FoodSafetyPage />} />
+                              <Route path="/food-data" element={<FoodDataPage />} />
                               <Route path="/custom-alerts" element={<CustomAlerts />} />
 
                               {/* Payment Routes */}
