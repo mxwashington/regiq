@@ -20,17 +20,17 @@ const logStep = (step: string, details?: any) => {
   logger.info(`[NOAA-FISHERIES] ${step}${detailsStr}`);
 };
 
-// NOAA Fisheries sources
+// NOAA Fisheries sources - CORRECTED URLs
 const NOAA_SOURCES = [
   {
-    name: 'Fish Advisories',
-    url: 'https://www.fisheries.noaa.gov/national/seafood-commerce-certification/seafood-import-monitoring-program',
-    keywords: ['advisory', 'mercury', 'contamination', 'closure', 'alert', 'safety']
+    name: 'News and Announcements',
+    url: 'https://www.fisheries.noaa.gov/news-and-announcements/news',
+    keywords: ['advisory', 'mercury', 'contamination', 'closure', 'alert', 'safety', 'seafood', 'fish', 'recall']
   },
   {
-    name: 'Fishery Closures',
-    url: 'https://www.fisheries.noaa.gov/topic/recreational-fishing',
-    keywords: ['closure', 'closed', 'emergency', 'suspension', 'prohibition']
+    name: 'Bulletins',
+    url: 'https://www.fisheries.noaa.gov/news-and-announcements/bulletins',
+    keywords: ['closure', 'closed', 'emergency', 'suspension', 'prohibition', 'fishery', 'commercial', 'harvest']
   }
 ];
 
@@ -74,6 +74,38 @@ serve(async (req) => {
   }
 });
 
+async function fetchWithRetry(url: string, retryCount = 0): Promise<Response> {
+  const maxRetries = 3;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'RegIQ Food Safety Monitor/1.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Cache-Control': 'no-cache'
+      },
+      signal: AbortSignal.timeout(45000)
+    });
+
+    if (!response.ok && (response.status === 429 || response.status >= 500) && retryCount < maxRetries) {
+      const backoffMs = Math.pow(2, retryCount) * 2000;
+      logStep(`Retrying after ${backoffMs}ms (attempt ${retryCount + 1}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, backoffMs));
+      return fetchWithRetry(url, retryCount + 1);
+    }
+
+    return response;
+  } catch (error) {
+    if (retryCount < maxRetries) {
+      const backoffMs = Math.pow(2, retryCount) * 2000;
+      logStep(`Network error, retrying after ${backoffMs}ms`);
+      await new Promise(resolve => setTimeout(resolve, backoffMs));
+      return fetchWithRetry(url, retryCount + 1);
+    }
+    throw error;
+  }
+}
+
 async function scrapeNOAA(supabase: any) {
   logStep('Scraping NOAA Fisheries sources');
 
@@ -84,14 +116,7 @@ async function scrapeNOAA(supabase: any) {
     try {
       logStep(`Fetching ${source.name}`, { url: source.url });
 
-      const response = await fetch(source.url, {
-        headers: {
-          'User-Agent': 'RegIQ-NOAA/1.0',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Cache-Control': 'no-cache'
-        },
-        signal: AbortSignal.timeout(30000)
-      });
+      const response = await fetchWithRetry(source.url);
 
       if (!response.ok) {
         logStep(`NOAA source error: ${response.status}`, { source: source.name });
@@ -110,18 +135,34 @@ async function scrapeNOAA(supabase: any) {
         continue;
       }
 
-      // Extract relevant content
-      // Look for announcements, alerts, or news items
-      const contentItems = doc.querySelectorAll(
-        'article, .news-item, .alert, .announcement, .view-content .views-row, h2, h3'
-      );
+      // Extract relevant content - NOAA uses specific structure
+      // Try multiple selectors for NOAA news pages
+      let contentItems = doc.querySelectorAll('article.node--type-news, article.news-article');
+      logStep('Found news articles', { source: source.name, count: contentItems.length });
 
-      logStep('Found content items', { source: source.name, count: contentItems.length });
+      if (contentItems.length === 0) {
+        // Try bulletin structure
+        contentItems = doc.querySelectorAll('article.node--type-bulletin, div.views-row');
+        logStep('Trying bulletin selectors', { count: contentItems.length });
+      }
 
-      for (const item of Array.from(contentItems).slice(0, 20)) {
+      if (contentItems.length === 0) {
+        // Fallback to generic article/heading selectors
+        contentItems = doc.querySelectorAll('article, div.field--type-text-with-summary, h2.field--name-title');
+        logStep('Trying generic selectors', { count: contentItems.length });
+      }
+
+      logStep('Found content items total', { source: source.name, count: contentItems.length });
+
+      for (const item of Array.from(contentItems).slice(0, 30)) {
         try {
           const text = item.textContent?.trim() || '';
-          const linkEl = item.querySelector('a[href]');
+
+          // Extract link - try multiple strategies
+          let linkEl = item.querySelector('a.field--name-title, a.node__title, h2 a, h3 a');
+          if (!linkEl) {
+            linkEl = item.querySelector('a[href*="/news/"], a[href*="/bulletin/"]');
+          }
           const link = linkEl?.getAttribute('href')?.trim() || '';
 
           // Check if content matches keywords
@@ -129,14 +170,24 @@ async function scrapeNOAA(supabase: any) {
             text.toLowerCase().includes(keyword.toLowerCase())
           );
 
-          if (!isRelevant || text.length < 20) {
+          if (!isRelevant || text.length < 30) {
             continue;
           }
 
-          // Extract title and description
-          const titleEl = item.querySelector('h2, h3, h4, .title, a');
+          // Extract title - try multiple selectors
+          let titleEl = item.querySelector('h2.field--name-title, h3.field--name-title, h2.node__title');
+          if (!titleEl) {
+            titleEl = item.querySelector('h2, h3, h4, .title, a');
+          }
           const title = titleEl?.textContent?.trim() || text.substring(0, 100);
-          const description = text.substring(0, 500);
+
+          // Extract description/summary
+          const summaryEl = item.querySelector('.field--name-body, .field--name-field-summary, .node__content, p');
+          const description = summaryEl?.textContent?.trim() || text.substring(0, 500);
+
+          // Extract date if available
+          const dateEl = item.querySelector('time, .field--name-post-date, .date, span.date');
+          const dateStr = dateEl?.getAttribute('datetime') || dateEl?.textContent?.trim();
 
           if (!title || title.length < 10) {
             continue;
@@ -146,12 +197,25 @@ async function scrapeNOAA(supabase: any) {
             ? (link.startsWith('http') ? link : `https://www.fisheries.noaa.gov${link}`)
             : source.url;
 
+          // Parse date if available
+          let publishedDate = new Date().toISOString();
+          if (dateStr) {
+            try {
+              const date = new Date(dateStr);
+              if (!isNaN(date.getTime())) {
+                publishedDate = date.toISOString();
+              }
+            } catch {
+              // Use current date if parsing fails
+            }
+          }
+
           const alert = {
             title: `NOAA Fisheries: ${title}`,
             source: 'NOAA',
             urgency: determineUrgency(text),
             summary: description.length > 500 ? description.substring(0, 497) + '...' : description,
-            published_date: new Date().toISOString(),
+            published_date: publishedDate,
             external_url: fullUrl,
             full_content: JSON.stringify({
               source: source.name,
