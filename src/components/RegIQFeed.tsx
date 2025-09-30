@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useSimpleAlerts } from "@/hooks/useSimpleAlerts";
 import { useAlertFilters } from "@/hooks/useAlertFilters";
-import { Globe } from "lucide-react";
+import { Globe, Loader2 } from "lucide-react";
 import { ThirdShiftStatusIndicator } from "./ThirdShiftStatusIndicator";
 import PerplexityAlertCard from "./PerplexityAlertCard";
 import { logger } from '@/lib/logger';
@@ -25,11 +26,13 @@ interface RegIQFeedProps {
 }
 
 export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
   // Use alert filters hook for filtering
   const { filters: alertFilters } = useAlertFilters();
 
   // Fetch alerts data with filters (filtering is done at the hook level)
-  const { alerts: fetchedAlerts, loading } = useSimpleAlerts(50, alertFilters);
+  const { alerts: fetchedAlerts, loading, loadMore, hasMore } = useSimpleAlerts(50, alertFilters);
 
   // Convert to Alert format - filtering is already handled by useAlertFilters
   const alerts = useMemo(() => {
@@ -98,15 +101,41 @@ export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
             </div>
           </Card>
         ) : (
-          alerts.map((alert) => (
-            <PerplexityAlertCard
-              key={alert.id}
-              alert={alert}
-              onSaveAlert={onSaveAlert}
-              savedAlerts={savedAlerts}
-              showEnhancedDetails={true}
-            />
-          ))
+          <>
+            {alerts.map((alert) => (
+              <PerplexityAlertCard
+                key={alert.id}
+                alert={alert}
+                onSaveAlert={onSaveAlert}
+                savedAlerts={savedAlerts}
+                showEnhancedDetails={true}
+              />
+            ))}
+            
+            {hasMore && (
+              <div className="flex justify-center pt-4">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={async () => {
+                    setIsLoadingMore(true);
+                    await loadMore();
+                    setIsLoadingMore(false);
+                  }}
+                  disabled={isLoadingMore}
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading more alerts...
+                    </>
+                  ) : (
+                    'Load More Alerts'
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
