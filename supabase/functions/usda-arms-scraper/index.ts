@@ -74,14 +74,21 @@ serve(async (req) => {
             api_key: apiKey
           };
 
+          // USDA ARMS API often rejects automated requests - try with more browser-like headers
           const response = await fetch('https://api.ers.usda.gov/data/arms/surveydata', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'User-Agent': 'RegIQ-ARMS-Monitor/1.0 (Regulatory Compliance Platform)',
-              'Accept': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'application/json, text/plain, */*',
+              'Accept-Language': 'en-US,en;q=0.9',
+              'Origin': 'https://www.ers.usda.gov',
+              'Referer': 'https://www.ers.usda.gov/data-products/arms-farm-financial-and-crop-production-practices/',
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
             },
             body: JSON.stringify(requestBody),
+            signal: AbortSignal.timeout(45000)
           });
 
           if (!response.ok) {

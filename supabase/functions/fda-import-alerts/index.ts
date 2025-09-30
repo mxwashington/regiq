@@ -40,23 +40,65 @@ serve(async (req) => {
     { auth: { persistSession: false } }
   );
 
+  let logId: string | null = null;
+
   try {
-    logStep("FDA Import Alerts scraper started");
+    // Start sync log
+    const { data: logData, error: logError } = await supabaseClient.rpc('start_sync_log', {
+      p_source: 'FDA-Import',
+      p_metadata: { action: 'scrape_import_alerts', timestamp: new Date().toISOString() }
+    });
+
+    if (logError) {
+      logStep("Failed to start sync log", { error: logError.message });
+    } else {
+      logId = logData;
+      logStep("FDA Import Alerts sync started", { logId });
+    }
 
     const { action } = await req.json().catch(() => ({ action: 'scrape_import_alerts' }));
 
+    let result;
     switch (action) {
       case 'scrape_import_alerts':
-        return await scrapeImportAlerts(supabaseClient);
+        result = await scrapeImportAlerts(supabaseClient, logId);
+        break;
       case 'test_scraper':
-        return await testScraper();
+        result = await testScraper();
+        break;
       default:
-        return await scrapeImportAlerts(supabaseClient);
+        result = await scrapeImportAlerts(supabaseClient, logId);
     }
+
+    // Complete sync log on success
+    if (logId && result.status === 200) {
+      const resultData = await result.clone().json();
+      await supabaseClient.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: 'success',
+        p_alerts_fetched: resultData.total_alerts || 0,
+        p_alerts_inserted: resultData.processed || 0,
+        p_results: { action, success: true }
+      });
+    }
+
+    return result;
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in fda-import-alerts", { message: errorMessage });
+    const errorStack = error instanceof Error ? error.stack : '';
+    logStep("ERROR in fda-import-alerts", { message: errorMessage, stack: errorStack });
+
+    // Complete sync log on error
+    if (logId) {
+      await supabaseClient.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: 'error',
+        p_alerts_fetched: 0,
+        p_alerts_inserted: 0,
+        p_errors: [errorMessage]
+      });
+    }
 
     return new Response(JSON.stringify({
       success: false,
@@ -69,7 +111,7 @@ serve(async (req) => {
   }
 });
 
-async function scrapeImportAlerts(supabase: any) {
+async function scrapeImportAlerts(supabase: any, logId?: string | null) {
   // FDA Import Alerts page
   const importAlertsUrl = 'https://www.accessdata.fda.gov/cms_ia/default.html';
 

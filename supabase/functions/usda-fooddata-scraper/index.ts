@@ -97,30 +97,44 @@ serve(async (req) => {
             continue;
           }
 
-          // Prepare alert data (removed data_classification to use default)
-          const alertData = {
-            title: `${food.description} - ${food.brandOwner || 'Unknown Brand'}`,
-            summary: buildFoodSummary(food),
-            source: 'USDA-FDC',
-            agency: 'USDA',
-            urgency: 'Low',
-            urgency_score: 3,
-            published_date: food.modifiedDate || food.publishedDate || new Date().toISOString(),
-            external_url: `https://fdc.nal.usda.gov/fdc-app.html#/food-details/${food.fdcId}`,
-            full_content: JSON.stringify({
-              foodData: food
-            }),
-          };
-
-          const { error: insertError } = await supabase
+          // Check for existing alert using fdcId to avoid duplicates
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          const { data: existingAlert } = await supabase
             .from('alerts')
-            .insert(alertData);
+            .select('id')
+            .eq('source', 'USDA-FDC')
+            .eq('external_url', `https://fdc.nal.usda.gov/fdc-app.html#/food-details/${food.fdcId}`)
+            .gte('published_date', thirtyDaysAgo.toISOString())
+            .maybeSingle();
 
-          if (insertError) {
-            console.error(`❌ Failed to insert ${food.description}:`, insertError);
+          if (!existingAlert) {
+            // Prepare alert data
+            const alertData = {
+              title: `${food.description} - ${food.brandOwner || 'Unknown Brand'}`,
+              summary: buildFoodSummary(food),
+              source: 'USDA-FDC',
+              agency: 'USDA',
+              urgency: 'Low',
+              urgency_score: 3,
+              published_date: food.modifiedDate || food.publishedDate || new Date().toISOString(),
+              external_url: `https://fdc.nal.usda.gov/fdc-app.html#/food-details/${food.fdcId}`,
+              full_content: JSON.stringify({
+                foodData: food
+              }),
+            };
+
+            const { error: insertError } = await supabase
+              .from('alerts')
+              .insert(alertData);
+
+            if (insertError) {
+              console.error(`❌ Failed to insert ${food.description}:`, insertError);
+            } else {
+              totalSaved++;
+              console.log(`✅ Saved: ${food.description}`);
+            }
           } else {
-            totalSaved++;
-            console.log(`✅ Saved: ${food.description}`);
+            totalSkipped++;
           }
         }
 

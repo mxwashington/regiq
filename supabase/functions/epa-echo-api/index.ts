@@ -48,25 +48,68 @@ serve(async (req) => {
     { auth: { persistSession: false } }
   );
 
+  let logId: string | null = null;
+
   try {
-    logStep("EPA ECHO API function started");
+    // Start sync log
+    const { data: logData, error: logError } = await supabaseClient.rpc('start_sync_log', {
+      p_source: 'EPA',
+      p_metadata: { action: 'fetch_food_violations', timestamp: new Date().toISOString() }
+    });
+
+    if (logError) {
+      logStep("Failed to start sync log", { error: logError.message });
+    } else {
+      logId = logData;
+      logStep("EPA ECHO API sync started", { logId });
+    }
 
     const { action } = await req.json().catch(() => ({ action: 'fetch_food_violations' }));
 
+    let result;
     switch (action) {
       case 'fetch_food_violations':
-        return await fetchFoodViolations(supabaseClient);
+        result = await fetchFoodViolations(supabaseClient);
+        break;
       case 'fetch_enforcement_actions':
-        return await fetchEnforcementActions(supabaseClient);
+        result = await fetchEnforcementActions(supabaseClient);
+        break;
       case 'test_api':
-        return await testAPI();
+        result = await testAPI();
+        break;
       default:
-        return await fetchFoodViolations(supabaseClient);
+        result = await fetchFoodViolations(supabaseClient);
     }
+
+    // Complete sync log on success
+    if (logId && result.status === 200) {
+      const resultData = await result.clone().json();
+      await supabaseClient.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: 'success',
+        p_alerts_fetched: resultData.processed || 0,
+        p_alerts_inserted: resultData.processed || 0,
+        p_results: { action, success: true }
+      });
+    }
+
+    return result;
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in epa-echo-api", { message: errorMessage });
+    const errorStack = error instanceof Error ? error.stack : '';
+    logStep("ERROR in epa-echo-api", { message: errorMessage, stack: errorStack });
+
+    // Complete sync log on error
+    if (logId) {
+      await supabaseClient.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: 'error',
+        p_alerts_fetched: 0,
+        p_alerts_inserted: 0,
+        p_errors: [errorMessage]
+      });
+    }
 
     return new Response(JSON.stringify({
       success: false,

@@ -26,6 +26,9 @@ const AVAILABLE_SCRAPERS = [
   { name: 'FSIS', function: 'fsis-rss-feeds', description: 'USDA Food Safety Inspection' },
   { name: 'CBP', function: 'cbp-customs-scraper', description: 'Customs & Border Protection' },
   { name: 'USDA-APHIS', function: 'usda-aphis-scraper', description: 'Animal & Plant Health' },
+  { name: 'EPA', function: 'epa-echo-api', description: 'EPA Environmental Compliance' },
+  { name: 'FDA-Import', function: 'fda-import-alerts', description: 'FDA Import Restrictions' },
+  { name: 'OSHA', function: 'osha-scraper', description: 'Workplace Safety Enforcement' },
 ];
 
 export function ScraperHealthDashboard() {
