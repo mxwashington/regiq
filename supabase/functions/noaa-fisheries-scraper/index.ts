@@ -109,7 +109,15 @@ async function fetchWithRetry(url: string, retryCount = 0): Promise<Response> {
 async function scrapeNOAA(supabase: any) {
   logStep('Scraping NOAA Fisheries sources');
 
+  // Start sync log
+  const { data: logData } = await supabase.rpc('start_sync_log', {
+    p_source: 'NOAA',
+    p_metadata: { trigger: 'scrape_noaa', sources: NOAA_SOURCES.length }
+  });
+  const logId = logData as string;
+
   let totalProcessed = 0;
+  let totalFetched = 0;
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   for (const source of NOAA_SOURCES) {
@@ -155,6 +163,7 @@ async function scrapeNOAA(supabase: any) {
       logStep('Found content items total', { source: source.name, count: contentItems.length });
 
       for (const item of Array.from(contentItems).slice(0, 30)) {
+        totalFetched++;
         try {
           const text = item.textContent?.trim() || '';
 
@@ -261,6 +270,16 @@ async function scrapeNOAA(supabase: any) {
       continue;
     }
   }
+
+  // Finish sync log with success
+  await supabase.rpc('finish_sync_log', {
+    p_log_id: logId,
+    p_status: 'success',
+    p_alerts_fetched: totalFetched,
+    p_alerts_inserted: totalProcessed,
+    p_alerts_skipped: totalFetched - totalProcessed,
+    p_results: { sources_checked: NOAA_SOURCES.length }
+  });
 
   return new Response(JSON.stringify({
     success: true,

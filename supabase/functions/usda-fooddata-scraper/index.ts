@@ -43,6 +43,13 @@ serve(async (req) => {
 
     console.log('🔍 Starting USDA FoodData Central scraper...');
 
+    // Start sync log
+    const { data: logData } = await supabase.rpc('start_sync_log', {
+      p_source: 'USDA-FDC',
+      p_metadata: { trigger: 'manual', timestamp: new Date().toISOString() }
+    });
+    const logId = logData as string;
+
     // Fetch recent recall keywords from alerts
     const { data: recentAlerts } = await supabase
       .from('alerts')
@@ -90,7 +97,7 @@ serve(async (req) => {
             continue;
           }
 
-          // Prepare alert data
+          // Prepare alert data (removed data_classification to use default)
           const alertData = {
             title: `${food.description} - ${food.brandOwner || 'Unknown Brand'}`,
             summary: buildFoodSummary(food),
@@ -103,7 +110,6 @@ serve(async (req) => {
             full_content: JSON.stringify({
               foodData: food
             }),
-            data_classification: 'food-data',
           };
 
           const { error: insertError } = await supabase
@@ -130,6 +136,16 @@ serve(async (req) => {
 
     console.log(`✅ USDA FoodData scraper completed: ${totalSaved}/${totalProcessed} saved`);
 
+    // Finish sync log with success
+    await supabase.rpc('finish_sync_log', {
+      p_log_id: logId,
+      p_status: 'success',
+      p_alerts_fetched: totalProcessed,
+      p_alerts_inserted: totalSaved,
+      p_alerts_skipped: totalProcessed - totalSaved,
+      p_results: { keywords: keywords.slice(0, 10), results }
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -147,6 +163,23 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ USDA FoodData scraper error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Log failure to sync logs
+    try {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      
+      await supabase.rpc('finish_sync_log', {
+        p_log_id: (typeof logId !== 'undefined' ? logId : null),
+        p_status: 'error',
+        p_errors: [errorMessage]
+      });
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: false, 

@@ -13,6 +13,7 @@ import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { AdminAPIManager } from "@/components/AdminAPIManager";
 import { AdminDataManager } from "@/components/AdminDataManager";
+import { ScraperHealthDashboard } from "@/components/admin/ScraperHealthDashboard";
 
 import { logger } from '@/lib/logger';
 const LoadingScreen = () => (
@@ -46,8 +47,9 @@ const AdminDashboard: React.FC = () => {
           </header>
 
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-8 md:h-10">
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-9 md:h-10">
               <TabsTrigger value="analytics" className="w-full justify-start md:justify-center">Analytics</TabsTrigger>
+              <TabsTrigger value="scrapers" className="w-full justify-start md:justify-center">Scrapers</TabsTrigger>
               <TabsTrigger value="data" className="w-full justify-start md:justify-center">Data Sync</TabsTrigger>
               <TabsTrigger value="users" className="w-full justify-start md:justify-center">Users</TabsTrigger>
               <TabsTrigger value="alerts" className="w-full justify-start md:justify-center">Alerts</TabsTrigger>
@@ -59,6 +61,10 @@ const AdminDashboard: React.FC = () => {
 
             <TabsContent value="analytics">
               <UsageDashboard />
+            </TabsContent>
+
+            <TabsContent value="scrapers">
+              <ScraperHealthDashboard />
             </TabsContent>
 
             <TabsContent value="data">

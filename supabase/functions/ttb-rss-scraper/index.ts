@@ -94,6 +94,13 @@ async function scrapeTTBFeed(supabase: any) {
 
   logStep('Fetching TTB RSS feed', { url: ttbFeedUrl });
 
+  // Start sync log
+  const { data: logData } = await supabase.rpc('start_sync_log', {
+    p_source: 'TTB',
+    p_metadata: { trigger: 'scrape_ttb_feed', url: ttbFeedUrl }
+  });
+  const logId = logData as string;
+
   try {
     const response = await fetch(ttbFeedUrl, {
       headers: {
@@ -221,6 +228,16 @@ async function scrapeTTBFeed(supabase: any) {
       }
     }
 
+    // Finish sync log with success
+    await supabase.rpc('finish_sync_log', {
+      p_log_id: logId,
+      p_status: 'success',
+      p_alerts_fetched: feedItems.length,
+      p_alerts_inserted: processedCount,
+      p_alerts_skipped: relevantItems.length - processedCount,
+      p_results: { total_items: feedItems.length, relevant_items: relevantItems.length }
+    });
+
     return new Response(JSON.stringify({
       success: true,
       message: `Processed ${processedCount} TTB regulatory updates`,
@@ -234,6 +251,13 @@ async function scrapeTTBFeed(supabase: any) {
     });
 
   } catch (error) {
+    // Log failure to sync logs
+    await supabase.rpc('finish_sync_log', {
+      p_log_id: logId,
+      p_status: 'error',
+      p_errors: [error instanceof Error ? error.message : String(error)]
+    });
+    
     throw new Error(`Failed to scrape TTB feed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

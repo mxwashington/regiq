@@ -47,6 +47,13 @@ serve(async (req) => {
 
     console.log('🌾 Starting USDA ARMS economic data collection...');
 
+    // Start sync log
+    const { data: logData } = await supabase.rpc('start_sync_log', {
+      p_source: 'USDA-ARMS',
+      p_metadata: { trigger: 'manual', timestamp: new Date().toISOString() }
+    });
+    const logId = logData as string;
+
     const currentYear = new Date().getFullYear();
     const years = [currentYear - 1, currentYear - 2]; // Last 2 years
     
@@ -71,12 +78,18 @@ serve(async (req) => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'User-Agent': 'RegIQ-ARMS-Monitor/1.0 (Regulatory Compliance Platform)',
+              'Accept': 'application/json',
             },
             body: JSON.stringify(requestBody),
           });
 
           if (!response.ok) {
-            console.error(`❌ Failed to fetch ${metric} for ${sector}: ${response.status}`);
+            console.error(`❌ Failed to fetch ${metric} for ${sector}: ${response.status} ${response.statusText}`);
+            if (response.status === 403) {
+              console.error('⚠️ 403 Forbidden - API may require registration or different authentication');
+            }
+            // Don't fail entire job on single request failure
             continue;
           }
 
@@ -111,7 +124,7 @@ serve(async (req) => {
             const urgency = determineUrgency(metric, dataPoint.value);
             const urgencyScore = urgency === 'High' ? 7 : urgency === 'Medium' ? 5 : 3;
 
-            // Create alert
+            // Create alert (removed data_classification to use default)
             const alertData = {
               title: `Economic Alert: ${sector} farms showing ${interpretMetric(metric, dataPoint.value)}`,
               summary: buildEconomicSummary(sector, metric, dataPoint),
@@ -131,7 +144,6 @@ serve(async (req) => {
                   unit: dataPoint.unit || 'percent',
                 }
               }),
-              data_classification: 'economic-indicator',
             };
 
             const { error: insertError } = await supabase
@@ -159,6 +171,20 @@ serve(async (req) => {
 
     console.log(`✅ USDA ARMS scraper completed: ${totalSaved}/${totalProcessed} saved`);
 
+    // Finish sync log with success
+    await supabase.rpc('finish_sync_log', {
+      p_log_id: logId,
+      p_status: 'success',
+      p_alerts_fetched: totalProcessed,
+      p_alerts_inserted: totalSaved,
+      p_alerts_skipped: totalProcessed - totalSaved,
+      p_results: { 
+        sectorsProcessed: PRODUCTION_SECTORS.length,
+        metricsProcessed: FINANCIAL_METRICS.length,
+        results 
+      }
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -177,6 +203,23 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ USDA ARMS scraper error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Log failure to sync logs
+    try {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      
+      await supabase.rpc('finish_sync_log', {
+        p_log_id: (typeof logId !== 'undefined' ? logId : null),
+        p_status: 'error',
+        p_errors: [errorMessage]
+      });
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
