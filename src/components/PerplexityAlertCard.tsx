@@ -112,6 +112,28 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
   const isMobile = useIsMobile();
   const isSaved = savedAlerts.some(saved => saved.id === alert.id);
   
+  // Check if this is an economic indicator or food data alert
+  const isEconomicAlert = alert.data_classification === 'economic-indicator' || alert.source === 'USDA-ARMS';
+  const isFoodDataAlert = alert.source === 'USDA-FDC';
+
+  // Parse economic data if available
+  const economicData = isEconomicAlert && alert.full_content ? (() => {
+    try {
+      return JSON.parse(alert.full_content);
+    } catch {
+      return null;
+    }
+  })() : null;
+
+  // Parse food data if available
+  const foodData = isFoodDataAlert && alert.full_content ? (() => {
+    try {
+      return JSON.parse(alert.full_content);
+    } catch {
+      return null;
+    }
+  })() : null;
+  
   // AI Summary integration
   const { subscriptionTier } = useUserProfile();
   const {
@@ -361,6 +383,78 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
           <p className={`text-muted-foreground mb-3 break-words ${isMobile ? 'text-xs' : 'text-sm'} ${isMobile ? 'line-clamp-3' : 'line-clamp-4'}`}>
             {alert.summary}
           </p>
+        )}
+
+        {/* Economic Data Display */}
+        {isEconomicAlert && economicData && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingDown className="h-4 w-4 text-amber-600" />
+              <h4 className="text-sm font-semibold text-amber-900">Economic Indicators</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {economicData.sector && (
+                <div>
+                  <span className="text-amber-700 font-medium">Sector:</span>{' '}
+                  <span className="text-amber-900">{economicData.sector}</span>
+                </div>
+              )}
+              {economicData.metric && (
+                <div>
+                  <span className="text-amber-700 font-medium">Metric:</span>{' '}
+                  <span className="text-amber-900">{economicData.metric}</span>
+                </div>
+              )}
+              {economicData.value !== undefined && (
+                <div>
+                  <span className="text-amber-700 font-medium">Value:</span>{' '}
+                  <span className="text-amber-900">{economicData.value}{economicData.unit || '%'}</span>
+                </div>
+              )}
+              {economicData.year && (
+                <div>
+                  <span className="text-amber-700 font-medium">Year:</span>{' '}
+                  <span className="text-amber-900">{economicData.year}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Food Data Display */}
+        {isFoodDataAlert && foodData && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="h-4 w-4 text-green-600" />
+              <h4 className="text-sm font-semibold text-green-900">Product Information</h4>
+            </div>
+            <div className="space-y-2 text-xs">
+              {foodData.brandOwner && (
+                <div>
+                  <span className="text-green-700 font-medium">Brand:</span>{' '}
+                  <span className="text-green-900">{foodData.brandOwner}</span>
+                </div>
+              )}
+              {foodData.ingredients && (
+                <div>
+                  <span className="text-green-700 font-medium">Ingredients:</span>{' '}
+                  <span className="text-green-900">{foodData.ingredients.substring(0, 150)}{foodData.ingredients.length > 150 ? '...' : ''}</span>
+                </div>
+              )}
+              {foodData.foodNutrients && foodData.foodNutrients.length > 0 && (
+                <div>
+                  <span className="text-green-700 font-medium">Key Nutrients:</span>
+                  <div className="mt-1 grid grid-cols-2 gap-1">
+                    {foodData.foodNutrients.slice(0, 4).map((nutrient: any, idx: number) => (
+                      <span key={idx} className="text-green-900">
+                        {nutrient.nutrientName}: {nutrient.value}{nutrient.unitName}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Actions */}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Search, Bell, Building2, TrendingUp, User, BookOpen, Brain, CheckSquare, Calendar, BarChart3, Shield, AlertTriangle, Mail, Settings, Database, Apple } from 'lucide-react';
+import { Home, Search, Bell, Building2, TrendingUp, User, BookOpen, Brain, CheckSquare, Calendar, BarChart3, Shield, AlertTriangle, Mail, Settings, Database } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -34,7 +34,6 @@ export function AppSidebar() {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/dashboard', icon: Bell, label: 'Alerts' },
     { path: '/search', icon: Search, label: 'Search' },
-    { path: '/food-data', icon: Apple, label: 'Food Data' },
     { path: '/custom-alerts', icon: Mail, label: 'Custom Alerts' },
     { path: user ? '/account' : '/auth', icon: User, label: user ? 'Account' : 'Sign In' },
     { path: '/pricing', icon: TrendingUp, label: 'Pricing' },
