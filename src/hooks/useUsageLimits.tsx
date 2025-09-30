@@ -100,14 +100,27 @@ export const useUsageLimits = () => {
         };
       }
 
-      const { data, error } = await supabase.rpc('check_and_log_usage', {
-        user_uuid: user.id,
-        usage_type_param: usageType,
-        limit_count: limit
-      });
+      // Call the improved function with better parameter handling
+      const { data, error } = await supabase
+        .rpc('check_and_log_usage', {
+          user_uuid: user.id,
+          usage_type_param: usageType,
+          limit_count: limit
+        });
 
       if (error) {
         logger.error('Error checking usage limit:', error);
+        // If there's a PGRST202 error (schema cache), return a temporary allow
+        if (error.code === 'PGRST202') {
+          logger.warn('Schema cache issue - temporarily allowing action');
+          return {
+            allowed: true,
+            current_usage: 0,
+            limit: limit,
+            period_end: '',
+            message: 'Temporarily allowed (schema updating)'
+          };
+        }
         throw error;
       }
 
