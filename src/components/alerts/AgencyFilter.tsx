@@ -39,7 +39,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
   const { sourceCounts, loading: countsLoading } = useSourceCounts();
 
   const totalSelectedSources = filters.sources.length;
-  const hasActiveFilters =
+    const hasActiveFilters =
     totalSelectedSources < 15 ||
     filters.sinceDays !== 30 ||
     filters.minSeverity !== null ||

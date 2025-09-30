@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SafeAuthContext';
 
-export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC' | 'REGULATIONS_GOV' | 'USDA-ARMS' | 'USDA-FDC';
+export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC' | 'REGULATIONS_GOV' | 'USDA-ARMS' | 'USDA-FDC' | 'TTB' | 'NOAA' | 'OSHA' | 'USDA_APHIS' | 'CBP' | 'FDA_IMPORT';
 
 export interface AlertFilters {
   sources: AgencySource[];
@@ -16,7 +16,7 @@ export interface AlertFilters {
 }
 
 const DEFAULT_FILTERS: AlertFilters = {
-  sources: ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV', 'USDA-ARMS', 'USDA-FDC'],
+  sources: ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV', 'USDA-ARMS', 'USDA-FDC', 'TTB', 'NOAA', 'OSHA', 'USDA_APHIS', 'CBP', 'FDA_IMPORT'],
   sinceDays: 30,
   minSeverity: null,
   searchQuery: '',
@@ -41,7 +41,7 @@ export const useAlertFilters = () => {
     if (sourceParam) {
       const sourcesParam = sourceParam.split(',');
       const validSources = sourcesParam.filter((s: string) =>
-        ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV', 'USDA-ARMS', 'USDA-FDC'].includes(s)
+        ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV', 'USDA-ARMS', 'USDA-FDC', 'TTB', 'NOAA', 'OSHA', 'USDA_APHIS', 'CBP', 'FDA_IMPORT'].includes(s)
       ) as AgencySource[];
       if (validSources.length > 0) {
         urlFilters.sources = validSources;
@@ -76,7 +76,7 @@ export const useAlertFilters = () => {
   const updateUrl = useCallback((newFilters: AlertFilters) => {
     const searchParams = new URLSearchParams(location.search);
 
-    if (newFilters.sources.length > 0 && newFilters.sources.length < 7) {
+    if (newFilters.sources.length > 0 && newFilters.sources.length < 15) {
       searchParams.set('source', newFilters.sources.join(','));
     } else {
       searchParams.delete('source');

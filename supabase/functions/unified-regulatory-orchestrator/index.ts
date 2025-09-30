@@ -35,6 +35,13 @@ const SCRAPER_FUNCTIONS: ScraperFunction[] = [
     category: 'rss'
   },
   {
+    name: 'fsis-rss-feeds',
+    endpoint: 'fsis-rss-feeds',
+    description: 'FSIS RSS feeds (recalls, alerts)',
+    frequency: 'daily',
+    category: 'rss'
+  },
+  {
     name: 'enhanced-regulatory-apis',
     endpoint: 'enhanced-regulatory-apis',
     action: 'fetch_fsis_recalls',
@@ -51,7 +58,39 @@ const SCRAPER_FUNCTIONS: ScraperFunction[] = [
     category: 'api'
   },
 
+  // API-based scrapers
+  {
+    name: 'epa-echo-api',
+    endpoint: 'epa-echo-api',
+    action: 'fetch_food_violations',
+    description: 'EPA environmental compliance',
+    frequency: 'daily',
+    category: 'api'
+  },
+  {
+    name: 'usda-fooddata-scraper',
+    endpoint: 'usda-fooddata-scraper',
+    description: 'USDA FoodData Central database',
+    frequency: 'weekly',
+    category: 'api'
+  },
+  {
+    name: 'usda-arms-scraper',
+    endpoint: 'usda-arms-scraper',
+    description: 'USDA ARMS economic data',
+    frequency: 'weekly',
+    category: 'api'
+  },
+
   // Specialized web scrapers
+  {
+    name: 'osha-scraper',
+    endpoint: 'osha-scraper',
+    action: 'scrape_news',
+    description: 'OSHA workplace safety',
+    frequency: 'daily',
+    category: 'web_scraper'
+  },
   {
     name: 'cbp-customs-scraper',
     endpoint: 'cbp-customs-scraper',
@@ -62,6 +101,7 @@ const SCRAPER_FUNCTIONS: ScraperFunction[] = [
   {
     name: 'fda-import-alerts',
     endpoint: 'fda-import-alerts',
+    action: 'scrape_import_alerts',
     description: 'FDA import alerts and detentions',
     frequency: 'daily',
     category: 'web_scraper'
@@ -76,16 +116,10 @@ const SCRAPER_FUNCTIONS: ScraperFunction[] = [
   {
     name: 'usda-aphis-scraper',
     endpoint: 'usda-aphis-scraper',
+    action: 'scrape_aphis',
     description: 'USDA APHIS plant and animal health',
     frequency: 'daily',
     category: 'web_scraper'
-  },
-  {
-    name: 'usda-ams-api',
-    endpoint: 'usda-ams-api',
-    description: 'USDA AMS market monitoring',
-    frequency: 'weekly',
-    category: 'api'
   },
   {
     name: 'ttb-rss-scraper',

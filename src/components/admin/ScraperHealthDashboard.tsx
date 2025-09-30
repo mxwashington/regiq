@@ -29,6 +29,9 @@ const AVAILABLE_SCRAPERS = [
   { name: 'EPA', function: 'epa-echo-api', description: 'EPA Environmental Compliance' },
   { name: 'FDA-Import', function: 'fda-import-alerts', description: 'FDA Import Restrictions' },
   { name: 'OSHA', function: 'osha-scraper', description: 'Workplace Safety Enforcement' },
+  { name: 'Multi-RSS', function: 'multi-agency-rss-scraper', description: 'Multiple RSS Feeds' },
+  { name: 'Enhanced APIs', function: 'enhanced-regulatory-apis', description: 'Enhanced API Collection' },
+  { name: 'Regulations.gov', function: 'regulations-gov-api', description: 'Federal Regulations' },
 ];
 
 export function ScraperHealthDashboard() {

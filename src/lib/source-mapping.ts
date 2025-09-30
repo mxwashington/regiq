@@ -73,6 +73,7 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
   'Customs and Border Protection': 'CBP',
 
   // FDA Import Alerts (specialized)
+  'FDA-Import': 'FDA_IMPORT',
   'FDA Import Alerts': 'FDA_IMPORT',
   'FDA Import': 'FDA_IMPORT',
 };
@@ -93,7 +94,7 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
   'OSHA': ['OSHA', 'OSHA Food Industry Safety'],
   'USDA_APHIS': ['USDA-APHIS', 'USDA APHIS', 'APHIS'],
   'CBP': ['CBP', 'CBP Customs', 'Customs and Border Protection'],
-  'FDA_IMPORT': ['FDA Import Alerts', 'FDA Import'],
+  'FDA_IMPORT': ['FDA-Import', 'FDA Import Alerts', 'FDA Import'],
 };
 
 // Get filter category from database source name
