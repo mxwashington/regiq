@@ -25,18 +25,23 @@ interface RSSFeed {
 // US-only RSS feeds (non-US sources removed for focused compliance)
 // RegIQ focuses exclusively on US federal agencies for regulatory compliance
 const RSS_FEEDS: RSSFeed[] = [
-  {
-    agency: 'CDC',
-    url: 'https://beta.cdc.gov/mmwr/rss/rss.html',
-    priority: 9,
-    urgencyKeywords: ['outbreak', 'alert', 'investigation', 'urgent', 'immediate']
-  },
+  // CDC removed - no direct food safety RSS feed available
+  // CDC data aggregated through FDA and USDA sources instead
   {
     agency: 'FTC',
-    url: 'https://www.ftc.gov/news-events/news/press-releases',
+    url: 'https://www.ftc.gov/feeds/press-release-consumer-protection.xml',
     priority: 7,
-    urgencyKeywords: ['enforcement', 'settlement', 'complaint', 'action', 'order']
+    urgencyKeywords: ['enforcement', 'settlement', 'complaint', 'action', 'order', 'food', 'advertising', 'labeling', 'deceptive']
+  },
+  {
+    agency: 'OSHA',
+    url: 'https://www.osha.gov/news/newsreleases.xml',
+    priority: 6,
+    urgencyKeywords: ['citation', 'violation', 'inspection', 'penalty', 'food', 'manufacturing', 'meatpacking', 'poultry', 'processing']
   }
+  // REMOVED: CDC direct RSS (no longer available)
+  // CDC food safety data captured through FDA and USDA APIs
+  //
   // REMOVED 2025-09-30: Non-US sources for focused US regulatory compliance
   // - EFSA (European Food Safety Authority) - EU agency
   // - FAO (Food and Agriculture Organization) - International/UN
@@ -51,18 +56,31 @@ function logStep(message: string, data?: any) {
   logger.info(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
-async function fetchRSSFeed(feed: RSSFeed): Promise<any[]> {
+async function fetchRSSFeed(feed: RSSFeed, retryCount = 0): Promise<any[]> {
+  const maxRetries = 3;
   try {
     logStep(`Fetching RSS feed for ${feed.agency}: ${feed.url}`);
-    
+
     const response = await fetch(feed.url, {
       headers: {
-        'User-Agent': 'RegIQ-RSS-Scraper/1.0 (Regulatory Intelligence Platform)'
-      }
+        'User-Agent': 'RegIQ Food Safety Monitor/1.0',
+        'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml',
+        'Cache-Control': 'no-cache'
+      },
+      signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
     if (!response.ok) {
       logStep(`Failed to fetch ${feed.agency} RSS: ${response.status}`);
+
+      // Retry with exponential backoff for rate limiting (429) or server errors (5xx)
+      if ((response.status === 429 || response.status >= 500) && retryCount < maxRetries) {
+        const backoffMs = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+        logStep(`Retrying ${feed.agency} after ${backoffMs}ms (attempt ${retryCount + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+        return fetchRSSFeed(feed, retryCount + 1);
+      }
+
       return [];
     }
 

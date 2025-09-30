@@ -62,7 +62,37 @@ verify_jwt = false
 [functions.fsis-rss-feeds]
 verify_jwt = false
 
+[functions.health-check-regulatory]
+verify_jwt = false
+
 [functions.enhanced-regulatory-data-collection]
+verify_jwt = false
+
+[functions.regulations-gov-api]
+verify_jwt = false
+
+[functions.ttb-rss-scraper]
+verify_jwt = false
+
+[functions.multi-agency-rss-scraper]
+verify_jwt = false
+
+[functions.cbp-customs-scraper]
+verify_jwt = false
+
+[functions.fda-import-alerts]
+verify_jwt = false
+
+[functions.noaa-fisheries-scraper]
+verify_jwt = false
+
+[functions.usda-aphis-scraper]
+verify_jwt = false
+
+[functions.usda-ams-api]
+verify_jwt = false
+
+[functions.unified-regulatory-orchestrator]
 verify_jwt = false
 
 [auth.external.apple]

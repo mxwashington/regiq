@@ -8,6 +8,7 @@ const logger = {
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -519,30 +520,168 @@ async function fetchFSISRecalls(supabase: any) {
       
       logStep(`Fetching FSIS recalls data`);
       
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'RegIQ-Enhanced-APIs/1.0',
-          'Accept': 'application/json'
+      // FSIS API with HTTP/1.1 forcing and retry logic
+      let response;
+      let lastError;
+
+      // First attempt with HTTP/1.1 headers
+      try {
+        logStep(`Attempting FSIS API with HTTP/1.1 headers: ${url}`);
+        response = await fetch(url, {
+          headers: {
+            'User-Agent': 'RegIQ/1.0',
+            'Accept': 'application/json',
+            'Connection': 'close', // Force HTTP/1.1
+            'Cache-Control': 'no-cache'
+          },
+          signal: AbortSignal.timeout(10000) // 10 second timeout
+        });
+      } catch (error: any) {
+        lastError = error;
+        logStep(`First FSIS attempt failed: ${error.message}`);
+
+        // Second attempt with minimal headers
+        try {
+          logStep(`Retrying FSIS API with minimal headers`);
+          response = await fetch(url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; RegIQ/1.0)',
+              'Accept': '*/*'
+            },
+            signal: AbortSignal.timeout(15000) // 15 second timeout
+          });
+        } catch (retryError: any) {
+          logStep(`Second FSIS attempt failed: ${retryError.message}`);
+          logStep(`Original error: ${lastError.message}`);
+
+          // Final fallback: Try RSS feed
+          try {
+            logStep(`Falling back to FSIS RSS feed`);
+            const rssUrl = 'https://www.fsis.usda.gov/fsis-content/rss/recalls.xml';
+            const rssResponse = await fetch(rssUrl, {
+              headers: {
+                'User-Agent': 'RegIQ/1.0',
+                'Accept': 'application/xml, text/xml, application/rss+xml',
+                'Connection': 'close'
+              },
+              signal: AbortSignal.timeout(15000)
+            });
+
+            if (rssResponse.ok) {
+              logStep(`RSS fallback successful, processing XML data`);
+              const xmlText = await rssResponse.text();
+
+              // Parse RSS and convert to API-like format
+              const rssData = await parseRSSToAPIFormat(xmlText);
+              if (rssData.length > 0) {
+                logStep(`RSS fallback found ${rssData.length} items`);
+                // Process RSS data using same logic as API data
+                const rssProcessed = await processFSISRSSData(rssData, supabase);
+                totalProcessed += rssProcessed;
+                logStep(`RSS fallback processed ${rssProcessed} items`);
+                continue; // Skip to next endpoint
+              }
+            }
+
+            throw new Error(`All FSIS endpoints failed. API errors: ${lastError.message}, ${retryError.message}`);
+          } catch (rssError: any) {
+            logStep(`RSS fallback also failed: ${rssError.message}`);
+            throw new Error(`All FSIS endpoints failed. API: ${retryError.message}, RSS: ${rssError.message}`);
+          }
         }
-      });
+      }
 
       if (!response.ok) {
-        logStep(`FSIS API error: ${response.status}`);
+        logStep(`FSIS API error: ${response.status} - ${response.statusText}`);
         continue;
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        const responseText = await response.text();
+        logStep(`FSIS API response length: ${responseText.length}`);
+
+        if (!responseText.trim()) {
+          logStep('FSIS API returned empty response');
+          continue;
+        }
+
+        data = JSON.parse(responseText);
+        logStep(`FSIS API returned ${Array.isArray(data) ? data.length : 'non-array'} items`);
+      } catch (parseError) {
+        logStep(`FSIS JSON parsing error: ${parseError}`);
+        continue;
+      }
       
       if (data && Array.isArray(data)) {
         for (const item of data.slice(0, 20)) {
+          // Decode Unicode escapes in FSIS data
+          const decodeUnicode = (str: string) => {
+            if (!str || typeof str !== 'string') return str;
+            return str
+              .replace(/\\u003C/g, '<')
+              .replace(/\\u003E/g, '>')
+              .replace(/\\u2022/g, '•')
+              .replace(/\\u2013/g, '–')
+              .replace(/\\u0026/g, '&')
+              .replace(/\\u0027/g, "'")
+              .replace(/\\u0022/g, '"');
+          };
+
+          // Map FSIS API fields to our schema with proper null handling
+          const title = decodeUnicode(item.field_title || '').trim() || 'FSIS Recall';
+          const summary = decodeUnicode(item.field_summary || '').trim() || 'FSIS meat/poultry recall';
+          const recallNumber = (item.field_recall_number || '').trim() || null;
+          const recallDate = (item.field_recall_date || '').trim() || null;
+          const riskLevel = (item.field_risk_level || '').trim() || null;
+          const states = (item.field_states || '').trim() || null;
+
+          // Skip items with no meaningful content
+          if (!title || title === 'FSIS Recall') {
+            logStep(`Skipping FSIS item with no title: ${JSON.stringify(item).substring(0, 100)}`);
+            continue;
+          }
+
+          // Parse recall date (YYYY-MM-DD format)
+          let publishedDate = new Date().toISOString();
+          if (recallDate) {
+            try {
+              const parsedDate = new Date(recallDate + 'T00:00:00.000Z');
+              if (!isNaN(parsedDate.getTime())) {
+                publishedDate = parsedDate.toISOString();
+              }
+            } catch {
+              // Use current date if parsing fails
+            }
+          }
+
+          // Determine urgency based on FSIS risk level
+          let urgency = 'Medium'; // Default
+          if (riskLevel) {
+            const riskLower = riskLevel.toLowerCase();
+            if (riskLower.includes('class i') || riskLower.includes('high')) {
+              urgency = 'High';
+            } else if (riskLower.includes('class ii') || riskLower.includes('medium')) {
+              urgency = 'Medium';
+            } else if (riskLower.includes('class iii') || riskLower.includes('low')) {
+              urgency = 'Low';
+            }
+          }
+
           const alert = {
-            title: `FSIS Recall: ${item.productName || item.product_description || 'Meat/Poultry Recall'}`,
+            title: title.startsWith('FSIS') ? title : `FSIS Recall: ${title}`,
             source: 'FSIS',
-            urgency: determineUrgency(item, endpoint),
-            summary: `${item.summary || item.reasonForRecall || 'FSIS meat/poultry recall'} - ${item.companyName || 'Unknown Company'}`,
-            published_date: item.recallDate ? new Date(item.recallDate).toISOString() : new Date().toISOString(),
+            urgency: urgency,
+            summary: summary,
+            published_date: publishedDate,
             external_url: `https://www.fsis.usda.gov/recalls-alerts`,
-            full_content: JSON.stringify(item)
+            full_content: JSON.stringify({
+              ...item,
+              recall_number: recallNumber,
+              risk_level: riskLevel,
+              affected_states: states,
+              processed_at: new Date().toISOString()
+            })
           };
 
           // Check if already exists
@@ -658,4 +797,180 @@ function determineUrgency(item: any, endpoint: APIEndpoint): string {
   }
   
   return urgency;
+}
+
+// Helper function to parse RSS and convert to API-like format
+async function parseRSSToAPIFormat(xmlText: string): Promise<any[]> {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'text/xml');
+
+    const items = doc?.querySelectorAll('item') || [];
+    const results: any[] = [];
+
+    for (const item of items) {
+      try {
+        const title = (item as any).querySelector('title')?.textContent?.trim() || '';
+        const description = (item as any).querySelector('description')?.textContent?.trim() || '';
+        const link = (item as any).querySelector('link')?.textContent?.trim() || '';
+        const pubDate = (item as any).querySelector('pubDate')?.textContent?.trim() || '';
+
+        // Convert RSS to API-like format
+        const apiItem = {
+          field_title: title,
+          field_summary: description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+          field_recall_date: formatRSSDate(pubDate),
+          field_recall_number: extractRecallNumber(title, description),
+          field_risk_level: extractRiskLevel(title, description),
+          field_states: null, // Not available in RSS
+          rss_source: true,
+          original_link: link,
+          original_pubDate: pubDate
+        };
+
+        if (title && description) {
+          results.push(apiItem);
+        }
+      } catch (error) {
+        logStep(`Error parsing RSS item:`, error);
+      }
+    }
+
+    return results;
+  } catch (error) {
+    logStep(`Error parsing RSS XML:`, error);
+    return [];
+  }
+}
+
+// Helper function to process RSS data using same logic as API
+async function processFSISRSSData(rssData: any[], supabase: any): Promise<number> {
+  let totalProcessed = 0;
+
+  for (const item of rssData.slice(0, 20)) {
+    try {
+      // Use the same processing logic as API data
+      const decodeUnicode = (str: string) => {
+        if (!str || typeof str !== 'string') return str;
+        return str
+          .replace(/\\u003C/g, '<')
+          .replace(/\\u003E/g, '>')
+          .replace(/\\u2022/g, '•')
+          .replace(/\\u2013/g, '–')
+          .replace(/\\u0026/g, '&')
+          .replace(/\\u0027/g, "'")
+          .replace(/\\u0022/g, '"');
+      };
+
+      const title = decodeUnicode(item.field_title || '').trim() || 'FSIS Recall';
+      const summary = decodeUnicode(item.field_summary || '').trim() || 'FSIS meat/poultry recall';
+      const recallNumber = (item.field_recall_number || '').trim() || null;
+      const recallDate = (item.field_recall_date || '').trim() || null;
+      const riskLevel = (item.field_risk_level || '').trim() || null;
+
+      if (!title || title === 'FSIS Recall') {
+        continue;
+      }
+
+      let publishedDate = new Date().toISOString();
+      if (recallDate) {
+        try {
+          const parsedDate = new Date(recallDate + 'T00:00:00.000Z');
+          if (!isNaN(parsedDate.getTime())) {
+            publishedDate = parsedDate.toISOString();
+          }
+        } catch {
+          // Use current date if parsing fails
+        }
+      }
+
+      let urgency = 'Medium';
+      if (riskLevel) {
+        const riskLower = riskLevel.toLowerCase();
+        if (riskLower.includes('class i') || riskLower.includes('high')) {
+          urgency = 'High';
+        } else if (riskLower.includes('class ii') || riskLower.includes('medium')) {
+          urgency = 'Medium';
+        } else if (riskLower.includes('class iii') || riskLower.includes('low')) {
+          urgency = 'Low';
+        }
+      }
+
+      const alert = {
+        title: title.startsWith('FSIS') ? title : `FSIS Recall: ${title}`,
+        source: 'FSIS',
+        urgency: urgency,
+        summary: summary,
+        published_date: publishedDate,
+        external_url: item.original_link || `https://www.fsis.usda.gov/recalls-alerts`,
+        full_content: JSON.stringify({
+          ...item,
+          data_source: 'rss_fallback',
+          processed_at: new Date().toISOString()
+        })
+      };
+
+      // Check if already exists
+      const { data: existing } = await supabase
+        .from('alerts')
+        .select('id')
+        .eq('title', alert.title)
+        .eq('source', alert.source)
+        .gte('published_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .maybeSingle();
+
+      if (!existing) {
+        const { error } = await supabase
+          .from('alerts')
+          .insert(alert);
+
+        if (!error) {
+          totalProcessed++;
+          logStep(`Added FSIS recall alert from RSS: ${alert.title}`);
+        }
+      }
+    } catch (error) {
+      logStep(`Error processing RSS item:`, error);
+    }
+  }
+
+  return totalProcessed;
+}
+
+// Helper function to format RSS date to YYYY-MM-DD
+function formatRSSDate(pubDate: string): string {
+  try {
+    if (!pubDate) return '';
+
+    // Handle various RSS date formats
+    const date = new Date(pubDate);
+    if (isNaN(date.getTime())) return '';
+
+    // Return in YYYY-MM-DD format expected by FSIS API
+    return date.toISOString().split('T')[0];
+  } catch {
+    return '';
+  }
+}
+
+// Helper function to extract recall number from RSS content
+function extractRecallNumber(title: string, description: string): string {
+  const text = `${title} ${description}`;
+
+  // Look for patterns like "123-2024" or "FSIS-123-2024"
+  const recallPattern = /(?:FSIS-)?(\d{3}-\d{4})/i;
+  const match = text.match(recallPattern);
+
+  return match ? match[1] : '';
+}
+
+// Helper function to extract risk level from RSS content
+function extractRiskLevel(title: string, description: string): string {
+  const text = `${title} ${description}`.toLowerCase();
+
+  if (text.includes('class i') || text.includes('high risk')) return 'High - Class I';
+  if (text.includes('class ii') || text.includes('medium risk')) return 'Medium - Class II';
+  if (text.includes('class iii') || text.includes('low risk')) return 'Low - Class III';
+
+  return '';
 }

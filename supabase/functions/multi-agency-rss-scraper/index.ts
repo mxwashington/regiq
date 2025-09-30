@@ -1,0 +1,496 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+};
+
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
+
+interface RSSFeedConfig {
+  agency: string;
+  source: string;
+  url: string;
+  keywords: string[];
+  urgencyLevel: string;
+  category: string;
+  description: string;
+}
+
+interface FeedItem {
+  title: string;
+  description: string;
+  pubDate: string;
+  link: string;
+}
+
+interface Alert {
+  title: string;
+  source: string;
+  urgency: string;
+  summary: string;
+  published_date: string;
+  external_url: string;
+  full_content?: string;
+  agency: string;
+  region: string;
+  category: string;
+}
+
+// RSS Feed configurations for multiple agencies
+const RSS_FEEDS: RSSFeedConfig[] = [
+  // CDC Feeds
+  {
+    agency: 'CDC',
+    source: 'CDC',
+    url: 'https://www.cdc.gov/rss/cdc-newsroom.xml',
+    keywords: ['food', 'foodborne', 'outbreak', 'illness', 'contamination', 'recall', 'safety', 'surveillance'],
+    urgencyLevel: 'High',
+    category: 'foodborne-illness',
+    description: 'CDC Newsroom updates'
+  },
+  {
+    agency: 'CDC',
+    source: 'CDC',
+    url: 'https://www.cdc.gov/foodsafety/rss/foodsafety-RSS.xml',
+    keywords: ['food', 'safety', 'outbreak', 'illness', 'contamination', 'pathogen', 'salmonella', 'listeria', 'e.coli'],
+    urgencyLevel: 'High',
+    category: 'food-safety',
+    description: 'CDC Food Safety updates'
+  },
+
+  // EPA Feeds
+  {
+    agency: 'EPA',
+    source: 'EPA',
+    url: 'https://www.epa.gov/newsreleases/search/rss',
+    keywords: ['pesticide', 'tolerance', 'residue', 'agricultural', 'chemical', 'food', 'crop', 'registration'],
+    urgencyLevel: 'Medium',
+    category: 'pesticide-tolerance',
+    description: 'EPA News Releases'
+  },
+
+  // NOAA Feeds
+  {
+    agency: 'NOAA',
+    source: 'NOAA',
+    url: 'https://www.fisheries.noaa.gov/atlantic-highly-migratory-species/xml/hms-news.xml',
+    keywords: ['seafood', 'fish', 'mercury', 'advisory', 'closure', 'import', 'aquaculture', 'safety'],
+    urgencyLevel: 'Medium',
+    category: 'seafood-safety',
+    description: 'NOAA HMS News'
+  },
+
+  // OSHA Feeds
+  {
+    agency: 'OSHA',
+    source: 'OSHA',
+    url: 'https://www.osha.gov/rss/news/newsreleases.xml',
+    keywords: ['meatpacking', 'poultry', 'food processing', 'food manufacturing', 'bakery', 'dairy', 'food industry'],
+    urgencyLevel: 'Medium',
+    category: 'workplace-safety',
+    description: 'OSHA News Releases'
+  },
+  {
+    agency: 'OSHA',
+    source: 'OSHA',
+    url: 'https://www.osha.gov/rss/laws-regs/federalregisters.xml',
+    keywords: ['food', 'processing', 'manufacturing', 'workplace', 'safety', 'standard'],
+    urgencyLevel: 'Medium',
+    category: 'regulatory-standards',
+    description: 'OSHA Federal Register Updates'
+  },
+  {
+    agency: 'OSHA',
+    source: 'OSHA',
+    url: 'https://www.osha.gov/rss/enforcement/directives.xml',
+    keywords: ['food', 'processing', 'manufacturing', 'enforcement', 'directive'],
+    urgencyLevel: 'High',
+    category: 'enforcement',
+    description: 'OSHA Enforcement Directives'
+  }
+];
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const supabaseClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
+  );
+
+  try {
+    const body = await req.json().catch(() => ({}));
+    const { action, agency } = body;
+
+    logger.info(`[MULTI-AGENCY-RSS] Function started with action: ${action || 'scrape_all'}`);
+
+    switch (action) {
+      case 'scrape_cdc':
+        return await scrapeSpecificAgency(supabaseClient, 'CDC');
+      case 'scrape_epa':
+        return await scrapeSpecificAgency(supabaseClient, 'EPA');
+      case 'scrape_noaa':
+        return await scrapeSpecificAgency(supabaseClient, 'NOAA');
+      case 'scrape_osha':
+        return await scrapeSpecificAgency(supabaseClient, 'OSHA');
+      case 'test_feeds':
+        return await testAllFeeds();
+      default:
+        return await scrapeAllAgencies(supabaseClient);
+    }
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Error in multi-agency-rss-scraper", { message: errorMessage });
+
+    return new Response(JSON.stringify({
+      success: false,
+      error: errorMessage,
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
+  }
+});
+
+async function scrapeAllAgencies(supabase: any) {
+  logger.info('Starting multi-agency RSS scraping');
+
+  let totalProcessed = 0;
+  const results: any[] = [];
+
+  for (const feedConfig of RSS_FEEDS) {
+    try {
+      logger.info(`Processing ${feedConfig.agency} feed: ${feedConfig.description}`);
+
+      const processed = await scrapeFeed(supabase, feedConfig);
+      totalProcessed += processed;
+
+      results.push({
+        agency: feedConfig.agency,
+        source: feedConfig.source,
+        description: feedConfig.description,
+        processed,
+        status: 'success'
+      });
+
+      // Rate limiting between feeds
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+    } catch (error) {
+      logger.error(`Error processing ${feedConfig.agency} feed`, {
+        url: feedConfig.url,
+        error: error instanceof Error ? error.message : String(error)
+      });
+
+      results.push({
+        agency: feedConfig.agency,
+        source: feedConfig.source,
+        description: feedConfig.description,
+        processed: 0,
+        status: 'error',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+
+  return new Response(JSON.stringify({
+    success: true,
+    message: `Multi-agency RSS scraping completed. Processed ${totalProcessed} total alerts.`,
+    total_processed: totalProcessed,
+    feed_results: results,
+    timestamp: new Date().toISOString()
+  }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+}
+
+async function scrapeSpecificAgency(supabase: any, agency: string) {
+  const agencyFeeds = RSS_FEEDS.filter(feed => feed.agency === agency);
+
+  if (agencyFeeds.length === 0) {
+    throw new Error(`No feeds configured for agency: ${agency}`);
+  }
+
+  let totalProcessed = 0;
+  const results: any[] = [];
+
+  for (const feedConfig of agencyFeeds) {
+    try {
+      const processed = await scrapeFeed(supabase, feedConfig);
+      totalProcessed += processed;
+
+      results.push({
+        description: feedConfig.description,
+        processed,
+        status: 'success'
+      });
+
+    } catch (error) {
+      logger.error(`Error processing ${agency} feed`, {
+        url: feedConfig.url,
+        error: error instanceof Error ? error.message : String(error)
+      });
+
+      results.push({
+        description: feedConfig.description,
+        processed: 0,
+        status: 'error',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+
+  return new Response(JSON.stringify({
+    success: true,
+    message: `${agency} RSS scraping completed. Processed ${totalProcessed} alerts.`,
+    agency,
+    total_processed: totalProcessed,
+    feed_results: results,
+    timestamp: new Date().toISOString()
+  }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+}
+
+async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<number> {
+  logger.info(`Fetching RSS feed`, { url: feedConfig.url });
+
+  try {
+    const response = await fetch(feedConfig.url, {
+      headers: {
+        'User-Agent': 'RegIQ-MultiAgencyScraper/1.0',
+        'Accept': 'application/rss+xml, application/xml, text/xml',
+        'Cache-Control': 'no-cache'
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!response.ok) {
+      throw new Error(`RSS feed error: ${response.status} ${response.statusText}`);
+    }
+
+    const xmlText = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'text/xml');
+
+    if (!doc) {
+      throw new Error('Failed to parse RSS XML');
+    }
+
+    const items = doc.querySelectorAll('item');
+    logger.info(`Found RSS items`, { count: items.length, agency: feedConfig.agency });
+
+    if (items.length === 0) {
+      return 0;
+    }
+
+    const feedItems: FeedItem[] = [];
+
+    // Parse RSS items
+    for (const item of items) {
+      try {
+        const title = item.querySelector('title')?.textContent?.trim() || '';
+        const description = item.querySelector('description')?.textContent?.trim() || '';
+        const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
+        const link = item.querySelector('link')?.textContent?.trim() || '';
+
+        if (title && link) {
+          feedItems.push({ title, description, pubDate, link });
+        }
+      } catch (itemError) {
+        logger.warn('Error parsing RSS item', { error: itemError });
+        continue;
+      }
+    }
+
+    // Filter for relevant items
+    const relevantItems = filterRelevantItems(feedItems, feedConfig.keywords);
+    logger.info(`Filtered relevant items`, {
+      agency: feedConfig.agency,
+      total: feedItems.length,
+      relevant: relevantItems.length
+    });
+
+    if (relevantItems.length === 0) {
+      return 0;
+    }
+
+    // Save to database
+    let processedCount = 0;
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    for (const item of relevantItems) {
+      try {
+        const alert = convertToAlert(item, feedConfig);
+
+        // Check for duplicates
+        const { data: existing } = await supabase
+          .from('alerts')
+          .select('id')
+          .eq('title', alert.title)
+          .eq('source', alert.source)
+          .gte('published_date', sevenDaysAgo.toISOString())
+          .maybeSingle();
+
+        if (!existing) {
+          const { error } = await supabase
+            .from('alerts')
+            .insert(alert);
+
+          if (error) {
+            logger.error('Database insert error', {
+              error: error.message,
+              title: alert.title,
+              agency: feedConfig.agency
+            });
+          } else {
+            processedCount++;
+            logger.info(`Added ${feedConfig.agency} alert`, { title: alert.title });
+          }
+        }
+      } catch (alertError) {
+        logger.error('Error processing item', {
+          error: alertError,
+          title: item.title,
+          agency: feedConfig.agency
+        });
+        continue;
+      }
+    }
+
+    return processedCount;
+
+  } catch (error) {
+    throw new Error(`Failed to scrape ${feedConfig.agency} feed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function testAllFeeds() {
+  const results: any[] = [];
+
+  for (const feedConfig of RSS_FEEDS) {
+    try {
+      logger.info(`Testing feed: ${feedConfig.url}`);
+
+      const response = await fetch(feedConfig.url, {
+        headers: {
+          'User-Agent': 'RegIQ-MultiAgencyScraper/1.0',
+          'Accept': 'application/rss+xml, application/xml, text/xml'
+        },
+        signal: AbortSignal.timeout(10000)
+      });
+
+      const isSuccess = response.ok;
+      const contentLength = response.headers.get('content-length') || 'unknown';
+
+      results.push({
+        agency: feedConfig.agency,
+        description: feedConfig.description,
+        url: feedConfig.url,
+        status: response.status,
+        statusText: response.statusText,
+        success: isSuccess,
+        contentLength
+      });
+
+    } catch (error) {
+      results.push({
+        agency: feedConfig.agency,
+        description: feedConfig.description,
+        url: feedConfig.url,
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+
+  return new Response(JSON.stringify({
+    success: true,
+    message: 'Feed testing completed',
+    results,
+    timestamp: new Date().toISOString()
+  }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+}
+
+function filterRelevantItems(items: FeedItem[], keywords: string[]): FeedItem[] {
+  return items.filter(item => {
+    const searchText = `${item.title} ${item.description}`.toLowerCase();
+    return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
+  });
+}
+
+function convertToAlert(item: FeedItem, feedConfig: RSSFeedConfig): Alert {
+  // Parse publication date
+  let publishedDate: string;
+  try {
+    if (item.pubDate) {
+      publishedDate = new Date(item.pubDate).toISOString();
+    } else {
+      publishedDate = new Date().toISOString();
+    }
+  } catch {
+    publishedDate = new Date().toISOString();
+  }
+
+  // Determine urgency
+  const urgency = determineUrgency(item, feedConfig.urgencyLevel);
+
+  // Create summary
+  const summary = item.description || item.title;
+
+  return {
+    title: item.title,
+    source: feedConfig.source,
+    urgency,
+    summary: summary.length > 500 ? summary.substring(0, 497) + '...' : summary,
+    published_date: publishedDate,
+    external_url: item.link,
+    full_content: JSON.stringify(item),
+    agency: feedConfig.agency,
+    region: 'US',
+    category: feedConfig.category
+  };
+}
+
+function determineUrgency(item: FeedItem, defaultUrgency: string): string {
+  const text = `${item.title} ${item.description}`.toLowerCase();
+
+  // High urgency keywords
+  const highUrgencyKeywords = [
+    'recall', 'emergency', 'immediate', 'urgent', 'critical', 'outbreak',
+    'contamination', 'death', 'illness', 'warning', 'alert', 'danger'
+  ];
+
+  // Medium urgency keywords
+  const mediumUrgencyKeywords = [
+    'advisory', 'closure', 'violation', 'enforcement', 'new', 'requirement',
+    'update', 'change', 'guidance', 'standard'
+  ];
+
+  if (highUrgencyKeywords.some(keyword => text.includes(keyword))) {
+    return 'High';
+  } else if (mediumUrgencyKeywords.some(keyword => text.includes(keyword))) {
+    return 'Medium';
+  }
+
+  return defaultUrgency;
+}

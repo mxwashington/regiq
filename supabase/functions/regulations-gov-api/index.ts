@@ -47,8 +47,44 @@ serve(async (req) => {
     logStep("Regulations.gov API function started");
 
     const apiKey = Deno.env.get("REGULATIONS_GOV_API_KEY");
+    logStep('API Key check', {
+      exists: !!apiKey,
+      firstChars: apiKey?.substring(0, 5) || 'NONE',
+      length: apiKey?.length || 0
+    });
+
     if (!apiKey) {
       throw new Error("Regulations.gov API key not configured");
+    }
+
+    // Test the API key with a simple request
+    try {
+      const testUrl = `${REGULATIONS_BASE_URL}/documents?filter[agencyId]=FDA&page[size]=5&api_key=${apiKey}`;
+      logStep('Testing API key with test request');
+
+      const testResponse = await fetch(testUrl, {
+        headers: {
+          'X-API-Key': apiKey,
+          'Accept': 'application/vnd.api+json'
+        }
+      });
+
+      logStep('API key test response', {
+        status: testResponse.status,
+        statusText: testResponse.statusText,
+        headers: Object.fromEntries(testResponse.headers.entries())
+      });
+
+      if (!testResponse.ok) {
+        const errorBody = await testResponse.text();
+        logStep('API key test error body', { body: errorBody });
+        throw new Error(`API key test failed: ${testResponse.status} ${testResponse.statusText} - ${errorBody}`);
+      }
+
+      logStep('API key test successful');
+    } catch (testError) {
+      logStep('API key test failed', { error: testError instanceof Error ? testError.message : String(testError) });
+      throw new Error(`API key validation failed: ${testError instanceof Error ? testError.message : String(testError)}`);
     }
 
     const body = await req.json() as RegulationsGovRequest;
@@ -79,10 +115,11 @@ serve(async (req) => {
 });
 
 async function searchDocuments(supabase: any, apiKey: string, params: RegulationsGovRequest) {
+  const pageSize = Math.max(params.limit || 25, 5); // Minimum page size is 5
   const searchParams = new URLSearchParams({
     'api_key': apiKey,
-    'page[size]': (params.limit || 25).toString(),
-    'page[number]': Math.floor((params.offset || 0) / (params.limit || 25)).toString()
+    'page[size]': pageSize.toString(),
+    'page[number]': Math.floor((params.offset || 0) / pageSize).toString()
   });
 
   if (params.query) {

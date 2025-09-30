@@ -1,7 +1,7 @@
 // Source mapping utilities for filtering
 // Maps database source names to filter categories
 
-export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC' | 'REGULATIONS_GOV';
+export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC' | 'REGULATIONS_GOV' | 'TTB' | 'NOAA' | 'OSHA' | 'USDA_APHIS' | 'CBP' | 'FDA_IMPORT';
 
 // Maps database sources to filter categories - Enhanced Pipeline Support
 export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
@@ -42,6 +42,33 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
   // Regulations.gov sources
   'REGULATIONS_GOV': 'REGULATIONS_GOV',
   'Regulations.gov': 'REGULATIONS_GOV',
+
+  // TTB sources
+  'TTB': 'TTB',
+  'TTB Alcohol Regulatory Updates': 'TTB',
+
+  // NOAA sources
+  'NOAA': 'NOAA',
+  'NOAA Fisheries': 'NOAA',
+  'NOAA Seafood Safety': 'NOAA',
+
+  // OSHA sources
+  'OSHA': 'OSHA',
+  'OSHA Food Industry Safety': 'OSHA',
+
+  // USDA APHIS sources
+  'USDA-APHIS': 'USDA_APHIS',
+  'USDA APHIS': 'USDA_APHIS',
+  'APHIS': 'USDA_APHIS',
+
+  // CBP sources
+  'CBP': 'CBP',
+  'CBP Customs': 'CBP',
+  'Customs and Border Protection': 'CBP',
+
+  // FDA Import Alerts (specialized)
+  'FDA Import Alerts': 'FDA_IMPORT',
+  'FDA Import': 'FDA_IMPORT',
 };
 
 // Reverse mapping - filter category to database sources
@@ -53,6 +80,12 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
   'CDC': ['CDC', 'CDC Health Advisories', 'CDC Food Safety Alerts'],
   'Federal_Register': ['Federal Register', 'Federal_Register', 'Federal Register Rules'],
   'REGULATIONS_GOV': ['REGULATIONS_GOV', 'Regulations.gov'],
+  'TTB': ['TTB', 'TTB Alcohol Regulatory Updates'],
+  'NOAA': ['NOAA', 'NOAA Fisheries', 'NOAA Seafood Safety'],
+  'OSHA': ['OSHA', 'OSHA Food Industry Safety'],
+  'USDA_APHIS': ['USDA-APHIS', 'USDA APHIS', 'APHIS'],
+  'CBP': ['CBP', 'CBP Customs', 'Customs and Border Protection'],
+  'FDA_IMPORT': ['FDA Import Alerts', 'FDA Import'],
 };
 
 // Get filter category from database source name
@@ -182,5 +215,41 @@ export const AGENCY_CONFIG = {
     fullName: 'Regulations.gov',
     color: 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200',
     selectedColor: 'bg-indigo-600 text-white hover:bg-indigo-700',
+  },
+  TTB: {
+    label: 'TTB',
+    fullName: 'Alcohol & Tobacco Tax Bureau',
+    color: 'bg-amber-100 text-amber-800 hover:bg-amber-200',
+    selectedColor: 'bg-amber-600 text-white hover:bg-amber-700',
+  },
+  NOAA: {
+    label: 'NOAA',
+    fullName: 'NOAA Fisheries',
+    color: 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200',
+    selectedColor: 'bg-cyan-600 text-white hover:bg-cyan-700',
+  },
+  OSHA: {
+    label: 'OSHA',
+    fullName: 'Occupational Safety & Health',
+    color: 'bg-red-100 text-red-800 hover:bg-red-200',
+    selectedColor: 'bg-red-600 text-white hover:bg-red-700',
+  },
+  USDA_APHIS: {
+    label: 'APHIS',
+    fullName: 'USDA Animal & Plant Health',
+    color: 'bg-lime-100 text-lime-800 hover:bg-lime-200',
+    selectedColor: 'bg-lime-600 text-white hover:bg-lime-700',
+  },
+  CBP: {
+    label: 'CBP',
+    fullName: 'Customs & Border Protection',
+    color: 'bg-slate-100 text-slate-800 hover:bg-slate-200',
+    selectedColor: 'bg-slate-600 text-white hover:bg-slate-700',
+  },
+  FDA_IMPORT: {
+    label: 'FDA Import',
+    fullName: 'FDA Import Alerts',
+    color: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+    selectedColor: 'bg-blue-600 text-white hover:bg-blue-700',
   },
 } as const;
