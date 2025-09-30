@@ -61,19 +61,31 @@ async function fetchRSSFeed(feed: FSISFeed): Promise<any[]> {
 
     const response = await fetch(feed.url, {
       headers: {
-        'User-Agent': 'RegIQ-FSIS-RSS/1.0 (Regulatory Intelligence Platform)',
-        'Accept': 'application/rss+xml, application/xml, text/xml',
+        'User-Agent': 'Mozilla/5.0 (compatible; RegIQ-Bot/1.0)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
         'Cache-Control': 'no-cache'
       },
       signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
     if (!response.ok) {
-      logStep(`Failed to fetch FSIS RSS: ${response.status} - ${response.statusText}`);
+      const errorText = await response.text().catch(() => 'Unable to read response');
+      logStep(`Failed to fetch FSIS RSS: ${response.status} - ${response.statusText}`, { 
+        status: response.status,
+        statusText: response.statusText,
+        errorPreview: errorText.substring(0, 200)
+      });
       return [];
     }
 
     const xmlText = await response.text();
+    
+    if (!xmlText || xmlText.length === 0) {
+      logStep(`Empty response received from ${feed.url}`);
+      return [];
+    }
+    
     logStep(`Received XML response, length: ${xmlText.length}`);
     logStep(`First 500 chars of XML:`, xmlText.substring(0, 500));
 
@@ -126,7 +138,13 @@ async function fetchRSSFeed(feed: FSISFeed): Promise<any[]> {
     return results;
 
   } catch (error) {
-    logStep(`Error fetching RSS feed ${feed.url}:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    logStep(`Error fetching RSS feed ${feed.url}:`, { 
+      error: errorMessage,
+      stack: errorStack,
+      feedCategory: feed.category
+    });
     return [];
   }
 }
@@ -310,6 +328,15 @@ Deno.serve(async (req) => {
 
     logStep('FSIS RSS processing completed', { totalAlertsProcessed, results });
 
+    // Log to alert_sync_logs
+    await supabase.from('alert_sync_logs').insert({
+      source_name: 'FSIS',
+      status: totalAlertsProcessed > 0 ? 'success' : 'no_data',
+      records_processed: totalAlertsProcessed,
+      error_message: totalAlertsProcessed === 0 ? 'No new alerts found in RSS feeds' : null,
+      sync_metadata: { feedResults: results }
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -325,7 +352,25 @@ Deno.serve(async (req) => {
     );
 
   } catch (error: any) {
-    logStep('Unexpected error in FSIS RSS processor', { error: error.message });
+    logStep('Unexpected error in FSIS RSS processor', { error: error.message, stack: error.stack });
+    
+    // Log error to alert_sync_logs
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      await supabase.from('alert_sync_logs').insert({
+        source_name: 'FSIS',
+        status: 'error',
+        records_processed: 0,
+        error_message: error.message,
+        sync_metadata: { stack: error.stack }
+      });
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     return new Response(
       JSON.stringify({
         success: false,

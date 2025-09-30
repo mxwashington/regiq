@@ -214,6 +214,15 @@ async function scrapeAPHIS(supabase: any) {
     }
   }
 
+  // Log to alert_sync_logs
+  await supabase.from('alert_sync_logs').insert({
+    source_name: 'USDA-APHIS',
+    status: totalProcessed > 0 ? 'success' : 'no_data',
+    records_processed: totalProcessed,
+    error_message: totalProcessed === 0 ? 'No new alerts found or all sources returned errors' : null,
+    sync_metadata: { sources_checked: APHIS_SOURCES.length }
+  });
+
   return new Response(JSON.stringify({
     success: true,
     message: `Processed ${totalProcessed} USDA APHIS alerts`,

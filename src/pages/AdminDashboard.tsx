@@ -46,8 +46,9 @@ const AdminDashboard: React.FC = () => {
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Admin Dashboard</h1>
           </header>
 
-          <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-9 md:h-10">
+          <div className="flex flex-col md:flex-row gap-6">
+            <Tabs defaultValue="analytics" className="w-full" orientation="vertical">
+              <TabsList className="flex flex-col w-full md:w-48 h-auto gap-1 p-2 sticky top-6">
               <TabsTrigger value="analytics" className="w-full justify-start md:justify-center">Analytics</TabsTrigger>
               <TabsTrigger value="scrapers" className="w-full justify-start md:justify-center">Scrapers</TabsTrigger>
               <TabsTrigger value="data" className="w-full justify-start md:justify-center">Data Sync</TabsTrigger>
@@ -56,51 +57,54 @@ const AdminDashboard: React.FC = () => {
               <TabsTrigger value="apis" className="w-full justify-start md:justify-center">APIs</TabsTrigger>
               <TabsTrigger value="security" className="w-full justify-start md:justify-center">Security</TabsTrigger>
               <TabsTrigger value="sso" className="w-full justify-start md:justify-center">SSO</TabsTrigger>
-              <TabsTrigger value="settings" className="w-full justify-start md:justify-center">Settings</TabsTrigger>
+              <TabsTrigger value="settings" className="w-full justify-start">Settings</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="analytics">
+            <div className="flex-1 min-w-0">
+              <TabsContent value="analytics" className="mt-0">
               <UsageDashboard />
             </TabsContent>
 
-            <TabsContent value="scrapers">
+            <TabsContent value="scrapers" className="mt-0">
               <ScraperHealthDashboard />
             </TabsContent>
 
-            <TabsContent value="data">
+            <TabsContent value="data" className="mt-0">
               <AdminDataManager />
             </TabsContent>
 
-            <TabsContent value="users">
+            <TabsContent value="users" className="mt-0">
               <div className="text-center p-8">
                 <h3 className="text-lg font-medium">User Management</h3>
                 <p className="text-muted-foreground">Manage user accounts and permissions</p>
               </div>
             </TabsContent>
 
-            <TabsContent value="alerts">
+            <TabsContent value="alerts" className="mt-0">
               <AdminAlertManager />
             </TabsContent>
 
-            <TabsContent value="apis">
+            <TabsContent value="apis" className="mt-0">
               <AdminAPIManager />
             </TabsContent>
 
-            <TabsContent value="security">
+            <TabsContent value="security" className="mt-0">
               <AdminSecurityManager />
             </TabsContent>
 
-            <TabsContent value="sso">
+            <TabsContent value="sso" className="mt-0">
               <SSOConfiguration />
             </TabsContent>
 
-            <TabsContent value="settings">
+            <TabsContent value="settings" className="mt-0">
               <div className="text-center p-8">
                 <h3 className="text-lg font-medium">System Settings</h3>
                 <p className="text-muted-foreground">Configure global application settings</p>
               </div>
             </TabsContent>
+            </div>
           </Tabs>
+          </div>
         </div>
       </section>
     </>

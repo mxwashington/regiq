@@ -86,9 +86,12 @@ async function scrapeCBP(supabase: any) {
 
       const response = await fetch(source.url, {
         headers: {
-          'User-Agent': 'RegIQ-CBP/1.0',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Cache-Control': 'no-cache'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive'
         },
         signal: AbortSignal.timeout(30000)
       });
@@ -213,6 +216,15 @@ async function scrapeCBP(supabase: any) {
       continue;
     }
   }
+
+  // Log to alert_sync_logs
+  await supabase.from('alert_sync_logs').insert({
+    source_name: 'CBP',
+    status: totalProcessed > 0 ? 'success' : 'no_data',
+    records_processed: totalProcessed,
+    error_message: totalProcessed === 0 ? 'No new alerts found or all sources returned errors' : null,
+    sync_metadata: { sources_checked: CBP_SOURCES.length }
+  });
 
   return new Response(JSON.stringify({
     success: true,
