@@ -40,7 +40,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
 
   const totalSelectedSources = filters.sources.length;
   const hasActiveFilters =
-    totalSelectedSources < 13 ||
+    totalSelectedSources < 15 ||
     filters.sinceDays !== 30 ||
     filters.minSeverity !== null ||
     filters.searchQuery.trim() !== '';
@@ -94,7 +94,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
               Data Sources
             </label>
             <span className="text-xs text-muted-foreground">
-              {totalSelectedSources} of 13 selected
+              {totalSelectedSources} of 15 selected
             </span>
           </div>
 
@@ -205,7 +205,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
             <div className="space-y-2">
               <span className="text-sm font-medium">Active Filters:</span>
               <div className="flex flex-wrap gap-1">
-                {totalSelectedSources < 13 && (
+                {totalSelectedSources < 15 && (
                   <Badge variant="secondary" className="text-xs">
                     {filters.sources.join(', ')}
                   </Badge>

@@ -1,7 +1,7 @@
 // Source mapping utilities for filtering
 // Maps database source names to filter categories
 
-export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC' | 'REGULATIONS_GOV' | 'TTB' | 'NOAA' | 'OSHA' | 'USDA_APHIS' | 'CBP' | 'FDA_IMPORT';
+export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC' | 'REGULATIONS_GOV' | 'TTB' | 'NOAA' | 'OSHA' | 'USDA_APHIS' | 'CBP' | 'FDA_IMPORT' | 'USDA-ARMS' | 'USDA-FDC';
 
 // Maps database sources to filter categories - Enhanced Pipeline Support
 export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
@@ -23,6 +23,12 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
   'USDA': 'USDA',
   'USDA Food Safety Alerts': 'USDA',
   'USDA FSIS Recalls': 'USDA',
+  
+  // USDA ARMS Economic Data
+  'USDA-ARMS': 'USDA-ARMS',
+  
+  // USDA FoodData Central
+  'USDA-FDC': 'USDA-FDC',
   
   // FSIS sources (specialized USDA)
   'FSIS': 'FSIS',
@@ -76,6 +82,8 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
   'FDA': ['FDA', 'FDA Warning Letters', 'FDA Form 483 Observations', 'FDA Enforcement Reports', 'FDA Safety Communications', 'Health and Human Services Department'],
   'EPA': ['EPA', 'EPA ECHO Enforcement', 'EPA Enforcement Actions', 'Environmental Protection Agency'],
   'USDA': ['USDA', 'USDA Food Safety Alerts', 'USDA FSIS Recalls'],
+  'USDA-ARMS': ['USDA-ARMS'],
+  'USDA-FDC': ['USDA-FDC'],
   'FSIS': ['FSIS', 'FSIS Recalls', 'FSIS Meat & Poultry Recalls'],
   'CDC': ['CDC', 'CDC Health Advisories', 'CDC Food Safety Alerts'],
   'Federal_Register': ['Federal Register', 'Federal_Register', 'Federal Register Rules'],
@@ -191,6 +199,18 @@ export const AGENCY_CONFIG = {
     fullName: 'US Department of Agriculture',
     color: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
     selectedColor: 'bg-orange-600 text-white hover:bg-orange-700',
+  },
+  'USDA-ARMS': {
+    label: 'USDA-ARMS',
+    fullName: 'USDA Economic Intelligence',
+    color: 'bg-amber-100 text-amber-800 hover:bg-amber-200',
+    selectedColor: 'bg-amber-600 text-white hover:bg-amber-700',
+  },
+  'USDA-FDC': {
+    label: 'Food Data',
+    fullName: 'USDA FoodData Central',
+    color: 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200',
+    selectedColor: 'bg-emerald-600 text-white hover:bg-emerald-700',
   },
   FSIS: {
     label: 'FSIS',
