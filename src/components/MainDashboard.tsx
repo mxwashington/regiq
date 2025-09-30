@@ -235,7 +235,7 @@ export function MainDashboard() {
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters
-              {filters.sources.length > 0 && filters.sources.length < 10 && (
+              {filters.sources.length > 0 && filters.sources.length < 15 && (
                 <Badge variant="secondary" className="ml-2 text-xs">
                   {filters.sources.length}
                 </Badge>
@@ -302,7 +302,7 @@ export function MainDashboard() {
                         <span className="text-muted-foreground text-xs">Database appears empty</span>
                       ) : (
                         <>
-                          {filters.sources.length > 0 && filters.sources.length < 7 && (
+                          {filters.sources.length > 0 && filters.sources.length < 15 && (
                             <Badge variant="outline" className="text-xs">
                               {filters.sources.length} sources
                             </Badge>

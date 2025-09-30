@@ -76,7 +76,8 @@ export const useAlertFilters = () => {
   const updateUrl = useCallback((newFilters: AlertFilters) => {
     const searchParams = new URLSearchParams(location.search);
 
-    if (newFilters.sources.length > 0 && newFilters.sources.length < 15) {
+    // Always set source params to maintain filter state
+    if (newFilters.sources.length > 0) {
       searchParams.set('source', newFilters.sources.join(','));
     } else {
       searchParams.delete('source');

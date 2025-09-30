@@ -83,7 +83,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
         // Apply filters if provided
         if (filters) {
           // Filter by sources - use proper agency-aware filtering
-          if (filters.sources.length > 0 && filters.sources.length < 7) {
+          if (filters.sources.length > 0 && filters.sources.length < 15) {
             // For client-side filtering, we'll fetch all alerts and filter them
             // This is necessary because we need both source and agency for proper categorization
           }
@@ -133,7 +133,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
         
         // Apply client-side source filtering if needed
         let filteredData = data;
-        if (filters && filters.sources.length > 0 && filters.sources.length < 7) {
+        if (filters && filters.sources.length > 0 && filters.sources.length < 15) {
           console.log('[Filtering] Applying filters:', filters.sources);
           filteredData = data.filter(alert => {
             const matchesAnyFilter = filters.sources.some(filterCategory => 
@@ -256,7 +256,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
       if (data && data.length > 0) {
         // Apply client-side source filtering to pagination results too
         let filteredData = data;
-        if (filters && filters.sources.length > 0 && filters.sources.length < 7) {
+        if (filters && filters.sources.length > 0 && filters.sources.length < 15) {
           filteredData = data.filter(alert => 
             filters.sources.some(filterCategory => 
               sourceMatchesFilter(alert.source, filterCategory, alert.agency)

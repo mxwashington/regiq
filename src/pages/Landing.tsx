@@ -102,6 +102,24 @@ const Landing = () => {
       {/* Marketing Hero */}
       <Hero />
 
+      {/* Quick Action - View Live Alerts */}
+      {user && (
+        <section className="py-4 px-4 bg-primary/5 border-y border-primary/20">
+          <div className="container mx-auto max-w-4xl text-center">
+            <Button size="lg" asChild className="gap-2">
+              <Link to="/dashboard">
+                <Bell className="h-5 w-5" />
+                View Live Regulatory Alerts
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Access your personalized dashboard with real-time filtering
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Pain Points Section */}
       <section id="pain-points" className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl">
