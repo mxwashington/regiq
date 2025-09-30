@@ -40,7 +40,13 @@ export const useSourceCounts = () => {
           FSIS: 0,
           Federal_Register: 0,
           CDC: 0,
-          REGULATIONS_GOV: 0
+          REGULATIONS_GOV: 0,
+          TTB: 0,
+          NOAA: 0,
+          OSHA: 0,
+          USDA_APHIS: 0,
+          CBP: 0,
+          FDA_IMPORT: 0
         });
         setError(null);
         return;
@@ -56,7 +62,13 @@ export const useSourceCounts = () => {
         FSIS: 0,
         Federal_Register: 0,
         CDC: 0,
-        REGULATIONS_GOV: 0
+        REGULATIONS_GOV: 0,
+        TTB: 0,
+        NOAA: 0,
+        OSHA: 0,
+        USDA_APHIS: 0,
+        CBP: 0,
+        FDA_IMPORT: 0
       };
       
       data?.forEach(alert => {
@@ -102,7 +114,13 @@ export const useSourceCounts = () => {
         FSIS: 0,
         Federal_Register: 0,
         CDC: 0,
-        REGULATIONS_GOV: 0
+        REGULATIONS_GOV: 0,
+        TTB: 0,
+        NOAA: 0,
+        OSHA: 0,
+        USDA_APHIS: 0,
+        CBP: 0,
+        FDA_IMPORT: 0
       });
     } finally {
       setLoading(false);

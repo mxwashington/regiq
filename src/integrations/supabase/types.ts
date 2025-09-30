@@ -446,6 +446,7 @@ export type Database = {
           external_url: string | null
           full_content: string | null
           id: string
+          p_hash: string | null
           perplexity_processed: boolean | null
           published_date: string
           region: string | null
@@ -465,6 +466,7 @@ export type Database = {
           external_url?: string | null
           full_content?: string | null
           id?: string
+          p_hash?: string | null
           perplexity_processed?: boolean | null
           published_date: string
           region?: string | null
@@ -484,6 +486,7 @@ export type Database = {
           external_url?: string | null
           full_content?: string | null
           id?: string
+          p_hash?: string | null
           perplexity_processed?: boolean | null
           published_date?: string
           region?: string | null
@@ -823,6 +826,42 @@ export type Database = {
           period_end?: string
           period_start?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      circuit_breaker_state: {
+        Row: {
+          created_at: string | null
+          failure_count: number | null
+          last_failure: string | null
+          last_success: string | null
+          next_attempt_at: string | null
+          opened_at: string | null
+          source_name: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          failure_count?: number | null
+          last_failure?: string | null
+          last_success?: string | null
+          next_attempt_at?: string | null
+          opened_at?: string | null
+          source_name: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          failure_count?: number | null
+          last_failure?: string | null
+          last_success?: string | null
+          next_attempt_at?: string | null
+          opened_at?: string | null
+          source_name?: string
+          status?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
