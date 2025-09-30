@@ -24,7 +24,9 @@ import {
   AlertTriangle,
   Building2,
   Bot,
-  Sparkles
+  Sparkles,
+  TrendingDown,
+  DollarSign
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -63,6 +65,7 @@ interface Alert {
   full_content?: string;
   region?: string;
   agency?: string;
+  data_classification?: string;
 }
 
 interface PerplexityResult {
@@ -327,6 +330,17 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
           </div>
           
           <div className="flex flex-col items-end space-y-2">
+            {alert.data_classification === 'economic-indicator' && (
+              <Badge 
+                variant="secondary" 
+                className="bg-amber-600 text-white px-2 py-1 text-xs"
+              >
+                <span className="flex items-center gap-1">
+                  <TrendingDown className="h-3 w-3" />
+                  Economic Alert
+                </span>
+              </Badge>
+            )}
             {alert.urgency && (
               <Badge 
                 variant="secondary" 
