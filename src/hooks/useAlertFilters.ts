@@ -15,13 +15,8 @@ export interface AlertFilters {
   searchQuery: string;
 }
 
-const ALL_SOURCES: AgencySource[] = ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV', 'USDA-ARMS', 'USDA-FDC', 'TTB', 'NOAA', 'OSHA', 'USDA_APHIS', 'CBP', 'FDA_IMPORT'];
-
-// Smart default: Start with top 8 most active agencies instead of all 15
-const DEFAULT_SOURCES: AgencySource[] = ['FDA', 'CDC', 'EPA', 'FSIS', 'USDA', 'REGULATIONS_GOV', 'TTB', 'NOAA'];
-
 const DEFAULT_FILTERS: AlertFilters = {
-  sources: DEFAULT_SOURCES,
+  sources: ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV', 'USDA-ARMS', 'USDA-FDC', 'TTB', 'NOAA', 'OSHA', 'USDA_APHIS', 'CBP', 'FDA_IMPORT'],
   sinceDays: 30,
   minSeverity: null,
   searchQuery: '',
@@ -46,7 +41,7 @@ export const useAlertFilters = () => {
     if (sourceParam) {
       const sourcesParam = sourceParam.split(',');
       const validSources = sourcesParam.filter((s: string) =>
-        ALL_SOURCES.includes(s as AgencySource)
+        ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV', 'USDA-ARMS', 'USDA-FDC', 'TTB', 'NOAA', 'OSHA', 'USDA_APHIS', 'CBP', 'FDA_IMPORT'].includes(s)
       ) as AgencySource[];
       if (validSources.length > 0) {
         urlFilters.sources = validSources;
@@ -81,7 +76,7 @@ export const useAlertFilters = () => {
   const updateUrl = useCallback((newFilters: AlertFilters) => {
     const searchParams = new URLSearchParams(location.search);
 
-    // FIXED: Always sync sources to URL for state persistence
+    // Always set source params to maintain filter state
     if (newFilters.sources.length > 0) {
       searchParams.set('source', newFilters.sources.join(','));
     } else {
@@ -138,6 +133,51 @@ export const useAlertFilters = () => {
     return {};
   }, []);
 
+  // Save to user preferences (authenticated users only)
+  const saveToUserPreferences = useCallback(
+    async (filters: AlertFilters) => {
+      if (!user?.id) return;
+
+      try {
+        // TODO: Fix Supabase function name - commenting out for now to prevent loops
+        /*
+        await supabase.rpc('set_user_preference', {
+          p_user_id: user.id,
+          p_key: 'alert_filters',
+          p_value: filters,
+        });
+        */
+      } catch (error) {
+        console.warn('Failed to save filters to user preferences:', error);
+      }
+    },
+    [user?.id]
+  );
+
+  // Load from user preferences
+  const loadFromUserPreferences = useCallback(async (): Promise<Partial<AlertFilters>> => {
+    if (!user?.id) return {};
+
+    try {
+      // TODO: Fix Supabase function name - commenting out for now  
+      /*
+      const { data, error } = await supabase.rpc('get_user_preference', {
+        p_user_id: user.id,
+        p_key: 'alert_filters',
+        p_default: DEFAULT_FILTERS,
+      });
+
+      if (error) throw error;
+
+      return data || {};
+      */
+      return {};
+    } catch (error) {
+      console.warn('Failed to load filters from user preferences:', error);
+      return {};
+    }
+  }, [user?.id]);
+
   // Initialize filters on mount
   useEffect(() => {
     if (initialized.current) return;
@@ -147,14 +187,16 @@ export const useAlertFilters = () => {
       initialized.current = true;
 
       try {
-        // Priority: URL > localStorage > Defaults
+        // Priority: URL > User Preferences > localStorage > Defaults
         const searchParams = new URLSearchParams(location.search);
         const urlFilters = parseUrlFilters(searchParams);
+        const userFilters = {}; // await loadFromUserPreferences(); - disabled to prevent loops
         const localFilters = loadFromLocalStorage();
 
         const mergedFilters = {
           ...DEFAULT_FILTERS,
           ...localFilters,
+          ...userFilters,  
           ...urlFilters,
         };
 
@@ -170,7 +212,7 @@ export const useAlertFilters = () => {
     initializeFilters();
   }, []);
 
-  // Update filters
+// Update filters
   const updateFilters = useCallback((newFilters: Partial<AlertFilters>) => {
     const cacheKey = `filters-${JSON.stringify(newFilters)}`;
     const cached = requestCache.current.get(cacheKey);
@@ -190,8 +232,9 @@ export const useAlertFilters = () => {
     setTimeout(() => {
       updateUrl(updatedFilters);
       saveToLocalStorage(updatedFilters);
+      saveToUserPreferences(updatedFilters);
     }, 100);
-  }, [filters, updateUrl, saveToLocalStorage]);
+  }, [filters, updateUrl, saveToLocalStorage, saveToUserPreferences]);
 
   // Specific update methods
   const setSources = useCallback((sources: AgencySource[]) => {
@@ -217,29 +260,17 @@ export const useAlertFilters = () => {
     setSources(newSources);
   }, [filters.sources, setSources]);
 
-  const setAllSources = useCallback((selected: boolean) => {
-    const newSources = selected ? [...ALL_SOURCES] : [];
-    setSources(newSources);
-  }, [setSources]);
-
   const resetFilters = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
     updateUrl(DEFAULT_FILTERS);
     saveToLocalStorage(DEFAULT_FILTERS);
-  }, [updateUrl, saveToLocalStorage]);
+    saveToUserPreferences(DEFAULT_FILTERS);
+  }, [updateUrl, saveToLocalStorage, saveToUserPreferences]);
 
   // Generate cache key for queries
   const getCacheKey = useCallback(() => {
     return `alerts_${filters.sources.sort().join('-')}_${filters.sinceDays}_${filters.minSeverity || 'all'}_${filters.searchQuery}`;
   }, [filters]);
-
-  // Calculate active filter count for UI feedback
-  const activeFilterCount = (
-    (filters.sources.length !== ALL_SOURCES.length && filters.sources.length !== DEFAULT_SOURCES.length ? 1 : 0) +
-    (filters.sinceDays !== 30 ? 1 : 0) +
-    (filters.minSeverity !== null ? 1 : 0) +
-    (filters.searchQuery.trim() ? 1 : 0)
-  );
 
   return {
     filters,
@@ -249,10 +280,8 @@ export const useAlertFilters = () => {
     setMinSeverity,
     setSearchQuery,
     toggleSource,
-    setAllSources,
     resetFilters,
     updateFilters,
     getCacheKey,
-    activeFilterCount,
   };
 };

@@ -1,30 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { fallbackAlerts } from '@/lib/debug-utils';
+import { AgencySource, sourceMatchesFilter } from '@/lib/source-mapping';
 import { AlertFilters } from '@/hooks/useAlertFilters';
-import { sourceMatchesFilter } from '@/lib/source-mapping';
 import { logger } from '@/lib/logger';
-
-const SOURCE_MAP: Record<string, string[]> = {
-  'FDA': ['FDA', 'fda', 'Food and Drug Administration'],
-  'CDC': ['CDC', 'cdc', 'Centers for Disease Control'],
-  'USDA': ['USDA', 'usda', 'Agriculture'],
-  'EPA': ['EPA', 'epa', 'Environmental Protection'],
-  'FSIS': ['FSIS', 'fsis', 'Food Safety'],
-  'Federal_Register': ['Federal Register', 'Federal_Register'],
-  'REGULATIONS_GOV': ['Regulations.gov', 'REGULATIONS_GOV'],
-  'USDA-ARMS': ['USDA-ARMS', 'ARMS'],
-  'USDA-FDC': ['USDA-FDC', 'FoodData'],
-  'TTB': ['TTB', 'ttb', 'Alcohol and Tobacco Tax'],
-  'NOAA': ['NOAA', 'noaa', 'Fisheries'],
-  'OSHA': ['OSHA', 'osha', 'Occupational Safety'],
-  'USDA_APHIS': ['APHIS', 'USDA_APHIS', 'Animal Health'],
-  'CBP': ['CBP', 'cbp', 'Customs'],
-  'FDA_IMPORT': ['FDA Import', 'FDA_IMPORT', 'Import Alert']
-};
-
-const ALL_SOURCES = Object.keys(SOURCE_MAP);
-const TOTAL_SOURCE_COUNT = ALL_SOURCES.length; // 15 sources
 interface SimpleAlert {
   id: string;
   title: string;
@@ -61,103 +41,159 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
   const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
 
-  const fetchAlerts = useCallback(async () => {
+  const loadAlertsWithRetry = async (maxRetries = 3) => {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        logger.info(`[useSimpleAlerts] Attempt ${attempt + 1}/${maxRetries + 1} - Loading alerts...`, { limit, filters });
+        setLoading(true);
+        setError(null);
 
-    try {
-      setLoading(true);
-      setError(null);
+        // Test basic connection first
+        logger.info('[useSimpleAlerts] Testing database connection...');
+        const { error: pingError } = await supabase
+          .from('alerts')
+          .select('*', { count: 'exact', head: true })
+          .limit(0);
 
-      // Build the base query
-      let query = supabase
-        .from('alerts')
-        .select('*', { count: 'exact' })
-        .order('published_date', { ascending: false })
-        .limit(limit || 100);
+        if (pingError) {
+          throw new Error(`Database connection failed: ${pingError.message}`);
+        }
 
-      // Apply date filter if specified
-      if (filters && filters.sinceDays && filters.sinceDays > 0) {
-        const sinceDate = new Date();
-        sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
-        query = query.gte('published_date', sinceDate.toISOString());
-      }
+        logger.info('[useSimpleAlerts] Database connection successful, loading alerts...');
 
-      // Apply severity filter if specified
-      if (filters && filters.minSeverity !== null && filters.minSeverity > 0) {
-        query = query.gte('urgency_score', filters.minSeverity);
-      }
+        // Build query
+        let query = supabase
+          .from('alerts')
+          .select(`
+            id,
+            title,
+            summary,
+            urgency,
+            source,
+            agency,
+            published_date,
+            external_url,
+            dismissed_by,
+            ai_summary,
+            urgency_score,
+            full_content
+          `, { count: 'exact' })
+          .order('published_date', { ascending: false });
 
-      // CRITICAL FIX: Apply source filter at database level when fewer than all sources selected
-      if (filters && filters.sources.length > 0 && filters.sources.length < TOTAL_SOURCE_COUNT) {
-        const sourceVariations: string[] = [];
-        filters.sources.forEach(source => {
-          const variations = SOURCE_MAP[source] || [];
-          sourceVariations.push(...variations);
+        // Apply filters if provided
+        if (filters) {
+          // Filter by sources - use proper agency-aware filtering
+          if (filters.sources.length > 0 && filters.sources.length < 15) {
+            // For client-side filtering, we'll fetch all alerts and filter them
+            // This is necessary because we need both source and agency for proper categorization
+          }
+
+          // Filter by date range
+          if (filters.sinceDays && filters.sinceDays > 0) {
+            const sinceDate = new Date();
+            sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
+            query = query.gte('published_date', sinceDate.toISOString());
+          }
+
+          // Filter by minimum severity (urgency_score)
+          if (filters.minSeverity !== null && filters.minSeverity > 0) {
+            query = query.gte('urgency_score', filters.minSeverity);
+          }
+
+          // Filter by search query (title and summary)
+          if (filters.searchQuery && filters.searchQuery.trim()) {
+            const searchTerm = filters.searchQuery.trim();
+            query = query.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
+          }
+        }
+
+        // Only apply limit if specified
+        if (limit && limit > 0) {
+          query = query.limit(limit);
+        }
+
+        const { data, error: fetchError, count } = await query;
+
+        if (fetchError) {
+          logger.error('[useSimpleAlerts] Query failed:', fetchError);
+          throw new Error(`Query failed: ${fetchError.message} (Code: ${fetchError.code})`);
+        }
+
+        if (!data) {
+          throw new Error('No data returned from query');
+        }
+
+        logger.info('[useSimpleAlerts] Successfully loaded alerts:', { 
+          count: data.length, 
+          totalCount: count,
+          limit,
+          filters,
+          sampleTitles: data.slice(0, 3).map(a => a.title) 
         });
         
-        if (sourceVariations.length > 0) {
-          query = query.in('source', sourceVariations);
+        // Apply client-side source filtering if needed
+        let filteredData = data;
+        if (filters && filters.sources.length > 0 && filters.sources.length < 15) {
+          console.log('[Filtering] Applying filters:', filters.sources);
+          filteredData = data.filter(alert => {
+            const matchesAnyFilter = filters.sources.some(filterCategory => 
+              sourceMatchesFilter(alert.source, filterCategory, alert.agency)
+            );
+            
+            // Debug Federal Register filtering
+            if (alert.source === 'Federal Register') {
+              console.log('[Filtering] Federal Register decision:', {
+                source: alert.source,
+                agency: alert.agency,
+                requestedFilters: filters.sources,
+                matchesAnyFilter: matchesAnyFilter,
+                title: alert.title?.substring(0, 50) + '...'
+              });
+            }
+            
+            return matchesAnyFilter;
+          });
+          console.log('[Filtering] Result:', { originalCount: data.length, filteredCount: filteredData.length });
+        }
+        
+        setAlerts(filteredData);
+        setTotalCount(filteredData.length);
+        setHasMore(limit ? filteredData.length >= limit : false);
+        setRetryCount(0);
+        setLoading(false);
+        return;
+
+      } catch (err: any) {
+        logger.error(`[useSimpleAlerts] Attempt ${attempt + 1} failed:`, err);
+        
+        if (attempt === maxRetries) {
+          // All retries failed, use fallback
+          logger.warn('[useSimpleAlerts] All retries failed, using fallback data');
+          setError(err.message || 'Failed to load alerts');
+          setAlerts(fallbackAlerts);
+          setTotalCount(fallbackAlerts.length);
+          setHasMore(false);
+          setRetryCount(attempt + 1);
+          setLoading(false);
+          
+          toast({
+            title: 'Connection Issue',
+            description: 'Using cached data. Click refresh to try again.',
+            variant: 'destructive'
+          });
+        } else {
+          // Wait before retry with exponential backoff
+          const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+          logger.info(`[useSimpleAlerts] Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
-
-      const { data, error: fetchError, count } = await query;
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
-      if (!data) {
-        throw new Error('No data returned from query');
-      }
-
-      // Additional client-side filtering for edge cases
-      let filteredData = data;
-
-      // Apply source filter client-side if needed (backup filtering)
-      if (filters && filters.sources.length > 0 && filters.sources.length < TOTAL_SOURCE_COUNT) {
-        filteredData = filteredData.filter(alert => {
-          if (!alert.source) return false;
-          
-          const normalizedSource = alert.source.toLowerCase().trim();
-          
-          return filters.sources.some(filterSource => {
-            const variations = SOURCE_MAP[filterSource] || [];
-            return variations.some(v => 
-              normalizedSource.includes(v.toLowerCase())
-            );
-          });
-        });
-      }
-
-      // Apply search filter if specified
-      if (filters && filters.searchQuery && filters.searchQuery.trim() !== '') {
-        const searchLower = filters.searchQuery.toLowerCase().trim();
-        filteredData = filteredData.filter(alert => 
-          alert.title?.toLowerCase().includes(searchLower) ||
-          alert.summary?.toLowerCase().includes(searchLower) ||
-          alert.source?.toLowerCase().includes(searchLower)
-        );
-      }
-
-      setAlerts(filteredData);
-      setTotalCount(filteredData.length);
-      setHasMore(limit ? filteredData.length >= limit : false);
-      setLoading(false);
-    } catch (err: any) {
-      console.error('Error fetching alerts:', err);
-      setError(err.message || 'Failed to load alerts');
-      setLoading(false);
-      
-      toast({
-        title: 'Error Loading Alerts',
-        description: err.message || 'Failed to fetch alerts. Please try again.',
-        variant: 'destructive'
-      });
     }
-  }, [filters, limit, toast]);
+  };
 
   useEffect(() => {
-    fetchAlerts();
-  }, [fetchAlerts]);
+    loadAlertsWithRetry();
+  }, [limit, filters, toast]);
 
   // Load more for pagination
   const loadMore = async () => {
@@ -169,40 +205,71 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
 
       let query = supabase
         .from('alerts')
-        .select('*')
+        .select(`
+          id,
+          title,
+          summary,
+          urgency,
+          source,
+          agency,
+          published_date,
+          external_url,
+          dismissed_by,
+          ai_summary,
+          urgency_score,
+          full_content
+        `)
         .order('published_date', { ascending: false })
-        .lt('published_date', lastAlert.published_date)
-        .limit(limit || 50);
+        .lt('published_date', lastAlert.published_date);
 
-      // Apply same filters as initial fetch
-      if (filters && filters.sinceDays && filters.sinceDays > 0) {
-        const sinceDate = new Date();
-        sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
-        query = query.gte('published_date', sinceDate.toISOString());
-      }
+        // Apply filters to pagination too  
+        if (filters) {
+          // We'll apply client-side filtering for source matching
+          
+          // Filter by date range
+          if (filters.sinceDays && filters.sinceDays > 0) {
+            const sinceDate = new Date();
+            sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
+            query = query.gte('published_date', sinceDate.toISOString());
+          }
 
-      if (filters && filters.minSeverity !== null && filters.minSeverity > 0) {
-        query = query.gte('urgency_score', filters.minSeverity);
-      }
+          // Filter by minimum severity
+          if (filters.minSeverity !== null && filters.minSeverity > 0) {
+            query = query.gte('urgency_score', filters.minSeverity);
+          }
 
-      if (filters && filters.sources.length > 0 && filters.sources.length < TOTAL_SOURCE_COUNT) {
-        const sourceVariations: string[] = [];
-        filters.sources.forEach(source => {
-          const variations = SOURCE_MAP[source] || [];
-          sourceVariations.push(...variations);
-        });
-        if (sourceVariations.length > 0) {
-          query = query.in('source', sourceVariations);
+          // Filter by search query
+          if (filters.searchQuery && filters.searchQuery.trim()) {
+            const searchTerm = filters.searchQuery.trim();
+            query = query.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
+          }
         }
-      }
 
-      const { data, error: fetchError } = await query;
+        if (limit && limit > 0) {
+          query = query.limit(limit);
+        }
+
+        const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
 
       if (data && data.length > 0) {
-        setAlerts(prev => [...prev, ...data]);
-        setHasMore(limit ? data.length >= limit : false);
+        // Apply client-side source filtering to pagination results too
+        let filteredData = data;
+        if (filters && filters.sources.length > 0 && filters.sources.length < 15) {
+          filteredData = data.filter(alert => 
+            filters.sources.some(filterCategory => 
+              sourceMatchesFilter(alert.source, filterCategory, alert.agency)
+            )
+          );
+        }
+        
+        if (filteredData.length > 0) {
+          setAlerts(prev => [...prev, ...filteredData]);
+          setHasMore(limit ? data.length >= limit : false);
+        } else {
+          setHasMore(false);
+        }
       } else {
         setHasMore(false);
       }
@@ -218,7 +285,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
 
   // Provide manual retry function
   const retryLoad = () => {
-    fetchAlerts();
+    loadAlertsWithRetry();
   };
 
   return { 
