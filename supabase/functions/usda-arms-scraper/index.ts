@@ -98,7 +98,7 @@ serve(async (req) => {
             const { data: existing } = await supabase
               .from('alerts')
               .select('id')
-              .eq('source', 'USDA')
+              .eq('source', 'USDA-ARMS')
               .contains('full_content', `"unique_id":"${uniqueId}"`)
               .single();
 
@@ -115,7 +115,7 @@ serve(async (req) => {
             const alertData = {
               title: `Economic Alert: ${sector} farms showing ${interpretMetric(metric, dataPoint.value)}`,
               summary: buildEconomicSummary(sector, metric, dataPoint),
-              source: 'USDA',
+              source: 'USDA-ARMS',
               agency: 'USDA',
               urgency,
               urgency_score: urgencyScore,
@@ -123,12 +123,13 @@ serve(async (req) => {
               external_url: `https://www.ers.usda.gov/data-products/arms-farm-financial-and-crop-production-practices/`,
               full_content: JSON.stringify({
                 unique_id: uniqueId,
-                sector,
-                metric,
-                year: dataPoint.year,
-                value: dataPoint.value,
-                unit: dataPoint.unit || 'percent',
-                category: 'economic-indicator',
+                economicData: {
+                  sector,
+                  metric,
+                  year: dataPoint.year,
+                  value: dataPoint.value,
+                  unit: dataPoint.unit || 'percent',
+                }
               }),
               data_classification: 'economic-indicator',
             };

@@ -100,7 +100,9 @@ serve(async (req) => {
             urgency_score: 3,
             published_date: food.modifiedDate || food.publishedDate || new Date().toISOString(),
             external_url: `https://fdc.nal.usda.gov/fdc-app.html#/food-details/${food.fdcId}`,
-            full_content: JSON.stringify(food),
+            full_content: JSON.stringify({
+              foodData: food
+            }),
             data_classification: 'food-data',
           };
 
