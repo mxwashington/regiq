@@ -101,6 +101,12 @@ verify_jwt = false
 [functions.usda-arms-scraper]
 verify_jwt = false
 
+[functions.ai-alert-processor]
+verify_jwt = false
+
+[functions.perplexity-search]
+verify_jwt = false
+
 [auth.external.apple]
 enabled = false
 client_id = ""
