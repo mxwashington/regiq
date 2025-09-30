@@ -22,10 +22,12 @@ interface FoodDataItem {
 }
 
 export function FoodDataCentralFeed() {
-  // Fetch all USDA alerts and filter for FDC source
-  const { alerts: allUsda, loading } = useSimpleAlerts(500, {
+  const [displayLimit, setDisplayLimit] = React.useState(25);
+
+  // Fetch only USDA alerts with pagination
+  const { alerts: allUsda, loading: loadingFood } = useSimpleAlerts(50, {
     sources: ['USDA'],
-    sinceDays: 365,
+    sinceDays: 90,
     minSeverity: null,
     searchQuery: '',
   });
@@ -35,31 +37,27 @@ export function FoodDataCentralFeed() {
     return allUsda.filter(a => a.source === 'USDA-FDC');
   }, [allUsda]);
 
-  // Get all alerts to cross-reference with recalls
-  const { alerts: allAlerts } = useSimpleAlerts(500, {
-    sources: ['FDA', 'FSIS', 'USDA'],
+  // Get recent alerts for recall matching - smaller dataset
+  const { alerts: allAlerts, loading: loadingRecalls } = useSimpleAlerts(100, {
+    sources: ['FDA', 'FSIS'],
     sinceDays: 30,
     minSeverity: null,
     searchQuery: '',
   });
 
-  // Identify foods that match current recalls
-  const matchedRecalls = useMemo(() => {
-    const recallKeywords = new Set<string>();
-    
-    allAlerts
-      .filter(a => ['FDA', 'FSIS', 'USDA'].includes(a.source || ''))
-      .forEach(alert => {
-        const text = `${alert.title} ${alert.summary}`.toLowerCase();
-        const words = text.match(/\b[a-z]{4,}\b/g) || [];
-        words.forEach(w => recallKeywords.add(w));
-      });
+  const loading = loadingFood || loadingRecalls;
 
-    return foodDataAlerts.filter(food => {
+  // Simplified recall matching - only check for common recall terms
+  const matchedRecalls = useMemo(() => {
+    if (allAlerts.length === 0) return [];
+    
+    const recallTerms = ['salmonella', 'listeria', 'e.coli', 'recall', 'contamination'];
+    
+    return foodDataAlerts.slice(0, displayLimit).filter(food => {
       const foodText = `${food.title} ${food.summary}`.toLowerCase();
-      return Array.from(recallKeywords).some(keyword => foodText.includes(keyword));
+      return recallTerms.some(term => foodText.includes(term));
     });
-  }, [foodDataAlerts, allAlerts]);
+  }, [foodDataAlerts, allAlerts, displayLimit]);
 
   if (loading) {
     return (
@@ -109,10 +107,22 @@ export function FoodDataCentralFeed() {
       <div className="space-y-4">
         {foodDataAlerts
           .filter(f => !matchedRecalls.find(m => m.id === f.id))
+          .slice(0, displayLimit)
           .map(food => (
             <FoodDataCard key={food.id} alert={food} />
           ))}
       </div>
+
+      {foodDataAlerts.length > displayLimit && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            onClick={() => setDisplayLimit(prev => prev + 25)}
+          >
+            Load More ({foodDataAlerts.length - displayLimit} remaining)
+          </Button>
+        </div>
+      )}
 
       {foodDataAlerts.length === 0 && (
         <Card>
@@ -133,7 +143,7 @@ interface FoodDataCardProps {
   isRecallMatch?: boolean;
 }
 
-function FoodDataCard({ alert, isRecallMatch }: FoodDataCardProps) {
+const FoodDataCard = React.memo(({ alert, isRecallMatch }: FoodDataCardProps) => {
   let foodData: FoodDataItem | null = null;
   
   try {
@@ -219,4 +229,4 @@ function FoodDataCard({ alert, isRecallMatch }: FoodDataCardProps) {
       </CardContent>
     </Card>
   );
-}
+});
