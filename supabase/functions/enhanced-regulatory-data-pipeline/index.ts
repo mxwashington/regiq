@@ -72,12 +72,12 @@ async function fetchDataSources(supabase: any): Promise<DataSource[]> {
   const workingSources: DataSource[] = [
     {
       id: 'epa_echo',
-      name: 'EPA ECHO Enforcement',
+      name: 'EPA',
       agency: 'EPA',
       region: 'US',
       source_type: 'api',
       url: 'https://echo.epa.gov/tools/web-services/enforcement-case-results.json',
-      is_active: true,
+      is_active: false,
       polling_interval_minutes: 60,
       priority: 8,
       keywords: ['enforcement', 'violation', 'penalty'],
@@ -87,11 +87,12 @@ async function fetchDataSources(supabase: any): Promise<DataSource[]> {
     },
     {
       id: 'fsis_recalls',
-      name: 'FSIS Meat & Poultry Recalls',
-      agency: 'USDA',
-      region: 'US', 
-      source_type: 'rss',
-      url: 'https://www.fsis.usda.gov/wps/wcm/connect/fsis-content/internet/main/topics/recalls-and-public-health-alerts/recall-summaries/rss',
+      name: 'FSIS',
+      agency: 'FSIS',
+      region: 'US',
+      source_type: 'api',
+      url: 'https://www.fsis.usda.gov/fsis/api/recall/v/1',
+      base_url: 'https://www.fsis.usda.gov/fsis/api/recall/v/1',
       is_active: true,
       polling_interval_minutes: 30,
       priority: 9,
@@ -102,7 +103,7 @@ async function fetchDataSources(supabase: any): Promise<DataSource[]> {
     },
     {
       id: 'fed_register_rules',
-      name: 'Federal Register Rules',
+      name: 'Fed Register',
       agency: 'Federal Register',
       region: 'US',
       source_type: 'api',
@@ -112,6 +113,36 @@ async function fetchDataSources(supabase: any): Promise<DataSource[]> {
       priority: 7,
       keywords: ['rule', 'regulation', 'cfr'],
       metadata: { document_types: ['Rule', 'Proposed Rule'] },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'usda_nass',
+      name: 'USDA',
+      agency: 'USDA',
+      region: 'US',
+      source_type: 'api',
+      url: 'https://quickstats.nass.usda.gov/api',
+      is_active: false,
+      polling_interval_minutes: 180,
+      priority: 6,
+      keywords: ['agriculture', 'crop', 'livestock'],
+      metadata: { api_type: 'nass_quickstats' },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'regulations_gov',
+      name: 'Regulations.gov',
+      agency: 'GSA',
+      region: 'US',
+      source_type: 'api',
+      url: 'https://api.regulations.gov/v4/documents',
+      is_active: false,
+      polling_interval_minutes: 240,
+      priority: 5,
+      keywords: ['regulation', 'comment', 'rule'],
+      metadata: { document_types: ['Rule', 'Notice'] },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
@@ -933,15 +964,18 @@ async function fetchOpenFDAData(endpoint: string, source: DataSource): Promise<a
 async function fetchFSISData(endpoint: string, source: DataSource): Promise<any[]> {
   try {
     logStep(`Fetching FSIS data from: ${endpoint}`);
-    
-    const url = `${source.base_url}/${endpoint}`;
+
+    // If endpoint is already a full URL, use it directly; otherwise append to base_url
+    const url = endpoint.startsWith('http') ? endpoint : `${source.base_url}/${endpoint}`;
     
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
-        'Accept': 'application/json'
-      }
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
     if (!response.ok) {

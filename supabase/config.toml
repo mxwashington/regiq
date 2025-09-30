@@ -59,6 +59,9 @@ verify_jwt = false
 [functions.rss-alert-scraper]
 verify_jwt = false
 
+[functions.fsis-rss-feeds]
+verify_jwt = false
+
 [functions.enhanced-regulatory-data-collection]
 verify_jwt = false
 
