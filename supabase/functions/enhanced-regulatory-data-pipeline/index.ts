@@ -1,7 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const corsHeaders = {
-
 // Simple logger for Supabase functions
 const logger = {
   debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
@@ -10,6 +8,7 @@ const logger = {
   error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
 };
 
+const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
@@ -48,6 +47,19 @@ interface ProcessedAlert {
   full_content?: string;
   region: string;
   agency: string;
+}
+
+// Structured sync result reporting (from sync-alerts)
+interface SyncResult {
+  source: string;
+  success: boolean;
+  startTime: string;
+  endTime: string;
+  alertsFetched: number;
+  alertsInserted: number;
+  alertsUpdated: number;
+  alertsSkipped: number;
+  errors: string[];
 }
 
 function logStep(message: string, data?: any) {
@@ -217,11 +229,50 @@ function detectSignalType(title: string, description: string): string {
   return 'Market Signal'; // default
 }
 
+// Enhanced FDA severity scoring (from sync-alerts)
+function calculateFDASeverity(item: any): number {
+  const classification = (item.classification || '').toLowerCase();
+  const title = (item.product_description || item.title || '').toLowerCase();
+  const summary = (item.reason_for_recall || item.summary || '').toLowerCase();
+
+  // FDA Class-based scoring (most important)
+  if (classification.includes('class i') || classification.includes('class 1')) {
+    return 90; // Class I - life-threatening
+  }
+  if (classification.includes('class ii') || classification.includes('class 2')) {
+    return 60; // Class II - serious health hazard
+  }
+  if (classification.includes('class iii') || classification.includes('class 3')) {
+    return 30; // Class III - minimal health hazard
+  }
+
+  // Keyword-based severity for unclassified alerts
+  const text = title + ' ' + summary;
+  if (text.includes('death') || text.includes('fatal') || text.includes('life-threatening')) {
+    return 95;
+  }
+  if (text.includes('serious injury') || text.includes('hospitalization')) {
+    return 85;
+  }
+  if (text.includes('illness') || text.includes('contamination') || text.includes('salmonella') ||
+      text.includes('listeria') || text.includes('e. coli') || text.includes('allergen')) {
+    return 55;
+  }
+
+  return 50; // Default for FDA
+}
+
 function calculateUrgency(item: any, source: DataSource): string {
   let urgencyScore = 0;
-  
-  // Base urgency from source priority
-  urgencyScore += source.priority || 5;
+
+  // Enhanced FDA severity scoring
+  if (source.agency === 'FDA' && (item.classification || item.reason_for_recall)) {
+    const fdaSeverity = calculateFDASeverity(item);
+    urgencyScore += Math.floor(fdaSeverity / 10); // Convert 0-100 to 0-10 scale
+  } else {
+    // Base urgency from source priority
+    urgencyScore += source.priority || 5;
+  }
   
   // Check for urgent keywords in title and description
   const text = (item.title + ' ' + (item.description || '')).toLowerCase();
@@ -425,9 +476,53 @@ function levenshteinDistance(str1: string, str2: string): number {
   return matrix[str2.length][str1.length];
 }
 
+// Hash-based deduplication functions (from sync-alerts)
+// Simple hash function for Deno environment
+function simpleHash(input: string): string {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(16);
+}
+
+// Normalize external ID
+function normalizeExternalId(input: string): string {
+  return input.trim().toUpperCase().replace(/\s+/g, ' ');
+}
+
+// Compute alert hash for primary deduplication
+function computeAlertHash(source: string, title: string, publishedDate: string, externalId?: string): string {
+  const normalizedTitle = title.trim().toLowerCase();
+  const normalizedId = externalId ? normalizeExternalId(externalId) : '';
+  const hashInput = `${source}:${normalizedTitle}:${publishedDate}:${normalizedId}`;
+  return simpleHash(hashInput);
+}
+
 async function isDuplicate(supabase: any, alert: ProcessedAlert): Promise<boolean> {
   try {
-    // Enhanced duplicate detection with better time windows and similarity matching
+    // STEP 1: Fast hash-based duplicate check (primary method)
+    const alertHash = computeAlertHash(
+      alert.source,
+      alert.title,
+      alert.published_date,
+      alert.external_url // Using URL as external ID fallback
+    );
+
+    const { data: hashMatch } = await supabase
+      .from('alerts')
+      .select('id')
+      .eq('p_hash', alertHash)
+      .single();
+
+    if (hashMatch) {
+      logStep(`Hash-based duplicate found: ${alert.title}`);
+      return true;
+    }
+
+    // STEP 2: Enhanced duplicate detection with similarity matching (fallback)
     const lookbackDays = alert.source.includes('FDA') ? 14 : 7; // FDA sources need longer lookback
     const lookbackDate = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000).toISOString();
 
@@ -532,10 +627,21 @@ async function saveAlert(supabase: any, alert: ProcessedAlert, openaiKey?: strin
     // Generate AI summary
     alert.summary = await generateAISummary(alert.title, alert.summary, openaiKey);
 
-    // Save to database
+    // Compute hash for the alert
+    const alertHash = computeAlertHash(
+      alert.source,
+      alert.title,
+      alert.published_date,
+      alert.external_url
+    );
+
+    // Save to database with hash
     const { data: insertedAlert, error } = await supabase
       .from('alerts')
-      .insert(alert)
+      .insert({
+        ...alert,
+        p_hash: alertHash
+      })
       .select('id')
       .single();
 

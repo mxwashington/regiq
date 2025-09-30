@@ -1,8 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts';
 
-const corsHeaders = {
-
 // Simple logger for Supabase functions
 const logger = {
   debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
@@ -11,6 +9,7 @@ const logger = {
   error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
 };
 
+const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
@@ -23,7 +22,8 @@ interface RSSFeed {
   urgencyKeywords: string[];
 }
 
-// Updated RSS feeds with validated working URLs
+// US-only RSS feeds (non-US sources removed for focused compliance)
+// RegIQ focuses exclusively on US federal agencies for regulatory compliance
 const RSS_FEEDS: RSSFeed[] = [
   {
     agency: 'CDC',
@@ -36,25 +36,14 @@ const RSS_FEEDS: RSSFeed[] = [
     url: 'https://www.ftc.gov/news-events/news/press-releases',
     priority: 7,
     urgencyKeywords: ['enforcement', 'settlement', 'complaint', 'action', 'order']
-  },
-  {
-    agency: 'EFSA',
-    url: 'https://www.efsa.europa.eu/en/rss',
-    priority: 8,
-    urgencyKeywords: ['safety', 'risk', 'contamination', 'alert', 'opinion']
-  },
-  {
-    agency: 'FAO',
-    url: 'https://www.fao.org/food-safety/',
-    priority: 6,
-    urgencyKeywords: ['food safety', 'contamination', 'outbreak', 'alert']
-  },
-  {
-    agency: 'Canada_Health',
-    url: 'https://healthycanadians.gc.ca/recall-alert-rappel-avis/api',
-    priority: 8,
-    urgencyKeywords: ['recall', 'safety alert', 'health hazard', 'contamination']
   }
+  // REMOVED 2025-09-30: Non-US sources for focused US regulatory compliance
+  // - EFSA (European Food Safety Authority) - EU agency
+  // - FAO (Food and Agriculture Organization) - International/UN
+  // - Canada_Health (Health Canada) - Canadian government
+  //
+  // Additional US federal sources will be managed through the data_sources table
+  // in enhanced-regulatory-data-pipeline for centralized configuration
 ];
 
 function logStep(message: string, data?: any) {
