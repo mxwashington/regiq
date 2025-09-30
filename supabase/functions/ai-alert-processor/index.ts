@@ -1,4 +1,10 @@
-import { logger } from '@/lib/logger';
+// Simple logger for edge functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -76,7 +82,7 @@ async function generateAlertSummary(alertContent: string, alertTitle: string): P
       };
     }
   } catch (error) {
-    logStep('Perplexity API error', { error: error.message });
+    logStep('Perplexity API error', { error: error instanceof Error ? error.message : String(error) });
     // Fallback urgency scoring
     return {
       summary: 'AI processing unavailable - please review alert manually',
@@ -171,7 +177,7 @@ serve(async (req) => {
           await new Promise(resolve => setTimeout(resolve, 500));
 
         } catch (error) {
-          logStep("Error processing individual alert", { alertId: alert.id, error: error.message });
+          logStep("Error processing individual alert", { alertId: alert.id, error: error instanceof Error ? error.message : String(error) });
           errors++;
         }
       }

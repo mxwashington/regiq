@@ -1,7 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const corsHeaders = {
-
 // Simple logger for Supabase functions
 const logger = {
   debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
@@ -10,6 +8,7 @@ const logger = {
   error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
 };
 
+const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
@@ -256,7 +255,7 @@ Deno.serve(async (req) => {
     }
 
     // Generate cache key
-    const cacheKey = `data_gov_${Buffer.from(JSON.stringify(params)).toString('base64')}`;
+    const cacheKey = `data_gov_${btoa(JSON.stringify(params))}`;
     
     // Check cache first
     const cachedResults = await getCachedResults(supabase, cacheKey);

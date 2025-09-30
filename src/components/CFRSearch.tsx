@@ -326,11 +326,11 @@ export function CFRSearch() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Tabs value={searchType} onValueChange={(value) => setSearchType(value as any)}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="text">Text Search</TabsTrigger>
-              <TabsTrigger value="citation">Citation Lookup</TabsTrigger>
-              <TabsTrigger value="requirements">Requirements</TabsTrigger>
-              <TabsTrigger value="definitions">Definitions</TabsTrigger>
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-4 md:h-10">
+              <TabsTrigger value="text" className="w-full justify-start md:justify-center">Text Search</TabsTrigger>
+              <TabsTrigger value="citation" className="w-full justify-start md:justify-center">Citation Lookup</TabsTrigger>
+              <TabsTrigger value="requirements" className="w-full justify-start md:justify-center">Requirements</TabsTrigger>
+              <TabsTrigger value="definitions" className="w-full justify-start md:justify-center">Definitions</TabsTrigger>
             </TabsList>
 
             <TabsContent value="text" className="space-y-4">

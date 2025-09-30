@@ -2,16 +2,16 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { DashboardMetrics } from './DashboardMetrics';
 import { DashboardNavigation } from './DashboardNavigation';
 import { RegIQFeed } from './RegIQFeed';
-import { SearchInterface } from './SearchInterface';
-import { ThirdShiftAI } from '@/components/stubs/MissingComponents';
 import { SavedItems } from './SavedItems';
 import { AgencyFilter } from './alerts/AgencyFilter';
-import { ConversationalChatbot } from './ConversationalChatbot';
+
 import { TrialGate } from './TrialGate';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSimpleAlerts } from '@/hooks/useSimpleAlerts';
 import { useAlertFilters } from '@/hooks/useAlertFilters';
 import { useSavedAlerts } from '@/hooks/useSavedAlerts';
+import { SystemStatus } from '@/components/ui/SystemStatus';
+import { SupportWidget } from '@/components/support/SupportWidget';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Filter, X, User, Settings, Clock, CheckCircle, AlertCircle } from 'lucide-react';
@@ -29,7 +29,7 @@ export function MainDashboard() {
   const [activeTab, setActiveTab] = useState('alerts');
   const [dashboardFilters, setDashboardFilters] = useState<DashboardFilters>({});
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  
 
   // Auth and filtering
   const { user } = useAuth();
@@ -103,35 +103,28 @@ export function MainDashboard() {
     setDashboardFilters({});
   }, []);
 
-  // Get ThirdShift status from error boundary or service
-  const thirdShiftStatus = 'connected'; // TODO: Implement real status check
+  // Handle save alert - convert Alert object to alertId string
+  const handleSaveAlert = (alert: any) => {
+    const alertId = typeof alert === 'string' ? alert : alert.id;
+    toggleSaveAlert(alertId);
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'alerts':
         return (
           <RegIQFeed
-            onSaveAlert={toggleSaveAlert}
-            savedAlerts={savedAlerts}
-          />
-        );
-      case 'search':
-        return (
-          <SearchInterface 
-            alerts={alerts}
-            onSaveAlert={toggleSaveAlert}
-            savedAlerts={savedAlerts}
+            onSaveAlert={handleSaveAlert}
+            savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
           />
         );
       case 'saved':
         return (
           <SavedItems 
-            savedAlerts={savedAlerts}
-            onUnsaveAlert={toggleSaveAlert}
+            savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
+            onUnsaveAlert={handleSaveAlert}
           />
         );
-      case 'thirdshift':
-        return <ThirdShiftAI />;
       case 'account':
         return (
           <Card>
@@ -153,13 +146,6 @@ export function MainDashboard() {
                     Account Settings
                   </a>
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsChatOpen(true)}
-                  className="w-full"
-                >
-                  💬 Ask AI Assistant
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -167,8 +153,8 @@ export function MainDashboard() {
       default:
         return (
           <RegIQFeed
-            onSaveAlert={toggleSaveAlert}
-            savedAlerts={savedAlerts}
+            onSaveAlert={handleSaveAlert}
+            savedAlerts={alerts.filter(alert => savedAlerts.some(saved => saved.id === alert.id))}
           />
         );
     }
@@ -231,28 +217,15 @@ export function MainDashboard() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         savedItemsCount={savedAlerts.length}
-        thirdShiftStatus={thirdShiftStatus}
       />
 
       {/* Content with Filter Sidebar */}
       <div className="container mx-auto px-4 py-6">
-        <div className="flex gap-6">
-          {/* Filter Sidebar - Desktop */}
+        <div className="flex gap-6 relative">
+          {/* Filter Toggle Button */}
           <div className={cn(
-            "hidden lg:block lg:w-80 flex-shrink-0 transition-all duration-300",
-            activeTab === 'alerts' || activeTab === 'search' ? 'block' : 'hidden'
-          )}>
-            {(activeTab === 'alerts' || activeTab === 'search') && (
-              <div className="sticky top-6">
-                <AgencyFilter />
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Filter Toggle */}
-          <div className={cn(
-            "lg:hidden fixed top-20 right-4 z-50",
-            activeTab === 'alerts' || activeTab === 'search' ? 'block' : 'hidden'
+            "fixed top-4 left-4 z-40",
+            activeTab === 'alerts' ? 'block' : 'hidden'
           )}>
             <Button
               variant="outline"
@@ -262,43 +235,89 @@ export function MainDashboard() {
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters
+              {filters.sources.length > 0 && filters.sources.length < 10 && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {filters.sources.length}
+                </Badge>
+              )}
             </Button>
           </div>
 
-          {/* Mobile Filter Sidebar Overlay */}
-          {isFilterSidebarOpen && (
-            <div className="lg:hidden fixed inset-0 z-50 bg-black/50" onClick={() => setIsFilterSidebarOpen(false)}>
-              <div className="fixed right-0 top-0 h-full w-80 bg-background shadow-xl transform transition-transform" onClick={(e) => e.stopPropagation()}>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold">Filters</h2>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsFilterSidebarOpen(false)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <AgencyFilter />
-                </div>
+          {/* Filter Sidebar - Slide in from left */}
+          <div className={cn(
+            "fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 max-w-[85vw] bg-background border-r shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
+            isFilterSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          )}>
+            <div className="p-4 h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <h2 className="text-lg font-semibold">Filters</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsFilterSidebarOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <AgencyFilter />
               </div>
             </div>
+          </div>
+
+          {/* Filter Backdrop */}
+          {isFilterSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/20 z-40 top-16" 
+              onClick={() => setIsFilterSidebarOpen(false)}
+            />
           )}
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            {/* Filter Status Bar for Mobile */}
-            {(activeTab === 'alerts' || activeTab === 'search') && (
-              <div className="lg:hidden mb-4 p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Showing {totalCount} alerts
-                  </span>
-                  <span className="text-muted-foreground">
-                    {filters.sources.length < 5 ? `${filters.sources.length} sources` : 'All sources'}
-                    {filters.searchQuery && ' • Filtered'}
-                  </span>
+            {/* Main Content */}
+            <div className="flex-1 min-w-0 relative z-10">
+              {/* Show empty state if no alerts */}
+              {!loading && totalCount === 0 && !error && (
+                <div className="mb-4 p-6 text-center bg-muted/30 rounded-lg">
+                  <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <h3 className="font-medium text-muted-foreground mb-2">No alerts available</h3>
+                  <p className="text-sm text-muted-foreground">
+                    The alerts database appears to be empty. This is normal for new installations.
+                  </p>
+                  <Button variant="outline" className="mt-3" onClick={() => window.location.reload()}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Refresh Data
+                  </Button>
+                </div>
+              )}
+
+              {/* Filter Status Bar */}
+              {activeTab === 'alerts' && (
+                <div className="mb-4 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {totalCount === 0 ? 'No alerts to display' : `Showing ${totalCount} alerts`}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {totalCount === 0 ? (
+                        <span className="text-muted-foreground text-xs">Database appears empty</span>
+                      ) : (
+                        <>
+                          {filters.sources.length > 0 && filters.sources.length < 7 && (
+                            <Badge variant="outline" className="text-xs">
+                              {filters.sources.length} sources
+                            </Badge>
+                          )}
+                          {filters.searchQuery && (
+                            <Badge variant="outline" className="text-xs">
+                              Search: {filters.searchQuery.slice(0, 10)}...
+                            </Badge>
+                          )}
+                          {filters.sources.length === 0 && !filters.searchQuery && (
+                            <span className="text-muted-foreground text-xs">All sources</span>
+                          )}
+                        </>
+                      )}
+                    </div>
                 </div>
               </div>
             )}
@@ -307,11 +326,9 @@ export function MainDashboard() {
         </div>
       </div>
 
-      {/* AI Chatbot */}
-      <ConversationalChatbot
-        isOpen={isChatOpen}
-        onToggle={() => setIsChatOpen(!isChatOpen)}
-      />
+      {/* Support Widget */}
+      <SupportWidget />
+
     </div>
     </TrialGate>
   );

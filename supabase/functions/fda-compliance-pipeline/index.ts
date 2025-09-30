@@ -1,7 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const corsHeaders = {
-
 // Simple logger for Supabase functions
 const logger = {
   debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
@@ -10,6 +8,7 @@ const logger = {
   error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
 };
 
+const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
@@ -321,7 +320,7 @@ Deno.serve(async (req) => {
             source_name: source.name,
             last_attempt: new Date().toISOString(),
             fetch_status: 'error',
-            error_message: error.message || 'Unknown error',
+            error_message: error instanceof Error ? error.message : String(error) || 'Unknown error',
             records_fetched: 0
           });
       }
@@ -347,7 +346,7 @@ Deno.serve(async (req) => {
     
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       message: 'FDA Compliance Pipeline failed'
     }), {
       status: 500,

@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_tracking: {
+        Row: {
+          billing_period_end: string
+          billing_period_start: string
+          count: number
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          usage_type: string
+          user_id: string
+        }
+        Insert: {
+          billing_period_end: string
+          billing_period_start: string
+          count?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          usage_type: string
+          user_id: string
+        }
+        Update: {
+          billing_period_end?: string
+          billing_period_start?: string
+          count?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          usage_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       alert_delivery_queue: {
         Row: {
           alert_id: string
@@ -463,6 +496,66 @@ export type Database = {
         }
         Relationships: []
       }
+      alerts_archive: {
+        Row: {
+          agency: string | null
+          ai_summary: string | null
+          created_at: string | null
+          data_classification: string | null
+          dismissed_by: string[] | null
+          external_url: string | null
+          full_content: string | null
+          id: string | null
+          perplexity_processed: boolean | null
+          published_date: string | null
+          region: string | null
+          source: string | null
+          summary: string | null
+          title: string | null
+          updated_at: string | null
+          urgency: string | null
+          urgency_score: number | null
+        }
+        Insert: {
+          agency?: string | null
+          ai_summary?: string | null
+          created_at?: string | null
+          data_classification?: string | null
+          dismissed_by?: string[] | null
+          external_url?: string | null
+          full_content?: string | null
+          id?: string | null
+          perplexity_processed?: boolean | null
+          published_date?: string | null
+          region?: string | null
+          source?: string | null
+          summary?: string | null
+          title?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          urgency_score?: number | null
+        }
+        Update: {
+          agency?: string | null
+          ai_summary?: string | null
+          created_at?: string | null
+          data_classification?: string | null
+          dismissed_by?: string[] | null
+          external_url?: string | null
+          full_content?: string | null
+          id?: string | null
+          perplexity_processed?: boolean | null
+          published_date?: string | null
+          region?: string | null
+          source?: string | null
+          summary?: string | null
+          title?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          urgency_score?: number | null
+        }
+        Relationships: []
+      }
       alerts_summary: {
         Row: {
           created_at: string
@@ -706,6 +799,30 @@ export type Database = {
           percentile_rank?: number | null
           valid_from?: string
           valid_to?: string | null
+        }
+        Relationships: []
+      }
+      billing_periods: {
+        Row: {
+          created_at: string | null
+          id: string
+          period_end: string
+          period_start: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          period_end: string
+          period_start: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1187,7 +1304,15 @@ export type Database = {
           source_name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_data_freshness_source"
+            columns: ["source_name"]
+            isOneToOne: true
+            referencedRelation: "data_sources"
+            referencedColumns: ["name"]
+          },
+        ]
       }
       data_sources: {
         Row: {
@@ -1800,6 +1925,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_runs: {
+        Row: {
+          details: Json | null
+          error_summary: string | null
+          finished_at: string | null
+          id: string
+          sources_attempted: number | null
+          sources_failed: number | null
+          sources_succeeded: number | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          sources_attempted?: number | null
+          sources_failed?: number | null
+          sources_succeeded?: number | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          details?: Json | null
+          error_summary?: string | null
+          finished_at?: string | null
+          id?: string
+          sources_attempted?: number | null
+          sources_failed?: number | null
+          sources_succeeded?: number | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       plan_features: {
         Row: {
           created_at: string
@@ -1839,7 +2000,10 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_popular: boolean | null
+          min_seats: number | null
           name: string
+          per_seat_pricing: boolean | null
           plan_id: string
           price_cents: number
           updated_at: string
@@ -1850,7 +2014,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_popular?: boolean | null
+          min_seats?: number | null
           name: string
+          per_seat_pricing?: boolean | null
           plan_id: string
           price_cents: number
           updated_at?: string
@@ -1861,7 +2028,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_popular?: boolean | null
+          min_seats?: number | null
           name?: string
+          per_seat_pricing?: boolean | null
           plan_id?: string
           price_cents?: number
           updated_at?: string
@@ -1937,9 +2107,7 @@ export type Database = {
           session_extended_until: string | null
           subscription_plan: string | null
           subscription_status: string | null
-          trial_ends_at: string | null
           trial_expired: boolean | null
-          trial_starts_at: string | null
           trusted_ips: unknown[] | null
           updated_at: string
           user_id: string | null
@@ -1959,9 +2127,7 @@ export type Database = {
           session_extended_until?: string | null
           subscription_plan?: string | null
           subscription_status?: string | null
-          trial_ends_at?: string | null
           trial_expired?: boolean | null
-          trial_starts_at?: string | null
           trusted_ips?: unknown[] | null
           updated_at?: string
           user_id?: string | null
@@ -1981,9 +2147,7 @@ export type Database = {
           session_extended_until?: string | null
           subscription_plan?: string | null
           subscription_status?: string | null
-          trial_ends_at?: string | null
           trial_expired?: boolean | null
-          trial_starts_at?: string | null
           trusted_ips?: unknown[] | null
           updated_at?: string
           user_id?: string | null
@@ -3589,6 +3753,14 @@ export type Database = {
         Args: { user_email_param: string }
         Returns: Json
       }
+      check_and_log_usage: {
+        Args: {
+          limit_count: number
+          usage_type_param: string
+          user_uuid: string
+        }
+        Returns: Json
+      }
       check_compliance_data_rate_limit: {
         Args: { operation_type: string; user_uuid: string }
         Returns: boolean
@@ -3718,6 +3890,13 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      get_current_billing_period: {
+        Args: { user_uuid: string }
+        Returns: {
+          period_end: string
+          period_start: string
+        }[]
+      }
       get_current_security_posture: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -3772,9 +3951,9 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      get_trial_days_remaining: {
+      get_usage_summary: {
         Args: { user_uuid: string }
-        Returns: number
+        Returns: Json
       }
       get_user_active_teams: {
         Args: { user_id_param: string }
@@ -3831,10 +4010,6 @@ export type Database = {
       }
       is_team_admin_or_manager: {
         Args: { team_id_param: string; user_id_param: string }
-        Returns: boolean
-      }
-      is_trial_expired: {
-        Args: { user_uuid: string }
         Returns: boolean
       }
       log_admin_action: {
@@ -3974,6 +4149,10 @@ export type Database = {
       start_sync_log: {
         Args: { p_metadata?: Json; p_source: string }
         Returns: string
+      }
+      trigger_enhanced_data_pipeline: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_user_activity: {
         Args: { ip_address_param?: unknown; user_id_param: string }

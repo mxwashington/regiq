@@ -1,4 +1,9 @@
-import { logger } from '@/lib/logger';
+// Simple logger for edge functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -194,7 +199,7 @@ async function fetchClassIRecalls(supabase: any) {
     });
 
   } catch (error) {
-    throw new Error(`Failed to fetch Class I recalls: ${error.message}`);
+    throw new Error(`Failed to fetch Class I recalls: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -251,7 +256,7 @@ async function fetchDrugShortages(supabase: any) {
     });
 
   } catch (error) {
-    throw new Error(`Failed to fetch drug shortages: ${error.message}`);
+    throw new Error(`Failed to fetch drug shortages: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

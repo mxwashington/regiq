@@ -24,18 +24,18 @@ export const FeatureComparison: React.FC = () => {
             <div className="md:hidden">
               <div className="grid grid-cols-3 text-[11px] font-medium text-muted-foreground px-2 pb-2">
                 <div>Feature</div>
-                <div className="text-center">Free</div>
-                <div className="text-center">Starter ($179/mo)</div>
+                <div className="text-center">Starter (Free)</div>
+                <div className="text-center">Growth ($29/mo)</div>
               </div>
               <div className="rounded-md border">
                 {[
-                  { feature: "FDA/USDA/EPA alerts", free: true, paid: true },
-                  { feature: "AI summaries + urgency scoring", free: false, paid: true },
-                  { feature: "Supplier watch (25 suppliers)", free: false, paid: true },
-                  { feature: "Daily email digest", free: false, paid: true },
-                  { feature: "Mobile dashboard", free: true, paid: true },
-                  { feature: "CSV/PDF export", free: false, paid: true },
-                  { feature: "Team controls (Coming soon)", free: false, paid: "Coming soon" },
+                  { feature: "FDA/USDA/EPA/CDC alerts", free: true, paid: true },
+                  { feature: "AI summaries", free: "5/month", paid: "100/month" },
+                  { feature: "AI-powered searches", free: false, paid: "20/month" },
+                  { feature: "Conversational AI chatbot", free: false, paid: true },
+                  { feature: "Save alerts", free: "Up to 10", paid: "Unlimited" },
+                  { feature: "PDF/CSV export", free: false, paid: "50/month" },
+                  { feature: "Email support", free: "Community", paid: "48hr response" },
                 ].map((row, i, arr) => (
                   <div key={row.feature} className={`grid grid-cols-3 items-center px-2 py-2 ${i !== arr.length - 1 ? 'border-b' : ''}`}>
                     <div className="text-xs leading-snug pr-2">{row.feature}</div>
@@ -56,18 +56,18 @@ export const FeatureComparison: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Feature</TableHead>
-                    <TableHead>Free</TableHead>
-                    <TableHead>Starter ($179/mo)</TableHead>
+                    <TableHead>Starter (Free)</TableHead>
+                    <TableHead>Growth ($29/mo)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <Row feature="FDA/USDA/EPA alerts" free={true} paid={true} />
-                  <Row feature="AI summaries + urgency scoring" free={false} paid={true} />
-                  <Row feature="Supplier watch (25 suppliers)" free={false} paid={true} />
-                  <Row feature="Daily email digest" free={false} paid={true} />
-                  <Row feature="Mobile dashboard" free={true} paid={true} />
-                  <Row feature="CSV/PDF export" free={false} paid={true} />
-                  <Row feature="Team controls (Coming soon)" free={false} paid={"Coming soon"} />
+                  <Row feature="FDA/USDA/EPA/CDC alerts" free={true} paid={true} />
+                  <Row feature="AI summaries" free="5/month" paid="100/month" />
+                  <Row feature="AI-powered searches" free={false} paid="20/month" />
+                  <Row feature="Conversational AI chatbot" free={false} paid={true} />
+                  <Row feature="Save alerts" free="Up to 10" paid="Unlimited" />
+                  <Row feature="PDF/CSV export" free={false} paid="50/month" />
+                  <Row feature="Email support" free="Community" paid="48hr response" />
                 </TableBody>
               </Table>
             </div>

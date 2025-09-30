@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual Pipeline Trigger</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h2>RegIQ Data Pipeline Manual Trigger</h2>
+    
+    <button id="trigger-enhanced" onclick="triggerEnhanced()">
+        🚀 Trigger Enhanced Data Collection
+    </button>
+    
+    <button id="trigger-pipeline" onclick="triggerPipeline()">
+        🔄 Trigger Enhanced Pipeline
+    </button>
+    
+    <div id="results" style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 5px;">
+        <strong>Results will appear here...</strong>
+    </div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://piyikxxgoekawboitrzz.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeWlreHhnb2VrYXdib2l0cnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MDM2MjUsImV4cCI6MjA2ODQ3OTYyNX0.YfgCG-BorBSfyXk4MdIxko9AHT4-ef0MfO24rCpjy94'
+        );
+
+        async function triggerEnhanced() {
+            const btn = document.getElementById('trigger-enhanced');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Triggering Enhanced Collection...';
+            results.innerHTML = '<strong>Triggering enhanced-regulatory-data-collection...</strong>';
+            
+            try {
+                const { data, error } = await supabase.functions.invoke('enhanced-regulatory-data-collection', {
+                    body: { 
+                        manual_trigger: true,
+                        force_refresh: true 
+                    }
+                });
+                
+                if (error) {
+                    results.innerHTML = `<strong style="color: red;">❌ Error:</strong> ${error.message}`;
+                } else {
+                    results.innerHTML = `
+                        <strong style="color: green;">✅ Success!</strong><br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (err) {
+                results.innerHTML = `<strong style="color: red;">❌ Exception:</strong> ${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Trigger Enhanced Data Collection';
+            }
+        }
+
+        async function triggerPipeline() {
+            const btn = document.getElementById('trigger-pipeline');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Triggering Pipeline...';
+            results.innerHTML = '<strong>Triggering enhanced-regulatory-data-pipeline...</strong>';
+            
+            try {
+                const { data, error } = await supabase.functions.invoke('enhanced-regulatory-data-pipeline', {
+                    body: { 
+                        manual_trigger: true,
+                        debug: true 
+                    }
+                });
+                
+                if (error) {
+                    results.innerHTML = `<strong style="color: red;">❌ Error:</strong> ${error.message}`;
+                } else {
+                    results.innerHTML = `
+                        <strong style="color: green;">✅ Success!</strong><br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (err) {
+                results.innerHTML = `<strong style="color: red;">❌ Exception:</strong> ${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Trigger Enhanced Pipeline';
+            }
+        }
+    </script>
+</body>
+</html>

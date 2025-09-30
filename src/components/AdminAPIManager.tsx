@@ -175,7 +175,7 @@ export const AdminAPIManager: React.FC = () => {
 
   const syncDataSource = async (sourceId: string) => {
     try {
-      const { error } = await supabase.functions.invoke('regulatory-data-pipeline', {
+      const { error } = await supabase.functions.invoke('enhanced-regulatory-data-collection', {
         body: { sourceId, force: true }
       });
 

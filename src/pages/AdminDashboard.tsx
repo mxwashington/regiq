@@ -46,15 +46,15 @@ const AdminDashboard: React.FC = () => {
           </header>
 
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8">
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="data">Data Sync</TabsTrigger>
-              <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="alerts">Alerts</TabsTrigger>
-              <TabsTrigger value="apis">APIs</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="sso">SSO</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-8 md:h-10">
+              <TabsTrigger value="analytics" className="w-full justify-start md:justify-center">Analytics</TabsTrigger>
+              <TabsTrigger value="data" className="w-full justify-start md:justify-center">Data Sync</TabsTrigger>
+              <TabsTrigger value="users" className="w-full justify-start md:justify-center">Users</TabsTrigger>
+              <TabsTrigger value="alerts" className="w-full justify-start md:justify-center">Alerts</TabsTrigger>
+              <TabsTrigger value="apis" className="w-full justify-start md:justify-center">APIs</TabsTrigger>
+              <TabsTrigger value="security" className="w-full justify-start md:justify-center">Security</TabsTrigger>
+              <TabsTrigger value="sso" className="w-full justify-start md:justify-center">SSO</TabsTrigger>
+              <TabsTrigger value="settings" className="w-full justify-start md:justify-center">Settings</TabsTrigger>
             </TabsList>
 
             <TabsContent value="analytics">

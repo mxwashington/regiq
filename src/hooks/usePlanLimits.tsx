@@ -21,12 +21,12 @@ export const usePlanLimits = () => {
     switch (plan) {
       case 'starter':
         return {
-          users: 3,
+          users: 1,
           facilities: 1,
-          monthlyAlerts: 500,
-          aiQueries: 100,
-          historyMonths: 6,
-          hasAiAssistant: true,
+          monthlyAlerts: 999999, // Unlimited passive monitoring
+          aiQueries: 5, // 5 AI summaries per month
+          historyMonths: 1,
+          hasAiAssistant: true, // Limited to 5 summaries
           hasPhoneSupport: false,
           hasApiAccess: false,
           hasWhiteLabel: false,
@@ -36,13 +36,13 @@ export const usePlanLimits = () => {
       
       case 'growth':
         return {
-          users: 10,
-          facilities: 5,
-          monthlyAlerts: 2000,
-          aiQueries: 500,
-          historyMonths: 12,
-          hasAiAssistant: true,
-          hasPhoneSupport: true,
+          users: 1,
+          facilities: 1,
+          monthlyAlerts: 999999, // Unlimited passive monitoring
+          aiQueries: 100, // 100 AI summaries per month
+          historyMonths: 3,
+          hasAiAssistant: true, // 100 summaries + 20 searches
+          hasPhoneSupport: false,
           hasApiAccess: false,
           hasWhiteLabel: false,
           hasCustomIntegrations: false,
@@ -51,28 +51,43 @@ export const usePlanLimits = () => {
       
       case 'professional':
         return {
-          users: 999999, // Unlimited
-          facilities: 999999, // Unlimited
-          monthlyAlerts: 999999, // Unlimited
-          aiQueries: 999999, // Unlimited
-          historyMonths: 999999, // Unlimited
-          hasAiAssistant: true,
-          hasPhoneSupport: true,
-          hasApiAccess: true,
-          hasWhiteLabel: true,
-          hasCustomIntegrations: true,
-          hasDedicatedManager: true,
+          users: 1,
+          facilities: 1,
+          monthlyAlerts: 999999, // Unlimited passive monitoring
+          aiQueries: 1000, // 1000 AI summaries per month
+          historyMonths: 12,
+          hasAiAssistant: true, // 1000 summaries + 500 searches
+          hasPhoneSupport: true, // Priority email + phone support
+          hasApiAccess: true, // 5000 API calls per month
+          hasWhiteLabel: false,
+          hasCustomIntegrations: false,
+          hasDedicatedManager: false,
+        };
+      
+      case 'teams':
+        return {
+          users: 3, // Minimum 3 users
+          facilities: 999999, // Unlimited facilities for teams
+          monthlyAlerts: 999999, // Unlimited passive monitoring
+          aiQueries: 5000, // 5000 AI summaries per month (pooled)
+          historyMonths: 12,
+          hasAiAssistant: true, // 5000 summaries + 2500 searches (pooled)
+          hasPhoneSupport: true, // Priority support for entire team
+          hasApiAccess: true, // Unlimited API calls
+          hasWhiteLabel: false,
+          hasCustomIntegrations: false,
+          hasDedicatedManager: false, // Only for 10+ seats
         };
       
       default:
-        // Free tier or unknown
+        // Free tier (same as starter)
         return {
           users: 1,
           facilities: 1,
-          monthlyAlerts: 50,
-          aiQueries: 10,
+          monthlyAlerts: 999999,
+          aiQueries: 5,
           historyMonths: 1,
-          hasAiAssistant: false,
+          hasAiAssistant: true, // Limited to 5 summaries
           hasPhoneSupport: false,
           hasApiAccess: false,
           hasWhiteLabel: false,

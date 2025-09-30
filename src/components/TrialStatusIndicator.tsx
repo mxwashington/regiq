@@ -31,28 +31,11 @@ export const TrialStatusIndicator: React.FC = () => {
     );
   }
 
-  if (isTrialExpired) {
-    return (
-      <Badge variant="destructive">
-        <Clock className="h-3 w-3 mr-1" />
-        Trial Expired
-      </Badge>
-    );
-  }
-
-  if (daysRemaining <= 3) {
-    return (
-      <Badge className="bg-orange-100 text-orange-800 border-orange-300">
-        <Clock className="h-3 w-3 mr-1" />
-        {daysRemaining} days left
-      </Badge>
-    );
-  }
-
+  // Free tier users - don't show confusing trial messaging
   return (
-      <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-        <CheckCircle className="h-3 w-3 mr-1" />
-        Trial: {daysRemaining}d left
-      </Badge>
+    <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+      <CheckCircle className="h-3 w-3 mr-1" />
+      Starter Plan
+    </Badge>
   );
 };

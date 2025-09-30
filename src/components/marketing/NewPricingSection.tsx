@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, ArrowRight, TrendingUp, Shield, Users } from 'lucide-react';
+import { Check, Star, ArrowRight, TrendingUp, Shield, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptionUpgrade } from '@/hooks/useSubscriptionUpgrade';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface PricingPlan {
@@ -13,8 +14,6 @@ interface PricingPlan {
   monthlyPrice: number;
   annualPrice: number;
   description: string;
-  target: string;
-  userLimit: string;
   popular?: boolean;
   features: string[];
   cta: string;
@@ -23,86 +22,145 @@ interface PricingPlan {
 export const NewPricingSection: React.FC = () => {
   const { user } = useAuth();
   const { upgradeToCustomPlan, loading } = useSubscriptionUpgrade();
+  const { toast } = useToast();
   const [isAnnual, setIsAnnual] = useState(false);
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
 
+  // TODO: Teams tier requires organizations table and pooled usage tracking
+  // See TEAMS_INFRASTRUCTURE.md for full requirements
+  // Teams tier is hidden from production until backend infrastructure is built
+  
   const plans: PricingPlan[] = [
     {
       id: 'starter',
       name: 'Starter',
-      monthlyPrice: 179,
-      annualPrice: 1908,
-      description: 'Perfect for small businesses getting started with compliance',
-      target: 'Small businesses, compliance teams',
-      userLimit: 'Up to 3 users',
+      monthlyPrice: 0,
+      annualPrice: 0,
+      description: 'Perfect for individual users getting started with compliance',
       features: [
         'Real-time regulatory alerts (FDA, USDA, EPA, CDC)',
+        'Email and mobile notifications',
         'Basic filtering and search functionality',
         'Mobile-responsive dashboard',
-        'AI alert summarization with Perplexity',
+        '5 AI alert summaries per month (powered by Perplexity)',
+        'Save up to 10 alerts',
         'Source verification and linking',
-        'Email notifications',
-        'User authentication and basic permissions',
-        'Basic customer support (email only)',
+        'Single user account',
+        'Community support',
       ],
-      cta: 'Start Free Trial',
+      cta: 'Get Started - Free',
     },
     {
       id: 'growth',
       name: 'Growth',
-      monthlyPrice: 349,
-      annualPrice: 3718,
-      description: 'Ideal for growing businesses with advanced AI features',
-      target: 'Growing businesses, compliance professionals',
-      userLimit: 'Up to 10 users with role-based permissions',
-      popular: true,
+      monthlyPrice: 29,
+      annualPrice: 278, // 20% off: $29 × 12 × 0.8
+      description: 'Ideal for individual compliance professionals and consultants',
       features: [
-        'Everything from Starter Plan, plus:',
-        'AI-powered regulatory search with Perplexity',
+        'Everything in Starter, plus:',
+        '100 AI alert summaries per month',
+        '20 AI-powered searches per month with Perplexity',
+        'Unlimited passive monitoring and alerts',
         'Conversational AI chatbot for compliance questions',
+        'Save unlimited alerts',
+        'Export alerts to PDF/CSV (up to 50 per month)',
         'Advanced alert filtering and prioritization',
-        'Source enrichment and verification',
-        'Custom alert notifications',
-        'Enhanced user management and permissions',
-        'Phone support during business hours',
-        'Priority email support',
+        'Single user account',
+        'Email support (48-hour response time)',
       ],
-      cta: 'Start Free Trial',
+      cta: 'Subscribe - $29/month',
     },
     {
       id: 'professional',
       name: 'Professional',
-      monthlyPrice: 549,
-      annualPrice: 5858,
-      description: 'Enterprise-ready organizations with premium support',
-      target: 'Enterprise organizations, large compliance teams',
-      userLimit: 'Unlimited users',
+      monthlyPrice: 199,
+      annualPrice: 1910, // 20% off: $199 × 12 × 0.8
+      description: 'Enterprise-ready for power users with premium support',
+      popular: true,
       features: [
-        'Everything from Growth Plan, plus:',
-        'Unlimited user accounts',
-        'Advanced admin controls and permissions',
-        'Priority regulatory alert delivery',
-        'Enhanced search capabilities and filters',
+        'Everything in Growth, plus:',
+        '1,000 AI alert summaries per month',
+        '500 AI-powered searches per month',
+        'Advanced multi-source search capabilities',
+        'Compliance calendar (Coming Soon)',
+        'Analytics dashboard (Coming Soon)',
+        'Priority alert delivery (5-minute vs 15-minute delay)',
+        'Custom alert notifications and grouping',
         'Bulk alert management and actions',
+        'Unlimited exports to PDF/CSV',
+        'API access (5,000 calls per month)',
         'Advanced user activity monitoring',
-        'Custom alert grouping and organization',
-        'Dedicated customer success manager',
-        'Priority phone and email support',
-        'Custom onboarding and training',
+        'Single user account',
+        'Priority email support (24-hour response time)',
+        'Phone support during business hours',
       ],
-      cta: 'Start Free Trial',
+      cta: 'Subscribe - $199/month',
     },
+    // Teams tier hidden until backend infrastructure is ready
+    // Requires: organizations table, pooled usage tracking, per-seat billing
+    // {
+    //   id: 'teams',
+    //   name: 'Teams',
+    //   monthlyPrice: 147,
+    //   annualPrice: 1410,
+    //   description: 'For compliance teams managing multiple sites or departments',
+    //   features: [
+    //     'Everything in Professional, plus:',
+    //     '3+ user accounts (billed per seat)',
+    //     '5,000 AI summaries per month (shared team pool)',
+    //     '2,500 AI searches per month (shared team pool)',
+    //     'Shared watchlists and saved alerts',
+    //     'Team activity dashboard',
+    //     'Centralized billing and admin controls',
+    //     'Role-based permissions (owner/admin/member)',
+    //     'Priority support for entire team',
+    //     'Dedicated account manager (10+ seats)',
+    //   ],
+    //   cta: 'Contact Sales',
+    // },
   ];
 
   const handleSubscribe = async (planId: string) => {
-    if (!user) {
-      window.location.href = '/auth?redirect=/pricing';
-      return;
-    }
+    setLoadingStates(prev => ({ ...prev, [planId]: true }));
 
-    await upgradeToCustomPlan({ 
-      targetPlan: planId,
-      annual: isAnnual 
-    });
+    try {
+      if (!user) {
+        // Show brief message before redirect
+        toast({
+          title: "Redirecting to sign up...",
+          description: "Creating your account",
+        });
+        setTimeout(() => {
+          window.location.href = '/auth?redirect=/pricing';
+        }, 500);
+        return;
+      }
+
+      if (planId === 'starter') {
+        window.location.href = '/dashboard';
+        return;
+      }
+
+      // Show message before Stripe redirect
+      toast({
+        title: "Taking you to secure checkout...",
+        description: "Powered by Stripe",
+      });
+
+      await upgradeToCustomPlan({ 
+        targetPlan: planId, 
+        annual: isAnnual 
+      });
+    } catch (error) {
+      console.error('Subscription error:', error);
+      toast({
+        title: "Checkout Failed",
+        description: "Please try again or contact support.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [planId]: false }));
+    }
   };
 
   const calculateSavings = (monthlyPrice: number, annualPrice: number) => {
@@ -119,7 +177,10 @@ export const NewPricingSection: React.FC = () => {
             Choose Your <span className="text-primary">RegIQ</span> Plan
           </h1>
           <p className="text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Transform regulatory compliance into competitive advantage. Most customers save 15+ hours weekly.
+            Individual plans for compliance professionals. Start free, upgrade as you grow.
+          </p>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            Additional AI summaries and searches available. Overage charges capped at next tier price.
           </p>
           
           {/* ROI Highlights */}
@@ -174,12 +235,12 @@ export const NewPricingSection: React.FC = () => {
           {isAnnual && (
             <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 px-4 py-2">
               <Star className="w-4 h-4 mr-2" />
-              Save 11% with annual billing
+              Save 20% with annual billing
             </Badge>
           )}
         </div>
 
-        {/* Pricing Cards */}
+        {/* Pricing Cards - Grid adjusts for 3 tiers (Teams hidden) */}
         <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 mt-20 overflow-visible">
           {plans.map((plan) => (
             <Card 
@@ -212,6 +273,30 @@ export const NewPricingSection: React.FC = () => {
                 </div>
               )}
 
+              {plan.id === 'teams' && (
+                <div 
+                  className="absolute z-[20] left-1/2 transform -translate-x-1/2"
+                  style={{ top: '-2px' }}
+                >
+                  <div 
+                    className="px-6 py-2 text-white font-semibold uppercase text-xs rounded-full flex items-center gap-2"
+                    style={{
+                      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                      letterSpacing: '1.2px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      padding: '8px 24px',
+                      borderRadius: '20px',
+                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    NEW!
+                  </div>
+                </div>
+              )}
+
               <CardHeader className="text-center pb-4 pt-8">
                 <CardTitle className="text-2xl font-bold mb-2">{plan.name}</CardTitle>
                 
@@ -224,7 +309,13 @@ export const NewPricingSection: React.FC = () => {
                     <span className="text-muted-foreground text-lg">/month</span>
                   </div>
                   
-                  {isAnnual && (
+                  {plan.id === 'teams' && (
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      3 users minimum at $49/seat{isAnnual ? '/month' : ''}
+                    </div>
+                  )}
+                  
+                  {isAnnual && plan.monthlyPrice > 0 && (
                     <div className="mt-2 space-y-1">
                       <div className="text-lg font-semibold text-primary">
                         ${plan.annualPrice}/year
@@ -237,7 +328,12 @@ export const NewPricingSection: React.FC = () => {
                 </div>
                 
                 <p className="text-muted-foreground text-sm mb-2">{plan.description}</p>
-                <div className="text-xs text-muted-foreground font-medium">{plan.userLimit}</div>
+                <p className="text-xs font-medium text-primary">
+                  {plan.id === 'starter' && 'No credit card required'}
+                  {plan.id === 'growth' && 'Cancel anytime'}
+                  {plan.id === 'professional' && 'Cancel anytime'}
+                  {plan.id === 'teams' && 'Starting at 3 users'}
+                </p>
               </CardHeader>
 
               <CardContent className="space-y-6">
@@ -247,7 +343,7 @@ export const NewPricingSection: React.FC = () => {
                     <li key={index} className="flex items-start gap-3 text-sm">
                       <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                       <span className={cn(
-                        feature.startsWith('Everything from') ? "font-medium text-primary" : "text-foreground"
+                        feature.startsWith('Everything in') || feature.startsWith('Everything from') ? "font-medium text-primary" : "text-foreground"
                       )}>
                         {feature}
                       </span>
@@ -255,10 +351,17 @@ export const NewPricingSection: React.FC = () => {
                   ))}
                 </ul>
 
+                {/* Clarifying text for paid plans */}
+                {plan.monthlyPrice > 0 && (
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Click to create your account and complete payment. Billing starts immediately.
+                  </p>
+                )}
+
                 {/* CTA Button */}
                 <Button
                   onClick={() => handleSubscribe(plan.id)}
-                  disabled={loading}
+                  disabled={loading || loadingStates[plan.id]}
                   className={cn(
                     "w-full py-6 text-base font-semibold transition-all duration-200",
                     "group hover:shadow-lg",
@@ -268,7 +371,12 @@ export const NewPricingSection: React.FC = () => {
                   )}
                   variant={plan.popular ? "default" : "outline"}
                 >
-                  {loading ? 'Processing...' : (
+                  {loadingStates[plan.id] ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="animate-spin">⏳</span>
+                      {plan.id === 'starter' ? 'Redirecting...' : 'Taking you to checkout...'}
+                    </span>
+                  ) : (
                     <span className="flex items-center justify-center gap-2">
                       {plan.cta}
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -280,12 +388,22 @@ export const NewPricingSection: React.FC = () => {
           ))}
         </div>
 
+        {/* Pricing Note - Teams tier hidden */}
+        {/* 
+        <div className="text-center mt-12 mb-8">
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            <strong>Need more seats?</strong> Teams pricing scales at $49/seat (monthly) or $39/seat (annual). 
+            Contact us for volume discounts on 20+ users.
+          </p>
+        </div>
+        */}
+
         {/* Trust Signals */}
         <div className="text-center mt-16 space-y-4">
           <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-500" />
-              14-day free trial
+              Start free, no credit card
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-500" />
@@ -297,7 +415,7 @@ export const NewPricingSection: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-500" />
-              Money-back guarantee
+              Free tier available
             </div>
           </div>
           

@@ -39,24 +39,27 @@ const PaymentSuccess: React.FC = () => {
       <div className="text-center max-w-md">
         <div className="mb-6">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold mb-2">Payment Successful!</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to RegIQ Professional!</h1>
           <p className="text-muted-foreground mb-6">
-            Your subscription is now active. Let's get you set up with personalized alerts.
+            Your subscription is now active.
           </p>
+          <div className="bg-muted/50 rounded-lg p-4 mb-4 text-left">
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li>• You'll be billed monthly starting today</li>
+              <li>• Access all Professional features immediately</li>
+              <li>• Cancel anytime from your account settings</li>
+            </ul>
+          </div>
         </div>
         
         <div className="flex flex-col gap-3">
           <Button size="lg" asChild>
-            <Link to="/onboarding">Complete Setup</Link>
+            <Link to="/dashboard">Get Started with RegIQ</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/dashboard">Go to Dashboard</Link>
+            <Link to="/onboarding">Customize Your Setup</Link>
           </Button>
         </div>
-        
-        <p className="text-xs text-muted-foreground mt-4">
-          Your 7-day free trial has started. No charges until trial ends.
-        </p>
       </div>
     </div>
   )

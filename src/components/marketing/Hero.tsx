@@ -35,7 +35,7 @@ export const Hero: React.FC = () => {
               </Button>
             ) : (
               <Button size="sm" asChild>
-                <Link to="/pricing">Start Free Trial</Link>
+                <Link to="/pricing">Get Started</Link>
               </Button>
             )}
           </nav>
@@ -52,7 +52,7 @@ export const Hero: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <Button size="lg" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
               <Link to="/pricing">
-                Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+                Start Free, Upgrade Anytime <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="w-full sm:w-auto px-6 md:px-8 py-3 text-sm md:text-base" asChild>
@@ -61,7 +61,7 @@ export const Hero: React.FC = () => {
               </a>
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">7-day free trial • Cancel anytime</p>
+          <p className="text-sm text-muted-foreground">No credit card required</p>
         </div>
       </div>
     </section>

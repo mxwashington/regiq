@@ -49,7 +49,7 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>195 hours lost to broken regulatory search | RegIQ</title>
-        <meta name="description" content="95% can't find answers. $34,487 wasted per professional. FDA/USDA confusion. Mobile-first. 7-day free trial — no credit card." />
+        <meta name="description" content="95% can't find answers. $34,487 wasted per professional. FDA/USDA confusion. Mobile-first. Start free, upgrade anytime — no credit card." />
         <meta name="keywords" content="food manufacturing compliance, FDA USDA EPA search, HACCP, plant floor, regulatory search" />
         <link rel="canonical" href="https://regiq.com" />
         
@@ -73,8 +73,8 @@ const Landing = () => {
               "operatingSystem": "Web",
               "offers": {
                 "@type": "AggregateOffer",
-                "lowPrice": "99",
-                "highPrice": "799",
+                "lowPrice": "0",
+                "highPrice": "199",
                 "priceCurrency": "USD"
               }
             }
@@ -152,7 +152,7 @@ const Landing = () => {
             <p>❌ LexisNexis: <span className="whitespace-nowrap">Healthcare-focused</span>, requires legal expertise, $75K+ annually</p>
             <p>❌ Thomson Reuters: Banking regulations, complex UI, <span className="whitespace-nowrap">no mobile access</span></p>
             <p>❌ Government websites: <span className="whitespace-nowrap">30-70% search failure rate</span>, <span className="whitespace-nowrap">no cross-referencing</span></p>
-            <p>✅ RegIQ: <span className="whitespace-nowrap">Purpose-built</span> for food manufacturing, <span className="whitespace-nowrap">mobile-first</span>, starts at $99/month</p>
+            <p>✅ RegIQ: <span className="whitespace-nowrap">Purpose-built</span> for food manufacturing, <span className="whitespace-nowrap">mobile-first</span>, starts free</p>
           </div>
         </div>
       </section>
@@ -186,7 +186,7 @@ const Landing = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Brain className="h-5 w-5 text-primary" />
-                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                  <Badge variant="default" className="text-xs">GROWTH+</Badge>
                 </div>
                 <CardTitle className="text-lg">AI-Enhanced Search</CardTitle>
               </CardHeader>
@@ -212,7 +212,7 @@ const Landing = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Bot className="h-5 w-5 text-primary" />
-                  <Badge variant="default" className="text-xs">PROFESSIONAL+</Badge>
+                  <Badge variant="default" className="text-xs">GROWTH+</Badge>
                 </div>
                 <CardTitle className="text-lg">Conversational AI Assistant</CardTitle>
               </CardHeader>
@@ -225,7 +225,7 @@ const Landing = () => {
           <div className="text-center mt-8">
             <Button size="lg" className="mb-2" asChild>
               <Link to="/pricing">
-                Start 7-Day Free Trial
+                Get Started Free
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
@@ -404,7 +404,7 @@ const Landing = () => {
           <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground flex-wrap">
             <span>✅ Real-time Government Data</span>
             <span>✅ Built by Food Industry Professionals</span>
-            <span>✅ 7-day free trial • Cancel anytime</span>
+            <span>✅ Start free • Cancel anytime</span>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
             Direct government data feeds for food safety compliance
@@ -450,14 +450,14 @@ const Landing = () => {
       <section className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <Card className="p-4 md:p-6 lg:p-8 mobile-container-safe mobile-card-content">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 mobile-text-content break-words-mobile center-mobile hyphens-none">Stop wasting 195 hours on <span className="whitespace-nowrap">broken regulatory</span> search</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 mobile-text-content break-words-mobile center-mobile hyphens-none">Stop Losing $34,487 Per Year on Failed Regulatory Searches</h2>
             <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6 mobile-text-content break-words-mobile center-mobile hyphens-none">Purpose-built for food manufacturing—mobile-first, cross-agency clarity.</p>
 
             <div className="flex flex-col gap-2 justify-center items-center">
               <Button size="lg" className="w-full sm:w-auto" asChild>
-                <Link to="/pricing">Start Free Trial</Link>
+                <Link to="/pricing">Get Started Free</Link>
               </Button>
-              <p className="text-sm text-muted-foreground">7-day free trial • Cancel anytime • No credit card required</p>
+              <p className="text-sm text-muted-foreground">Start free • No credit card required • Cancel anytime</p>
             </div>
 
             <div className="text-xs md:text-sm text-muted-foreground mt-6">

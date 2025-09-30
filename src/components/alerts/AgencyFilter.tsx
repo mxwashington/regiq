@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -39,7 +40,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
 
   const totalSelectedSources = filters.sources.length;
   const hasActiveFilters =
-    totalSelectedSources < 5 ||
+    totalSelectedSources < 7 ||
     filters.sinceDays !== 30 ||
     filters.minSeverity !== null ||
     filters.searchQuery.trim() !== '';
@@ -65,7 +66,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
         {/* Search Input */}
         <div className="space-y-2">
           <label htmlFor="alert-search" className="text-sm font-medium">
@@ -93,14 +94,14 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
               Data Sources
             </label>
             <span className="text-xs text-muted-foreground">
-              {totalSelectedSources} of 5 selected
+              {totalSelectedSources} of 7 selected
             </span>
           </div>
 
           <div
             role="group"
             aria-labelledby="agency-filter-label"
-            className="grid grid-cols-2 gap-2"
+            className="space-y-3"
           >
             {(Object.keys(AGENCY_CONFIG) as AgencySource[]).map((source) => {
               const config = AGENCY_CONFIG[source];
@@ -108,43 +109,43 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
               const count = sourceCounts[source];
 
               return (
-                <Button
-                  key={source}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toggleSource(source)}
-                  disabled={isLoading}
-                  aria-pressed={isSelected}
-                  aria-label={`${isSelected ? 'Remove' : 'Add'} ${config.fullName} alerts`}
-                  className={`
-                    h-auto p-3 flex flex-col items-start justify-start text-left
-                    ${isSelected ? config.selectedColor : config.color}
-                    border-2 transition-colors
-                  `}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span className="font-semibold text-sm">
-                      {config.label}
-                    </span>
-                    {count !== undefined && (
-                      <Badge
-                        variant="secondary"
-                        className={`
-                          text-xs px-1.5 py-0.5 min-w-[20px] h-5
-                          ${isSelected ? 'bg-white/20 text-white' : 'bg-black/10'}
-                        `}
-                      >
+                  <div
+                    key={source}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors touch-target"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id={`source-${source}`}
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSource(source)}
+                        disabled={isLoading}
+                        aria-label={`${isSelected ? 'Remove' : 'Add'} ${config.fullName} alerts`}
+                        className="touch-target"
+                      />
+                      <div className="flex flex-col">
+                        <label
+                          htmlFor={`source-${source}`}
+                          className="text-sm font-medium cursor-pointer touch-target"
+                        >
+                          {config.label}
+                        </label>
+                        <span className="text-xs text-muted-foreground">
+                          {config.fullName}
+                        </span>
+                      </div>
+                    </div>
+                    {count !== undefined ? (
+                      <Badge variant="secondary" className="text-xs">
                         {count}
+                      </Badge>
+                    ) : countsLoading ? (
+                      <div className="w-6 h-4 bg-muted animate-pulse rounded" />
+                    ) : (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        0
                       </Badge>
                     )}
                   </div>
-                  <span className={`
-                    text-xs mt-1 line-clamp-2
-                    ${isSelected ? 'text-white/90' : 'text-muted-foreground'}
-                  `}>
-                    {config.fullName}
-                  </span>
-                </Button>
               );
             })}
           </div>
@@ -204,7 +205,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
             <div className="space-y-2">
               <span className="text-sm font-medium">Active Filters:</span>
               <div className="flex flex-wrap gap-1">
-                {totalSelectedSources < 5 && (
+                {totalSelectedSources < 7 && (
                   <Badge variant="secondary" className="text-xs">
                     {filters.sources.join(', ')}
                   </Badge>

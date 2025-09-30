@@ -15,12 +15,14 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [formError, setFormError] = useState('');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'magic'>('signin');
   const [searchParams] = useSearchParams();
   
-  const { signInWithMagicLink, user, loading: authLoading } = useAuth();
+  const { signInWithMagicLink, signInWithPassword, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { navigateTo } = useNavigationHelper();
   const { rateLimitState, handleRateLimit, resetRateLimit } = useRateLimitHandler();
@@ -36,7 +38,7 @@ export default function Auth() {
           .single();
         
         if (profile?.is_admin) {
-          navigateTo('/admin/dashboard');
+          navigateTo('/admin');
         } else {
           navigateTo('/dashboard');
         }
@@ -67,6 +69,81 @@ export default function Auth() {
       return 'Please enter a valid email address';
     }
     return '';
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) {
+      return 'Password is required';
+    }
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    return '';
+  };
+
+  const handlePasswordSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (rateLimitState.isRateLimited) {
+      return;
+    }
+    
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    
+    if (emailError || passwordError) {
+      setFormError(emailError || passwordError);
+      return;
+    }
+    
+    setFormError('');
+    setLoading(true);
+    
+    const { error } = await signInWithPassword(email, password);
+    
+    if (error) {
+      const wasRateLimited = handleRateLimit(error);
+      if (!wasRateLimited) {
+        setFormError(error.message || 'Failed to sign in');
+      }
+    } else {
+      resetRateLimit();
+    }
+    
+    setLoading(false);
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (rateLimitState.isRateLimited) {
+      return;
+    }
+    
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    
+    if (emailError || passwordError) {
+      setFormError(emailError || passwordError);
+      return;
+    }
+    
+    setFormError('');
+    setLoading(true);
+    
+    const { error } = await signUp(email, password);
+    
+    if (error) {
+      const wasRateLimited = handleRateLimit(error);
+      if (!wasRateLimited) {
+        setFormError(error.message || 'Failed to sign up');
+      }
+    } else {
+      resetRateLimit();
+      setMagicLinkSent(true); // Show confirmation message
+    }
+    
+    setLoading(false);
   };
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -176,63 +253,119 @@ export default function Auth() {
               Enter your email to receive a secure sign-in link
             </CardDescription>
           </CardHeader>
+          <div className="px-6 pb-4 text-center text-sm text-muted-foreground border-b">
+            <p className="font-medium mb-1">New to RegIQ? → Click "Sign Up"</p>
+            <p>Already have an account? → Click "Sign In"</p>
+            <p className="mt-2 text-xs">Recommended: Use "Continue with Google" for instant access</p>
+          </div>
           <CardContent>
             <SSOLoginButtons 
               onSuccess={() => {
                 if (email === 'marcus@regiq.org') {
-                  navigateTo('/admin/dashboard');
+                  navigateTo('/admin');
                 } else {
                   navigateTo('/dashboard');
                 }
-              }} 
+              }}
             />
             
-            <form onSubmit={handleMagicLink} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (formError) setFormError('');
-                  }}
-                  className={formError ? 'border-red-500' : ''}
-                  required
-                />
+            <div className="space-y-4">
+              <div className="flex gap-2 p-1 bg-muted rounded-lg">
+                <Button
+                  type="button"
+                  variant={authMode === 'signin' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setAuthMode('signin')}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  type="button"
+                  variant={authMode === 'signup' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setAuthMode('signup')}
+                >
+                  Sign Up
+                </Button>
+                <Button
+                  type="button"
+                  variant={authMode === 'magic' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setAuthMode('magic')}
+                >
+                  Magic Link
+                </Button>
+              </div>
+
+              <form onSubmit={authMode === 'magic' ? handleMagicLink : authMode === 'signup' ? handleSignUp : handlePasswordSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (formError) setFormError('');
+                    }}
+                    className={formError ? 'border-red-500' : ''}
+                    required
+                  />
+                </div>
+
+                {authMode !== 'magic' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (formError) setFormError('');
+                      }}
+                      className={formError ? 'border-red-500' : ''}
+                      required
+                    />
+                  </div>
+                )}
+
                 {formError && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {formError}
                   </p>
                 )}
-              </div>
-              
-              {rateLimitState.isRateLimited && (
-                <Alert className="bg-yellow-50 border-yellow-200">
-                  <Clock className="h-4 w-4 text-yellow-600" />
-                  <AlertDescription className="text-yellow-700">
-                    Rate limit exceeded. Please wait {rateLimitState.retryAfter} seconds before trying again.
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={loading || rateLimitState.isRateLimited}
-              >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {rateLimitState.isRateLimited 
-                  ? `Wait ${rateLimitState.retryAfter}s` 
-                  : loading 
-                    ? 'Sending Link...' 
-                    : 'Send Magic Link'
-                }
-              </Button>
-            </form>
+                
+                {rateLimitState.isRateLimited && (
+                  <Alert className="bg-yellow-50 border-yellow-200">
+                    <Clock className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-700">
+                      Rate limit exceeded. Please wait {rateLimitState.retryAfter} seconds before trying again.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={loading || rateLimitState.isRateLimited}
+                >
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {rateLimitState.isRateLimited 
+                    ? `Wait ${rateLimitState.retryAfter}s` 
+                    : loading 
+                      ? (authMode === 'magic' ? 'Sending Link...' : authMode === 'signup' ? 'Creating Account...' : 'Signing In...') 
+                      : (authMode === 'magic' ? 'Send Magic Link' : authMode === 'signup' ? 'Create Account' : 'Sign In')
+                  }
+                </Button>
+              </form>
+            </div>
             
             <div className="mt-6 space-y-4">
               <div className="text-center">

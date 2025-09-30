@@ -1,4 +1,10 @@
-import { logger } from '@/lib/logger';
+// Simple logger for edge functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -127,7 +133,7 @@ serve(async (req) => {
 
     if (!perplexityResponse.ok) {
       const errorText = await perplexityResponse.text();
-      logger.error('Perplexity API error:', perplexityResponse.status, errorText);
+      logger.error('Perplexity API error:', `${perplexityResponse.status} - ${errorText}`);
       throw new Error(`Perplexity API error: ${perplexityResponse.status}`);
     }
 
@@ -177,7 +183,7 @@ serve(async (req) => {
     }
     
     return new Response(JSON.stringify({
-      error: error.message,
+      error: (error as any)?.message || 'Unknown error',
       timestamp: new Date().toISOString()
     }), {
       status: 500,

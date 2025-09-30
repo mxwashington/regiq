@@ -6,51 +6,54 @@ export const useFeatureAccess = () => {
   const { subscribed } = useUserProfile();
 
   const hasFeature = (feature: string): boolean => {
-    if (!subscribed) return false;
-
     switch (feature) {
       case 'aiAssistant':
-        return currentPlan !== 'free';
+        return true; // All tiers have AI (with different limits)
+      
+      case 'aiSearch':
+        return ['growth', 'professional', 'teams'].includes(currentPlan);
       
       case 'phoneSupport':
-        return ['growth', 'professional'].includes(currentPlan);
+        return ['professional', 'teams'].includes(currentPlan);
       
       case 'apiAccess':
-        return currentPlan === 'professional';
-      
-      case 'whiteLabel':
-        return currentPlan === 'professional';
-      
-      case 'customIntegrations':
-        return currentPlan === 'professional';
-      
-      case 'dedicatedManager':
-        return currentPlan === 'professional';
-      
-      case 'multiFacility':
-        return currentPlan !== 'free';
+        return ['professional', 'teams'].includes(currentPlan);
       
       case 'advancedAnalytics':
-        return ['growth', 'professional'].includes(currentPlan);
+        return ['professional', 'teams'].includes(currentPlan);
       
       case 'complianceCalendar':
-        return ['starter', 'growth', 'professional'].includes(currentPlan);
+        return ['professional', 'teams'].includes(currentPlan);
       
-      case 'taskManagement':
-        return ['starter', 'growth', 'professional'].includes(currentPlan);
+      case 'exports':
+        return ['growth', 'professional', 'teams'].includes(currentPlan);
       
-      case 'supplierRisk':
-        return currentPlan === 'professional';
+      case 'unlimitedSaves':
+        return ['growth', 'professional', 'teams'].includes(currentPlan);
       
-      case 'haccp':
-        return ['growth', 'professional'].includes(currentPlan);
+      case 'priorityAlerts':
+        return ['professional', 'teams'].includes(currentPlan);
+      
+      // TODO: Teams tier features require organizations table and role-based permissions
+      // See TEAMS_INFRASTRUCTURE.md Section 4 for full requirements
+      case 'teamCollaboration':
+        return currentPlan === 'teams'; // Currently non-functional - backend not implemented
+      
+      case 'sharedWatchlists':
+        return currentPlan === 'teams'; // Currently non-functional - backend not implemented
+      
+      case 'teamDashboard':
+        return currentPlan === 'teams'; // Currently non-functional - backend not implemented
+      
+      case 'roleBasedPermissions':
+        return currentPlan === 'teams'; // Currently non-functional - backend not implemented
       
       default:
         return false;
     }
   };
 
-  const getRequiredPlan = (feature: string): 'starter' | 'growth' | 'professional' => {
+  const getRequiredPlan = (feature: string): 'starter' | 'growth' | 'professional' | 'teams' => {
     switch (feature) {
       case 'aiAssistant':
       case 'multiFacility':
@@ -69,6 +72,12 @@ export const useFeatureAccess = () => {
       case 'dedicatedManager':
       case 'supplierRisk':
         return 'professional';
+      
+      case 'teamCollaboration':
+      case 'sharedWatchlists':
+      case 'teamDashboard':
+      case 'roleBasedPermissions':
+        return 'teams';
       
       default:
         return 'starter';

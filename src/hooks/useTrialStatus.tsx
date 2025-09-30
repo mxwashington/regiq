@@ -30,32 +30,23 @@ export const useTrialStatus = () => {
     }
 
     try {
-      // Get user profile with trial info
+      // Get user profile with subscription info
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('trial_starts_at, trial_ends_at, subscription_status')
+        .select('subscription_status')
         .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
 
-      // Call the database function to get days remaining
-      const { data: daysData, error: daysError } = await supabase
-        .rpc('get_trial_days_remaining', { user_uuid: user.id });
-
-      if (daysError) throw daysError;
-
-      // Call the database function to check if trial is expired
-      const { data: expiredData, error: expiredError } = await supabase
-        .rpc('is_trial_expired', { user_uuid: user.id });
-
-      if (expiredError) throw expiredError;
-
+      // No trial logic - users are either free or paid
+      const isPaid = profile?.subscription_status === 'active' || profile?.subscription_status === 'paid';
+      
       setTrialStatus({
-        isTrialExpired: isAdmin ? false : (expiredData || false), // Admins never have expired trials
-        daysRemaining: isAdmin ? -1 : (daysData || 0), // -1 indicates unlimited for admins
-        trialEndsAt: profile?.trial_ends_at || null,
-        subscriptionStatus: isAdmin ? 'admin' : (profile?.subscription_status || 'trial'),
+        isTrialExpired: isAdmin ? false : !isPaid, // Admins always have access, free users need to upgrade
+        daysRemaining: isAdmin ? -1 : (isPaid ? -1 : 0), // -1 indicates unlimited for admins/paid users
+        trialEndsAt: null, // No trials exist
+        subscriptionStatus: isAdmin ? 'admin' : (profile?.subscription_status || 'free'),
         loading: false
       });
     } catch (error) {
@@ -64,31 +55,7 @@ export const useTrialStatus = () => {
     }
   };
 
-  const startTrial = async () => {
-    if (!user) return;
-
-    try {
-      const trialStartsAt = new Date();
-      const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialStartsAt.getDate() + 7); // 7-day trial
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          trial_starts_at: trialStartsAt.toISOString(),
-          trial_ends_at: trialEndsAt.toISOString(),
-          subscription_status: 'trial'
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      // Refresh status
-      await checkTrialStatus();
-    } catch (error) {
-      logger.error('Error starting trial:', error);
-    }
-  };
+  // Removed startTrial - no trials exist in RegIQ
 
   useEffect(() => {
     checkTrialStatus();
@@ -97,7 +64,6 @@ export const useTrialStatus = () => {
   return {
     ...trialStatus,
     checkTrialStatus,
-    startTrial,
     refreshStatus: checkTrialStatus
   };
 };

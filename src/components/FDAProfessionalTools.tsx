@@ -393,10 +393,10 @@ export function FDAProfessionalTools() {
 
       {/* Professional Tools Tabs */}
       <Tabs defaultValue="export" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="export">Data Export</TabsTrigger>
-          <TabsTrigger value="scheduling">Scheduled Searches</TabsTrigger>
-          <TabsTrigger value="alerts">Smart Alerts</TabsTrigger>
+        <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-3 md:h-10">
+          <TabsTrigger value="export" className="w-full justify-start md:justify-center">Data Export</TabsTrigger>
+          <TabsTrigger value="scheduling" className="w-full justify-start md:justify-center">Scheduled Searches</TabsTrigger>
+          <TabsTrigger value="alerts" className="w-full justify-start md:justify-center">Smart Alerts</TabsTrigger>
         </TabsList>
 
         {/* Data Export Tab */}

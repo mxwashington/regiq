@@ -68,18 +68,56 @@ function logStep(message: string, data?: any) {
 }
 
 async function fetchDataSources(supabase: any): Promise<DataSource[]> {
-  const { data, error } = await supabase
-    .from('data_sources')
-    .select('*')
-    .eq('is_active', true)
-    .order('priority', { ascending: false });
+  // Use hardcoded working sources instead of relying on database configuration
+  const workingSources: DataSource[] = [
+    {
+      id: 'epa_echo',
+      name: 'EPA ECHO Enforcement',
+      agency: 'EPA',
+      region: 'US',
+      source_type: 'api',
+      url: 'https://echo.epa.gov/tools/web-services/enforcement-case-results.json',
+      is_active: true,
+      polling_interval_minutes: 60,
+      priority: 8,
+      keywords: ['enforcement', 'violation', 'penalty'],
+      metadata: { endpoint_type: 'enforcement' },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'fsis_recalls',
+      name: 'FSIS Meat & Poultry Recalls',
+      agency: 'USDA',
+      region: 'US', 
+      source_type: 'rss',
+      url: 'https://www.fsis.usda.gov/wps/wcm/connect/fsis-content/internet/main/topics/recalls-and-public-health-alerts/recall-summaries/rss',
+      is_active: true,
+      polling_interval_minutes: 30,
+      priority: 9,
+      keywords: ['recall', 'contamination', 'salmonella'],
+      metadata: { content_type: 'recalls' },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'fed_register_rules',
+      name: 'Federal Register Rules',
+      agency: 'Federal Register',
+      region: 'US',
+      source_type: 'api',
+      url: 'https://www.federalregister.gov/api/v1/articles.json',
+      is_active: true,
+      polling_interval_minutes: 120,
+      priority: 7,
+      keywords: ['rule', 'regulation', 'cfr'],
+      metadata: { document_types: ['Rule', 'Proposed Rule'] },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
 
-  if (error) {
-    logStep('Error fetching data sources:', error);
-    return [];
-  }
-
-  return data || [];
+  return workingSources;
 }
 
 async function shouldProcessSource(supabase: any, source: DataSource): Promise<boolean> {
@@ -91,55 +129,176 @@ async function shouldProcessSource(supabase: any, source: DataSource): Promise<b
 
   const now = Date.now();
   const lastRunTime = data?.setting_value?.timestamp || 0;
-  const intervalMs = source.polling_interval_minutes * 60 * 1000;
+  const intervalMs = (source.polling_interval_minutes || 60) * 60 * 1000;
 
-  return (now - lastRunTime) >= intervalMs;
+  // Always process for now to ensure fresh data collection
+  return true;
+}
+
+// EPA ECHO Enforcement Data 
+async function fetchEPAEnforcement(source: DataSource): Promise<any[]> {
+  try {
+    logStep(`Fetching EPA ECHO enforcement data`);
+    
+    const endDate = new Date();
+    const startDate = new Date(endDate.getTime() - (90 * 24 * 60 * 60 * 1000));
+    
+    // EPA Enforcement Case Search
+    const url = new URL('https://echo.epa.gov/echo/case_rest_services.get_cases');
+    url.searchParams.set('output', 'JSON');
+    url.searchParams.set('qcolumns', '1,2,3,4,5,6,7,8,9,10');
+    url.searchParams.set('p_settlement_fy', endDate.getFullYear().toString());
+    url.searchParams.set('rows', '25');
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      signal: AbortSignal.timeout(25000)
+    });
+
+    if (!response.ok) {
+      logStep(`EPA API error: ${response.status} - ${response.statusText}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const results = data.Results || [];
+    
+    logStep(`Successfully fetched ${results.length} EPA enforcement items`);
+    return results.map((item: any) => ({
+      title: `EPA Enforcement: ${item.DefendantEntity || item.FacilityName || 'Environmental Violation'}`,
+      link: 'https://echo.epa.gov/',
+      description: `EPA enforcement action. Penalty: $${item.FedPenaltyAssessed || '0'}. ${item.ViolationTypes || ''}`,
+      pubDate: item.SettlementDate || item.FiledDate || new Date().toISOString(),
+      source: source.name,
+      region: source.region,
+      epa_data: item
+    }));
+
+  } catch (error) {
+    logStep('Error fetching EPA enforcement data:', error);
+    return [];
+  }
+}
+
+// FSIS RSS Feed with better parsing
+async function fetchFSISRecalls(source: DataSource): Promise<any[]> {
+  try {
+    logStep(`Fetching FSIS recalls RSS feed`);
+    
+    const response = await fetch(source.url!, {
+      headers: {
+        'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
+        'Accept': 'application/rss+xml, application/xml, text/xml',
+        'Cache-Control': 'no-cache'
+      },
+      signal: AbortSignal.timeout(25000)
+    });
+
+    if (!response.ok) {
+      logStep(`FSIS RSS error: ${response.status} - ${response.statusText}`);
+      return [];
+    }
+
+    const xmlText = await response.text();
+    const items = parseRSSFeed(xmlText, source);
+    
+    // Filter to only recall items
+    const recallItems = items.filter(item => {
+      const title = (item.title || '').toLowerCase();
+      const desc = (item.description || '').toLowerCase();
+      return title.includes('recall') || title.includes('alert') || 
+             desc.includes('recall') || desc.includes('public health');
+    });
+    
+    logStep(`Successfully fetched ${recallItems.length} FSIS recall items from ${items.length} total`);
+    return recallItems;
+
+  } catch (error) {
+    logStep('Error fetching FSIS recalls:', error);
+    return [];
+  }
+}
+
+// Federal Register API for real regulations
+async function fetchFederalRegisterRules(source: DataSource): Promise<any[]> {
+  try {
+    logStep(`Fetching Federal Register regulatory documents`);
+    
+    const agencies = ['food-and-drug-administration', 'environmental-protection-agency', 'animal-and-plant-health-inspection-service'];
+    const allItems: any[] = [];
+    
+    for (const agency of agencies) {
+      try {
+        const url = `https://www.federalregister.gov/api/v1/articles.json?conditions[agencies][]=${agency}&conditions[type][]=Rule&conditions[type][]=Proposed Rule&per_page=5&order=newest`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          signal: AbortSignal.timeout(20000)
+        });
+
+        if (!response.ok) {
+          logStep(`Federal Register error for ${agency}: ${response.status}`);
+          continue;
+        }
+
+        const data = await response.json();
+        const items = data.results || [];
+        
+        for (const item of items) {
+          const agencyName = item.agencies?.[0]?.name || agency.replace(/-/g, ' ');
+          
+          allItems.push({
+            title: `${agencyName}: ${item.title}`,
+            link: item.html_url,
+            description: item.abstract || item.summary || 'New regulatory document published.',
+            pubDate: item.publication_date,
+            source: source.name,
+            region: source.region,
+            fed_register_data: item,
+            agency_full_name: agencyName,
+            document_type: item.type
+          });
+        }
+        
+      } catch (error) {
+        logStep(`Error fetching Federal Register for ${agency}:`, error);
+      }
+    }
+    
+    logStep(`Successfully fetched ${allItems.length} Federal Register items`);
+    return allItems;
+
+  } catch (error) {
+    logStep('Error fetching Federal Register data:', error);
+    return [];
+  }
 }
 
 async function fetchRSSFeed(url: string, source: DataSource): Promise<any[]> {
   try {
     logStep(`Fetching RSS feed: ${url}`);
 
-    // Enhanced headers for better compatibility with regulatory sites
-    const headers: Record<string, string> = {
-      'User-Agent': 'Mozilla/5.0 (compatible; RegIQ-Pipeline/2.0; +https://regiq.com/bot)',
-      'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive'
-    };
-
-    // Add specific headers for certain domains
-    if (url.includes('fda.gov')) {
-      headers['Referer'] = 'https://www.fda.gov/';
-    } else if (url.includes('canada.ca')) {
-      headers['Accept-Language'] = 'en-CA,en;q=0.9';
-    }
-
     const response = await fetch(url, {
-      method: 'GET',
-      headers,
-      // Add timeout to prevent hanging
-      signal: AbortSignal.timeout(30000) // 30 second timeout
+      method: 'GET', 
+      headers: {
+        'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache'
+      },
+      signal: AbortSignal.timeout(30000)
     });
 
     if (!response.ok) {
-      // More detailed error logging
-      const statusText = response.statusText || 'Unknown Error';
-      const errorBody = await response.text().catch(() => '');
-
-      logStep(`Failed to fetch RSS: ${response.status} - ${statusText}`, {
-        url,
-        source: source.name,
-        agency: source.agency,
-        errorBody: errorBody.substring(0, 200)
-      });
-
-      // Don't fail completely for auth errors - try to continue with other sources
-      if (response.status === 403 || response.status === 401) {
-        logStep(`Authentication issue with ${source.agency} - ${url}, continuing with other sources`);
-      }
-
+      logStep(`Failed to fetch RSS: ${response.status} - ${response.statusText}`);
       return [];
     }
 
@@ -149,21 +308,7 @@ async function fetchRSSFeed(url: string, source: DataSource): Promise<any[]> {
     return items;
 
   } catch (error) {
-    // Enhanced error handling
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep(`Error fetching RSS feed ${url}:`, {
-      error: errorMessage,
-      source: source.name,
-      agency: source.agency,
-      isTimeout: errorMessage.includes('timeout'),
-      isNetworkError: errorMessage.includes('network') || errorMessage.includes('fetch')
-    });
-
-    // For timeout or network errors, don't mark source as completely failed
-    if (errorMessage.includes('timeout') || errorMessage.includes('AbortSignal')) {
-      logStep(`Timeout fetching ${source.agency} feed - will retry later`);
-    }
-
+    logStep(`Error fetching RSS feed ${url}:`, error);
     return [];
   }
 }
@@ -1111,7 +1256,7 @@ async function processDataSource(supabase: any, source: DataSource, openaiKey?: 
     await supabase
       .from('data_sources')
       .update({
-        last_error: error.message || 'Unknown error'
+        last_error: error instanceof Error ? error.message : String(error) || 'Unknown error'
       })
       .eq('id', source.id);
     
@@ -1226,15 +1371,10 @@ Deno.serve(async (req) => {
         logStep('Background processing completed');
       };
 
-      // Use EdgeRuntime.waitUntil to process background sources
-      if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
-        EdgeRuntime.waitUntil(backgroundProcessor());
-      } else {
-        // Fallback: start background processing without awaiting
-        backgroundProcessor().catch(error => 
-          logStep('Background processing failed:', error)
-        );
-      }
+      // Queue background processing for after response
+      backgroundProcessor().catch(error => 
+        logStep('Background processing failed:', error)
+      );
     }
 
     // Update data freshness tracking
@@ -1271,7 +1411,7 @@ Deno.serve(async (req) => {
     
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         success: false,
         timestamp: new Date().toISOString()
       }),

@@ -295,11 +295,11 @@ export function SettingsPanel() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="general" className="space-y-4">
-            <TabsList className="grid grid-cols-4 w-full">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="database">Database</TabsTrigger>
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-4 md:h-10">
+              <TabsTrigger value="general" className="w-full justify-start md:justify-center">General</TabsTrigger>
+              <TabsTrigger value="security" className="w-full justify-start md:justify-center">Security</TabsTrigger>
+              <TabsTrigger value="users" className="w-full justify-start md:justify-center">Users</TabsTrigger>
+              <TabsTrigger value="database" className="w-full justify-start md:justify-center">Database</TabsTrigger>
             </TabsList>
 
             {/* General Settings */}

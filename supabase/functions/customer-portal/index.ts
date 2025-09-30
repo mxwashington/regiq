@@ -1,4 +1,10 @@
-import { logger } from '@/lib/logger';
+// Simple logger for edge functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
@@ -53,7 +59,7 @@ serve(async (req) => {
         logStep("Request body parsed", requestBody);
       }
     } catch (bodyError) {
-      logStep("No request body or failed to parse (continuing)", { error: bodyError.message });
+      logStep("No request body or failed to parse (continuing)", { error: bodyError instanceof Error ? bodyError.message : String(bodyError) });
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });

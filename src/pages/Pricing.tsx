@@ -20,33 +20,35 @@ const Pricing = () => {
       {
         "@type": "Offer",
         "name": "Starter Plan",
-        "price": "179",
+        "price": "0",
         "priceCurrency": "USD",
-        "description": "Real-time regulatory alerts for small businesses getting started with compliance"
+        "description": "Free plan for individual users getting started with compliance"
       },
       {
-        "@type": "Offer", 
+        "@type": "Offer",
         "name": "Growth Plan",
-        "price": "349",
+        "price": "29",
         "priceCurrency": "USD",
-        "description": "AI-powered regulatory intelligence for growing businesses with advanced features"
+        "description": "Ideal for individual compliance professionals and consultants"
       },
       {
         "@type": "Offer",
         "name": "Professional Plan", 
-        "price": "549",
+        "price": "199",
         "priceCurrency": "USD",
-        "description": "Enterprise-ready organizations with premium support and unlimited users"
+        "description": "Enterprise-ready for power users with premium support"
       }
+      // Teams tier hidden until backend infrastructure is ready
+      // See TEAMS_INFRASTRUCTURE.md for full requirements
     ]
   };
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="RegIQ Pricing: Starter $179, Growth $349, Professional $549 - Save 11% Annually"
-        description="Transform regulatory compliance with RegIQ's proven ROI. Starter at $179/mo for small teams, Growth at $349/mo (Most Popular), Professional at $549/mo unlimited scale. Save 11% annually."
-        keywords="RegIQ pricing, regulatory compliance software cost, FDA alerts subscription, USDA monitoring pricing, EPA regulatory intelligence, compliance software ROI"
+        title="RegIQ Pricing: Free Starter, Growth $29/mo, Professional $199/mo"
+        description="Individual compliance professional pricing. Start free with 5 AI summaries/month. Growth at $29/mo with 100 AI summaries. Professional at $199/mo with unlimited features."
+        keywords="RegIQ pricing, regulatory compliance software cost, FDA alerts subscription, USDA monitoring pricing, EPA regulatory intelligence, compliance software individual plans"
         canonical="https://regiq.com/pricing"
       />
       

@@ -32,10 +32,18 @@ export function DataFreshnessIndicator() {
       const { data, error } = await supabase
         .from('data_freshness')
         .select('*')
-        .order('source_name');
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setFreshness(data || []);
+      
+      // Filter out invalid future dates and focus on enhanced pipeline sources
+      const validData = (data || []).filter(item => {
+        const lastAttempt = new Date(item.last_attempt);
+        const now = new Date();
+        return lastAttempt <= now; // Only show valid timestamps
+      });
+      
+      setFreshness(validData);
     } catch (error) {
       logger.error('Error fetching data freshness', error, 'DataFreshnessIndicator');
     } finally {
@@ -46,8 +54,8 @@ export function DataFreshnessIndicator() {
   const triggerDataCollection = async (source: string) => {
     setTriggering(source);
     try {
-      const { error } = await supabase.functions.invoke('regulatory-data-pipeline', {
-        body: { scheduled: false, force_source: source }
+      const { error } = await supabase.functions.invoke('enhanced-regulatory-data-collection', {
+        body: { manual_trigger: true, force_source: source }
       });
 
       if (error) throw error;
@@ -76,9 +84,11 @@ export function DataFreshnessIndicator() {
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'error':
+      case 'failed':
         return <AlertCircle className="h-4 w-4 text-red-500" />;
       case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'running':
+        return <Clock className="h-4 w-4 text-yellow-500 animate-pulse" />;
       default:
         return <Clock className="h-4 w-4 text-gray-500" />;
     }
@@ -89,8 +99,10 @@ export function DataFreshnessIndicator() {
       case 'success':
         return 'default';
       case 'error':
+      case 'failed':
         return 'destructive';
       case 'pending':
+      case 'running':
         return 'secondary';
       default:
         return 'outline';
@@ -100,11 +112,18 @@ export function DataFreshnessIndicator() {
   const formatLastFetch = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
+    
+    // Handle future dates (invalid timestamps)
+    if (date > now) {
+      return 'Invalid date';
+    }
+    
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
+    if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     return `${diffDays}d ago`;

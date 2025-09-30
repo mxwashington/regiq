@@ -59,6 +59,9 @@ verify_jwt = false
 [functions.rss-alert-scraper]
 verify_jwt = false
 
+[functions.enhanced-regulatory-data-collection]
+verify_jwt = false
+
 [auth.external.apple]
 enabled = false
 client_id = ""

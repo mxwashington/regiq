@@ -152,7 +152,7 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
             </Button>
             
             <p className="text-xs text-muted-foreground">
-              14-day free trial • Cancel anytime
+              Cancel anytime
             </p>
           </CardContent>
         </Card>

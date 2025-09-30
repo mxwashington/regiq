@@ -8,6 +8,9 @@ import remarkGfm from 'remark-gfm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useAIAlertSummary } from '@/hooks/useAIAlertSummary';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { AISummaryLimitModal } from './AISummaryLimitModal';
 // import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   ExternalLink, 
@@ -105,6 +108,17 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const isSaved = savedAlerts.some(saved => saved.id === alert.id);
+  
+  // AI Summary integration
+  const { subscriptionTier } = useUserProfile();
+  const {
+    showLimitModal,
+    currentAlert,
+    canProcessSummary,
+    handleUpgradeModal,
+    handleReadManually,
+    processSummary
+  } = useAIAlertSummary();
 
   const formatDate = (dateString: string) => {
     try {
@@ -140,18 +154,28 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
     }
   };
 
-  const handlePerplexitySearch = async () => {
+  const handleAISummary = async () => {
     if (!user) {
       toast({
         title: "Authentication Required",
-        description: "Please sign in to use AI-powered source enhancement.",
+        description: "Please sign in to use AI summaries.",
         variant: "destructive",
       });
       return;
     }
 
+    // Check usage limits BEFORE processing
+    const canProcess = await canProcessSummary(alert.id, alert.title);
+    
+    if (!canProcess) {
+      // Modal will be shown automatically by useAIAlertSummary
+      return;
+    }
+
+    // Proceed with AI processing
     setIsEnhancing(true);
     try {
+      await processSummary(alert.id);
       // Create a focused query for the alert
       const query = `${alert.title} ${alert.summary || ''} ${alert.source} regulatory compliance details sources`.trim();
       
@@ -283,11 +307,11 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
   };
 
   return (
-    <Card className={`mobile-alert-card mobile-container-safe mobile-card-content border border-gray-200 hover:shadow-md transition-shadow ${isMobile ? 'mx-2 p-4' : ''}`}>
-      <CardHeader className={isMobile ? "px-3 py-3" : "pb-3"}>
+    <Card className={`w-full border border-gray-200 hover:shadow-md transition-shadow ${isMobile ? 'mx-0 my-2' : ''}`}>
+      <CardHeader className={isMobile ? "px-4 py-3" : "pb-3"}>
         <div className="flex items-start justify-between space-x-3">
           <div className="flex-1 min-w-0">
-            <h3 className={`font-semibold text-gray-900 leading-tight mobile-text-content alert-title break-words-mobile ${isMobile ? 'text-sm' : 'text-base'}`}>
+            <h3 className={`font-semibold text-gray-900 leading-tight break-words ${isMobile ? 'text-sm' : 'text-base'}`}>
               {alert.title}
             </h3>
             <div className={`flex items-center gap-2 text-muted-foreground mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>
@@ -318,34 +342,37 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
         </div>
       </CardHeader>
 
-      <CardContent className={isMobile ? "pt-0 px-3 pb-3" : "pt-0"}>
+      <CardContent className={isMobile ? "pt-0 px-4 pb-3" : "pt-0"}>
         {alert.summary && (
-          <p className={`text-muted-foreground mb-3 mobile-text-content break-words-mobile ${isMobile ? 'text-xs line-clamp-2' : 'text-sm line-clamp-3'}`}>
+          <p className={`text-muted-foreground mb-3 break-words ${isMobile ? 'text-xs' : 'text-sm'} ${isMobile ? 'line-clamp-3' : 'line-clamp-4'}`}>
             {alert.summary}
           </p>
         )}
 
         {/* Actions */}
-        <div className={`flex items-center ${isMobile ? 'justify-end' : 'justify-between'} mb-3`}>
-          {!isMobile && (
-            <div className="text-xs text-muted-foreground">
-              Real-time regulatory alert
-            </div>
-          )}
-          <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
+        <div className={`flex items-center ${isMobile ? 'justify-between' : 'justify-between'} mb-3 ${isMobile ? 'flex-wrap gap-2' : ''}`}>
+          <div className="text-xs text-muted-foreground">
+            Real-time regulatory alert
+          </div>
+          <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'} ${isMobile ? 'flex-wrap' : ''}`}>
             <Button
-              onClick={handlePerplexitySearch}
+              onClick={handleAISummary}
               disabled={isEnhancing}
               className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white"
             >
               {isEnhancing ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span className={isMobile ? 'text-xs' : 'text-xs'}>Processing...</span>
+                </>
               ) : (
-                <Bot className="h-3 w-3" />
+                <>
+                  <Sparkles className="h-3 w-3" />
+                  <span className={isMobile ? 'text-xs' : 'text-xs'}>
+                    AI Summary {subscriptionTier === 'starter' ? '(5/mo)' : ''}
+                  </span>
+                </>
               )}
-              <span className={isMobile ? 'text-xs' : 'text-xs'}>
-                {isEnhancing ? 'Enhancing...' : 'AI Sources'}
-              </span>
             </Button>
             
             {alert.external_url && alert.external_url.trim() && alert.external_url.startsWith('http') && (
@@ -530,6 +557,14 @@ export const PerplexityAlertCard: React.FC<PerplexityAlertCardProps> = ({
           </Collapsible>
         )}
       </CardContent>
+      
+      {/* AI Summary Limit Modal */}
+      <AISummaryLimitModal
+        open={showLimitModal}
+        onClose={() => handleUpgradeModal(false)}
+        onReadManually={handleReadManually}
+        alertTitle={currentAlert?.title || ''}
+      />
     </Card>
   );
 };

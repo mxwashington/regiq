@@ -1,14 +1,11 @@
-// Dynamic agencies fetched from actual database alerts
+// US regulatory agencies only
 export const AVAILABLE_AGENCIES = [
   "FDA",
+  "EPA",
   "USDA", 
   "FSIS",
-  "EPA",
   "CDC",
-  "MHRA",
-  "WHO",
-  "Federal_Register",
-  "Health_Canada"
+  "Federal_Register"
 ] as const;
 
 export type Agency = typeof AVAILABLE_AGENCIES[number];
@@ -18,12 +15,14 @@ export const getAgencyDisplayName = (agency: string): string => {
   switch (agency) {
     case 'Federal_Register':
       return 'Fed Register';
-    case 'Health_Canada':
-      return 'Health Canada';
-    case 'MHRA':
-      return 'MHRA';
-    case 'WHO':
-      return 'WHO';
+    case 'FSIS':
+      return 'FSIS';
+    case 'USDA':
+      return 'USDA';
+    case 'EPA':
+      return 'EPA';
+    case 'CDC':
+      return 'CDC';
     default:
       return agency;
   }
@@ -37,10 +36,9 @@ export const doesSourceMatchAgency = (source: string, agency: string): boolean =
   // Handle various source name mappings for our API endpoints
   if (agency === 'USDA' && (sourceLower.includes('usda') || sourceLower.includes('fsis'))) return true;
   if (agency === 'FSIS' && sourceLower.includes('fsis')) return true;
+  if (agency === 'EPA' && sourceLower.includes('epa')) return true;
+  if (agency === 'CDC' && sourceLower.includes('cdc')) return true;
   if (agency === 'Federal_Register' && sourceLower.includes('federal')) return true;
-  if (agency === 'Health_Canada' && sourceLower.includes('health_canada')) return true;
-  if (agency === 'MHRA' && sourceLower.includes('mhra')) return true;
-  if (agency === 'WHO' && sourceLower.includes('who')) return true;
   
   return sourceLower.includes(agencyLower) || sourceLower === agency;
 };

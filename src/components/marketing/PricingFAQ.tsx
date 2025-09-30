@@ -12,8 +12,8 @@ import { Shield, TrendingUp, Users, Zap } from 'lucide-react';
 export const PricingFAQ: React.FC = () => {
   const faqs = [
     {
-      question: "What's included in the 14-day free trial?",
-      answer: "Your free trial includes full access to all features of your chosen plan. No credit card required to start. You'll get real regulatory alerts, AI summarization, and can test our mobile-responsive platform. We'll help you get started with personalized onboarding."
+      question: "What's included in the free Starter plan?",
+      answer: "The free Starter plan includes real-time regulatory alerts from FDA, USDA, EPA, and CDC. You get 5 AI alert summaries per month, can save up to 10 alerts, and access our mobile-responsive dashboard. No credit card required to start. Upgrade anytime for more features and higher limits."
     },
     {
       question: "How quickly will I see ROI with RegIQ?",
@@ -41,7 +41,7 @@ export const PricingFAQ: React.FC = () => {
     },
     {
       question: "Can I cancel anytime?",
-      answer: "Yes, you can cancel your RegIQ subscription at any time with no penalties. Annual subscribers receive a prorated refund for unused months. We also offer a 30-day money-back guarantee if you're not satisfied."
+      answer: "Yes, you can cancel your RegIQ subscription at any time with no penalties. Annual subscribers receive a prorated refund for unused months. You can also downgrade to our free Starter tier anytime to keep monitoring essential alerts."
     }
   ];
 
@@ -76,23 +76,23 @@ export const PricingFAQ: React.FC = () => {
           ))}
         </Accordion>
 
-        {/* ROI Guarantee Section */}
+        {/* Free Tier Highlight Section */}
         <div className="mt-16 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-8 text-center">
           <div className="max-w-2xl mx-auto">
             <div className="flex justify-center mb-4">
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-2">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                ROI Guarantee
+                <Shield className="w-4 h-4 mr-2" />
+                Start Free Forever
               </Badge>
             </div>
             <h3 className="text-2xl font-bold mb-4">
-              See ROI in 30 Days or Your Money Back
+              Experience RegIQ Risk-Free with Our Free Tier
             </h3>
             <p className="text-muted-foreground mb-6">
-              We're so confident RegIQ will transform your regulatory compliance that we guarantee measurable ROI within 30 days. If you don't see significant time savings and compliance improvements, we'll refund your investment.
+              Start monitoring FDA, USDA, EPA, and CDC alerts immediately with our permanent free Starter plan. No credit card required. See the value firsthand with 5 AI summaries per month, then upgrade when you're ready for more features.
             </p>
             <Button size="lg" className="bg-primary hover:bg-primary/90">
-              Start Your Risk-Free Trial
+              Get Started Free
             </Button>
           </div>
         </div>

@@ -1,7 +1,13 @@
-import { logger } from '@/lib/logger';
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+// Simple logger for edge functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,7 +59,7 @@ serve(async (req) => {
     const requestData: WorkflowRequest = await req.json();
     const { action } = requestData;
 
-    logger.info('Processing workflow request:', { action, ...requestData });
+    logger.info('Processing workflow request:', requestData);
 
     const userId = await getUserIdFromRequest(req, supabase);
     if (!userId && action !== 'get_templates') {
@@ -123,7 +129,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

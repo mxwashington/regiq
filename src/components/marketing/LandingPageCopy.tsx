@@ -23,7 +23,7 @@ export const LandingPageCopy: React.FC = () => {
                 <Link to="/auth">Sign In</Link>
               </Button>
               <Button size="sm" asChild>
-                <Link to="/pricing">Start Free Trial</Link>
+                <Link to="/pricing">Get Started</Link>
               </Button>
             </nav>
           </div>
@@ -49,7 +49,7 @@ export const LandingPageCopy: React.FC = () => {
                 </a>
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">7-day free trial • Cancel anytime</p>
+            <p className="text-sm text-muted-foreground">No credit card required</p>
           </div>
         </div>
       </section>
@@ -282,7 +282,7 @@ export const LandingPageCopy: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-8 justify-center items-center text-sm text-muted-foreground">
             <div className="flex items-center space-x-2">
               <Shield className="h-4 w-4" />
-              <span>7-day free trial</span>
+              <span>Start free, no credit card</span>
             </div>
             <div className="flex items-center space-x-2">
               <Clock className="h-4 w-4" />

@@ -266,10 +266,10 @@ export function CombinedSearch() {
           <div className="space-y-2">
             <Label>FDA Data Scope</Label>
             <Tabs value={searchScope} onValueChange={(value) => setSearchScope(value as any)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="combined">All Data</TabsTrigger>
-                <TabsTrigger value="enforcement">Enforcement Only</TabsTrigger>
-                <TabsTrigger value="events">Events Only</TabsTrigger>
+              <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-3 md:h-10">
+                <TabsTrigger value="combined" className="w-full justify-start md:justify-center">All Data</TabsTrigger>
+                <TabsTrigger value="enforcement" className="w-full justify-start md:justify-center">Enforcement Only</TabsTrigger>
+                <TabsTrigger value="events" className="w-full justify-start md:justify-center">Events Only</TabsTrigger>
               </TabsList>
 
               <TabsContent value="combined" className="text-sm text-muted-foreground">

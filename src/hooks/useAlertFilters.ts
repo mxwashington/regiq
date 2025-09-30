@@ -1,13 +1,12 @@
 // Alert Filters Hook
 // Manages agency filter state with URL sync and persistence
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SafeAuthContext';
-import { debounce } from 'lodash';
 
-export type AgencySource = 'FDA' | 'CDC' | 'WHO' | 'MHRA' | 'Federal_Register';
+export type AgencySource = 'FDA' | 'EPA' | 'USDA' | 'FSIS' | 'Federal_Register' | 'CDC' | 'REGULATIONS_GOV';
 
 export interface AlertFilters {
   sources: AgencySource[];
@@ -17,7 +16,7 @@ export interface AlertFilters {
 }
 
 const DEFAULT_FILTERS: AlertFilters = {
-  sources: ['FDA', 'CDC', 'WHO', 'MHRA', 'Federal_Register'],
+  sources: ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV'],
   sinceDays: 30,
   minSeverity: null,
   searchQuery: '',
@@ -25,12 +24,14 @@ const DEFAULT_FILTERS: AlertFilters = {
 
 const STORAGE_KEY = 'regiq.alertFilters';
 
-export function useAlertFilters() {
+export const useAlertFilters = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const [filters, setFilters] = useState<AlertFilters>(DEFAULT_FILTERS);
   const [isLoading, setIsLoading] = useState(true);
+  const initialized = useRef(false);
+  const requestCache = useRef<Map<string, { data: any; timestamp: number }>>(new Map());
 
   // Parse URL parameters into filters
   const parseUrlFilters = useCallback((searchParams: URLSearchParams): Partial<AlertFilters> => {
@@ -40,7 +41,7 @@ export function useAlertFilters() {
     if (sourceParam) {
       const sourcesParam = sourceParam.split(',');
       const validSources = sourcesParam.filter((s: string) =>
-        ['FDA', 'CDC', 'WHO', 'MHRA', 'Federal_Register'].includes(s)
+        ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV'].includes(s)
       ) as AgencySource[];
       if (validSources.length > 0) {
         urlFilters.sources = validSources;
@@ -75,7 +76,7 @@ export function useAlertFilters() {
   const updateUrl = useCallback((newFilters: AlertFilters) => {
     const searchParams = new URLSearchParams(location.search);
 
-    if (newFilters.sources.length > 0 && newFilters.sources.length < 5) {
+    if (newFilters.sources.length > 0 && newFilters.sources.length < 7) {
       searchParams.set('source', newFilters.sources.join(','));
     } else {
       searchParams.delete('source');
@@ -133,11 +134,11 @@ export function useAlertFilters() {
 
   // Save to user preferences (authenticated users only)
   const saveToUserPreferences = useCallback(
-    debounce(async (filters: AlertFilters) => {
+    async (filters: AlertFilters) => {
       if (!user?.id) return;
 
       try {
-        // TODO: Fix Supabase function name - commenting out for now
+        // TODO: Fix Supabase function name - commenting out for now to prevent loops
         /*
         await supabase.rpc('set_user_preference', {
           p_user_id: user.id,
@@ -148,7 +149,7 @@ export function useAlertFilters() {
       } catch (error) {
         console.warn('Failed to save filters to user preferences:', error);
       }
-    }, 1000),
+    },
     [user?.id]
   );
 
@@ -178,14 +179,17 @@ export function useAlertFilters() {
 
   // Initialize filters on mount
   useEffect(() => {
+    if (initialized.current) return;
+    
     const initializeFilters = async () => {
       setIsLoading(true);
+      initialized.current = true;
 
       try {
         // Priority: URL > User Preferences > localStorage > Defaults
         const searchParams = new URLSearchParams(location.search);
         const urlFilters = parseUrlFilters(searchParams);
-        const userFilters = await loadFromUserPreferences();
+        const userFilters = {}; // await loadFromUserPreferences(); - disabled to prevent loops
         const localFilters = loadFromLocalStorage();
 
         const mergedFilters = {
@@ -196,11 +200,6 @@ export function useAlertFilters() {
         };
 
         setFilters(mergedFilters);
-
-        // If URL didn't have complete filters, update it
-        if (Object.keys(urlFilters).length === 0) {
-          updateUrl(mergedFilters);
-        }
       } catch (error) {
         console.error('Failed to initialize filters:', error);
         setFilters(DEFAULT_FILTERS);
@@ -210,17 +209,30 @@ export function useAlertFilters() {
     };
 
     initializeFilters();
-  }, [location.search, user?.id, parseUrlFilters, loadFromUserPreferences, loadFromLocalStorage, updateUrl]);
+  }, []);
 
-  // Update filters
+// Update filters
   const updateFilters = useCallback((newFilters: Partial<AlertFilters>) => {
+    const cacheKey = `filters-${JSON.stringify(newFilters)}`;
+    const cached = requestCache.current.get(cacheKey);
+    const now = Date.now();
+    
+    // Skip if recently updated (debounce)
+    if (cached && now - cached.timestamp < 500) {
+      return;
+    }
+    
+    requestCache.current.set(cacheKey, { data: true, timestamp: now });
+    
     const updatedFilters = { ...filters, ...newFilters };
     setFilters(updatedFilters);
 
-    // Persist changes
-    updateUrl(updatedFilters);
-    saveToLocalStorage(updatedFilters);
-    saveToUserPreferences(updatedFilters);
+    // Persist changes with debounce
+    setTimeout(() => {
+      updateUrl(updatedFilters);
+      saveToLocalStorage(updatedFilters);
+      saveToUserPreferences(updatedFilters);
+    }, 100);
   }, [filters, updateUrl, saveToLocalStorage, saveToUserPreferences]);
 
   // Specific update methods
@@ -271,4 +283,4 @@ export function useAlertFilters() {
     updateFilters,
     getCacheKey,
   };
-}
+};

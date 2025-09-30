@@ -1,4 +1,10 @@
-import { logger } from '@/lib/logger';
+// Simple logger for edge functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -51,12 +57,21 @@ serve(async (req) => {
       case 'update':
         const updateData = await req.json();
         const updateId = url.searchParams.get('id');
+        if (!updateId) {
+          throw new Error('Update ID is required');
+        }
         return await updateDataSource(supabase, user.id, updateId, updateData);
       case 'delete':
         const deleteId = url.searchParams.get('id');
+        if (!deleteId) {
+          throw new Error('Delete ID is required');
+        }
         return await deleteDataSource(supabase, user.id, deleteId);
       case 'sync':
         const syncId = url.searchParams.get('id');
+        if (!syncId) {
+          throw new Error('Sync ID is required');
+        }
         return await syncDataSource(supabase, user.id, syncId);
       case 'test':
         const testData = await req.json();
@@ -67,7 +82,7 @@ serve(async (req) => {
   } catch (error) {
     logger.error('Error in custom-data-sources function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       { 
         status: 400, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -249,7 +264,7 @@ async function syncDataSource(supabase: any, userId: string, id: string) {
       .from('custom_data_ingestion_logs')
       .update({
         status: 'failed',
-        error_details: { error: error.message },
+        error_details: { error: error instanceof Error ? error.message : String(error) },
         completed_at: new Date().toISOString()
       })
       .eq('id', ingestionLog.id);
@@ -275,7 +290,7 @@ async function testDataSource(config: DataSourceConfig) {
       JSON.stringify({
         success: false,
         message: 'Data source connection test failed',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

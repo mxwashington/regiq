@@ -1,4 +1,10 @@
-import { logger } from '@/lib/logger';
+// Simple logger for edge functions
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+};
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -74,7 +80,7 @@ serve(async (req) => {
       cacheKey = btoa(safeQuery).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
       logStep("Cache key generated successfully", { cacheKey });
     } catch (error) {
-      logStep("Cache key generation failed, using fallback", { error: error.message });
+      logStep("Cache key generation failed, using fallback", { error: (error as any)?.message || 'Unknown error' });
       cacheKey = btoa(searchRequest.query.replace(/[^\w\s-]/g, '')).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
     }
 
@@ -305,7 +311,7 @@ async function performWebSearch(query: string): Promise<SearchResult[]> {
     return results;
     
   } catch (error) {
-    logStep("Web search error", { error: error.message });
+    logStep("Web search error", { error: (error as any)?.message || 'Unknown error' });
     // Return empty results if search fails
     return [];
   }

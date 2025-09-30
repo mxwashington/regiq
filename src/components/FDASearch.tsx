@@ -452,9 +452,9 @@ export function FDASearch() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Tabs value={searchMode} onValueChange={(value) => setSearchMode(value as 'single' | 'multiple')}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="single">Single Database</TabsTrigger>
-              <TabsTrigger value="multiple">Multiple Databases</TabsTrigger>
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-2 md:h-10">
+              <TabsTrigger value="single" className="w-full justify-start md:justify-center">Single Database</TabsTrigger>
+              <TabsTrigger value="multiple" className="w-full justify-start md:justify-center">Multiple Databases</TabsTrigger>
             </TabsList>
 
             <TabsContent value="single" className="space-y-4">
