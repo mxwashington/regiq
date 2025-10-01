@@ -74,6 +74,11 @@ export const FDADataSync = () => {
       name: 'usda-ams-api',
       display: 'USDA AMS',
       description: 'Agricultural marketing service data'
+    },
+    {
+      name: 'multi-agency-rss-scraper',
+      display: 'Multi-Agency RSS (CDC, EPA, etc.)',
+      description: 'CDC Food Recall Aggregator + Outbreak alerts'
     }
   ];
 
