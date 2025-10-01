@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { fetchFDAWithFallback, type FDAErrorHandlerConfig } from '../_shared/fda-error-handler.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,8 +7,8 @@ const corsHeaders = {
 };
 
 const logger = {
-  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
-  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+  info: (msg: string, data?: any) => console.info(`[FAERS] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[FAERS] ${msg}`, data || '')
 };
 
 interface FAERSRecord {
@@ -30,59 +31,37 @@ interface FAERSRecord {
   };
 }
 
-async function fetchFAERS(apiKey: string | null, days: number = 90, retries = 3): Promise<FAERSRecord[]> {
+async function fetchFAERS(apiKey: string | null, days: number = 90): Promise<FAERSRecord[]> {
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - (days * 24 * 60 * 60 * 1000));
   
-  // FDA API requires YYYY-MM-DD format, not YYYYMMDD
   const startDateStr = startDate.toISOString().split('T')[0];
   const endDateStr = endDate.toISOString().split('T')[0];
   
-  const searchQuery = `receivedate:[${startDateStr}+TO+${endDateStr}]+AND+serious:1`;
-  const url = new URL('https://api.fda.gov/drug/event.json');
-  url.searchParams.set('search', searchQuery);
-  url.searchParams.set('limit', '100');
+  // Simplified query to avoid 400 errors
+  const searchQuery = `receivedate:[${startDateStr}+TO+${endDateStr}]`;
   
-  if (apiKey) {
-    url.searchParams.set('api_key', apiKey);
+  logger.info('Fetching FAERS adverse events with intelligent error handling');
+  
+  const config: FDAErrorHandlerConfig = {
+    endpoint: '/drug/event.json',
+    searchQuery,
+    apiKey,
+    maxRetries: 3,
+    enableRSSFallback: true
+  };
+  
+  const result = await fetchFDAWithFallback(config);
+  
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to fetch FAERS data');
   }
   
-  logger.info('Fetching FAERS adverse events');
+  logger.info(`Successfully fetched FAERS records from ${result.source}`, {
+    count: result.data?.results?.length || 0
+  });
   
-  let lastError: Error | null = null;
-  
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const response = await fetch(url.toString(), {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'RegIQ/2.0'
-        },
-        signal: AbortSignal.timeout(30000)
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`FDA API error: ${response.status} ${response.statusText} - ${errorText.substring(0, 200)}`);
-      }
-      
-      const data = await response.json();
-      logger.info(`Successfully fetched ${data.results?.length || 0} FAERS records`);
-      return data.results || [];
-      
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      logger.error(`FAERS fetch attempt ${attempt}/${retries} failed:`, lastError.message);
-      
-      if (attempt < retries) {
-        const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 2s, 4s, 8s
-        logger.info(`Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-  }
-  
-  throw lastError || new Error('Failed to fetch FAERS data after all retries');
+  return result.data?.results || [];
 }
 
 async function saveFAERSRecords(

@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { fetchFDAWithFallback, type FDAErrorHandlerConfig } from '../_shared/fda-error-handler.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,8 +7,8 @@ const corsHeaders = {
 };
 
 const logger = {
-  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
-  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
+  info: (msg: string, data?: any) => console.info(`[FDA-ENFORCEMENT] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[FDA-ENFORCEMENT] ${msg}`, data || '')
 };
 
 interface FDAEnforcementRecord {
@@ -44,35 +45,33 @@ async function fetchFDAEnforcement(
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - (days * 24 * 60 * 60 * 1000));
   
-  // FDA API requires YYYY-MM-DD format, not YYYYMMDD
   const startDateStr = startDate.toISOString().split('T')[0];
   const endDateStr = endDate.toISOString().split('T')[0];
   
   const searchQuery = `report_date:[${startDateStr}+TO+${endDateStr}]`;
-  const url = new URL(`https://api.fda.gov${endpoint}`);
-  url.searchParams.set('search', searchQuery);
-  url.searchParams.set('limit', '100');
-  url.searchParams.set('sort', 'report_date:desc');
   
-  if (apiKey) {
-    url.searchParams.set('api_key', apiKey);
+  logger.info(`Fetching FDA enforcement with intelligent error handling: ${endpoint}`);
+  
+  const config: FDAErrorHandlerConfig = {
+    endpoint,
+    searchQuery,
+    apiKey,
+    maxRetries: 3,
+    enableRSSFallback: true
+  };
+  
+  const result = await fetchFDAWithFallback(config);
+  
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to fetch FDA enforcement data');
   }
   
-  logger.info(`Fetching FDA enforcement from: ${endpoint}`);
-  
-  const response = await fetch(url.toString(), {
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': 'RegIQ/2.0'
-    }
+  logger.info(`Successfully fetched enforcement from ${result.source}`, {
+    endpoint,
+    count: result.data?.results?.length || 0
   });
   
-  if (!response.ok) {
-    throw new Error(`FDA API error: ${response.status} ${response.statusText}`);
-  }
-  
-  const data = await response.json();
-  return data.results || [];
+  return result.data?.results || [];
 }
 
 async function saveEnforcementRecords(

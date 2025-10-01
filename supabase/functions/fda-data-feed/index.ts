@@ -1,12 +1,12 @@
-// Simple logger for edge functions
-const logger = {
-  debug: (msg: string, data?: any) => console.debug(`[DEBUG] ${msg}`, data || ''),
-  info: (msg: string, data?: any) => console.info(`[INFO] ${msg}`, data || ''),
-  warn: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || '')
-};
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { fetchFDAWithFallback, type FDAErrorHandlerConfig } from '../_shared/fda-error-handler.ts';
+
+const logger = {
+  debug: (msg: string, data?: any) => console.debug(`[FDA-FEED] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.info(`[FDA-FEED] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[FDA-FEED] ${msg}`, data || '')
+};
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -83,17 +83,25 @@ async function fetchRecentRecalls(supabase: any, params: any) {
   for (const endpoint of endpoints) {
     try {
       const searchQuery = `recall_initiation_date:[${dateString}+TO+*]`;
-      const url = `https://api.fda.gov${endpoint.url}?search=${encodeURIComponent(searchQuery)}&limit=20&sort=recall_initiation_date:desc`;
       
-      logStep(`Fetching FDA data from ${endpoint.name}`);
+      logStep(`Fetching FDA data from ${endpoint.name} with intelligent error handling`);
       
-      const response = await fetch(url);
-      if (!response.ok) {
-        logStep(`FDA API error for ${endpoint.name}: ${response.status}`);
+      const config: FDAErrorHandlerConfig = {
+        endpoint: endpoint.url,
+        searchQuery,
+        apiKey: null,
+        maxRetries: 3,
+        enableRSSFallback: true
+      };
+      
+      const result = await fetchFDAWithFallback(config);
+      
+      if (!result.success) {
+        logStep(`FDA data fetch failed for ${endpoint.name}: ${result.error}`);
         continue;
       }
-
-      const data = await response.json();
+      
+      const data = result.data;
       
       if (data.results && data.results.length > 0) {
         for (const item of data.results) {
