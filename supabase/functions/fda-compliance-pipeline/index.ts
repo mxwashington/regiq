@@ -101,7 +101,7 @@ async function fetchFDADataDashboard(endpoint: string, sourceName: string): Prom
   }
 }
 
-function processFDADataDashboardItem(item: any, sourceName: string, endpoint: string): ProcessedAlert {
+async function processFDADataDashboardItem(item: any, sourceName: string, endpoint: string, supabase: any): Promise<ProcessedAlert> {
   let title = '';
   let description = '';
   let publishedDate = new Date();
@@ -190,6 +190,15 @@ function processFDADataDashboardItem(item: any, sourceName: string, endpoint: st
 }
 
 async function isDuplicate(supabase: any, alert: ProcessedAlert): Promise<boolean> {
+  // Filter out alerts older than 6 months
+  const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+  const alertDate = new Date(alert.published_date);
+  
+  if (alertDate < sixMonthsAgo) {
+    logStep(`Skipping old alert (${alertDate.toISOString().split('T')[0]}): ${alert.title}`);
+    return true; // Treat as duplicate to skip
+  }
+
   const { data, error } = await supabase
     .from('alerts')
     .select('id')
@@ -315,7 +324,7 @@ Deno.serve(async (req) => {
         
         let sourceSaved = 0;
         for (const item of items) {
-          const alert = processFDADataDashboardItem(item, source.name, source.endpoint);
+          const alert = await processFDADataDashboardItem(item, source.name, source.endpoint, supabase);
           if (await saveAlert(supabase, alert)) {
             sourceSaved++;
           }

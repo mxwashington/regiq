@@ -64,6 +64,7 @@ serve(async (req) => {
 
     let totalProcessed = 0;
     let totalSaved = 0;
+    let totalSkipped = 0;
     const results: Record<string, number> = {};
 
     // Search for each keyword (respecting rate limit)
@@ -108,6 +109,16 @@ serve(async (req) => {
             .maybeSingle();
 
           if (!existingAlert) {
+            // Filter out old records (>6 months)
+            const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+            const publishDate = new Date(food.modifiedDate || food.publishedDate || new Date());
+            
+            if (publishDate < sixMonthsAgo) {
+              console.log(`⏭️  Skipping old food data: ${food.description} (${publishDate.toISOString().split('T')[0]})`);
+              totalSkipped++;
+              continue;
+            }
+
             // Prepare alert data
             const alertData = {
               title: `${food.description} - ${food.brandOwner || 'Unknown Brand'}`,
@@ -116,7 +127,7 @@ serve(async (req) => {
               agency: 'USDA',
               urgency: 'Low',
               urgency_score: 3,
-              published_date: food.modifiedDate || food.publishedDate || new Date().toISOString(),
+              published_date: publishDate.toISOString(),
               external_url: `https://fdc.nal.usda.gov/fdc-app.html#/food-details/${food.fdcId}`,
               full_content: JSON.stringify({
                 foodData: food

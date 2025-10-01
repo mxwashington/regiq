@@ -58,6 +58,37 @@ const SCRAPER_FUNCTIONS: ScraperFunction[] = [
     category: 'api'
   },
 
+  // FDA scrapers
+  {
+    name: 'fda-compliance-pipeline',
+    endpoint: 'fda-compliance-pipeline',
+    description: 'FDA warning letters and Form 483s',
+    frequency: 'daily',
+    category: 'api'
+  },
+  {
+    name: 'fetch-openfda-enforcement',
+    endpoint: 'fetch-openfda-enforcement',
+    description: 'FDA enforcement actions (food, drug, device)',
+    frequency: 'daily',
+    category: 'api'
+  },
+  {
+    name: 'fetch-faers-adverse-events',
+    endpoint: 'fetch-faers-adverse-events',
+    description: 'FDA adverse event reports',
+    frequency: 'daily',
+    category: 'api'
+  },
+  {
+    name: 'fda-import-alerts',
+    endpoint: 'fda-import-alerts',
+    action: 'scrape_import_alerts',
+    description: 'FDA import alerts and detentions',
+    frequency: 'daily',
+    category: 'web_scraper'
+  },
+
   // API-based scrapers
   {
     name: 'epa-echo-api',
@@ -71,6 +102,13 @@ const SCRAPER_FUNCTIONS: ScraperFunction[] = [
     name: 'usda-fooddata-scraper',
     endpoint: 'usda-fooddata-scraper',
     description: 'USDA FoodData Central database',
+    frequency: 'weekly',
+    category: 'api'
+  },
+  {
+    name: 'usda-ams-api',
+    endpoint: 'usda-ams-api',
+    description: 'USDA AMS market data and organic compliance',
     frequency: 'weekly',
     category: 'api'
   },
@@ -95,14 +133,6 @@ const SCRAPER_FUNCTIONS: ScraperFunction[] = [
     name: 'cbp-customs-scraper',
     endpoint: 'cbp-customs-scraper',
     description: 'CBP customs and trade enforcement',
-    frequency: 'daily',
-    category: 'web_scraper'
-  },
-  {
-    name: 'fda-import-alerts',
-    endpoint: 'fda-import-alerts',
-    action: 'scrape_import_alerts',
-    description: 'FDA import alerts and detentions',
     frequency: 'daily',
     category: 'web_scraper'
   },
