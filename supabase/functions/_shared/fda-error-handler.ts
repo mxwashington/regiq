@@ -1,309 +1,411 @@
 /**
- * FDA API Error Handler with Intelligent Fallback
- * Handles 429 (rate limits), 500 (server errors), 400 (bad requests), 503 (service unavailable)
+ * FDA API Error Handler
+ *
+ * Provides centralized error handling for all FDA API interactions with:
+ * - Custom error classes for different failure modes
+ * - Fail-fast error propagation (no silent failures)
+ * - RSS fallback mechanism for specific error codes
+ * - Zero-results detection
+ * - Structured error context for debugging
+ * - Integrated structured logging to database
  */
 
-export interface FDAErrorHandlerConfig {
+import { logStructuredError, logWarning, logInfo } from './structured-logging.ts';
+
+// ============================================================================
+// Custom Error Classes
+// ============================================================================
+
+export class FDAAPIError extends Error {
+  constructor(
+    message: string,
+    public context: {
+      statusCode: number;
+      endpoint: string;
+      responseBody?: string;
+      timestamp: string;
+    }
+  ) {
+    super(message);
+    this.name = 'FDAAPIError';
+  }
+}
+
+export class NoResultsError extends Error {
+  constructor(
+    message: string,
+    public context: {
+      endpoint: string;
+      searchParams?: any;
+      timestamp: string;
+    }
+  ) {
+    super(message);
+    this.name = 'NoResultsError';
+  }
+}
+
+export class RSSParseError extends Error {
+  constructor(
+    message: string,
+    public context: {
+      feedUrl: string;
+      parseError?: string;
+      timestamp: string;
+    }
+  ) {
+    super(message);
+    this.name = 'RSSParseError';
+  }
+}
+
+// ============================================================================
+// Configuration Interface
+// ============================================================================
+
+export interface FDARequestConfig {
   endpoint: string;
-  searchQuery?: string;
-  apiKey?: string | null;
-  maxRetries?: number;
-  enableRSSFallback?: boolean;
+  params?: Record<string, any>;
+  api_key?: string;
+  rss_fallback_enabled?: boolean;
+  rss_fallback_url?: string;
+  max_retries?: number;
+  timeout_ms?: number;
 }
 
-export interface FDAResponse {
-  success: boolean;
-  data?: any;
-  source: 'API' | 'RSS' | 'NONE';
-  error?: string;
-  statusCode?: number;
-}
+// ============================================================================
+// FDA API Request Handler
+// ============================================================================
 
-const logger = {
-  info: (msg: string, data?: any) => console.info(`[FDA-HANDLER] ${msg}`, data || ''),
-  warn: (msg: string, data?: any) => console.warn(`[FDA-HANDLER] ${msg}`, data || ''),
-  error: (msg: string, data?: any) => console.error(`[FDA-HANDLER] ${msg}`, data || '')
-};
+export async function fetchFDAData(config: FDARequestConfig): Promise<any[]> {
+  const {
+    endpoint,
+    params = {},
+    api_key,
+    rss_fallback_enabled = false,
+    rss_fallback_url,
+    max_retries = 3,
+    timeout_ms = 30000
+  } = config;
 
-/**
- * Main FDA API call with intelligent error handling
- */
-export async function fetchFDAWithFallback(config: FDAErrorHandlerConfig): Promise<FDAResponse> {
-  const { endpoint, searchQuery, apiKey, maxRetries = 3, enableRSSFallback = true } = config;
-  
-  // Attempt API call with retry logic
-  const apiResult = await attemptFDAAPI(endpoint, searchQuery, apiKey, maxRetries);
-  
-  if (apiResult.success) {
-    return apiResult;
-  }
-  
-  // If API failed and RSS fallback is enabled, try RSS feeds
-  if (enableRSSFallback && apiResult.statusCode === 500) {
-    logger.warn('FDA API returned 500 error, attempting RSS fallback');
-    return await attemptFDARSSFallback(endpoint);
-  }
-  
-  return apiResult;
-}
-
-/**
- * Attempt FDA API call with intelligent retry logic
- */
-async function attemptFDAAPI(
-  endpoint: string,
-  searchQuery: string | undefined,
-  apiKey: string | null | undefined,
-  maxRetries: number
-): Promise<FDAResponse> {
   let lastError: Error | null = null;
-  let lastStatusCode = 0;
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+
+  // Attempt API request with retries
+  for (let attempt = 0; attempt < max_retries; attempt++) {
     try {
-      const url = buildFDAURL(endpoint, searchQuery, apiKey);
-      logger.info(`Attempt ${attempt}/${maxRetries}: ${url}`);
-      
-      const response = await fetch(url, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'RegIQ/2.0'
-        },
-        signal: AbortSignal.timeout(30000)
-      });
-      
-      lastStatusCode = response.status;
-      
-      // Handle different error types
-      if (response.status === 429) {
-        // Rate limit exceeded - use exponential backoff
-        const retryAfter = response.headers.get('Retry-After');
-        const delayMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
-        logger.warn(`Rate limit hit (429), waiting ${delayMs}ms before retry`);
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-        continue;
+      // Build URL with parameters
+      const url = new URL(endpoint);
+
+      // Add API key if provided
+      if (api_key) {
+        url.searchParams.set('api_key', api_key);
       }
-      
-      if (response.status === 400) {
-        // Bad request - try simplifying query
-        logger.warn('Bad request (400), simplifying query parameters');
-        const simplifiedQuery = simplifyFDAQuery(searchQuery);
-        if (simplifiedQuery !== searchQuery && attempt < maxRetries) {
-          const simplifiedUrl = buildFDAURL(endpoint, simplifiedQuery, apiKey);
-          const retryResponse = await fetch(simplifiedUrl, {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'RegIQ/2.0'
-            },
-            signal: AbortSignal.timeout(30000)
+
+      // Add search parameters
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.set(key, String(value));
+        }
+      });
+
+      console.log(`[FDA Error Handler] Attempt ${attempt + 1}/${max_retries}: ${url.toString()}`);
+
+      // Make request with timeout
+      const response = await fetch(url.toString(), {
+        signal: AbortSignal.timeout(timeout_ms),
+        headers: {
+          'User-Agent': 'RegIQ-FDA-Client/2.0',
+          'Accept': 'application/json'
+        }
+      });
+
+      // Handle non-OK responses
+      if (!response.ok) {
+        const errorBody = await response.text().catch(() => 'Unable to read response body');
+
+        // Create structured error
+        const error = new FDAAPIError(
+          `FDA API ${response.status}: ${response.statusText}`,
+          {
+            statusCode: response.status,
+            endpoint: endpoint,
+            responseBody: errorBody.substring(0, 1000), // Limit size
+            timestamp: new Date().toISOString()
+          }
+        );
+
+        // Log error with structured logging
+        await logStructuredError(error, {
+          function_name: 'fetchFDAData',
+          endpoint: endpoint,
+          statusCode: response.status,
+          attempt: attempt + 1,
+          willRetry: attempt < max_retries - 1
+        });
+
+        // Check if we should attempt RSS fallback on final retry
+        if (
+          [400, 429, 500, 503, 504].includes(response.status) &&
+          rss_fallback_enabled &&
+          rss_fallback_url &&
+          attempt === max_retries - 1
+        ) {
+          console.log(`[FDA Error Handler] API failed with ${response.status}, attempting RSS fallback`);
+          await logWarning('fetchFDAData', `Attempting RSS fallback after ${max_retries} API failures`, {
+            endpoint,
+            statusCode: response.status,
+            rss_fallback_url
           });
-          
-          if (retryResponse.ok) {
-            const data = await retryResponse.json();
-            return { success: true, data, source: 'API' };
+          return await attemptRSSFallback(rss_fallback_url);
+        }
+
+        // For 500/503/504 errors, retry with exponential backoff
+        if ([500, 503, 504].includes(response.status) && attempt < max_retries - 1) {
+          const backoffMs = Math.pow(2, attempt) * 1000;
+          console.log(`[FDA Error Handler] Server error ${response.status}, retrying in ${backoffMs}ms`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+          lastError = error;
+          continue;
+        }
+
+        // For 429 (rate limit), retry with longer backoff
+        if (response.status === 429 && attempt < max_retries - 1) {
+          const backoffMs = Math.pow(2, attempt) * 5000; // Longer backoff for rate limits
+          console.log(`[FDA Error Handler] Rate limited, retrying in ${backoffMs}ms`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+          lastError = error;
+          continue;
+        }
+
+        // Otherwise, throw immediately
+        throw error;
+      }
+
+      // Parse response
+      const data = await response.json();
+
+      // Check for results
+      if (!data.results || !Array.isArray(data.results)) {
+        throw new NoResultsError(
+          'FDA API response missing results array',
+          {
+            endpoint: endpoint,
+            searchParams: params,
+            timestamp: new Date().toISOString()
+          }
+        );
+      }
+
+      // Check if results are empty
+      if (data.results.length === 0) {
+        const error = new NoResultsError(
+          'FDA API returned 0 results',
+          {
+            endpoint: endpoint,
+            searchParams: params,
+            timestamp: new Date().toISOString()
+          }
+        );
+
+        // Log zero results as critical (data freshness issue)
+        await logStructuredError(error, {
+          function_name: 'fetchFDAData',
+          endpoint: endpoint,
+          searchParams: params
+        });
+
+        throw error;
+      }
+
+      // Success - return results
+      console.log(`[FDA Error Handler] Successfully fetched ${data.results.length} results from FDA API`);
+      await logInfo('fetchFDAData', `Successfully fetched ${data.results.length} results`, {
+        endpoint,
+        results_count: data.results.length
+      });
+      return data.results;
+
+    } catch (error) {
+      // If it's already one of our custom errors, re-throw it
+      if (
+        error instanceof FDAAPIError ||
+        error instanceof NoResultsError ||
+        error instanceof RSSParseError
+      ) {
+        lastError = error;
+
+        // Don't retry on NoResultsError
+        if (error instanceof NoResultsError) {
+          throw error;
+        }
+
+        // Only retry on FDAAPIError with retryable status codes
+        if (error instanceof FDAAPIError) {
+          const retryableStatuses = [429, 500, 503, 504];
+          if (!retryableStatuses.includes(error.context.statusCode) || attempt === max_retries - 1) {
+            throw error;
           }
         }
-        
-        throw new Error(`FDA API bad request (400): Invalid query parameters`);
-      }
-      
-      if (response.status === 500) {
-        // Server error - don't retry, go straight to RSS fallback
-        logger.error(`FDA API server error (500) on attempt ${attempt}`);
-        throw new Error(`FDA API server error (500): Upstream issue at api.fda.gov`);
-      }
-      
-      if (response.status === 503) {
-        // Service unavailable - exponential backoff
-        const delayMs = Math.pow(2, attempt) * 1000;
-        logger.warn(`Service unavailable (503), waiting ${delayMs}ms`);
-        await new Promise(resolve => setTimeout(resolve, delayMs));
+
         continue;
       }
-      
-      if (!response.ok) {
-        throw new Error(`FDA API error: ${response.status} ${response.statusText}`);
+
+      // Handle network/timeout errors
+      lastError = new FDAAPIError(
+        `Network error: ${error instanceof Error ? error.message : String(error)}`,
+        {
+          statusCode: 0,
+          endpoint: endpoint,
+          timestamp: new Date().toISOString()
+        }
+      );
+
+      // Retry on network errors
+      if (attempt < max_retries - 1) {
+        const backoffMs = Math.pow(2, attempt) * 1000;
+        console.log(`[FDA Error Handler] Network error, retrying in ${backoffMs}ms`);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+        continue;
       }
-      
-      // Success!
-      const data = await response.json();
-      logger.info('FDA API call successful', { recordCount: data.results?.length || 0 });
-      return { success: true, data, source: 'API' };
-      
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      logger.error(`Attempt ${attempt} failed:`, lastError.message);
-      
-      if (attempt < maxRetries && lastStatusCode !== 500) {
-        const delayMs = Math.pow(2, attempt) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-      }
+
+      throw lastError;
     }
   }
-  
-  return {
-    success: false,
-    source: 'NONE',
-    error: lastError?.message || 'Unknown error',
-    statusCode: lastStatusCode
-  };
+
+  // If we exhausted all retries, throw the last error
+  if (lastError) {
+    throw lastError;
+  }
+
+  // This should never happen, but TypeScript needs it
+  throw new FDAAPIError(
+    'Unexpected error: all retries exhausted without error',
+    {
+      statusCode: 0,
+      endpoint: endpoint,
+      timestamp: new Date().toISOString()
+    }
+  );
 }
 
-/**
- * Fallback to FDA RSS feeds when API fails
- */
-async function attemptFDARSSFallback(endpoint: string): Promise<FDAResponse> {
-  logger.info('Attempting FDA RSS fallback');
-  
-  // Map API endpoints to RSS feeds
-  const rssFeedMap: Record<string, string> = {
-    '/food/enforcement.json': 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/food-updates/rss.xml',
-    '/drug/enforcement.json': 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/drug-updates/rss.xml',
-    '/device/enforcement.json': 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-device-updates/rss.xml',
-    '/drug/event.json': 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/drug-updates/rss.xml'
-  };
-  
-  const rssUrl = rssFeedMap[endpoint];
-  
-  if (!rssUrl) {
-    logger.warn(`No RSS fallback available for endpoint: ${endpoint}`);
-    return {
-      success: false,
-      source: 'NONE',
-      error: 'No RSS fallback configured for this endpoint'
-    };
-  }
-  
+// ============================================================================
+// RSS Fallback Handler
+// ============================================================================
+
+async function attemptRSSFallback(rss_url: string): Promise<any[]> {
   try {
-    const response = await fetch(rssUrl, {
+    console.log(`[FDA Error Handler] Attempting RSS fallback: ${rss_url}`);
+
+    const response = await fetch(rss_url, {
+      signal: AbortSignal.timeout(30000),
       headers: {
-        'Accept': 'application/rss+xml, application/xml, text/xml',
-        'User-Agent': 'RegIQ/2.0'
-      },
-      signal: AbortSignal.timeout(15000)
+        'User-Agent': 'RegIQ-FDA-RSS-Client/1.0',
+        'Accept': 'application/rss+xml, application/xml, text/xml'
+      }
     });
-    
+
     if (!response.ok) {
-      throw new Error(`RSS feed error: ${response.status}`);
+      throw new RSSParseError(
+        `RSS feed fetch failed: ${response.status} ${response.statusText}`,
+        {
+          feedUrl: rss_url,
+          timestamp: new Date().toISOString()
+        }
+      );
     }
-    
+
     const xmlText = await response.text();
-    const parsedData = parseRSSFeed(xmlText);
-    
-    logger.info('RSS fallback successful', { itemCount: parsedData.length });
-    
-    return {
-      success: true,
-      data: { results: parsedData },
-      source: 'RSS'
-    };
-    
+    const results = parseRSSFeed(xmlText);
+
+    if (results.length === 0) {
+      throw new NoResultsError(
+        'RSS fallback returned 0 results',
+        {
+          endpoint: rss_url,
+          timestamp: new Date().toISOString()
+        }
+      );
+    }
+
+    console.log(`[FDA Error Handler] RSS fallback successful: ${results.length} items`);
+    return results;
+
   } catch (error) {
-    logger.error('RSS fallback failed:', error);
-    return {
-      success: false,
-      source: 'NONE',
-      error: `RSS fallback failed: ${error instanceof Error ? error.message : String(error)}`
-    };
+    if (error instanceof RSSParseError || error instanceof NoResultsError) {
+      throw error;
+    }
+
+    throw new RSSParseError(
+      `RSS fallback failed: ${error instanceof Error ? error.message : String(error)}`,
+      {
+        feedUrl: rss_url,
+        parseError: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      }
+    );
   }
 }
 
-/**
- * Build FDA API URL with proper parameters
- */
-function buildFDAURL(endpoint: string, searchQuery: string | undefined, apiKey: string | null | undefined): string {
-  const url = new URL(`https://api.fda.gov${endpoint}`);
-  
-  if (searchQuery) {
-    url.searchParams.set('search', searchQuery);
-  }
-  
-  url.searchParams.set('limit', '100');
-  
-  if (apiKey) {
-    url.searchParams.set('api_key', apiKey);
-  }
-  
-  return url.toString();
-}
+// ============================================================================
+// RSS Parser
+// ============================================================================
 
-/**
- * Simplify FDA query to avoid 400 errors
- */
-function simplifyFDAQuery(query: string | undefined): string {
-  if (!query) return '';
-  
-  // Remove complex date ranges that might trigger 400s
-  // Replace [YYYY-MM-DD+TO+YYYY-MM-DD] with just the date field
-  const simplified = query
-    .replace(/\[[\d-]+\+TO\+[\d-]+\]/g, '[20240101+TO+20251231]')
-    .replace(/\+AND\+serious:1/g, '');
-  
-  return simplified;
-}
-
-/**
- * Parse RSS feed XML into FDA-like JSON structure
- */
 function parseRSSFeed(xmlText: string): any[] {
-  const results: any[] = [];
-  
   try {
-    // Basic XML parsing (simplified - in production use proper XML parser)
-    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-    const matches = xmlText.matchAll(itemRegex);
-    
-    for (const match of matches) {
-      const itemXml = match[1];
-      
-      const title = extractXMLTag(itemXml, 'title');
-      const description = extractXMLTag(itemXml, 'description');
-      const link = extractXMLTag(itemXml, 'link');
-      const pubDate = extractXMLTag(itemXml, 'pubDate');
-      
-      if (title) {
+    const results: any[] = [];
+
+    // Simple regex-based RSS parsing (works for most FDA RSS feeds)
+    const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+    const titleRegex = /<title>([\s\S]*?)<\/title>/i;
+    const linkRegex = /<link>([\s\S]*?)<\/link>/i;
+    const descRegex = /<description>([\s\S]*?)<\/description>/i;
+    const pubDateRegex = /<pubDate>([\s\S]*?)<\/pubDate>/i;
+
+    let match;
+    while ((match = itemRegex.exec(xmlText)) !== null) {
+      const itemXML = match[1];
+
+      const titleMatch = titleRegex.exec(itemXML);
+      const linkMatch = linkRegex.exec(itemXML);
+      const descMatch = descRegex.exec(itemXML);
+      const pubDateMatch = pubDateRegex.exec(itemXML);
+
+      if (titleMatch && linkMatch) {
         results.push({
-          product_description: title,
-          reason_for_recall: description || title,
-          external_url: link,
-          report_date: pubDate ? new Date(pubDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          recall_number: `RSS-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          classification: 'Class II', // Default for RSS items
-          status: 'Ongoing',
-          recalling_firm: 'See details',
-          source: 'FDA-RSS'
+          title: cleanXMLText(titleMatch[1]),
+          link: cleanXMLText(linkMatch[1]),
+          description: descMatch ? cleanXMLText(descMatch[1]) : '',
+          pubDate: pubDateMatch ? cleanXMLText(pubDateMatch[1]) : new Date().toISOString(),
+          source: 'RSS'
         });
       }
     }
+
+    return results;
   } catch (error) {
-    logger.error('Error parsing RSS feed:', error);
+    throw new RSSParseError(
+      'Failed to parse RSS XML',
+      {
+        feedUrl: 'unknown',
+        parseError: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      }
+    );
   }
-  
-  return results;
 }
 
-/**
- * Extract content between XML tags
- */
-function extractXMLTag(xml: string, tagName: string): string {
-  const regex = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\/${tagName}>`, 'i');
-  const match = xml.match(regex);
-  return match ? match[1].trim() : '';
-}
+// ============================================================================
+// Utilities
+// ============================================================================
 
-/**
- * Health check for FDA API endpoints
- */
-export async function checkFDAAPIHealth(endpoint: string): Promise<boolean> {
-  try {
-    const url = `https://api.fda.gov${endpoint}?limit=1`;
-    const response = await fetch(url, {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(5000)
-    });
-    
-    return response.ok;
-  } catch {
-    return false;
-  }
+function cleanXMLText(text: string): string {
+  return text
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1') // Remove CDATA
+    .replace(/<[^>]+>/g, '') // Remove HTML tags
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
 }

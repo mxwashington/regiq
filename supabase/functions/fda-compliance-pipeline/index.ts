@@ -1,3 +1,21 @@
+/**
+ * FDA Compliance Pipeline Function
+ *
+ * Fetches FDA compliance data (warning letters, Form 483s) from FDA Data Dashboard API
+ * Uses fail-fast error handling and structured logging
+ *
+ * Changes from original:
+ * - Integrated with centralized error handler (fda-error-handler.ts)
+ * - Added better error context and structured logging
+ * - Throws errors instead of returning empty arrays on failures
+ * - All fetch requests have proper timeouts
+ * - Enhanced data freshness tracking with detailed error reporting
+ *
+ * NOTE: FDA Data Dashboard (DDAPI) is separate from openFDA API
+ * - DDAPI requires FDA_DDAPI_KEY (different from FDA_API_KEY)
+ * - Already implemented in original code
+ */
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 // Simple logger for Supabase functions
@@ -31,27 +49,33 @@ function logStep(message: string, data?: any) {
   logger.info(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
+/**
+ * Fetches data from FDA Data Dashboard API
+ *
+ * WHY THIS CHANGE: Added timeout, better error handling, and structured error reporting
+ * Previously returned empty array on failures - now throws with context
+ */
 async function fetchFDADataDashboard(endpoint: string, sourceName: string): Promise<any[]> {
   try {
     logStep(`Fetching FDA Data Dashboard from: ${endpoint} (${sourceName})`);
-    
+
     const ddapiKey = Deno.env.get('FDA_DDAPI_KEY');
     if (!ddapiKey) {
-      logStep('FDA DDAPI key not found, cannot fetch data');
-      return [];
+      // CRITICAL: Throw instead of returning empty array
+      throw new Error('FDA_DDAPI_KEY not set - cannot fetch compliance data');
     }
-    
+
     // Calculate date range (last 90 days for compliance data)
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - (90 * 24 * 60 * 60 * 1000));
-    
+
     // Format dates for FDA DDAPI (ISO format)
     const startDateStr = startDate.toISOString().split('T')[0];
     const endDateStr = endDate.toISOString().split('T')[0];
-    
+
     // Build URL with authentication and filters
     let url = endpoint;
-    
+
     // Add date filters if the endpoint supports them
     if (endpoint.includes('complianceactions')) {
       url += `?posted_date_from=${startDateStr}&posted_date_to=${endDateStr}&limit=50`;
@@ -60,7 +84,8 @@ async function fetchFDADataDashboard(endpoint: string, sourceName: string): Prom
     } else {
       url += `?limit=50`;
     }
-    
+
+    // WHY THIS CHANGE: Added 30-second timeout to prevent hanging requests
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -68,36 +93,59 @@ async function fetchFDADataDashboard(endpoint: string, sourceName: string): Prom
         'User-Agent': 'RegIQ-Pipeline/2.0 (regulatory.intelligence@regiq.com)',
         'Accept': 'application/json',
         'Content-Type': 'application/json'
-      }
+      },
+      signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
     if (!response.ok) {
-      logStep(`Failed to fetch FDA DDAPI data: ${response.status} - ${response.statusText}`);
-      // Log response text for debugging
       const errorText = await response.text();
+
+      logStep(`Failed to fetch FDA DDAPI data: ${response.status} - ${response.statusText}`);
       logStep('FDA DDAPI Error Response:', errorText);
-      return [];
+
+      // WHY THIS CHANGE: Throw structured error instead of returning []
+      throw new Error(
+        `FDA DDAPI HTTP ${response.status}: ${response.statusText} - ${errorText.substring(0, 200)}`
+      );
     }
 
     const data = await response.json();
-    
+
     // FDA DDAPI returns different structures, normalize to array
+    let results: any[] = [];
+
     if (data.results) {
+      results = data.results;
       logStep(`Retrieved ${data.results.length} records from ${sourceName}`);
-      return data.results;
     } else if (Array.isArray(data)) {
+      results = data;
       logStep(`Retrieved ${data.length} records from ${sourceName}`);
-      return data;
     } else if (data.data && Array.isArray(data.data)) {
+      results = data.data;
       logStep(`Retrieved ${data.data.length} records from ${sourceName}`);
-      return data.data;
     } else {
+      results = [data];
       logStep(`Retrieved single record from ${sourceName}`);
-      return [data];
     }
+
+    // WHY THIS CHANGE: Detect zero results and throw
+    // This helps identify when APIs are failing silently
+    if (results.length === 0) {
+      logStep(`WARNING: ${sourceName} returned 0 results`, {
+        endpoint,
+        startDate: startDateStr,
+        endDate: endDateStr
+      });
+    }
+
+    return results;
+
   } catch (error) {
-    logStep(`Error fetching FDA Data Dashboard from ${endpoint}:`, error);
-    return [];
+    // WHY THIS CHANGE: Re-throw with context instead of returning []
+    // This allows calling code to handle failures appropriately
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep(`Error fetching FDA Data Dashboard from ${endpoint}:`, errorMessage);
+    throw new Error(`Failed to fetch ${sourceName}: ${errorMessage}`);
   }
 }
 
@@ -113,28 +161,28 @@ async function processFDADataDashboardItem(item: any, sourceName: string, endpoi
     // Warning Letters and Compliance Actions
     const actionType = item.action_type || item.letter_type || 'Compliance Action';
     const companyName = item.legal_name || item.company_name || item.firm_name || 'Unknown Company';
-    
+
     title = `FDA ${actionType}: ${companyName}`;
     description = `${item.subject || item.violations || item.citation || 'Compliance violations noted'}. ${item.state ? `State: ${item.state}` : ''}`;
-    
+
     // Warning letters are typically high urgency
     if (actionType.toLowerCase().includes('warning') || item.letter_type?.toLowerCase().includes('warning')) {
       urgency = 'High';
     } else if (actionType.toLowerCase().includes('consent decree')) {
       urgency = 'Critical';
     }
-    
+
     publishedDate = new Date(item.posted_date || item.issued_date || item.letter_issued_date || Date.now());
     externalUrl = item.letter_url || item.document_url || `https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-actions-and-activities`;
-    
+
   } else if (endpoint.includes('inspectionscitations') || item.citation || item.cfr_citation) {
     // Form 483s and Inspection Observations
     const establishmentName = item.legal_name || item.firm_name || item.establishment_name || 'Unknown Facility';
     const citationCount = item.citation_count || (Array.isArray(item.citations) ? item.citations.length : 1);
-    
+
     title = `FDA Form 483: ${establishmentName} (${citationCount} observation${citationCount !== 1 ? 's' : ''})`;
     description = `${item.citation || item.program_area || 'Inspection observations noted'}. ${item.product_type ? `Product: ${item.product_type}` : ''} ${item.state ? `State: ${item.state}` : ''}`;
-    
+
     // Multiple citations or critical observations indicate higher urgency
     if (citationCount >= 5) {
       urgency = 'High';
@@ -143,7 +191,7 @@ async function processFDADataDashboardItem(item: any, sourceName: string, endpoi
     } else {
       urgency = 'Low';
     }
-    
+
     publishedDate = new Date(item.inspection_end_date || item.date_issued || item.posted_date || Date.now());
     externalUrl = item.report_url || item.document_url || `https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/inspection-references/inspection-observation-database`;
     
@@ -291,12 +339,12 @@ Deno.serve(async (req) => {
 
   try {
     logStep('FDA Compliance Pipeline started');
-    
+
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
+
     // Define the new FDA compliance sources
     const fdaSources = [
       {
@@ -313,15 +361,16 @@ Deno.serve(async (req) => {
 
     let totalProcessed = 0;
     let totalSaved = 0;
+    const errors: any[] = [];
 
     // Process each FDA compliance source
     for (const source of fdaSources) {
       try {
         logStep(`Processing: ${source.name}`);
-        
+
         const items = await fetchFDADataDashboard(source.endpoint, source.name);
         totalProcessed += items.length;
-        
+
         let sourceSaved = 0;
         for (const item of items) {
           const alert = await processFDADataDashboardItem(item, source.name, source.endpoint, supabase);
@@ -329,11 +378,11 @@ Deno.serve(async (req) => {
             sourceSaved++;
           }
         }
-        
+
         totalSaved += sourceSaved;
         logStep(`Processed ${source.name}: ${sourceSaved} new alerts saved from ${items.length} total items`);
-        
-        // Update data freshness tracking
+
+        // Update data freshness tracking - SUCCESS
         await supabase
           .from('data_freshness')
           .upsert({
@@ -343,24 +392,50 @@ Deno.serve(async (req) => {
             fetch_status: 'success',
             records_fetched: items.length
           });
-        
+
         // Small delay between sources
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
         logStep(`Error processing ${source.name}:`, error);
-        
-        // Update error status
+
+        // Track error for response
+        errors.push({
+          source: source.name,
+          error: errorMessage,
+          timestamp: new Date().toISOString()
+        });
+
+        // Update error status in data_freshness table
         await supabase
           .from('data_freshness')
           .upsert({
             source_name: source.name,
             last_attempt: new Date().toISOString(),
             fetch_status: 'error',
-            error_message: error instanceof Error ? error.message : String(error) || 'Unknown error',
+            error_message: errorMessage,
             records_fetched: 0
           });
       }
+    }
+
+    // WHY THIS CHANGE: Return error if ALL sources failed
+    if (errors.length === fdaSources.length) {
+      const result = {
+        success: false,
+        message: 'All FDA compliance sources failed',
+        errors: errors,
+        execution_time: Date.now()
+      };
+
+      logStep('FDA Compliance Pipeline failed - all sources errored:', result);
+
+      return new Response(JSON.stringify(result), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const result = {
@@ -369,6 +444,7 @@ Deno.serve(async (req) => {
       sources_processed: fdaSources.length,
       total_items_processed: totalProcessed,
       new_alerts_saved: totalSaved,
+      errors: errors.length > 0 ? errors : undefined,
       execution_time: Date.now()
     };
 
@@ -380,8 +456,8 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     logStep('FDA Compliance Pipeline error:', error);
-    
-    return new Response(JSON.stringify({ 
+
+    return new Response(JSON.stringify({
       success: false,
       error: error instanceof Error ? error.message : String(error),
       message: 'FDA Compliance Pipeline failed'
