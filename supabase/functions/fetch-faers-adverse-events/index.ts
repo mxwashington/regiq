@@ -30,7 +30,7 @@ interface FAERSRecord {
   };
 }
 
-async function fetchFAERS(apiKey: string | null, days: number = 90): Promise<FAERSRecord[]> {
+async function fetchFAERS(apiKey: string | null, days: number = 90, retries = 3): Promise<FAERSRecord[]> {
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - (days * 24 * 60 * 60 * 1000));
   
@@ -49,19 +49,40 @@ async function fetchFAERS(apiKey: string | null, days: number = 90): Promise<FAE
   
   logger.info('Fetching FAERS adverse events');
   
-  const response = await fetch(url.toString(), {
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': 'RegIQ/2.0'
-    }
-  });
+  let lastError: Error | null = null;
   
-  if (!response.ok) {
-    throw new Error(`FDA API error: ${response.status} ${response.statusText}`);
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url.toString(), {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'RegIQ/2.0'
+        },
+        signal: AbortSignal.timeout(30000)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`FDA API error: ${response.status} ${response.statusText} - ${errorText.substring(0, 200)}`);
+      }
+      
+      const data = await response.json();
+      logger.info(`Successfully fetched ${data.results?.length || 0} FAERS records`);
+      return data.results || [];
+      
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      logger.error(`FAERS fetch attempt ${attempt}/${retries} failed:`, lastError.message);
+      
+      if (attempt < retries) {
+        const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 2s, 4s, 8s
+        logger.info(`Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
   
-  const data = await response.json();
-  return data.results || [];
+  throw lastError || new Error('Failed to fetch FAERS data after all retries');
 }
 
 async function saveFAERSRecords(

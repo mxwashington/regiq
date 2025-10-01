@@ -75,92 +75,131 @@ async function syncOrganicSuspensions(supabase: any) {
 
     logStep('Fetching suspended/revoked organic operations', { url });
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'RegIQ-USDA-AMS/1.0',
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      },
-      signal: AbortSignal.timeout(30000)
-    });
+    let lastError: Error | null = null;
+    const maxRetries = 3;
 
-    if (!response.ok) {
-      throw new Error(`USDA AMS API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    logStep('USDA AMS API response received', {
-      hasData: !!data,
-      isArray: Array.isArray(data),
-      length: Array.isArray(data) ? data.length : 0
-    });
-
-    let operations = [];
-    if (Array.isArray(data)) {
-      operations = data;
-    } else if (data.results && Array.isArray(data.results)) {
-      operations = data.results;
-    } else if (data.data && Array.isArray(data.data)) {
-      operations = data.data;
-    }
-
-    if (operations.length === 0) {
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'No suspended/revoked organic operations found',
-        processed: 0,
-        timestamp: new Date().toISOString()
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
-    let processedCount = 0;
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-    for (const operation of operations) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const alert = convertOperationToAlert(operation);
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'RegIQ-USDA-AMS/1.0',
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          signal: AbortSignal.timeout(30000)
+        });
 
-        // Check if alert already exists
-        const { data: existing } = await supabase
-          .from('alerts')
-          .select('id')
-          .eq('title', alert.title)
-          .eq('source', alert.source)
-          .gte('published_date', thirtyDaysAgo.toISOString())
-          .maybeSingle();
-
-        if (!existing) {
-          const { error } = await supabase
-            .from('alerts')
-            .insert(alert);
-
-          if (error) {
-            logStep('Database insert error', { error: error.message, title: alert.title });
-          } else {
-            processedCount++;
-            logStep('Added USDA AMS organic alert', { title: alert.title });
-          }
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`USDA AMS API error: ${response.status} ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
         }
-      } catch (alertError) {
-        logStep('Error processing organic operation', { error: alertError });
-        continue;
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          const text = await response.text();
+          logStep('USDA AMS API returned non-JSON response', { 
+            contentType, 
+            preview: text.substring(0, 200) 
+          });
+          throw new Error(`USDA AMS API returned ${contentType} instead of JSON. The API endpoint may have changed or requires authentication.`);
+        }
+
+        const data = await response.json();
+        logStep('USDA AMS API response received', {
+          hasData: !!data,
+          isArray: Array.isArray(data),
+          length: Array.isArray(data) ? data.length : 0
+        });
+
+        let operations = [];
+        if (Array.isArray(data)) {
+          operations = data;
+        } else if (data.results && Array.isArray(data.results)) {
+          operations = data.results;
+        } else if (data.data && Array.isArray(data.data)) {
+          operations = data.data;
+        }
+
+        if (operations.length === 0) {
+          return new Response(JSON.stringify({
+            success: true,
+            message: 'No suspended/revoked organic operations found',
+            processed: 0,
+            timestamp: new Date().toISOString()
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+        
+        // Success - break retry loop
+        break;
+        
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        logStep(`USDA AMS fetch attempt ${attempt}/${maxRetries} failed:`, lastError.message);
+        
+        if (attempt < maxRetries) {
+          const delay = Math.pow(2, attempt) * 1000;
+          logStep(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          throw lastError;
+        }
       }
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: `Processed ${processedCount} USDA AMS organic compliance alerts`,
-      processed: processedCount,
-      total_operations: operations.length,
-      timestamp: new Date().toISOString()
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+        let processedCount = 0;
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
+        for (const operation of operations) {
+          try {
+            const alert = convertOperationToAlert(operation);
+
+            // Check if alert already exists
+            const { data: existing } = await supabase
+              .from('alerts')
+              .select('id')
+              .eq('title', alert.title)
+              .eq('source', alert.source)
+              .gte('published_date', thirtyDaysAgo.toISOString())
+              .maybeSingle();
+
+            if (!existing) {
+              const { error } = await supabase
+                .from('alerts')
+                .insert(alert);
+
+              if (error) {
+                logStep('Database insert error', { error: error.message, title: alert.title });
+              } else {
+                processedCount++;
+                logStep('Added USDA AMS organic alert', { title: alert.title });
+              }
+            }
+          } catch (alertError) {
+            logStep('Error processing organic operation', { error: alertError });
+            continue;
+          }
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          message: `Processed ${processedCount} USDA AMS organic compliance alerts`,
+          processed: processedCount,
+          total_operations: operations.length,
+          timestamp: new Date().toISOString()
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+
+      } catch (innerError) {
+        throw innerError;
+      }
+    }
+
+    throw lastError || new Error('Failed to sync organic suspensions after all retries');
   } catch (error) {
     throw new Error(`Failed to sync organic suspensions: ${error instanceof Error ? error.message : String(error)}`);
   }

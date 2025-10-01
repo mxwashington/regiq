@@ -90,37 +90,66 @@ serve(async (req) => {
 });
 
 async function scrapeTTBFeed(supabase: any) {
-  const ttbFeedUrl = 'https://www.ttb.gov/rss/news-and-events.xml';
+  // Try multiple potential TTB RSS feed URLs
+  const ttbFeedUrls = [
+    'https://www.ttb.gov/rss-feeds/news-rss.xml',
+    'https://www.ttb.gov/news/feed',
+    'https://www.ttb.gov/rss/news.xml'
+  ];
 
-  logStep('Fetching TTB RSS feed', { url: ttbFeedUrl });
+  logStep('Attempting to fetch TTB RSS feed from multiple URLs');
 
   // Start sync log
   const { data: logData } = await supabase.rpc('start_sync_log', {
     p_source: 'TTB',
-    p_metadata: { trigger: 'scrape_ttb_feed', url: ttbFeedUrl }
+    p_metadata: { trigger: 'scrape_ttb_feed', urls: ttbFeedUrls }
   });
   const logId = logData as string;
 
-  try {
-    const response = await fetch(ttbFeedUrl, {
-      headers: {
-        'User-Agent': 'RegIQ-TTBScraper/1.0',
-        'Accept': 'application/rss+xml, application/xml, text/xml',
-        'Cache-Control': 'no-cache'
-      },
-      signal: AbortSignal.timeout(15000) // 15 second timeout
-    });
+  let xmlText = '';
+  let successUrl = '';
 
-    if (!response.ok) {
-      throw new Error(`TTB RSS feed error: ${response.status} ${response.statusText}`);
+  try {
+    // Try each URL with retry logic
+    for (const ttbFeedUrl of ttbFeedUrls) {
+      logStep('Trying TTB feed URL', { url: ttbFeedUrl });
+      
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const response = await fetch(ttbFeedUrl, {
+            headers: {
+              'User-Agent': 'RegIQ-TTBScraper/1.0',
+              'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+              'Cache-Control': 'no-cache'
+            },
+            signal: AbortSignal.timeout(15000)
+          });
+
+          if (response.ok) {
+            xmlText = await response.text();
+            successUrl = ttbFeedUrl;
+            logStep('TTB RSS feed fetched successfully', { url: successUrl, length: xmlText.length });
+            break;
+          } else {
+            logStep(`TTB feed returned ${response.status} from ${ttbFeedUrl}`);
+          }
+        } catch (error) {
+          logStep(`Attempt ${attempt} failed for ${ttbFeedUrl}:`, error);
+          if (attempt === 1) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
+      }
+      
+      if (xmlText) break;
     }
 
-    const xmlText = await response.text();
-    logStep('TTB RSS feed fetched successfully', { length: xmlText.length });
-
+    if (!xmlText) {
+      throw new Error('TTB RSS feed unavailable at all known URLs. The feed may have been moved or discontinued. Tried: ' + ttbFeedUrls.join(', '));
+    }
     // Parse XML using DOMParser
     const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlText, 'text/xml');
+    const doc = parser.parseFromString(xmlText, 'text/html'); // Use text/html for better compatibility
 
     if (!doc) {
       throw new Error('Failed to parse TTB RSS XML');

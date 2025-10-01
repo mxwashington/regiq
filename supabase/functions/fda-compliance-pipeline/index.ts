@@ -149,7 +149,7 @@ function processFDADataDashboardItem(item: any, sourceName: string, endpoint: st
     
     // Save to dedicated inspection citations table
     try {
-      await supabase.from('fda_inspection_citations').upsert({
+      const inspectionData = {
         fei_number: item.fei_number || null,
         legal_name: establishmentName,
         inspection_end_date: item.inspection_end_date || item.date_issued || new Date().toISOString().split('T')[0],
@@ -164,7 +164,9 @@ function processFDADataDashboardItem(item: any, sourceName: string, endpoint: st
         country: item.country || 'USA',
         zip_code: item.zip_code || item.postal_code || null,
         raw_data: item
-      }, {
+      };
+      
+      await supabase.from('fda_inspection_citations').upsert(inspectionData, {
         onConflict: 'fei_number,inspection_end_date'
       });
     } catch (err) {
