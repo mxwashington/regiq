@@ -2,19 +2,12 @@ import React from "react";
 import { Helmet } from "react-helmet-async";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { AdminDashboard as AdminDashboardComponent } from "@/components/AdminDashboard";
-import { FDAAnalyticsDashboard } from "@/components/FDAAnalyticsDashboard";
-import { SourceLinkManager } from "@/components/SourceLinkManager";
-import { AdminNavigation } from "@/components/AdminNavigation";
 import { AdminSecurityManager } from "@/components/AdminSecurityManager";
 import { SSOConfiguration } from "@/components/SSOConfiguration";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
-import { AdminAPIManager } from "@/components/AdminAPIManager";
-import { AdminDataManager } from "@/components/AdminDataManager";
-import { ScraperHealthDashboard } from "@/components/admin/ScraperHealthDashboard";
-import { FDADataSync } from "@/components/admin/FDADataSync";
+import { UnifiedDataSyncDashboard } from "@/components/admin/UnifiedDataSyncDashboard";
 
 import { logger } from '@/lib/logger';
 const LoadingScreen = () => (
@@ -48,64 +41,43 @@ const AdminDashboard: React.FC = () => {
           </header>
 
           <div className="flex flex-col md:flex-row gap-6">
-            <Tabs defaultValue="analytics" className="w-full" orientation="vertical">
+            <Tabs defaultValue="data-sync" className="w-full" orientation="vertical">
               <TabsList className="flex flex-col w-full md:w-48 h-auto gap-1 p-2 sticky top-6">
+              <TabsTrigger value="data-sync" className="w-full justify-start md:justify-center">Data Sync & Sources</TabsTrigger>
               <TabsTrigger value="analytics" className="w-full justify-start md:justify-center">Analytics</TabsTrigger>
-              <TabsTrigger value="scrapers" className="w-full justify-start md:justify-center">Scrapers</TabsTrigger>
-              <TabsTrigger value="data" className="w-full justify-start md:justify-center">Data Sync</TabsTrigger>
-              <TabsTrigger value="users" className="w-full justify-start md:justify-center">Users</TabsTrigger>
               <TabsTrigger value="alerts" className="w-full justify-start md:justify-center">Alerts</TabsTrigger>
-              <TabsTrigger value="apis" className="w-full justify-start md:justify-center">APIs</TabsTrigger>
               <TabsTrigger value="security" className="w-full justify-start md:justify-center">Security</TabsTrigger>
               <TabsTrigger value="sso" className="w-full justify-start md:justify-center">SSO</TabsTrigger>
               <TabsTrigger value="settings" className="w-full justify-start">Settings</TabsTrigger>
             </TabsList>
 
             <div className="flex-1 min-w-0">
+              <TabsContent value="data-sync" className="mt-0">
+                <UnifiedDataSyncDashboard />
+              </TabsContent>
+
               <TabsContent value="analytics" className="mt-0">
-              <UsageDashboard />
-            </TabsContent>
+                <UsageDashboard />
+              </TabsContent>
 
-            <TabsContent value="scrapers" className="mt-0">
-              <ScraperHealthDashboard />
-            </TabsContent>
+              <TabsContent value="alerts" className="mt-0">
+                <AdminAlertManager />
+              </TabsContent>
 
-            <TabsContent value="data" className="mt-0">
-              <div className="space-y-6">
-                <FDADataSync />
-                <AdminDataManager />
-              </div>
-            </TabsContent>
+              <TabsContent value="security" className="mt-0">
+                <AdminSecurityManager />
+              </TabsContent>
 
-            <TabsContent value="users" className="mt-0">
-              <div className="text-center p-8">
-                <h3 className="text-lg font-medium">User Management</h3>
-                <p className="text-muted-foreground">Manage user accounts and permissions</p>
-              </div>
-            </TabsContent>
+              <TabsContent value="sso" className="mt-0">
+                <SSOConfiguration />
+              </TabsContent>
 
-            <TabsContent value="alerts" className="mt-0">
-              <AdminAlertManager />
-            </TabsContent>
-
-            <TabsContent value="apis" className="mt-0">
-              <AdminAPIManager />
-            </TabsContent>
-
-            <TabsContent value="security" className="mt-0">
-              <AdminSecurityManager />
-            </TabsContent>
-
-            <TabsContent value="sso" className="mt-0">
-              <SSOConfiguration />
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-0">
-              <div className="text-center p-8">
-                <h3 className="text-lg font-medium">System Settings</h3>
-                <p className="text-muted-foreground">Configure global application settings</p>
-              </div>
-            </TabsContent>
+              <TabsContent value="settings" className="mt-0">
+                <div className="text-center p-8">
+                  <h3 className="text-lg font-medium">System Settings</h3>
+                  <p className="text-muted-foreground">Configure global application settings</p>
+                </div>
+              </TabsContent>
             </div>
           </Tabs>
           </div>

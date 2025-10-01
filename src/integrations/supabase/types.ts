@@ -1343,15 +1343,7 @@ export type Database = {
           source_name?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_data_freshness_source"
-            columns: ["source_name"]
-            isOneToOne: true
-            referencedRelation: "data_sources"
-            referencedColumns: ["name"]
-          },
-        ]
+        Relationships: []
       }
       data_sources: {
         Row: {

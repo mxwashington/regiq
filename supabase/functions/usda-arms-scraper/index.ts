@@ -37,8 +37,10 @@ serve(async (req) => {
 
   try {
     const apiKey = Deno.env.get('ARMS_API_KEY');
+    
+    // API key is optional - ARMS API may not require it for public data
     if (!apiKey) {
-      throw new Error('ARMS_API_KEY not configured');
+      console.warn('⚠️ ARMS_API_KEY not configured - attempting to fetch public data without authentication');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -71,7 +73,7 @@ serve(async (req) => {
             year: years,
             report: metric,
             category: sector,
-            api_key: apiKey
+            ...(apiKey ? { api_key: apiKey } : {}) // Only include API key if available
           };
 
           // USDA ARMS API often rejects automated requests - try with more browser-like headers

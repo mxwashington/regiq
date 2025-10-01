@@ -47,29 +47,11 @@ interface Alert {
 
 // RSS Feed configurations for multiple agencies
 const RSS_FEEDS: RSSFeedConfig[] = [
-  // CDC Feeds
+  // CDC Feeds - Updated URLs (2025)
   {
     agency: 'CDC',
     source: 'CDC',
-    url: 'https://tools.cdc.gov/api/v2/resources/media/316422.rss',
-    keywords: ['recall', 'fda', 'usda', 'food', 'contamination', 'safety', 'hazard'],
-    urgencyLevel: 'Critical',
-    category: 'food-recall',
-    description: 'CDC Food Recall Aggregator (FDA + USDA)'
-  },
-  {
-    agency: 'CDC',
-    source: 'CDC',
-    url: 'https://tools.cdc.gov/api/v2/resources/media/132608.rss',
-    keywords: ['outbreak', 'multistate', 'investigation', 'salmonella', 'listeria', 'e.coli', 'foodborne'],
-    urgencyLevel: 'Critical',
-    category: 'outbreak-alert',
-    description: 'CDC Multistate Outbreak Alerts'
-  },
-  {
-    agency: 'CDC',
-    source: 'CDC',
-    url: 'https://www.cdc.gov/rss/cdc-newsroom.xml',
+    url: 'https://www.cdc.gov/wcms/feeds/cdc-newsroom/feed.rss',
     keywords: ['food', 'foodborne', 'outbreak', 'illness', 'contamination', 'recall', 'safety', 'surveillance'],
     urgencyLevel: 'High',
     category: 'foodborne-illness',
@@ -78,63 +60,37 @@ const RSS_FEEDS: RSSFeedConfig[] = [
   {
     agency: 'CDC',
     source: 'CDC',
-    url: 'https://www.cdc.gov/foodsafety/rss/foodsafety-RSS.xml',
-    keywords: ['food', 'safety', 'outbreak', 'illness', 'contamination', 'pathogen', 'salmonella', 'listeria', 'e.coli'],
-    urgencyLevel: 'High',
-    category: 'food-safety',
-    description: 'CDC Food Safety updates'
+    url: 'https://www.cdc.gov/wcms/feeds/outbreaks/feed.rss',
+    keywords: ['outbreak', 'multistate', 'investigation', 'salmonella', 'listeria', 'e.coli', 'foodborne'],
+    urgencyLevel: 'Critical',
+    category: 'outbreak-alert',
+    description: 'CDC Outbreak Alerts'
   },
 
-  // EPA Feeds
+  // EPA Feeds - Updated URL
   {
     agency: 'EPA',
     source: 'EPA',
-    url: 'https://www.epa.gov/newsreleases/search/rss',
+    url: 'https://www.epa.gov/feeds/newsreleases.xml',
     keywords: ['pesticide', 'tolerance', 'residue', 'agricultural', 'chemical', 'food', 'crop', 'registration'],
     urgencyLevel: 'Medium',
     category: 'pesticide-tolerance',
     description: 'EPA News Releases'
   },
 
-  // NOAA Feeds
+  // NOAA Feeds - Updated URL
   {
     agency: 'NOAA',
     source: 'NOAA',
-    url: 'https://www.fisheries.noaa.gov/atlantic-highly-migratory-species/xml/hms-news.xml',
+    url: 'https://www.fisheries.noaa.gov/rss/national',
     keywords: ['seafood', 'fish', 'mercury', 'advisory', 'closure', 'import', 'aquaculture', 'safety'],
     urgencyLevel: 'Medium',
     category: 'seafood-safety',
-    description: 'NOAA HMS News'
+    description: 'NOAA Fisheries National Feed'
   },
 
-  // OSHA Feeds
-  {
-    agency: 'OSHA',
-    source: 'OSHA',
-    url: 'https://www.osha.gov/rss/news/newsreleases.xml',
-    keywords: ['meatpacking', 'poultry', 'food processing', 'food manufacturing', 'bakery', 'dairy', 'food industry'],
-    urgencyLevel: 'Medium',
-    category: 'workplace-safety',
-    description: 'OSHA News Releases'
-  },
-  {
-    agency: 'OSHA',
-    source: 'OSHA',
-    url: 'https://www.osha.gov/rss/laws-regs/federalregisters.xml',
-    keywords: ['food', 'processing', 'manufacturing', 'workplace', 'safety', 'standard'],
-    urgencyLevel: 'Medium',
-    category: 'regulatory-standards',
-    description: 'OSHA Federal Register Updates'
-  },
-  {
-    agency: 'OSHA',
-    source: 'OSHA',
-    url: 'https://www.osha.gov/rss/enforcement/directives.xml',
-    keywords: ['food', 'processing', 'manufacturing', 'enforcement', 'directive'],
-    urgencyLevel: 'High',
-    category: 'enforcement',
-    description: 'OSHA Enforcement Directives'
-  }
+  // OSHA Feeds - Removed (403 Forbidden - requires authentication)
+  // Note: OSHA RSS feeds are now behind authentication/access control
 ];
 
 serve(async (req) => {
@@ -305,7 +261,7 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<num
 
     const xmlText = await response.text();
     const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlText, 'text/xml');
+    const doc = parser.parseFromString(xmlText, 'text/html'); // Use text/html which is supported
 
     if (!doc) {
       throw new Error('Failed to parse RSS XML');
