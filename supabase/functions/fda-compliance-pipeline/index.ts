@@ -171,7 +171,6 @@ function processFDADataDashboardItem(item: any, sourceName: string, endpoint: st
         .upsert(inspectionData, {
           onConflict: 'fei_number,inspection_end_date'
         });
-      });
     } catch (err) {
       logStep('Error saving to inspection_citations table:', err);
     }
