@@ -622,6 +622,42 @@ export type Database = {
         }
         Relationships: []
       }
+      api_health_checks: {
+        Row: {
+          api_name: string
+          checked_at: string | null
+          endpoint: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          response_time_ms: number | null
+          status: string
+          status_code: number | null
+        }
+        Insert: {
+          api_name: string
+          checked_at?: string | null
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          status: string
+          status_code?: number | null
+        }
+        Update: {
+          api_name?: string
+          checked_at?: string | null
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          status?: string
+          status_code?: number | null
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           api_key: string
@@ -1555,6 +1591,39 @@ export type Database = {
           updated_at?: string | null
           usage_limit?: number | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      error_logs: {
+        Row: {
+          context: Json | null
+          created_at: string | null
+          error_message: string
+          error_stack: string | null
+          function_name: string
+          id: string
+          resolved: boolean | null
+          severity: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string | null
+          error_message: string
+          error_stack?: string | null
+          function_name: string
+          id?: string
+          resolved?: boolean | null
+          severity?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string | null
+          error_message?: string
+          error_stack?: string | null
+          function_name?: string
+          id?: string
+          resolved?: boolean | null
+          severity?: string | null
         }
         Relationships: []
       }

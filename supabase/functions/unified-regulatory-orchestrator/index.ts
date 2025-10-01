@@ -157,6 +157,15 @@ const SCRAPER_FUNCTIONS: ScraperFunction[] = [
     description: 'TTB alcohol regulatory updates',
     frequency: 'weekly',
     category: 'web_scraper'
+  },
+  
+  // Health monitoring
+  {
+    name: 'api-health-monitor',
+    endpoint: 'api-health-monitor',
+    description: 'Monitor external API health and connectivity',
+    frequency: 'daily',
+    category: 'api'
   }
 ];
 

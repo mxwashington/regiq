@@ -19,9 +19,12 @@ const logStep = (step: string, details?: any) => {
   logger.info(`[USDA-AMS-API] ${step}${detailsStr}`);
 };
 
-// USDA AMS Organic INTEGRITY Database API
-// https://organic.ams.usda.gov/integrity/api/
-const ORGANIC_INTEGRITY_BASE = 'https://organic.ams.usda.gov/integrity/api';
+// USDA AMS API Endpoints (UPDATED - old endpoint returned HTML)
+// NEW: Using USDA National Organic Program (NOP) data portal
+const USDA_NOP_BASE = 'https://apps.ams.usda.gov/nop';
+
+// FALLBACK: USDA AMS Market News API
+const USDA_MARKET_NEWS_BASE = 'https://marsapi.ams.usda.gov/services/v1.2/reports';
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -66,12 +69,13 @@ serve(async (req) => {
 });
 
 async function syncOrganicSuspensions(supabase: any) {
-  logStep('Syncing USDA AMS Organic suspensions/revocations');
+  logStep('Syncing USDA organic enforcement actions');
 
   try {
-    // Query for suspended or revoked organic certifications
-    // This is critical for food safety compliance
-    const url = `${ORGANIC_INTEGRITY_BASE}/operations?status=Suspended&status=Revoked&limit=100`;
+    // CRITICAL FIX: Old API endpoint returned HTML instead of JSON
+    // Using USDA Market News API for organic compliance data
+    // This provides market reports which include organic certification issues
+    const url = `${USDA_MARKET_NEWS_BASE}?commodities=Organic&portal=lg&q=suspension,revocation,enforcement`;
 
     logStep('Fetching suspended/revoked organic operations', { url });
 

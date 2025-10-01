@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts';
+import { logError, retryWithBackoff } from '../_shared/error-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -59,15 +60,21 @@ async function fetchRSSFeed(feed: FSISFeed): Promise<any[]> {
   try {
     logStep(`Fetching FSIS RSS feed: ${feed.url}`);
 
-    const response = await fetch(feed.url, {
+    // Use retry logic with exponential backoff
+    const response = await retryWithBackoff(
+      () => fetch(feed.url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; RegIQ-Bot/1.0)',
         'Accept': 'application/rss+xml, application/xml, text/xml, */*',
         'Accept-Language': 'en-US,en;q=0.9',
         'Cache-Control': 'no-cache'
       },
-      signal: AbortSignal.timeout(30000) // 30 second timeout
-    });
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      }),
+      3, // max retries
+      1000, // initial delay
+      `fsis-rss-feeds-${feed.category}`
+    );
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unable to read response');
@@ -140,6 +147,18 @@ async function fetchRSSFeed(feed: FSISFeed): Promise<any[]> {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    // Log to centralized error logging
+    await logError({
+      function_name: 'fsis-rss-feeds',
+      error: error instanceof Error ? error : new Error(errorMessage),
+      context: {
+        feed_url: feed.url,
+        feed_category: feed.category
+      },
+      severity: 'error'
+    });
+    
     logStep(`Error fetching RSS feed ${feed.url}:`, { 
       error: errorMessage,
       stack: errorStack,
