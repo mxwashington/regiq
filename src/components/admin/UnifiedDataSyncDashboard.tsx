@@ -137,6 +137,16 @@ const SYNC_FUNCTIONS: SyncFunction[] = [
 interface SyncResult {
   success: boolean;
   processed?: number;
+  alerts_inserted?: number;
+  alerts_updated?: number;
+  alerts_fetched?: number;
+  alerts_skipped?: number;
+  totalSaved?: number;
+  totalProcessed?: number;
+  total_alerts?: number;
+  inserted?: number;
+  fetched?: number;
+  message?: string;
   error?: string;
 }
 
@@ -163,45 +173,62 @@ export const UnifiedDataSyncDashboard = () => {
 
       const result = data as SyncResult;
       const success = result.success !== false;
-      const processed = result.processed || data?.totalSaved || data?.inserted || 0;
-      const fetched = data?.totalProcessed || data?.total_alerts || data?.fetched || 0;
       
-      // Detect "zero results" scenario
-      const isZeroResults = success && fetched === 0 && !result.error;
-      const hasActualData = processed > 0;
+      // Normalize different response formats from various edge functions
+      const inserted = result.alerts_inserted || result.totalSaved || result.inserted || 0;
+      const updated = result.alerts_updated || 0;
+      const fetched = result.alerts_fetched || result.totalProcessed || result.total_alerts || result.fetched || 0;
+      const skipped = result.alerts_skipped || 0;
+      const totalProcessed = inserted + updated;
+      
+      // Categorize sync outcomes
+      const hasNewAlerts = totalProcessed > 0;
+      const isUpToDate = fetched > 0 && skipped > 0 && totalProcessed === 0;
+      const noDataAvailable = fetched === 0 && totalProcessed === 0;
+      
+      logger.info(`[UnifiedSync] ${functionName} results:`, { 
+        inserted, updated, fetched, skipped, totalProcessed, hasNewAlerts, isUpToDate, noDataAvailable 
+      });
 
       setLastSync(prev => ({ 
         ...prev, 
         [functionName]: { 
           timestamp: new Date().toISOString(),
           success,
-          message: isZeroResults 
-            ? 'No new alerts (already up-to-date)' 
-            : hasActualData 
-              ? `${processed} new alert${processed !== 1 ? 's' : ''} synced`
-              : data?.message || 'Completed'
+          message: hasNewAlerts
+            ? `✅ ${inserted} new, ${updated} updated (${fetched} fetched)`
+            : isUpToDate
+              ? `✓ Up-to-date (${skipped} duplicates skipped)`
+              : noDataAvailable
+                ? 'ℹ️ No data available from source'
+                : result.message || 'Completed'
         }
       }));
 
-      if (success) {
-        if (isZeroResults) {
-          toast.info(`${displayName}: Already Up-to-Date`, {
-            description: 'No new alerts found to sync',
-          });
-        } else {
-          toast.success(`${displayName}: Sync Complete`, {
-            description: hasActualData 
-              ? `Successfully synced ${processed} new alert${processed !== 1 ? 's' : ''}`
-              : data?.message || 'Sync completed',
-          });
-        }
-      } else {
+      // Show appropriate toast notification
+      if (hasNewAlerts) {
+        toast.success(`${displayName}: ${totalProcessed} New Alert${totalProcessed !== 1 ? 's' : ''}`, {
+          description: `${inserted} inserted, ${updated} updated from ${fetched} fetched`,
+        });
+      } else if (isUpToDate) {
+        toast.info(`${displayName}: Already Up-to-Date`, {
+          description: `All ${skipped} alerts already in database (duplicate prevention working)`,
+        });
+      } else if (noDataAvailable) {
+        toast.info(`${displayName}: No New Data`, {
+          description: 'No alerts available from this source at this time',
+        });
+      } else if (!success || result.error) {
         toast.warning(`${displayName}: Completed with Issues`, {
-          description: result.error || 'Some alerts may not have synced properly'
+          description: result.error || result.message || 'Check logs for details',
+        });
+      } else {
+        toast.success(`${displayName}: Sync Complete`, {
+          description: result.message || 'Sync completed successfully',
         });
       }
 
-      logger.info(`[UnifiedSync] ${functionName} completed:`, { processed, fetched, success });
+      logger.info(`[UnifiedSync] ${functionName} completed:`, { inserted, updated, fetched, skipped, totalProcessed, success });
     } catch (error) {
       logger.error(`[UnifiedSync] ${functionName} failed:`, error);
       
