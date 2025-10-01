@@ -51,6 +51,24 @@ const RSS_FEEDS: RSSFeedConfig[] = [
   {
     agency: 'CDC',
     source: 'CDC',
+    url: 'https://tools.cdc.gov/api/v2/resources/media/316422.rss',
+    keywords: ['recall', 'fda', 'usda', 'food', 'contamination', 'safety', 'hazard'],
+    urgencyLevel: 'Critical',
+    category: 'food-recall',
+    description: 'CDC Food Recall Aggregator (FDA + USDA)'
+  },
+  {
+    agency: 'CDC',
+    source: 'CDC',
+    url: 'https://tools.cdc.gov/api/v2/resources/media/132608.rss',
+    keywords: ['outbreak', 'multistate', 'investigation', 'salmonella', 'listeria', 'e.coli', 'foodborne'],
+    urgencyLevel: 'Critical',
+    category: 'outbreak-alert',
+    description: 'CDC Multistate Outbreak Alerts'
+  },
+  {
+    agency: 'CDC',
+    source: 'CDC',
     url: 'https://www.cdc.gov/rss/cdc-newsroom.xml',
     keywords: ['food', 'foodborne', 'outbreak', 'illness', 'contamination', 'recall', 'safety', 'surveillance'],
     urgencyLevel: 'High',
