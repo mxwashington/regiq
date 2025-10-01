@@ -166,8 +166,11 @@ function processFDADataDashboardItem(item: any, sourceName: string, endpoint: st
         raw_data: item
       };
       
-      await supabase.from('fda_inspection_citations').upsert(inspectionData, {
-        onConflict: 'fei_number,inspection_end_date'
+      const { error: citationError } = await supabase
+        .from('fda_inspection_citations')
+        .upsert(inspectionData, {
+          onConflict: 'fei_number,inspection_end_date'
+        });
       });
     } catch (err) {
       logStep('Error saving to inspection_citations table:', err);

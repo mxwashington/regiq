@@ -46,7 +46,13 @@ const COMPLIANCE_KEYWORDS = [
   'compliance', 'regulation', 'requirement', 'standard', 'approval', 'permit',
   'certificate', 'license', 'formula', 'brand', 'label', 'advertisement',
   'marketing', 'distillery', 'brewery', 'winery', 'bottling', 'import',
-  'export', 'tax', 'excise', 'trade', 'practice'
+  'export', 'tax', 'excise', 'trade', 'practice', 'ruling', 'notice'
+];
+
+// TTB News Sources (HTML scraping - RSS feeds are discontinued)
+const TTB_NEWS_URLS = [
+  'https://www.ttb.gov/news',
+  'https://www.ttb.gov/public-information'
 ];
 
 serve(async (req) => {
@@ -89,80 +95,129 @@ serve(async (req) => {
   }
 });
 
-async function scrapeTTBFeed(supabase: any) {
-  // Try multiple potential TTB RSS feed URLs
-  const ttbFeedUrls = [
-    'https://www.ttb.gov/rss-feeds/news-rss.xml',
-    'https://www.ttb.gov/news/feed',
-    'https://www.ttb.gov/rss/news.xml'
-  ];
+async function fetchWithRetry(url: string, maxRetries = 3): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'RegIQ-TTBScraper/2.0',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Cache-Control': 'no-cache'
+        },
+        signal: AbortSignal.timeout(20000)
+      });
 
-  logStep('Attempting to fetch TTB RSS feed from multiple URLs');
+      if (response.ok || (response.status >= 400 && response.status < 500)) {
+        return response;
+      }
+
+      // Retry on 5xx or network errors
+      if (attempt < maxRetries) {
+        const backoff = Math.pow(2, attempt) * 1000;
+        logger.warn(`TTB fetch attempt ${attempt} failed (${response.status}), retrying in ${backoff}ms`);
+        await new Promise(resolve => setTimeout(resolve, backoff));
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (attempt < maxRetries) {
+        const backoff = Math.pow(2, attempt) * 1000;
+        logger.warn(`TTB fetch error on attempt ${attempt}, retrying in ${backoff}ms`);
+        await new Promise(resolve => setTimeout(resolve, backoff));
+      }
+    }
+  }
+  
+  throw lastError || new Error('TTB fetch failed after retries');
+}
+
+async function scrapeTTBFeed(supabase: any) {
+  logStep('Starting TTB news page scraping');
 
   // Start sync log
   const { data: logData } = await supabase.rpc('start_sync_log', {
     p_source: 'TTB',
-    p_metadata: { trigger: 'scrape_ttb_feed', urls: ttbFeedUrls }
+    p_metadata: { trigger: 'scrape_ttb_feed', urls: TTB_NEWS_URLS }
   });
   const logId = logData as string;
 
-  let xmlText = '';
-  let successUrl = '';
-
   try {
-    // Try each URL with retry logic
-    for (const ttbFeedUrl of ttbFeedUrls) {
-      logStep('Trying TTB feed URL', { url: ttbFeedUrl });
-      
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          const response = await fetch(ttbFeedUrl, {
-            headers: {
-              'User-Agent': 'RegIQ-TTBScraper/1.0',
-              'Accept': 'application/rss+xml, application/xml, text/xml, */*',
-              'Cache-Control': 'no-cache'
-            },
-            signal: AbortSignal.timeout(15000)
-          });
+    let allNewsItems: TTBFeedItem[] = [];
 
-          if (response.ok) {
-            xmlText = await response.text();
-            successUrl = ttbFeedUrl;
-            logStep('TTB RSS feed fetched successfully', { url: successUrl, length: xmlText.length });
-            break;
-          } else {
-            logStep(`TTB feed returned ${response.status} from ${ttbFeedUrl}`);
-          }
-        } catch (error) {
-          logStep(`Attempt ${attempt} failed for ${ttbFeedUrl}:`, error);
-          if (attempt === 1) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
+    // Scrape each TTB news page
+    for (const newsUrl of TTB_NEWS_URLS) {
+      try {
+        logStep('Fetching TTB news page', { url: newsUrl });
+        
+        const response = await fetchWithRetry(newsUrl);
+
+        if (!response.ok) {
+          logger.error(`TTB news page returned ${response.status}: ${response.statusText}`);
+          continue;
+        }
+
+        const htmlText = await response.text();
+        logStep('TTB news page fetched', { url: newsUrl, length: htmlText.length });
+
+        // Parse HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+
+        if (!doc) {
+          logger.error('Failed to parse TTB news HTML');
+          continue;
+        }
+
+        // Extract news items - TTB uses various HTML structures
+        const newsElements = doc.querySelectorAll(
+          'article, .news-item, .view-content .views-row, div[class*="news-"], li.news'
+        );
+        logStep('Found news elements', { url: newsUrl, count: newsElements.length });
+
+        for (const element of newsElements) {
+          try {
+            const titleEl = element.querySelector('h2, h3, h4, .title, a[href*="news"]');
+            const linkEl = element.querySelector('a[href]');
+            const descEl = element.querySelector('p, .description, .summary, .field--name-body');
+            const dateEl = element.querySelector('time, .date, .published, span[class*="date"]');
+
+            const title = titleEl?.textContent?.trim() || '';
+            let link = linkEl?.getAttribute('href')?.trim() || '';
+            const description = descEl?.textContent?.trim() || '';
+            const pubDate = dateEl?.textContent?.trim() || dateEl?.getAttribute('datetime') || '';
+
+            // Make link absolute
+            if (link && !link.startsWith('http')) {
+              link = `https://www.ttb.gov${link.startsWith('/') ? '' : '/'}${link}`;
+            }
+
+            if (title && link) {
+              allNewsItems.push({ title, link, description, pubDate });
+            }
+          } catch (itemError) {
+            logger.error('Error parsing TTB news item', { error: itemError });
           }
         }
+      } catch (urlError) {
+        logger.error(`Error scraping TTB URL ${newsUrl}`, { error: urlError });
       }
-      
-      if (xmlText) break;
     }
 
-    if (!xmlText) {
-      throw new Error('TTB RSS feed unavailable at all known URLs. The feed may have been moved or discontinued. Tried: ' + ttbFeedUrls.join(', '));
-    }
-    // Parse XML using DOMParser
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlText, 'text/html'); // Use text/html for better compatibility
+    logStep('Total TTB news items found', { count: allNewsItems.length });
 
-    if (!doc) {
-      throw new Error('Failed to parse TTB RSS XML');
-    }
+    if (allNewsItems.length === 0) {
+      await supabase.rpc('finish_sync_log', {
+        p_log_id: logId,
+        p_status: 'success',
+        p_alerts_fetched: 0,
+        p_alerts_inserted: 0,
+        p_results: { message: 'No news items found - page structure may have changed' }
+      });
 
-    // Extract RSS items
-    const items = doc.querySelectorAll('item');
-    logStep('Found RSS items', { count: items.length });
-
-    if (items.length === 0) {
       return new Response(JSON.stringify({
         success: true,
-        message: 'No RSS items found in TTB feed',
+        message: 'No TTB news items found - page may require updated selectors',
         processed: 0,
         timestamp: new Date().toISOString()
       }), {
@@ -170,62 +225,23 @@ async function scrapeTTBFeed(supabase: any) {
         status: 200,
       });
     }
-
-    const feedItems: TTBFeedItem[] = [];
-
-    // Parse each RSS item
-    for (const item of items) {
-      try {
-        const title = item.querySelector('title')?.textContent?.trim() || '';
-        const description = item.querySelector('description')?.textContent?.trim() || '';
-        const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
-        const link = item.querySelector('link')?.textContent?.trim() || '';
-
-        if (title && link) {
-          feedItems.push({
-            title,
-            description,
-            pubDate,
-            link
-          });
-        }
-      } catch (itemError) {
-        logStep('Error parsing RSS item', { error: itemError });
-        continue;
-      }
-    }
-
-    logStep('Parsed RSS items', { total: feedItems.length });
 
     // Filter for compliance-relevant items
-    const relevantItems = filterRelevantItems(feedItems);
-    logStep('Filtered relevant items', {
-      total: feedItems.length,
+    const relevantItems = filterRelevantItems(allNewsItems);
+    logStep('Filtered relevant TTB items', {
+      total: allNewsItems.length,
       relevant: relevantItems.length
     });
-
-    if (relevantItems.length === 0) {
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'No relevant TTB items found matching compliance keywords',
-        processed: 0,
-        total_items: feedItems.length,
-        timestamp: new Date().toISOString()
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
 
     // Convert to alerts and save to database
     let processedCount = 0;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    for (const item of relevantItems) {
+    for (const item of relevantItems.slice(0, 50)) { // Limit to 50 most recent
       try {
         const alert = convertToAlert(item);
 
-        // Check if alert already exists (avoid duplicates)
+        // Check if alert already exists
         const { data: existing } = await supabase
           .from('alerts')
           .select('id')
@@ -257,21 +273,25 @@ async function scrapeTTBFeed(supabase: any) {
       }
     }
 
-    // Finish sync log with success
+    // Finish sync log
     await supabase.rpc('finish_sync_log', {
       p_log_id: logId,
       p_status: 'success',
-      p_alerts_fetched: feedItems.length,
+      p_alerts_fetched: allNewsItems.length,
       p_alerts_inserted: processedCount,
       p_alerts_skipped: relevantItems.length - processedCount,
-      p_results: { total_items: feedItems.length, relevant_items: relevantItems.length }
+      p_results: { 
+        total_items: allNewsItems.length, 
+        relevant_items: relevantItems.length,
+        scraped_urls: TTB_NEWS_URLS.length
+      }
     });
 
     return new Response(JSON.stringify({
       success: true,
       message: `Processed ${processedCount} TTB regulatory updates`,
       processed: processedCount,
-      total_items: feedItems.length,
+      total_items: allNewsItems.length,
       relevant_items: relevantItems.length,
       timestamp: new Date().toISOString()
     }), {
@@ -280,7 +300,7 @@ async function scrapeTTBFeed(supabase: any) {
     });
 
   } catch (error) {
-    // Log failure to sync logs
+    // Log failure
     await supabase.rpc('finish_sync_log', {
       p_log_id: logId,
       p_status: 'error',
@@ -289,116 +309,4 @@ async function scrapeTTBFeed(supabase: any) {
     
     throw new Error(`Failed to scrape TTB feed: ${error instanceof Error ? error.message : String(error)}`);
   }
-}
-
-async function testTTBFeed() {
-  const ttbFeedUrl = 'https://www.ttb.gov/rss/news-and-events.xml';
-
-  logStep('Testing TTB RSS feed access', { url: ttbFeedUrl });
-
-  try {
-    const response = await fetch(ttbFeedUrl, {
-      headers: {
-        'User-Agent': 'RegIQ-TTBScraper/1.0',
-        'Accept': 'application/rss+xml, application/xml, text/xml',
-        'Cache-Control': 'no-cache'
-      },
-      signal: AbortSignal.timeout(10000)
-    });
-
-    const isSuccess = response.ok;
-    const responseText = await response.text();
-
-    return new Response(JSON.stringify({
-      success: isSuccess,
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
-      contentLength: responseText.length,
-      contentPreview: responseText.substring(0, 500),
-      timestamp: new Date().toISOString()
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      timestamp: new Date().toISOString()
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-  }
-}
-
-function filterRelevantItems(items: TTBFeedItem[]): TTBFeedItem[] {
-  return items.filter(item => {
-    const searchText = `${item.title} ${item.description}`.toLowerCase();
-
-    // Check if any compliance keywords are present
-    return COMPLIANCE_KEYWORDS.some(keyword =>
-      searchText.includes(keyword.toLowerCase())
-    );
-  });
-}
-
-function convertToAlert(item: TTBFeedItem): TTBAlert {
-  // Parse publication date
-  let publishedDate: string;
-  try {
-    if (item.pubDate) {
-      publishedDate = new Date(item.pubDate).toISOString();
-    } else {
-      publishedDate = new Date().toISOString();
-    }
-  } catch {
-    publishedDate = new Date().toISOString();
-  }
-
-  // Determine urgency based on content
-  const urgency = determineUrgency(item);
-
-  // Create summary from description or title
-  const summary = item.description || item.title;
-
-  return {
-    title: item.title,
-    source: 'TTB',
-    urgency,
-    summary: summary.length > 500 ? summary.substring(0, 497) + '...' : summary,
-    published_date: publishedDate,
-    external_url: item.link,
-    full_content: JSON.stringify(item),
-    agency: 'TTB',
-    region: 'US',
-    category: 'alcohol-labeling'
-  };
-}
-
-function determineUrgency(item: TTBFeedItem): string {
-  const text = `${item.title} ${item.description}`.toLowerCase();
-
-  // High urgency keywords
-  const highUrgencyKeywords = [
-    'recall', 'emergency', 'immediate', 'urgent', 'critical', 'violation',
-    'enforcement', 'penalty', 'warning', 'alert', 'suspension', 'revocation',
-    'cease', 'desist', 'prohibited'
-  ];
-
-  // Medium urgency keywords
-  const mediumUrgencyKeywords = [
-    'new', 'requirement', 'deadline', 'compliance', 'mandatory', 'must',
-    'regulation', 'rule', 'policy', 'guidance', 'update', 'change'
-  ];
-
-  if (highUrgencyKeywords.some(keyword => text.includes(keyword))) {
-    return 'High';
-  } else if (mediumUrgencyKeywords.some(keyword => text.includes(keyword))) {
-    return 'Medium';
-  }
-
-  return 'Low';
 }

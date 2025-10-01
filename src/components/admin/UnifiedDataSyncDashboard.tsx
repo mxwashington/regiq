@@ -155,66 +155,100 @@ export const UnifiedDataSyncDashboard = () => {
         body: { days: 30, action: 'sync' }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Enhanced error detection
+        const errorMsg = error.message || 'Sync failed';
+        throw new Error(errorMsg);
+      }
 
       const result = data as SyncResult;
       const success = result.success !== false;
+      const processed = result.processed || data?.totalSaved || data?.inserted || 0;
+      const fetched = data?.totalProcessed || data?.total_alerts || data?.fetched || 0;
+      
+      // Detect "zero results" scenario
+      const isZeroResults = success && fetched === 0 && !result.error;
+      const hasActualData = processed > 0;
 
       setLastSync(prev => ({ 
         ...prev, 
         [functionName]: { 
           timestamp: new Date().toISOString(),
           success,
-          message: result.error || (result.processed !== undefined ? `Processed ${result.processed} items` : 'Completed')
+          message: isZeroResults 
+            ? 'No new alerts (already up-to-date)' 
+            : hasActualData 
+              ? `${processed} new alert${processed !== 1 ? 's' : ''} synced`
+              : data?.message || 'Completed'
         }
       }));
 
       if (success) {
-        toast.success(`${displayName} Sync Complete`, {
-          description: result.processed !== undefined 
-            ? `Processed ${result.processed} items` 
-            : data?.message || 'Sync completed successfully',
-        });
+        if (isZeroResults) {
+          toast.info(`${displayName}: Already Up-to-Date`, {
+            description: 'No new alerts found to sync',
+          });
+        } else {
+          toast.success(`${displayName}: Sync Complete`, {
+            description: hasActualData 
+              ? `Successfully synced ${processed} new alert${processed !== 1 ? 's' : ''}`
+              : data?.message || 'Sync completed',
+          });
+        }
       } else {
-        toast.warning(`${displayName} Sync Completed with Warnings`, {
-          description: result.error || 'Check logs for details'
+        toast.warning(`${displayName}: Completed with Issues`, {
+          description: result.error || 'Some alerts may not have synced properly'
         });
       }
 
-      logger.info(`[UnifiedSync] ${functionName} completed:`, data);
+      logger.info(`[UnifiedSync] ${functionName} completed:`, { processed, fetched, success });
     } catch (error) {
       logger.error(`[UnifiedSync] ${functionName} failed:`, error);
+      
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      let userFriendlyMessage = errorMsg;
+      let suggestedAction = 'Retry';
+      
+      // Enhanced error categorization
+      if (errorMsg.includes('404') || errorMsg.includes('Not Found')) {
+        userFriendlyMessage = '❌ Data source not found (404). The URL may have been moved or discontinued.';
+        suggestedAction = 'Check Source';
+      } else if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
+        userFriendlyMessage = '🔒 Access denied (403). API requires authentication or has IP restrictions.';
+        suggestedAction = 'Check Auth';
+      } else if (errorMsg.includes('500') || errorMsg.includes('Internal Server Error') || errorMsg.includes('502') || errorMsg.includes('503')) {
+        userFriendlyMessage = '⚠️ External API error (5xx). The regulatory source is temporarily down.';
+        suggestedAction = 'Retry Later';
+      } else if (errorMsg.includes('timeout') || errorMsg.includes('timed out')) {
+        userFriendlyMessage = '⏱️ Request timed out. The API is slow or unreachable.';
+        suggestedAction = 'Retry';
+      } else if (errorMsg.includes('non-2xx') || errorMsg.includes('FunctionsHttpError')) {
+        userFriendlyMessage = '🔧 Edge Function error. Check function logs for technical details.';
+        suggestedAction = 'View Logs';
+      } else if (errorMsg.includes('parse') || errorMsg.includes('parsing')) {
+        userFriendlyMessage = '📄 Data parsing failed. The source format may have changed.';
+        suggestedAction = 'Report Issue';
+      }
       
       setLastSync(prev => ({ 
         ...prev, 
         [functionName]: { 
           timestamp: new Date().toISOString(),
           success: false,
-          message: error instanceof Error ? error.message : 'Unknown error'
+          message: userFriendlyMessage
         }
       }));
       
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      let userFriendlyMessage = errorMsg;
-      
-      // Provide actionable error messages
-      if (errorMsg.includes('404')) {
-        userFriendlyMessage = 'Data source unavailable (404). The URL may have changed.';
-      } else if (errorMsg.includes('403')) {
-        userFriendlyMessage = 'Access denied (403). API may require authentication or have IP restrictions.';
-      } else if (errorMsg.includes('500') || errorMsg.includes('Internal Server Error')) {
-        userFriendlyMessage = 'API server error (500). Please retry in a few minutes.';
-      } else if (errorMsg.includes('timeout')) {
-        userFriendlyMessage = 'Request timed out. The API may be slow or unreachable.';
-      } else if (errorMsg.includes('non-2xx status code')) {
-        userFriendlyMessage = 'Sync function returned an error. Check Edge Function logs for details.';
-      }
-      
-      toast.error(`${displayName} Sync Failed`, {
+      toast.error(`${displayName}: Sync Failed`, {
         description: userFriendlyMessage,
+        duration: 8000,
         action: {
-          label: 'Retry',
-          onClick: () => triggerFunction(functionName, displayName)
+          label: suggestedAction,
+          onClick: () => {
+            if (suggestedAction === 'Retry' || suggestedAction === 'Retry Later') {
+              triggerFunction(functionName, displayName);
+            }
+          }
         }
       });
     } finally {
@@ -279,9 +313,17 @@ export const UnifiedDataSyncDashboard = () => {
           </div>
           <p className="text-xs text-muted-foreground mb-1">{func.description}</p>
           {syncStatus && (
-            <p className="text-xs text-muted-foreground">
-              {syncStatus.message || 'No details available'}
-            </p>
+            <>
+              <p className={cn(
+                "text-xs font-medium",
+                syncStatus.success ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+              )}>
+                {syncStatus.message || 'No details available'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Last sync: {new Date(syncStatus.timestamp).toLocaleString()}
+              </p>
+            </>
           )}
         </div>
         <Button
@@ -296,7 +338,7 @@ export const UnifiedDataSyncDashboard = () => {
             </>
           ) : (
             <>
-              <PlayCircle className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" />
             </>
           )}
         </Button>
