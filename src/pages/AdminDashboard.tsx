@@ -14,6 +14,7 @@ import { UsageDashboard } from "@/components/UsageDashboard";
 import { AdminAPIManager } from "@/components/AdminAPIManager";
 import { AdminDataManager } from "@/components/AdminDataManager";
 import { ScraperHealthDashboard } from "@/components/admin/ScraperHealthDashboard";
+import { FDADataSync } from "@/components/admin/FDADataSync";
 
 import { logger } from '@/lib/logger';
 const LoadingScreen = () => (
@@ -70,7 +71,10 @@ const AdminDashboard: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="data" className="mt-0">
-              <AdminDataManager />
+              <div className="space-y-6">
+                <FDADataSync />
+                <AdminDataManager />
+              </div>
             </TabsContent>
 
             <TabsContent value="users" className="mt-0">
