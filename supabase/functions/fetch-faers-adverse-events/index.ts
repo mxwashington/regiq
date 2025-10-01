@@ -34,8 +34,9 @@ async function fetchFAERS(apiKey: string | null, days: number = 90): Promise<FAE
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - (days * 24 * 60 * 60 * 1000));
   
-  const startDateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
-  const endDateStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
+  // FDA API requires YYYY-MM-DD format, not YYYYMMDD
+  const startDateStr = startDate.toISOString().split('T')[0];
+  const endDateStr = endDate.toISOString().split('T')[0];
   
   const searchQuery = `receivedate:[${startDateStr}+TO+${endDateStr}]+AND+serious:1`;
   const url = new URL('https://api.fda.gov/drug/event.json');

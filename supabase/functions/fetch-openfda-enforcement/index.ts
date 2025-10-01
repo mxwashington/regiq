@@ -44,8 +44,9 @@ async function fetchFDAEnforcement(
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - (days * 24 * 60 * 60 * 1000));
   
-  const startDateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
-  const endDateStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
+  // FDA API requires YYYY-MM-DD format, not YYYYMMDD
+  const startDateStr = startDate.toISOString().split('T')[0];
+  const endDateStr = endDate.toISOString().split('T')[0];
   
   const searchQuery = `report_date:[${startDateStr}+TO+${endDateStr}]`;
   const url = new URL(`https://api.fda.gov${endpoint}`);
