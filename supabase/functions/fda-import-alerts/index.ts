@@ -226,7 +226,31 @@ async function scrapeImportAlerts(supabase: any, logId?: string | null) {
       try {
         const alertData = convertToAlert(alert);
 
-        // Check if alert already exists (avoid duplicates)
+        // Save to dedicated fda_import_alerts table
+        const { error: importError } = await supabase
+          .from('fda_import_alerts')
+          .upsert({
+            alert_number: alert.alertNumber,
+            alert_type: 'DWPE',
+            alert_name: alert.product || `Import Alert ${alert.alertNumber}`,
+            publish_date: alertData.published_date.split('T')[0],
+            country: alert.country || null,
+            firm_name: alert.firm || null,
+            product_description: alert.product || null,
+            reason_for_alert: alert.reason || null,
+            list_type: null,
+            status: alert.status || 'active',
+            source_url: alert.link || 'https://www.accessdata.fda.gov/cms_ia/default.html',
+            raw_data: alert
+          }, {
+            onConflict: 'alert_number'
+          });
+
+        if (importError) {
+          logStep('Error saving to fda_import_alerts table', { error: importError.message });
+        }
+
+        // Check if alert already exists in general alerts table (avoid duplicates)
         const { data: existing } = await supabase
           .from('alerts')
           .select('id')

@@ -229,8 +229,37 @@ async function scrapeWarningLetters(supabase: any) {
     for (const letter of warningLetters.slice(0, 50)) { // Process up to 50 most recent
       try {
         const alert = convertToAlert(letter);
+        
+        // Extract violations from subject/title
+        const violations: string[] = [];
+        const text = `${letter.title} ${letter.subject}`.toLowerCase();
+        if (text.includes('cgmp')) violations.push('CGMP Violations');
+        if (text.includes('adulteration')) violations.push('Adulteration');
+        if (text.includes('misbranding')) violations.push('Misbranding');
+        if (text.includes('inspection')) violations.push('Inspection Issues');
 
-        // Check if alert already exists (avoid duplicates)
+        // Save to dedicated fda_warning_letters table
+        const { error: wlError } = await supabase
+          .from('fda_warning_letters')
+          .upsert({
+            letter_number: `WL-${letter.title.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 50)}-${Date.now()}`,
+            issuing_office: letter.issuerOffice || 'FDA',
+            issue_date: alert.published_date.split('T')[0],
+            subject: letter.subject || letter.title,
+            company_name: letter.company,
+            letter_url: letter.link,
+            product_type: ['Food'],
+            violations: violations,
+            raw_data: letter
+          }, {
+            onConflict: 'letter_number'
+          });
+
+        if (wlError) {
+          logStep('Error saving to fda_warning_letters table', { error: wlError.message });
+        }
+
+        // Check if alert already exists in general alerts table (avoid duplicates)
         const { data: existing } = await supabase
           .from('alerts')
           .select('id')

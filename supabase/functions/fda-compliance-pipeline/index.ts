@@ -146,6 +146,30 @@ function processFDADataDashboardItem(item: any, sourceName: string, endpoint: st
     
     publishedDate = new Date(item.inspection_end_date || item.date_issued || item.posted_date || Date.now());
     externalUrl = item.report_url || item.document_url || `https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/inspection-references/inspection-observation-database`;
+    
+    // Save to dedicated inspection citations table
+    try {
+      await supabase.from('fda_inspection_citations').upsert({
+        fei_number: item.fei_number || null,
+        legal_name: establishmentName,
+        inspection_end_date: item.inspection_end_date || item.date_issued || new Date().toISOString().split('T')[0],
+        fiscal_year: item.fiscal_year || new Date().getFullYear(),
+        project_area: item.project_area || item.program_area || null,
+        classification: item.classification || null,
+        cfr_citation: item.cfr_citation || item.citation || null,
+        short_description: item.short_description || item.citation || description,
+        long_description: item.long_description || null,
+        city: item.city || null,
+        state: item.state || null,
+        country: item.country || 'USA',
+        zip_code: item.zip_code || item.postal_code || null,
+        raw_data: item
+      }, {
+        onConflict: 'fei_number,inspection_end_date'
+      });
+    } catch (err) {
+      logStep('Error saving to inspection_citations table:', err);
+    }
   }
 
   return {

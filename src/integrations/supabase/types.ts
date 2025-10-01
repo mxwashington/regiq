@@ -1696,6 +1696,480 @@ export type Database = {
           },
         ]
       }
+      fda_adverse_events: {
+        Row: {
+          created_at: string | null
+          drug_indication: string | null
+          drug_name: string
+          id: string
+          manufacturer_name: string | null
+          outcome: string[] | null
+          patient_age: number | null
+          patient_sex: string | null
+          raw_data: Json | null
+          reaction_term: string[]
+          receivedate: string
+          report_source: string | null
+          safetyreportid: string
+          serious: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          drug_indication?: string | null
+          drug_name: string
+          id?: string
+          manufacturer_name?: string | null
+          outcome?: string[] | null
+          patient_age?: number | null
+          patient_sex?: string | null
+          raw_data?: Json | null
+          reaction_term: string[]
+          receivedate: string
+          report_source?: string | null
+          safetyreportid: string
+          serious?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          drug_indication?: string | null
+          drug_name?: string
+          id?: string
+          manufacturer_name?: string | null
+          outcome?: string[] | null
+          patient_age?: number | null
+          patient_sex?: string | null
+          raw_data?: Json | null
+          reaction_term?: string[]
+          receivedate?: string
+          report_source?: string | null
+          safetyreportid?: string
+          serious?: number | null
+        }
+        Relationships: []
+      }
+      fda_device_enforcement: {
+        Row: {
+          address_1: string | null
+          address_2: string | null
+          center_classification_date: string | null
+          city: string | null
+          classification: string
+          code_info: string | null
+          country: string | null
+          created_at: string | null
+          distribution_pattern: string | null
+          event_id: string | null
+          id: string
+          initial_firm_notification: string | null
+          more_code_info: string | null
+          postal_code: string | null
+          product_description: string
+          product_type: string | null
+          reason_for_recall: string
+          recall_initiation_date: string | null
+          recall_number: string
+          recalling_firm: string
+          report_date: string
+          source_url: string | null
+          state: string | null
+          status: string
+          termination_date: string | null
+          updated_at: string | null
+          voluntary_mandated: string | null
+        }
+        Insert: {
+          address_1?: string | null
+          address_2?: string | null
+          center_classification_date?: string | null
+          city?: string | null
+          classification: string
+          code_info?: string | null
+          country?: string | null
+          created_at?: string | null
+          distribution_pattern?: string | null
+          event_id?: string | null
+          id?: string
+          initial_firm_notification?: string | null
+          more_code_info?: string | null
+          postal_code?: string | null
+          product_description: string
+          product_type?: string | null
+          reason_for_recall: string
+          recall_initiation_date?: string | null
+          recall_number: string
+          recalling_firm: string
+          report_date: string
+          source_url?: string | null
+          state?: string | null
+          status: string
+          termination_date?: string | null
+          updated_at?: string | null
+          voluntary_mandated?: string | null
+        }
+        Update: {
+          address_1?: string | null
+          address_2?: string | null
+          center_classification_date?: string | null
+          city?: string | null
+          classification?: string
+          code_info?: string | null
+          country?: string | null
+          created_at?: string | null
+          distribution_pattern?: string | null
+          event_id?: string | null
+          id?: string
+          initial_firm_notification?: string | null
+          more_code_info?: string | null
+          postal_code?: string | null
+          product_description?: string
+          product_type?: string | null
+          reason_for_recall?: string
+          recall_initiation_date?: string | null
+          recall_number?: string
+          recalling_firm?: string
+          report_date?: string
+          source_url?: string | null
+          state?: string | null
+          status?: string
+          termination_date?: string | null
+          updated_at?: string | null
+          voluntary_mandated?: string | null
+        }
+        Relationships: []
+      }
+      fda_drug_enforcement: {
+        Row: {
+          address_1: string | null
+          address_2: string | null
+          center_classification_date: string | null
+          city: string | null
+          classification: string
+          code_info: string | null
+          country: string | null
+          created_at: string | null
+          distribution_pattern: string | null
+          event_id: string | null
+          id: string
+          initial_firm_notification: string | null
+          more_code_info: string | null
+          postal_code: string | null
+          product_description: string
+          product_type: string | null
+          reason_for_recall: string
+          recall_initiation_date: string | null
+          recall_number: string
+          recalling_firm: string
+          report_date: string
+          source_url: string | null
+          state: string | null
+          status: string
+          termination_date: string | null
+          updated_at: string | null
+          voluntary_mandated: string | null
+        }
+        Insert: {
+          address_1?: string | null
+          address_2?: string | null
+          center_classification_date?: string | null
+          city?: string | null
+          classification: string
+          code_info?: string | null
+          country?: string | null
+          created_at?: string | null
+          distribution_pattern?: string | null
+          event_id?: string | null
+          id?: string
+          initial_firm_notification?: string | null
+          more_code_info?: string | null
+          postal_code?: string | null
+          product_description: string
+          product_type?: string | null
+          reason_for_recall: string
+          recall_initiation_date?: string | null
+          recall_number: string
+          recalling_firm: string
+          report_date: string
+          source_url?: string | null
+          state?: string | null
+          status: string
+          termination_date?: string | null
+          updated_at?: string | null
+          voluntary_mandated?: string | null
+        }
+        Update: {
+          address_1?: string | null
+          address_2?: string | null
+          center_classification_date?: string | null
+          city?: string | null
+          classification?: string
+          code_info?: string | null
+          country?: string | null
+          created_at?: string | null
+          distribution_pattern?: string | null
+          event_id?: string | null
+          id?: string
+          initial_firm_notification?: string | null
+          more_code_info?: string | null
+          postal_code?: string | null
+          product_description?: string
+          product_type?: string | null
+          reason_for_recall?: string
+          recall_initiation_date?: string | null
+          recall_number?: string
+          recalling_firm?: string
+          report_date?: string
+          source_url?: string | null
+          state?: string | null
+          status?: string
+          termination_date?: string | null
+          updated_at?: string | null
+          voluntary_mandated?: string | null
+        }
+        Relationships: []
+      }
+      fda_food_enforcement: {
+        Row: {
+          address_1: string | null
+          address_2: string | null
+          center_classification_date: string | null
+          city: string | null
+          classification: string
+          code_info: string | null
+          country: string | null
+          created_at: string | null
+          distribution_pattern: string | null
+          event_id: string | null
+          id: string
+          initial_firm_notification: string | null
+          more_code_info: string | null
+          postal_code: string | null
+          product_description: string
+          product_type: string | null
+          reason_for_recall: string
+          recall_initiation_date: string | null
+          recall_number: string
+          recalling_firm: string
+          report_date: string
+          source_url: string | null
+          state: string | null
+          status: string
+          termination_date: string | null
+          updated_at: string | null
+          voluntary_mandated: string | null
+        }
+        Insert: {
+          address_1?: string | null
+          address_2?: string | null
+          center_classification_date?: string | null
+          city?: string | null
+          classification: string
+          code_info?: string | null
+          country?: string | null
+          created_at?: string | null
+          distribution_pattern?: string | null
+          event_id?: string | null
+          id?: string
+          initial_firm_notification?: string | null
+          more_code_info?: string | null
+          postal_code?: string | null
+          product_description: string
+          product_type?: string | null
+          reason_for_recall: string
+          recall_initiation_date?: string | null
+          recall_number: string
+          recalling_firm: string
+          report_date: string
+          source_url?: string | null
+          state?: string | null
+          status: string
+          termination_date?: string | null
+          updated_at?: string | null
+          voluntary_mandated?: string | null
+        }
+        Update: {
+          address_1?: string | null
+          address_2?: string | null
+          center_classification_date?: string | null
+          city?: string | null
+          classification?: string
+          code_info?: string | null
+          country?: string | null
+          created_at?: string | null
+          distribution_pattern?: string | null
+          event_id?: string | null
+          id?: string
+          initial_firm_notification?: string | null
+          more_code_info?: string | null
+          postal_code?: string | null
+          product_description?: string
+          product_type?: string | null
+          reason_for_recall?: string
+          recall_initiation_date?: string | null
+          recall_number?: string
+          recalling_firm?: string
+          report_date?: string
+          source_url?: string | null
+          state?: string | null
+          status?: string
+          termination_date?: string | null
+          updated_at?: string | null
+          voluntary_mandated?: string | null
+        }
+        Relationships: []
+      }
+      fda_import_alerts: {
+        Row: {
+          alert_name: string
+          alert_number: string
+          alert_type: string | null
+          country: string | null
+          created_at: string | null
+          firm_name: string | null
+          id: string
+          list_type: string | null
+          product_description: string | null
+          publish_date: string
+          raw_data: Json | null
+          reason_for_alert: string | null
+          source_url: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alert_name: string
+          alert_number: string
+          alert_type?: string | null
+          country?: string | null
+          created_at?: string | null
+          firm_name?: string | null
+          id?: string
+          list_type?: string | null
+          product_description?: string | null
+          publish_date: string
+          raw_data?: Json | null
+          reason_for_alert?: string | null
+          source_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alert_name?: string
+          alert_number?: string
+          alert_type?: string | null
+          country?: string | null
+          created_at?: string | null
+          firm_name?: string | null
+          id?: string
+          list_type?: string | null
+          product_description?: string | null
+          publish_date?: string
+          raw_data?: Json | null
+          reason_for_alert?: string | null
+          source_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      fda_inspection_citations: {
+        Row: {
+          cfr_citation: string | null
+          city: string | null
+          classification: string | null
+          country: string | null
+          created_at: string | null
+          fei_number: string | null
+          fiscal_year: number
+          id: string
+          inspection_end_date: string
+          legal_name: string
+          long_description: string | null
+          project_area: string | null
+          raw_data: Json | null
+          short_description: string | null
+          state: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          cfr_citation?: string | null
+          city?: string | null
+          classification?: string | null
+          country?: string | null
+          created_at?: string | null
+          fei_number?: string | null
+          fiscal_year: number
+          id?: string
+          inspection_end_date: string
+          legal_name: string
+          long_description?: string | null
+          project_area?: string | null
+          raw_data?: Json | null
+          short_description?: string | null
+          state?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          cfr_citation?: string | null
+          city?: string | null
+          classification?: string | null
+          country?: string | null
+          created_at?: string | null
+          fei_number?: string | null
+          fiscal_year?: number
+          id?: string
+          inspection_end_date?: string
+          legal_name?: string
+          long_description?: string | null
+          project_area?: string | null
+          raw_data?: Json | null
+          short_description?: string | null
+          state?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+      fda_warning_letters: {
+        Row: {
+          company_name: string
+          created_at: string | null
+          id: string
+          issue_date: string
+          issuing_office: string
+          letter_number: string
+          letter_url: string
+          product_type: string[] | null
+          raw_data: Json | null
+          subject: string
+          violations: string[] | null
+        }
+        Insert: {
+          company_name: string
+          created_at?: string | null
+          id?: string
+          issue_date: string
+          issuing_office: string
+          letter_number: string
+          letter_url: string
+          product_type?: string[] | null
+          raw_data?: Json | null
+          subject: string
+          violations?: string[] | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string | null
+          id?: string
+          issue_date?: string
+          issuing_office?: string
+          letter_number?: string
+          letter_url?: string
+          product_type?: string[] | null
+          raw_data?: Json | null
+          subject?: string
+          violations?: string[] | null
+        }
+        Relationships: []
+      }
       impact_assessments: {
         Row: {
           alert_id: string | null
