@@ -59,12 +59,27 @@ export const FDADataSync = () => {
       name: 'fda-compliance-pipeline',
       display: 'FDA Inspection Citations',
       description: 'Form 483 observations'
+    },
+    {
+      name: 'fsis-rss-feeds',
+      display: 'FSIS Recalls (USDA)',
+      description: 'Meat, poultry, egg product recalls'
+    },
+    {
+      name: 'usda-aphis-scraper',
+      display: 'USDA APHIS',
+      description: 'Animal health & plant protection'
+    },
+    {
+      name: 'usda-ams-api',
+      display: 'USDA AMS',
+      description: 'Agricultural marketing service data'
     }
   ];
 
   return (
     <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">FDA Data Sync</h2>
+      <h2 className="text-xl font-semibold mb-4">FDA & USDA Data Sync</h2>
       <div className="space-y-3">
         {functions.map(func => (
           <div key={func.name} className="flex items-center justify-between p-3 border rounded">
