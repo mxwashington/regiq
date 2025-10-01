@@ -76,6 +76,7 @@ async function syncOrganicSuspensions(supabase: any) {
     logStep('Fetching suspended/revoked organic operations', { url });
 
     let lastError: Error | null = null;
+    let operations: any[] = [];
     const maxRetries = 3;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -111,7 +112,6 @@ async function syncOrganicSuspensions(supabase: any) {
           length: Array.isArray(data) ? data.length : 0
         });
 
-        let operations = [];
         if (Array.isArray(data)) {
           operations = data;
         } else if (data.results && Array.isArray(data.results)) {
@@ -149,57 +149,52 @@ async function syncOrganicSuspensions(supabase: any) {
       }
     }
 
-        let processedCount = 0;
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    // Process operations after successful fetch
+    let processedCount = 0;
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-        for (const operation of operations) {
-          try {
-            const alert = convertOperationToAlert(operation);
+    for (const operation of operations) {
+      try {
+        const alert = convertOperationToAlert(operation);
 
-            // Check if alert already exists
-            const { data: existing } = await supabase
-              .from('alerts')
-              .select('id')
-              .eq('title', alert.title)
-              .eq('source', alert.source)
-              .gte('published_date', thirtyDaysAgo.toISOString())
-              .maybeSingle();
+        // Check if alert already exists
+        const { data: existing } = await supabase
+          .from('alerts')
+          .select('id')
+          .eq('title', alert.title)
+          .eq('source', alert.source)
+          .gte('published_date', thirtyDaysAgo.toISOString())
+          .maybeSingle();
 
-            if (!existing) {
-              const { error } = await supabase
-                .from('alerts')
-                .insert(alert);
+        if (!existing) {
+          const { error } = await supabase
+            .from('alerts')
+            .insert(alert);
 
-              if (error) {
-                logStep('Database insert error', { error: error.message, title: alert.title });
-              } else {
-                processedCount++;
-                logStep('Added USDA AMS organic alert', { title: alert.title });
-              }
-            }
-          } catch (alertError) {
-            logStep('Error processing organic operation', { error: alertError });
-            continue;
+          if (error) {
+            logStep('Database insert error', { error: error.message, title: alert.title });
+          } else {
+            processedCount++;
+            logStep('Added USDA AMS organic alert', { title: alert.title });
           }
         }
-
-        return new Response(JSON.stringify({
-          success: true,
-          message: `Processed ${processedCount} USDA AMS organic compliance alerts`,
-          processed: processedCount,
-          total_operations: operations.length,
-          timestamp: new Date().toISOString()
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-
-      } catch (innerError) {
-        throw innerError;
+      } catch (alertError) {
+        logStep('Error processing organic operation', { error: alertError });
+        continue;
       }
     }
 
-    throw lastError || new Error('Failed to sync organic suspensions after all retries');
+    return new Response(JSON.stringify({
+      success: true,
+      message: `Processed ${processedCount} USDA AMS organic compliance alerts`,
+      processed: processedCount,
+      total_operations: operations.length,
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+
   } catch (error) {
     throw new Error(`Failed to sync organic suspensions: ${error instanceof Error ? error.message : String(error)}`);
   }
