@@ -358,74 +358,95 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ p
         }
       }
       
-      // Parse as HTML (Deno's DOMParser only supports text/html)
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(responseText, 'text/html');
+      // Manual XML/RSS parsing (DOMParser doesn't support text/xml in Deno)
+      // Helper function to extract text from XML tags
+      const extractXMLContent = (xml: string, tagName: string): string => {
+        const pattern = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i');
+        const match = xml.match(pattern);
+        if (!match) return '';
+        
+        let content = match[1].trim();
+        // Remove CDATA wrapper if present
+        content = content.replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1');
+        // Decode HTML entities
+        content = content
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'");
+        return content.trim();
+      };
 
-      if (!doc) {
-        throw new Error('Failed to parse response');
-      }
-
-      // Support both RSS (<item>) and Atom (<entry>) formats
-      // Query using lowercase since HTML parser may normalize tags
-      let items = doc.querySelectorAll('item, ITEM');
-      if (items.length === 0) {
-        items = doc.querySelectorAll('entry, ENTRY');
+      // Extract items (support both RSS <item> and Atom <entry>)
+      let itemMatches = responseText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
+      let isAtom = false;
+      
+      if (!itemMatches || itemMatches.length === 0) {
+        itemMatches = responseText.match(/<entry[^>]*>[\s\S]*?<\/entry>/gi);
+        isAtom = true;
         logger.info(`[${feedConfig.agency}] No <item> found, trying <entry> (Atom format)`);
       }
       
       logger.info(`[${feedConfig.agency}] Found feed items`, { 
-        count: items.length,
-        format: items.length > 0 ? (doc.querySelector('item, ITEM') ? 'RSS' : 'Atom') : 'unknown',
-        sampleTags: items.length > 0 ? Array.from(items).slice(0, 3).map(el => el.tagName) : []
+        count: itemMatches?.length || 0,
+        format: isAtom ? 'Atom' : 'RSS'
       });
 
-    if (items.length === 0) {
-      logger.warn(`[${feedConfig.agency}] No feed items found in response`);
-      return { processed: 0, fetched: 0, skipped: 0 };
-    }
-
-    const feedItems: FeedItem[] = [];
-    const isAtom = items.length > 0 && (items[0].tagName.toLowerCase() === 'entry');
-
-    // Parse RSS/Atom items with case-insensitive selectors
-    for (const item of items) {
-      try {
-        // Support both RSS and Atom formats (case insensitive for HTML parsing)
-        const titleEl = item.querySelector('title, TITLE');
-        const title = titleEl?.textContent?.trim() || '';
-        
-        const descEl = isAtom 
-          ? (item.querySelector('summary, SUMMARY') || item.querySelector('content, CONTENT'))
-          : item.querySelector('description, DESCRIPTION');
-        const description = descEl?.textContent?.trim() || '';
-        
-        const pubDateEl = isAtom
-          ? (item.querySelector('updated, UPDATED') || item.querySelector('published, PUBLISHED'))
-          : item.querySelector('pubDate, PUBDATE');
-        const pubDate = pubDateEl?.textContent?.trim() || '';
-        
-        const linkEl = isAtom
-          ? item.querySelector('link, LINK')
-          : item.querySelector('link, LINK');
-        const link = isAtom
-          ? (linkEl?.getAttribute('href')?.trim() || '')
-          : (linkEl?.textContent?.trim() || '');
-
-        if (title && link) {
-          feedItems.push({ title, description, pubDate, link });
-          logger.debug(`[${feedConfig.agency}] Parsed item`, { title: title.substring(0, 80) });
-        } else {
-          logger.warn(`[${feedConfig.agency}] Skipped item missing title or link`, { 
-            hasTitle: !!title, 
-            hasLink: !!link 
-          });
-        }
-      } catch (itemError) {
-        logger.warn(`[${feedConfig.agency}] Error parsing feed item`, { error: itemError });
-        continue;
+      if (!itemMatches || itemMatches.length === 0) {
+        logger.warn(`[${feedConfig.agency}] No feed items found in response`);
+        return { processed: 0, fetched: 0, skipped: 0 };
       }
-    }
+
+      const feedItems: FeedItem[] = [];
+
+      // Parse each item
+      for (const itemXML of itemMatches) {
+        try {
+          const title = extractXMLContent(itemXML, 'title');
+          
+          // For description, try multiple tags
+          let description = '';
+          if (isAtom) {
+            description = extractXMLContent(itemXML, 'summary') || 
+                         extractXMLContent(itemXML, 'content');
+          } else {
+            description = extractXMLContent(itemXML, 'description');
+          }
+          
+          // For pubDate, try multiple date tags
+          let pubDate = '';
+          if (isAtom) {
+            pubDate = extractXMLContent(itemXML, 'updated') || 
+                     extractXMLContent(itemXML, 'published');
+          } else {
+            pubDate = extractXMLContent(itemXML, 'pubDate');
+          }
+          
+          // For link, handle both text content and href attribute
+          let link = '';
+          if (isAtom) {
+            // Atom feeds use <link href="..."/>
+            const linkMatch = itemXML.match(/<link[^>]+href=["']([^"']+)["']/i);
+            link = linkMatch ? linkMatch[1] : '';
+          } else {
+            link = extractXMLContent(itemXML, 'link');
+          }
+
+          if (title && link) {
+            feedItems.push({ title, description, pubDate, link });
+            logger.debug(`[${feedConfig.agency}] Parsed item`, { title: title.substring(0, 80) });
+          } else {
+            logger.warn(`[${feedConfig.agency}] Skipped item missing title or link`, { 
+              hasTitle: !!title, 
+              hasLink: !!link 
+            });
+          }
+        } catch (itemError) {
+          logger.warn(`[${feedConfig.agency}] Error parsing feed item`, { error: itemError });
+          continue;
+        }
+      }
 
     logger.info(`[${feedConfig.agency}] Parsed feed items`, { 
       total: feedItems.length,
