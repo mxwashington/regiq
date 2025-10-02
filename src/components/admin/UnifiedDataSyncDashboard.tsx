@@ -307,6 +307,69 @@ export const UnifiedDataSyncDashboard = () => {
     toast.success(`${category} sync completed!`);
   };
 
+  const testNewFDAAdapter = async () => {
+    setLoading(prev => ({ ...prev, 'fda-alerts-adapter': true }));
+    
+    try {
+      logger.info('[UnifiedSync] Testing new FDA alerts adapter');
+      toast.info('🆕 Testing new FDA adapter...');
+      
+      const { data, error } = await supabase.functions.invoke('fda-alerts-adapter');
+
+      if (error) throw error;
+
+      const result = data as SyncResult;
+      
+      if (result.success) {
+        const inserted = result.inserted || 0;
+        const processed = result.processed || 0;
+        const skipped = result.alerts_skipped || 0;
+        
+        setLastSync(prev => ({ 
+          ...prev, 
+          'fda-alerts-adapter': { 
+            timestamp: new Date().toISOString(),
+            success: true,
+            message: `✅ ${inserted} new alerts inserted (${processed} processed, ${skipped} skipped)`
+          }
+        }));
+        
+        if (inserted > 0) {
+          toast.success(`🎉 FDA Adapter Success!`, {
+            description: `${inserted} new FDA alerts added to database`,
+          });
+        } else {
+          toast.info(`✓ FDA Adapter: Database Up-to-Date`, {
+            description: `All ${skipped} alerts already in database`,
+          });
+        }
+      } else {
+        throw new Error(result.error || result.message || 'FDA adapter failed');
+      }
+      
+      logger.info('[UnifiedSync] FDA adapter test completed:', result);
+    } catch (error) {
+      logger.error('[UnifiedSync] FDA adapter test failed:', error);
+      
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setLastSync(prev => ({ 
+        ...prev, 
+        'fda-alerts-adapter': { 
+          timestamp: new Date().toISOString(),
+          success: false,
+          message: `❌ ${errorMsg}`
+        }
+      }));
+      
+      toast.error('FDA Adapter Failed', {
+        description: errorMsg,
+        duration: 8000,
+      });
+    } finally {
+      setLoading(prev => ({ ...prev, 'fda-alerts-adapter': false }));
+    }
+  };
+
   const renderFunctionCard = (func: SyncFunction) => {
     const syncStatus = lastSync[func.name];
     const isLoading = loading[func.name];
@@ -401,11 +464,46 @@ export const UnifiedDataSyncDashboard = () => {
               Centralized dashboard to sync all regulatory data sources
             </CardDescription>
           </div>
-          <Button onClick={triggerAll} variant="default" className="gap-2 w-full sm:w-auto">
-            <RefreshCw className="h-4 w-4" />
-            Sync All Sources
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              onClick={testNewFDAAdapter} 
+              disabled={loading['fda-alerts-adapter']}
+              variant="default" 
+              className="gap-2 bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+            >
+              {loading['fda-alerts-adapter'] ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <PlayCircle className="h-4 w-4" />
+              )}
+              🆕 Test FDA Adapter
+            </Button>
+            <Button onClick={triggerAll} variant="outline" className="gap-2 w-full sm:w-auto">
+              <RefreshCw className="h-4 w-4" />
+              Sync All Sources
+            </Button>
+          </div>
         </div>
+        {lastSync['fda-alerts-adapter'] && (
+          <div className={cn(
+            "mt-4 p-3 rounded-lg border",
+            lastSync['fda-alerts-adapter'].success 
+              ? "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800" 
+              : "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
+          )}>
+            <p className={cn(
+              "text-sm font-medium",
+              lastSync['fda-alerts-adapter'].success
+                ? "text-green-800 dark:text-green-200"
+                : "text-red-800 dark:text-red-200"
+            )}>
+              FDA Adapter: {lastSync['fda-alerts-adapter'].message}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Last test: {new Date(lastSync['fda-alerts-adapter'].timestamp).toLocaleString()}
+            </p>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <div className="flex flex-col lg:flex-row gap-4">
