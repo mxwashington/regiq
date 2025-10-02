@@ -658,8 +658,7 @@ function convertToAlert(item: FeedItem, feedConfig: RSSFeedConfig): Alert {
     external_url: item.link,
     full_content: JSON.stringify(item),
     agency: feedConfig.agency,
-    region: 'US',
-    category: feedConfig.category
+    region: 'US'
   };
 }
 
