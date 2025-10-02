@@ -158,7 +158,8 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
         });
         
         setAlerts(data);
-        setTotalCount(data.length);
+        // Use the actual count from the database query, not just data.length
+        setTotalCount(count ?? data.length);
         setHasMore(limit ? data.length >= limit : false);
         setRetryCount(0);
         setLoading(false);

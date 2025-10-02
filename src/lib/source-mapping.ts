@@ -39,6 +39,8 @@ export const SOURCE_TO_FILTER_MAP: Record<string, AgencySource> = {
   'CDC': 'CDC',
   'CDC Health Advisories': 'CDC',
   'CDC Food Safety Alerts': 'CDC',
+  'CDC-EID': 'CDC',
+  'CDC-Travel': 'CDC',
   
   // Federal Register sources
   'Federal Register': 'Federal_Register',
@@ -86,7 +88,7 @@ export const FILTER_TO_SOURCES_MAP: Record<AgencySource, string[]> = {
   'USDA-ARMS': ['USDA-ARMS'],
   'USDA-FDC': ['USDA-FDC'],
   'FSIS': ['FSIS', 'FSIS Recalls', 'FSIS Meat & Poultry Recalls'],
-  'CDC': ['CDC', 'CDC Health Advisories', 'CDC Food Safety Alerts'],
+  'CDC': ['CDC', 'CDC Health Advisories', 'CDC Food Safety Alerts', 'CDC-EID', 'CDC-Travel'],
   'Federal_Register': ['Federal Register', 'Federal_Register', 'Federal Register Rules'],
   'REGULATIONS_GOV': ['REGULATIONS_GOV', 'Regulations.gov'],
   'TTB': ['TTB', 'TTB Alcohol Regulatory Updates'],
