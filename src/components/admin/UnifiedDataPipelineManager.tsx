@@ -123,33 +123,23 @@ const PIPELINE_SOURCES: PipelineSource[] = [
     test_function: 'fsis-enhanced-ingestion'
   },
   {
-    id: 'epa-echo',
-    name: 'EPA ECHO',
+    id: 'epa',
+    name: 'EPA (ECHO + Regulations.gov)',
     agency: 'EPA',
-    logo: '🌍',
-    endpoints: ['https://echo.epa.gov/api/rest-services'],
-    auth_required: false,
+    logo: '🏭',
+    endpoints: [
+      'https://echo.epa.gov/tools/web-services',
+      'https://api.regulations.gov/v4/documents'
+    ],
+    auth_required: true,
+    auth_header: 'X-Api-Key',
     cron_frequency: '24h',
     retry_attempts: 3,
     retry_backoff_ms: 2000,
     cooldown_minutes: 30,
     is_enabled: false,
-    edge_function: 'epa-echo-api'
-  },
-  {
-    id: 'epa-regulations',
-    name: 'EPA Regulations.gov',
-    agency: 'EPA',
-    logo: '📜',
-    endpoints: ['https://www.regulations.gov/api/search/v2/documents'],
-    auth_required: true,
-    auth_header: 'X-Api-Key',
-    cron_frequency: '12h',
-    retry_attempts: 3,
-    retry_backoff_ms: 2000,
-    cooldown_minutes: 20,
-    is_enabled: false,
-    edge_function: 'regulations-gov-api'
+    edge_function: 'epa-enhanced-ingestion',
+    test_function: 'epa-enhanced-ingestion'
   },
   {
     id: 'cdc-eid',
