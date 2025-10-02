@@ -47,15 +47,24 @@ interface Alert {
 
 // RSS Feed configurations for multiple agencies
 const RSS_FEEDS: RSSFeedConfig[] = [
-  // CDC Feeds - VERIFIED 2025 URLs
+  // CDC Feeds - VERIFIED 2025 URLs with actual content
   {
     agency: 'CDC',
-    source: 'CDC',
-    url: 'https://tools.cdc.gov/api/v2/resources/media.rss',
-    keywords: ['food', 'foodborne', 'outbreak', 'illness', 'contamination', 'recall', 'safety', 'surveillance', 'salmonella', 'listeria', 'e.coli'],
+    source: 'CDC-EID',
+    url: 'https://wwwnc.cdc.gov/eid/rss/ahead-of-print.xml',
+    keywords: ['disease', 'outbreak', 'infectious', 'epidemic', 'food', 'foodborne', 'illness', 'contamination', 'safety', 'surveillance', 'salmonella', 'listeria', 'e.coli'],
     urgencyLevel: 'High',
-    category: 'foodborne-illness',
-    description: 'CDC Media & News'
+    category: 'emerging-diseases',
+    description: 'CDC Emerging Infectious Diseases - Ahead of Print'
+  },
+  {
+    agency: 'CDC',
+    source: 'CDC-Travel',
+    url: 'https://wwwnc.cdc.gov/travel/rss/notices.xml',
+    keywords: ['outbreak', 'alert', 'warning', 'food', 'water', 'disease', 'illness', 'contamination'],
+    urgencyLevel: 'High',
+    category: 'travel-health',
+    description: 'CDC Travel Health Notices'
   },
 
   // EPA Feeds - VERIFIED 2025 URL
