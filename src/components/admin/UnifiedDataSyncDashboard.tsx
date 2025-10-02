@@ -307,6 +307,80 @@ export const UnifiedDataSyncDashboard = () => {
     toast.success(`${category} sync completed!`);
   };
 
+  const triggerCDCScraper = async () => {
+    setLoading(prev => ({ ...prev, 'cdc-scraper': true }));
+    
+    try {
+      logger.info('[UnifiedSync] Triggering CDC RSS scraper');
+      toast.info('🔬 Triggering CDC scraper...');
+      
+      const { data, error } = await supabase.functions.invoke('multi-agency-rss-scraper', {
+        body: { action: 'scrape_cdc' }
+      });
+
+      if (error) throw error;
+
+      const result = data as SyncResult & { 
+        total_processed?: number;
+        total_fetched?: number;
+        total_skipped?: number;
+        feed_results?: Array<{ processed: number; fetched: number; skipped: number }>;
+      };
+      
+      if (result.success) {
+        const inserted = result.total_processed || 0;
+        const fetched = result.total_fetched || 0;
+        const skipped = result.total_skipped || 0;
+        
+        setLastSync(prev => ({ 
+          ...prev, 
+          'cdc-scraper': { 
+            timestamp: new Date().toISOString(),
+            success: true,
+            message: `✅ ${inserted} new CDC alerts (${fetched} fetched, ${skipped} skipped)`
+          }
+        }));
+        
+        if (inserted > 0) {
+          toast.success(`🎉 CDC Scraper Success!`, {
+            description: `${inserted} new CDC alerts added to database`,
+          });
+        } else if (skipped > 0) {
+          toast.info(`✓ CDC Scraper: Database Up-to-Date`, {
+            description: `All ${skipped} alerts already in database`,
+          });
+        } else {
+          toast.info(`ℹ️ CDC Scraper: No New Data`, {
+            description: 'No new CDC alerts available at this time',
+          });
+        }
+      } else {
+        throw new Error(result.error || result.message || 'CDC scraper failed');
+      }
+      
+      logger.info('[UnifiedSync] CDC scraper completed:', result);
+    } catch (error) {
+      logger.error('[UnifiedSync] CDC scraper failed:', error);
+      
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setLastSync(prev => ({ 
+        ...prev, 
+        'cdc-scraper': { 
+          timestamp: new Date().toISOString(),
+          success: false,
+          message: `❌ ${errorMsg}`
+        }
+      }));
+      
+      toast.error('CDC Scraper Failed', {
+        description: errorMsg,
+        duration: 8000,
+      });
+    } finally {
+      setLoading(prev => ({ ...prev, 'cdc-scraper': false }));
+    }
+  };
+
   const testNewFDAAdapter = async () => {
     setLoading(prev => ({ ...prev, 'fda-alerts-adapter': true }));
     
@@ -466,6 +540,19 @@ export const UnifiedDataSyncDashboard = () => {
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button 
+              onClick={triggerCDCScraper} 
+              disabled={loading['cdc-scraper']}
+              variant="default" 
+              className="gap-2 bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
+            >
+              {loading['cdc-scraper'] ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <PlayCircle className="h-4 w-4" />
+              )}
+              🔬 Trigger CDC Scraper
+            </Button>
+            <Button 
               onClick={testNewFDAAdapter} 
               disabled={loading['fda-alerts-adapter']}
               variant="default" 
@@ -484,6 +571,26 @@ export const UnifiedDataSyncDashboard = () => {
             </Button>
           </div>
         </div>
+        {lastSync['cdc-scraper'] && (
+          <div className={cn(
+            "mt-4 p-3 rounded-lg border",
+            lastSync['cdc-scraper'].success 
+              ? "bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800" 
+              : "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
+          )}>
+            <p className={cn(
+              "text-sm font-medium",
+              lastSync['cdc-scraper'].success
+                ? "text-purple-800 dark:text-purple-200"
+                : "text-red-800 dark:text-red-200"
+            )}>
+              CDC Scraper: {lastSync['cdc-scraper'].message}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Last run: {new Date(lastSync['cdc-scraper'].timestamp).toLocaleString()}
+            </p>
+          </div>
+        )}
         {lastSync['fda-alerts-adapter'] && (
           <div className={cn(
             "mt-4 p-3 rounded-lg border",
