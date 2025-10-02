@@ -7,7 +7,7 @@ import { SSOConfiguration } from "@/components/SSOConfiguration";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
-import { UnifiedDataSyncDashboard } from "@/components/admin/UnifiedDataSyncDashboard";
+import { UnifiedDataPipelineManager } from "@/components/admin/UnifiedDataPipelineManager";
 
 import { logger } from '@/lib/logger';
 const LoadingScreen = () => (
@@ -53,7 +53,7 @@ const AdminDashboard: React.FC = () => {
 
             <div className="flex-1 min-w-0">
               <TabsContent value="data-sync" className="mt-0">
-                <UnifiedDataSyncDashboard />
+                <UnifiedDataPipelineManager />
               </TabsContent>
 
               <TabsContent value="analytics" className="mt-0">
