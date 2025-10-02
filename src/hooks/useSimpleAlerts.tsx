@@ -113,6 +113,14 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
         }
 
         const { data, error: fetchError, count } = await query;
+        
+        console.log('[useSimpleAlerts] Query completed:', { 
+          dataLength: data?.length, 
+          count, 
+          hasError: !!fetchError,
+          errorCode: fetchError?.code,
+          errorMessage: fetchError?.message
+        });
 
         if (fetchError) {
           logger.error('[useSimpleAlerts] Query failed:', fetchError);
@@ -133,6 +141,13 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
         
         // Apply client-side source filtering if needed
         let filteredData = data;
+        console.log('[useSimpleAlerts] Pre-filter data:', { 
+          totalFetched: data.length,
+          hasFilters: !!filters,
+          sourceFiltersLength: filters?.sources?.length,
+          sampleSources: data.slice(0, 5).map(a => ({ source: a.source, agency: a.agency }))
+        });
+        
         if (filters && filters.sources.length > 0 && filters.sources.length < 15) {
           console.log('[Filtering] Applying filters:', filters.sources);
           filteredData = data.filter(alert => {
@@ -140,9 +155,9 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
               sourceMatchesFilter(alert.source, filterCategory, alert.agency)
             );
             
-            // Debug Federal Register filtering
-            if (alert.source === 'Federal Register') {
-              console.log('[Filtering] Federal Register decision:', {
+            // Debug FDA filtering
+            if (alert.source === 'FDA') {
+              console.log('[Filtering] FDA alert decision:', {
                 source: alert.source,
                 agency: alert.agency,
                 requestedFilters: filters.sources,
@@ -153,7 +168,11 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
             
             return matchesAnyFilter;
           });
-          console.log('[Filtering] Result:', { originalCount: data.length, filteredCount: filteredData.length });
+          console.log('[Filtering] Result:', { 
+            originalCount: data.length, 
+            filteredCount: filteredData.length,
+            removedCount: data.length - filteredData.length 
+          });
         }
         
         setAlerts(filteredData);
@@ -192,6 +211,12 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
   };
 
   useEffect(() => {
+    console.log('[useSimpleAlerts] useEffect triggered with:', { 
+      limit, 
+      filtersPresent: !!filters,
+      filterSources: filters?.sources,
+      filterDays: filters?.sinceDays 
+    });
     loadAlertsWithRetry();
   }, [limit, filters, toast]);
 
