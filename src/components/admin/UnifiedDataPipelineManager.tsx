@@ -449,38 +449,42 @@ export const UnifiedDataPipelineManager = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Global Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h3 className="text-2xl font-bold flex items-center gap-2">
-            <Database className="h-6 w-6" />
-            Data Pipeline Management
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Unified control center for all regulatory data ingestion sources
-          </p>
-        </div>
+    <div className="space-y-4 pb-24 md:pb-6">
+      {/* Header - Mobile Optimized */}
+      <div className="space-y-2">
+        <h3 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+          <Database className="h-5 w-5 md:h-6 md:w-6" />
+          Data Pipeline
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Unified control center for regulatory data sources
+        </p>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+      {/* Sticky Toolbar - Mobile Optimized */}
+      <div className="fixed bottom-0 left-0 right-0 md:relative bg-background border-t md:border-t-0 md:border md:rounded-lg p-4 z-40 shadow-lg md:shadow-none">
+        <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:items-center md:justify-end max-w-7xl mx-auto">
           <Button
             onClick={runAllHealthChecks}
             disabled={loading}
-            className="flex items-center gap-2"
+            className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 h-auto min-h-[44px] py-2 md:py-2 text-xs md:text-sm"
           >
             {loading ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
+              <RefreshCw className="h-5 w-5 md:h-4 md:w-4 animate-spin" />
             ) : (
-              <PlayCircle className="h-4 w-4" />
+              <PlayCircle className="h-5 w-5 md:h-4 md:w-4" />
             )}
-            Run All Health Checks
+            <span className="md:inline">Health Check</span>
           </Button>
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Backfill
+              <Button 
+                variant="outline" 
+                className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 h-auto min-h-[44px] py-2 md:py-2 text-xs md:text-sm"
+              >
+                <Calendar className="h-5 w-5 md:h-4 md:w-4" />
+                <span className="md:inline">Backfill</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -493,22 +497,25 @@ export const UnifiedDataPipelineManager = () => {
               <div className="space-y-4">
                 <div>
                   <Label>Start Date</Label>
-                  <Input type="date" />
+                  <Input type="date" className="min-h-[44px]" />
                 </div>
                 <div>
                   <Label>End Date</Label>
-                  <Input type="date" />
+                  <Input type="date" className="min-h-[44px]" />
                 </div>
-                <Button disabled>Run Backfill</Button>
+                <Button disabled className="min-h-[44px] w-full">Run Backfill</Button>
               </div>
             </DialogContent>
           </Dialog>
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Export
+              <Button 
+                variant="outline" 
+                className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 h-auto min-h-[44px] py-2 md:py-2 text-xs md:text-sm"
+              >
+                <Download className="h-5 w-5 md:h-4 md:w-4" />
+                <span className="md:inline">Export</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -518,12 +525,19 @@ export const UnifiedDataPipelineManager = () => {
                   Download source health logs in your preferred format
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <Button onClick={() => exportLogs('csv')} className="w-full">
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => exportLogs('csv')} 
+                  className="w-full min-h-[44px]"
+                >
                   <FileText className="mr-2 h-4 w-4" />
                   Export as CSV
                 </Button>
-                <Button onClick={() => exportLogs('json')} className="w-full" variant="outline">
+                <Button 
+                  onClick={() => exportLogs('json')} 
+                  className="w-full min-h-[44px]" 
+                  variant="outline"
+                >
                   <FileText className="mr-2 h-4 w-4" />
                   Export as JSON
                 </Button>
@@ -546,8 +560,8 @@ export const UnifiedDataPipelineManager = () => {
         </Alert>
       )}
 
-      {/* Pipeline Sources Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* Pipeline Sources Grid - Mobile Optimized */}
+      <div className="grid gap-4 md:gap-6 md:grid-cols-2">
         {sources.map(source => {
           const health = sourceHealth[source.id] || {
             status: 'disabled',
@@ -561,50 +575,49 @@ export const UnifiedDataPipelineManager = () => {
 
           return (
             <Card key={source.id} className={`border-2 ${source.is_enabled ? '' : 'opacity-60'}`}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{source.logo}</span>
-                    <div>
-                      <CardTitle className="text-lg">{source.name}</CardTitle>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 md:gap-3 flex-1">
+                    <span className="text-2xl md:text-3xl">{source.logo}</span>
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base md:text-lg truncate">{source.name}</CardTitle>
                       <CardDescription className="text-xs">
-                        {source.agency} • {source.cron_frequency} schedule
+                        {source.agency} • {source.cron_frequency}
                       </CardDescription>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={getStatusColor(health.status)}>
-                        {health.status}
-                      </Badge>
-                      <Switch
-                        checked={source.is_enabled}
-                        onCheckedChange={(checked) => toggleSource(source.id, checked)}
-                      />
-                    </div>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <Badge variant="outline" className={`${getStatusColor(health.status)} text-xs whitespace-nowrap`}>
+                      {health.status}
+                    </Badge>
+                    <Switch
+                      checked={source.is_enabled}
+                      onCheckedChange={(checked) => toggleSource(source.id, checked)}
+                      className="min-h-[24px]"
+                    />
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                {/* Health Metrics */}
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Last Fetch</p>
-                    <p className="text-sm font-medium">
+              <CardContent className="space-y-4 pt-0">
+                {/* Health Metrics - Stacked on Mobile */}
+                <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+                  <div className="flex justify-between md:block md:text-center p-3 md:p-0 bg-muted/50 md:bg-transparent rounded-lg md:rounded-none">
+                    <p className="text-sm md:text-xs text-muted-foreground font-medium md:font-normal">Last Fetch</p>
+                    <p className="text-base md:text-sm font-bold md:font-medium">
                       {health.last_fetch 
                         ? new Date(health.last_fetch).toLocaleDateString()
                         : 'Never'}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Records (7d)</p>
-                    <p className="text-sm font-medium">{health.records_7d}</p>
+                  <div className="flex justify-between md:block md:text-center p-3 md:p-0 bg-muted/50 md:bg-transparent rounded-lg md:rounded-none">
+                    <p className="text-sm md:text-xs text-muted-foreground font-medium md:font-normal">Records (7d)</p>
+                    <p className="text-base md:text-sm font-bold md:font-medium">{health.records_7d}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Freshness</p>
-                    <p className="text-sm font-medium">
+                  <div className="flex justify-between md:block md:text-center p-3 md:p-0 bg-muted/50 md:bg-transparent rounded-lg md:rounded-none">
+                    <p className="text-sm md:text-xs text-muted-foreground font-medium md:font-normal">Freshness</p>
+                    <p className="text-base md:text-sm font-bold md:font-medium">
                       {health.freshness_hours < 24 
                         ? `${Math.round(health.freshness_hours)}h` 
                         : `${Math.round(health.freshness_hours / 24)}d`}
@@ -615,24 +628,24 @@ export const UnifiedDataPipelineManager = () => {
                 {/* Error Display */}
                 {health.last_error && (
                   <Alert variant="destructive" className="text-xs">
-                    <AlertCircle className="h-3 w-3" />
-                    <AlertDescription>
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <AlertDescription className="text-xs">
                       {health.last_error.substring(0, 100)}
                     </AlertDescription>
                   </Alert>
                 )}
 
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-2">
+                {/* Action Buttons - 2x2 Grid on Mobile */}
+                <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:gap-2">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => runSourceHealthCheck(source)}
                     disabled={loading || !source.is_enabled}
-                    className="flex-1"
+                    className="flex items-center justify-center gap-2 min-h-[44px] md:flex-1"
                   >
-                    <Activity className="mr-2 h-3 w-3" />
-                    Health Check
+                    <Activity className="h-4 w-4" />
+                    <span className="text-xs md:text-sm">Health Check</span>
                   </Button>
 
                   <Button
@@ -640,10 +653,10 @@ export const UnifiedDataPipelineManager = () => {
                     variant="outline"
                     onClick={() => runInlineTest(source)}
                     disabled={loading || !source.is_enabled || !source.test_function}
-                    className="flex-1"
+                    className="flex items-center justify-center gap-2 min-h-[44px] md:flex-1"
                   >
-                    <TestTube className="mr-2 h-3 w-3" />
-                    Test
+                    <TestTube className="h-4 w-4" />
+                    <span className="text-xs md:text-sm">Test</span>
                   </Button>
 
                   <Dialog>
@@ -652,10 +665,10 @@ export const UnifiedDataPipelineManager = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => setSelectedSource(source)}
-                        className="flex-1"
+                        className="flex items-center justify-center gap-2 min-h-[44px] md:flex-1 col-span-2 md:col-span-1"
                       >
-                        <SettingsIcon className="mr-2 h-3 w-3" />
-                        Config
+                        <SettingsIcon className="h-4 w-4" />
+                        <span className="text-xs md:text-sm">Config</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
