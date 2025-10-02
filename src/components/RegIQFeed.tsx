@@ -36,6 +36,19 @@ export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
 
   // Convert to Alert format - filtering is already handled by useAlertFilters
   const alerts = useMemo(() => {
+    console.log('[RegIQFeed] Raw fetchedAlerts:', {
+      fetchedAlertsLength: fetchedAlerts?.length || 0,
+      loading,
+      hasData: !!fetchedAlerts,
+      filters: alertFilters,
+      sampleAlert: fetchedAlerts?.[0] ? {
+        id: fetchedAlerts[0].id,
+        title: fetchedAlerts[0].title?.substring(0, 50),
+        source: fetchedAlerts[0].source,
+        agency: fetchedAlerts[0].agency
+      } : null
+    });
+    
     const converted = (fetchedAlerts || []).map((alert: any): Alert => ({
       id: alert.id,
       title: alert.title,
@@ -48,14 +61,15 @@ export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
       full_content: alert.full_content
     }));
     
-    logger.info('[RegIQFeed] Converted alerts:', {
+    console.log('[RegIQFeed] Converted alerts:', {
       fetchedCount: fetchedAlerts?.length || 0,
       convertedCount: converted.length,
-      loading,
-      sampleConverted: converted[0]
+      fdaCount: converted.filter(a => a.source === 'FDA').length,
+      sampleSources: converted.slice(0, 5).map(a => ({ source: a.source, agency: a.agency }))
     });
+    
     return converted;
-  }, [fetchedAlerts, loading]);
+  }, [fetchedAlerts, loading, alertFilters]);
 
   if (loading) {
     return (
