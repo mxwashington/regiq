@@ -3127,6 +3127,42 @@ export type Database = {
         }
         Relationships: []
       }
+      source_health_logs: {
+        Row: {
+          cdc_status: string
+          check_timestamp: string
+          created_at: string | null
+          epa_status: string
+          fda_status: string
+          fsis_status: string
+          id: string
+          overall_status: string
+          results: Json | null
+        }
+        Insert: {
+          cdc_status: string
+          check_timestamp?: string
+          created_at?: string | null
+          epa_status: string
+          fda_status: string
+          fsis_status: string
+          id?: string
+          overall_status: string
+          results?: Json | null
+        }
+        Update: {
+          cdc_status?: string
+          check_timestamp?: string
+          created_at?: string | null
+          epa_status?: string
+          fda_status?: string
+          fsis_status?: string
+          id?: string
+          overall_status?: string
+          results?: Json | null
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -4371,6 +4407,12 @@ export type Database = {
       check_profiles_security: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      check_source_duplicates: {
+        Args: { source_name: string }
+        Returns: {
+          duplicate_count: number
+        }[]
       }
       clean_expired_cache: {
         Args: Record<PropertyKey, never>

@@ -43,15 +43,22 @@ serve(async (req) => {
   try {
     logStep("FDA Warning Letters scraper started");
 
-    const { action } = await req.json().catch(() => ({ action: 'scrape_warning_letters' }));
+    const { action = 'scrape_warning_letters', test_mode = false, fallback_trigger = false } = await req.json().catch(() => ({}));
+
+    // Check if FDA Enforcement API is down and we need fallback
+    if (fallback_trigger || await shouldUseFallback(supabaseClient)) {
+      logStep('FDA Enforcement API unavailable - triggering Warning Letters fallback');
+    }
 
     switch (action) {
       case 'scrape_warning_letters':
-        return await scrapeWarningLetters(supabaseClient);
+        return await scrapeWarningLetters(supabaseClient, test_mode);
       case 'test_scraper':
         return await testScraper();
+      case 'test_inline':
+        return await runInlineTest(supabaseClient);
       default:
-        return await scrapeWarningLetters(supabaseClient);
+        return await scrapeWarningLetters(supabaseClient, test_mode);
     }
 
   } catch (error) {
@@ -68,6 +75,100 @@ serve(async (req) => {
     });
   }
 });
+
+/**
+ * Check if FDA Enforcement API is down and fallback needed
+ */
+async function shouldUseFallback(supabase: any): Promise<boolean> {
+  try {
+    const { data: recentHealth } = await supabase
+      .from('api_health_checks')
+      .select('*')
+      .eq('api_name', 'FDA')
+      .order('checked_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!recentHealth) return false;
+
+    // Check if last check was >24h ago or failed
+    const lastCheck = new Date(recentHealth.checked_at);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - lastCheck.getTime()) / (1000 * 60 * 60);
+
+    return hoursDiff > 24 || recentHealth.status !== 'healthy';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Run inline test - fetch sample data to validate
+ */
+async function runInlineTest(supabaseClient: any) {
+  logStep('Running inline test mode');
+
+  try {
+    // Fetch sample letters
+    const letters = await fetchWarningLettersFromHTML();
+    
+    if (letters.length === 0) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'No warning letters found',
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+
+    // Take first 5 for testing
+    const testLetters = letters.slice(0, 5);
+    const testRecords = testLetters.map(letter => transformToAlert(letter));
+
+    // Check for duplicates against existing enforcement alerts
+    const { data: existingAlerts } = await supabaseClient
+      .from('alerts')
+      .select('external_url')
+      .in('external_url', testRecords.map(r => r.external_url));
+
+    const existingUrls = new Set(existingAlerts?.map((a: any) => a.external_url) || []);
+    const deduped = testRecords.filter(r => !existingUrls.has(r.external_url));
+
+    logStep('Inline test complete', {
+      total_fetched: testLetters.length,
+      duplicates_found: testRecords.length - deduped.length,
+      unique_records: deduped.length
+    });
+
+    return new Response(JSON.stringify({
+      success: true,
+      test_mode: true,
+      sample_records: deduped,
+      total_fetched: testLetters.length,
+      duplicates_found: testRecords.length - deduped.length,
+      unique_records: deduped.length,
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    logStep('Inline test failed', { error: errorMsg });
+
+    return new Response(JSON.stringify({
+      success: false,
+      error: errorMsg,
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    });
+  }
+}
 
 async function fetchWithRetry(url: string, retryCount = 0): Promise<Response> {
   const maxRetries = 3;
@@ -101,8 +202,107 @@ async function fetchWithRetry(url: string, retryCount = 0): Promise<Response> {
   }
 }
 
-async function scrapeWarningLetters(supabase: any) {
+async function scrapeWarningLetters(supabase: any, testMode: boolean = false) {
   // FDA Warning Letters page - CORRECTED URL
+  const warningLettersUrl = 'https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-actions-and-activities/warning-letters';
+
+  logStep('Fetching FDA Warning Letters page', { url: warningLettersUrl, test_mode: testMode });
+
+  try {
+    const letters = await fetchWarningLettersFromHTML();
+
+    if (letters.length === 0) {
+      logStep('No warning letters found - page structure may have changed');
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'No warning letters found - page structure may have changed',
+        processed: 0,
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    logStep('Warning letters extracted', { count: letters.length });
+
+    // Transform to alerts
+    const alerts = letters.map(letter => transformToAlert(letter));
+
+    // Check for duplicates against existing alerts (both enforcement and warning letters)
+    const { data: existingAlerts } = await supabase
+      .from('alerts')
+      .select('external_url')
+      .in('external_url', alerts.map(a => a.external_url));
+
+    const existingUrls = new Set(existingAlerts?.map((a: any) => a.external_url) || []);
+    const newAlerts = alerts.filter(a => !existingUrls.has(a.external_url));
+
+    logStep('Deduplication complete', {
+      total: alerts.length,
+      duplicates: alerts.length - newAlerts.length,
+      new: newAlerts.length
+    });
+
+    if (testMode) {
+      return new Response(JSON.stringify({
+        success: true,
+        test_mode: true,
+        message: 'Test mode - no data inserted',
+        total_fetched: letters.length,
+        unique_records: newAlerts.length,
+        sample_records: newAlerts.slice(0, 5),
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Insert new alerts
+    if (newAlerts.length > 0) {
+      const { error: insertError } = await supabase
+        .from('alerts')
+        .insert(newAlerts);
+
+      if (insertError) {
+        throw insertError;
+      }
+    }
+
+    logStep('FDA Warning Letters scrape complete', {
+      inserted: newAlerts.length
+    });
+
+    return new Response(JSON.stringify({
+      success: true,
+      processed: letters.length,
+      inserted: newAlerts.length,
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    logStep('Scrape error', { error: errorMsg });
+
+    return new Response(JSON.stringify({
+      success: false,
+      error: errorMsg,
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
+  }
+}
+
+/**
+ * Fetch warning letters from HTML page
+ */
+async function fetchWarningLettersFromHTML(): Promise<WarningLetter[]> {
   const warningLettersUrl = 'https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-actions-and-activities/warning-letters';
 
   logStep('Fetching FDA Warning Letters page', { url: warningLettersUrl });
@@ -145,15 +345,7 @@ async function scrapeWarningLetters(supabase: any) {
 
     if (tableRows.length === 0) {
       logStep('No warning letters found with any selector - page may have changed structure');
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'No warning letters found - page structure may have changed',
-        processed: 0,
-        timestamp: new Date().toISOString()
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      return [];
     }
 
     const warningLetters: WarningLetter[] = [];
@@ -209,26 +401,17 @@ async function scrapeWarningLetters(supabase: any) {
     }
 
     logStep('Parsed warning letters', { total: warningLetters.length });
+    return warningLetters;
 
-    if (warningLetters.length === 0) {
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'No warning letters extracted - page structure may need review',
-        processed: 0,
-        timestamp: new Date().toISOString()
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
+  } catch (error) {
+    throw new Error(`Failed to fetch FDA warning letters: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
 
-    // Convert to alerts and save to database
-    let processedCount = 0;
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-    for (const letter of warningLetters.slice(0, 50)) { // Process up to 50 most recent
-      try {
-        const alert = convertToAlert(letter);
+/**
+ * Transform warning letter to alert format
+ */
+function transformToAlert(letter: WarningLetter): any {
         
         // Extract violations from subject/title
         const violations: string[] = [];
@@ -305,6 +488,13 @@ async function scrapeWarningLetters(supabase: any) {
   } catch (error) {
     throw new Error(`Failed to scrape FDA warning letters: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+/**
+ * Transform warning letter to alert format
+ */
+function transformToAlert(letter: WarningLetter): any {
+  return convertToAlert(letter);
 }
 
 async function testScraper() {

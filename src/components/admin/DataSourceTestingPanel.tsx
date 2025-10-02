@@ -124,7 +124,7 @@ export const DataSourceTestingPanel = () => {
   const fetchLogs = async () => {
     try {
       let query = supabase
-        .from('source_health_logs')
+        .from('source_health_logs' as any)
         .select('*')
         .order('check_timestamp', { ascending: false });
 
