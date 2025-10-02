@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { AuthTestingPanel } from '@/components/stubs/MissingComponents';
 import { Badge } from '@/components/ui/badge';
-import { Users, Settings, Database, User, Search, Eye, Bot, Shield, Link, Cpu, Wrench } from 'lucide-react';
+import { Users, Settings, Database, User, Search, Eye, Bot, Shield, Link, Cpu, Wrench, Activity } from 'lucide-react';
 import { AdminAlertManager } from "./AdminAlertManager";
 import { DataPipelineManager } from "./DataPipelineManager";
 import { SessionHealthMonitor } from "./SessionHealthMonitor";
@@ -13,6 +13,7 @@ import { PWASettings } from "./PWASettings";
 import { ConversationalChatbot } from "./ConversationalChatbot";
 import { AlertSourceFinder } from "./AlertSourceFinder";
 import { SourceLinkManager } from "./SourceLinkManager";
+import { DataSourceTestingPanel } from "./admin/DataSourceTestingPanel";
 
 export const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -41,10 +42,14 @@ export const AdminDashboard = () => {
         
       <Tabs defaultValue="alerts" className="w-full">
         <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-7 min-w-max">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-8 min-w-max">
             <TabsTrigger value="alerts" className="text-xs md:text-sm flex items-center gap-1">
               <Database className="h-3 w-3" />
               Alerts
+            </TabsTrigger>
+            <TabsTrigger value="testing" className="text-xs md:text-sm flex items-center gap-1">
+              <Activity className="h-3 w-3" />
+              Testing
             </TabsTrigger>
             <TabsTrigger value="ai-assistant" className="text-xs md:text-sm flex items-center gap-1">
               <Bot className="h-3 w-3" />
@@ -83,6 +88,21 @@ export const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <AdminAlertManager />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="testing" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Data Source Testing & Health
+                <Badge variant="secondary">Unified Testing Hub</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DataSourceTestingPanel />
             </CardContent>
           </Card>
         </TabsContent>
