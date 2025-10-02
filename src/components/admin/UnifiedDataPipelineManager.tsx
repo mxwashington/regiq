@@ -142,20 +142,25 @@ const PIPELINE_SOURCES: PipelineSource[] = [
     test_function: 'epa-enhanced-ingestion'
   },
   {
-    id: 'cdc-eid',
-    name: 'CDC EID/MMWR',
+    id: 'cdc',
+    name: 'CDC (EID + MMWR)',
     agency: 'CDC',
     logo: '🦠',
-    endpoints: ['https://tools.cdc.gov/api/v2/resources/media'],
+    endpoints: [
+      'https://wwwnc.cdc.gov/eid/rss/ahead-of-print.xml',
+      'https://www.cdc.gov/mmwr/rss.xml'
+    ],
     auth_required: false,
     cron_frequency: '24h',
     retry_attempts: 3,
     retry_backoff_ms: 2000,
     cooldown_minutes: 30,
-    is_enabled: false,
-    edge_function: 'cdc-media-api'
+    is_enabled: true,
+    edge_function: 'cdc-enhanced-ingestion',
+    test_function: 'cdc-enhanced-ingestion'
   }
 ];
+
 
 export const UnifiedDataPipelineManager = () => {
   const [sources, setSources] = useState<PipelineSource[]>(PIPELINE_SOURCES);
