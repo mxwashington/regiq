@@ -412,67 +412,8 @@ async function fetchWarningLettersFromHTML(): Promise<WarningLetter[]> {
  * Transform warning letter to alert format
  */
 function transformToAlert(letter: WarningLetter): any {
-        
-        // Extract violations from subject/title
-        const violations: string[] = [];
-        const text = `${letter.title} ${letter.subject}`.toLowerCase();
-        if (text.includes('cgmp')) violations.push('CGMP Violations');
-        if (text.includes('adulteration')) violations.push('Adulteration');
-        if (text.includes('misbranding')) violations.push('Misbranding');
-        if (text.includes('inspection')) violations.push('Inspection Issues');
-
-        // Save to dedicated fda_warning_letters table
-        const { error: wlError } = await supabase
-          .from('fda_warning_letters')
-          .upsert({
-            letter_number: `WL-${letter.title.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 50)}-${Date.now()}`,
-            issuing_office: letter.issuerOffice || 'FDA',
-            issue_date: alert.published_date.split('T')[0],
-            subject: letter.subject || letter.title,
-            company_name: letter.company,
-            letter_url: letter.link,
-            product_type: ['Food'],
-            violations: violations,
-            raw_data: letter
-          }, {
-            onConflict: 'letter_number'
-          });
-
-        if (wlError) {
-          logStep('Error saving to fda_warning_letters table', { error: wlError.message });
-        }
-
-        // Check if alert already exists in general alerts table (avoid duplicates)
-        const { data: existing } = await supabase
-          .from('alerts')
-          .select('id')
-          .eq('title', alert.title)
-          .eq('source', alert.source)
-          .gte('published_date', thirtyDaysAgo.toISOString())
-          .maybeSingle();
-
-        if (!existing) {
-          const { error } = await supabase
-            .from('alerts')
-            .insert(alert);
-
-          if (error) {
-            logStep('Database insert error', { error: error.message, title: alert.title });
-          } else {
-            processedCount++;
-            logStep('Added FDA warning letter alert', { title: alert.title });
-          }
-        } else {
-          logStep('Warning letter already exists', { title: alert.title });
-        }
-      } catch (alertError) {
-        logStep('Error processing warning letter', {
-          error: alertError,
-          title: letter.title
-        });
-        continue;
-      }
-    }
+  return convertToAlert(letter);
+}
 
     return new Response(JSON.stringify({
       success: true,
