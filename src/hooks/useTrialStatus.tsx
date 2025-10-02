@@ -39,14 +39,17 @@ export const useTrialStatus = () => {
 
       if (error) throw error;
 
-      // No trial logic - users are either free or paid
-      const isPaid = profile?.subscription_status === 'active' || profile?.subscription_status === 'paid';
+      // Users are either free (limited features) or paid (full features)
+      const status = profile?.subscription_status || 'free';
+      const isPaid = status === 'active' || status === 'paid';
+      const isFree = status === 'free';
       
       setTrialStatus({
-        isTrialExpired: isAdmin ? false : !isPaid, // Admins always have access, free users need to upgrade
-        daysRemaining: isAdmin ? -1 : (isPaid ? -1 : 0), // -1 indicates unlimited for admins/paid users
+        // Free and paid users are both "active" - feature gates handle limitations
+        isTrialExpired: false, // No one is expired - free tier is valid
+        daysRemaining: -1, // No expiration - free tier is permanent
         trialEndsAt: null, // No trials exist
-        subscriptionStatus: isAdmin ? 'admin' : (profile?.subscription_status || 'free'),
+        subscriptionStatus: isAdmin ? 'admin' : status,
         loading: false
       });
     } catch (error) {
