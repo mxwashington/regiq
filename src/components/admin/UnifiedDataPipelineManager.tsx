@@ -158,6 +158,23 @@ const PIPELINE_SOURCES: PipelineSource[] = [
     is_enabled: true,
     edge_function: 'cdc-enhanced-ingestion',
     test_function: 'cdc-enhanced-ingestion'
+  },
+  {
+    id: 'cdc-foodsafety',
+    name: 'CDC Food Safety Feed',
+    agency: 'CDC',
+    logo: '🍽️',
+    endpoints: [
+      'http://www2c.cdc.gov/podcasts/createrss.asp?c=146'
+    ],
+    auth_required: false,
+    cron_frequency: '12h',
+    retry_attempts: 3,
+    retry_backoff_ms: 2000,
+    cooldown_minutes: 30,
+    is_enabled: true,
+    edge_function: 'cdc-foodsafety-ingestion',
+    test_function: 'cdc-foodsafety-ingestion'
   }
 ];
 
