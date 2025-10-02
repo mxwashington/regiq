@@ -98,7 +98,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
             query = query.or(`source.in.("${allSourceNames.join('","')}"),agency.in.("${allAgencyNames.join('","')}")`);
           }
 
-          // Filter by date range
+          // Filter by date range (0 means all time)
           if (filters.sinceDays && filters.sinceDays > 0) {
             const sinceDate = new Date();
             sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
@@ -246,7 +246,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
             query = query.or(`source.in.("${allSourceNames.join('","')}"),agency.in.("${allAgencyNames.join('","')}")`);
           }
           
-          // Filter by date range
+          // Filter by date range (0 means all time)
           if (filters.sinceDays && filters.sinceDays > 0) {
             const sinceDate = new Date();
             sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);

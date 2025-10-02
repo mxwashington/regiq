@@ -31,8 +31,8 @@ export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
   // Use alert filters hook for filtering
   const { filters: alertFilters } = useAlertFilters();
 
-  // Fetch alerts data with filters (filtering is done at the hook level)
-  const { alerts: fetchedAlerts, loading, loadMore, hasMore } = useSimpleAlerts(200, alertFilters);
+  // Fetch alerts data with filters - no hard limit, use pagination
+  const { alerts: fetchedAlerts, loading, loadMore, hasMore } = useSimpleAlerts(100, alertFilters);
 
   // Convert to Alert format - filtering is already handled by useAlertFilters
   const alerts = useMemo(() => {

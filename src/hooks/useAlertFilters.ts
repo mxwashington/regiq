@@ -17,7 +17,7 @@ export interface AlertFilters {
 
 const DEFAULT_FILTERS: AlertFilters = {
   sources: ['FDA', 'EPA', 'USDA', 'FSIS', 'Federal_Register', 'CDC', 'REGULATIONS_GOV', 'USDA-ARMS', 'USDA-FDC', 'TTB', 'NOAA', 'OSHA', 'USDA_APHIS', 'CBP', 'FDA_IMPORT'],
-  sinceDays: 30,
+  sinceDays: 90,
   minSeverity: null,
   searchQuery: '',
 };

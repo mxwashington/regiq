@@ -33,6 +33,8 @@ const DATE_RANGES = [
   { value: 90, label: 'Last 90 days' },
   { value: 180, label: 'Last 6 months' },
   { value: 365, label: 'Last year' },
+  { value: 730, label: 'Last 2 years' },
+  { value: 0, label: 'All time' },
 ];
 
 export function DashboardFilterPanel({
