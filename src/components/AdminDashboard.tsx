@@ -42,10 +42,10 @@ export const AdminDashboard = () => {
         
       <Tabs defaultValue="alerts" className="w-full">
         <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-8 min-w-max">
-            <TabsTrigger value="alerts" className="text-xs md:text-sm flex items-center gap-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 min-w-max">
+            <TabsTrigger value="pipeline" className="text-xs md:text-sm flex items-center gap-1">
               <Database className="h-3 w-3" />
-              Alerts
+              Data Pipeline
             </TabsTrigger>
             <TabsTrigger value="testing" className="text-xs md:text-sm flex items-center gap-1">
               <Activity className="h-3 w-3" />
@@ -59,14 +59,6 @@ export const AdminDashboard = () => {
               <Users className="h-3 w-3" />
               User Management
             </TabsTrigger>
-            <TabsTrigger value="source-links" className="text-xs md:text-sm flex items-center gap-1">
-              <Link className="h-3 w-3" />
-              Source Links
-            </TabsTrigger>
-            <TabsTrigger value="pipeline" className="text-xs md:text-sm flex items-center gap-1">
-              <Cpu className="h-3 w-3" />
-              API Pipeline
-            </TabsTrigger>
             <TabsTrigger value="settings" className="text-xs md:text-sm flex items-center gap-1">
               <Settings className="h-3 w-3" />
               Settings
@@ -78,16 +70,17 @@ export const AdminDashboard = () => {
           </TabsList>
         </div>
 
-        <TabsContent value="alerts" className="mt-4">
+        <TabsContent value="pipeline" className="mt-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                Alerts Management
+                Unified Data Pipeline Management
+                <Badge variant="secondary">Central Control</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <AdminAlertManager />
+              <DataPipelineManager />
             </CardContent>
           </Card>
         </TabsContent>
@@ -147,45 +140,6 @@ export const AdminDashboard = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="source-links" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Link className="h-5 w-5" />
-                Source Links Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SourceLinkManager />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="pipeline" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Cpu className="h-5 w-5" />
-                API Pipeline & Data Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <DataPipelineManager />
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Wrench className="h-4 w-4" />
-                    Management Tools
-                  </h3>
-                  <div className="space-y-6">
-                    <AdminAlertManager />
-                    <AlertSourceFinder />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="settings" className="mt-4">
           <Card>
