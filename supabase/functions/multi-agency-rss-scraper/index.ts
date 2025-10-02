@@ -182,47 +182,121 @@ async function scrapeAllAgencies(supabase: any) {
 }
 
 async function scrapeSpecificAgency(supabase: any, agency: string) {
+  const startTime = Date.now();
   const agencyFeeds = RSS_FEEDS.filter(feed => feed.agency === agency);
 
   if (agencyFeeds.length === 0) {
     throw new Error(`No feeds configured for agency: ${agency}`);
   }
 
+  // Start sync log
+  const { data: logData, error: logError } = await supabase
+    .rpc('start_sync_log', {
+      p_source: agency,
+      p_metadata: {
+        action: `scrape_${agency.toLowerCase()}`,
+        feeds_count: agencyFeeds.length,
+        started_at: new Date().toISOString()
+      }
+    });
+
+  if (logError) {
+    logger.error('Failed to start sync log', { error: logError });
+  }
+
+  const syncLogId = logData;
   let totalProcessed = 0;
+  let totalFetched = 0;
+  let totalSkipped = 0;
+  const errors: string[] = [];
   const results: any[] = [];
 
   for (const feedConfig of agencyFeeds) {
     try {
-      const processed = await scrapeFeed(supabase, feedConfig);
+      const { processed, fetched, skipped } = await scrapeFeed(supabase, feedConfig);
       totalProcessed += processed;
+      totalFetched += fetched;
+      totalSkipped += skipped;
 
       results.push({
         description: feedConfig.description,
         processed,
+        fetched,
+        skipped,
         status: 'success'
       });
 
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
       logger.error(`Error processing ${agency} feed`, {
         url: feedConfig.url,
-        error: error instanceof Error ? error.message : String(error)
+        error: errorMsg
       });
 
+      errors.push(`${feedConfig.description}: ${errorMsg}`);
       results.push({
         description: feedConfig.description,
         processed: 0,
+        fetched: 0,
+        skipped: 0,
         status: 'error',
-        error: error instanceof Error ? error.message : String(error)
+        error: errorMsg
       });
     }
   }
 
+  const processingTimeMs = Date.now() - startTime;
+  const status = errors.length === agencyFeeds.length ? 'error' : 'success';
+
+  // Finish sync log
+  if (syncLogId) {
+    await supabase.rpc('finish_sync_log', {
+      p_log_id: syncLogId,
+      p_status: status,
+      p_alerts_fetched: totalFetched,
+      p_alerts_inserted: totalProcessed,
+      p_alerts_skipped: totalSkipped,
+      p_errors: errors.length > 0 ? errors : null,
+      p_results: {
+        processing_time_ms: processingTimeMs,
+        feeds_processed: agencyFeeds.length,
+        feed_results: results
+      }
+    });
+  }
+
+  // Update data freshness
+  await supabase
+    .from('data_freshness')
+    .upsert({
+      source_name: agency,
+      last_successful_fetch: new Date().toISOString(),
+      last_attempt: new Date().toISOString(),
+      fetch_status: status,
+      records_fetched: totalProcessed,
+      error_message: errors.length > 0 ? errors.join('; ') : null
+    }, {
+      onConflict: 'source_name'
+    });
+
+  logger.info(`${agency} scraping completed`, {
+    processed: totalProcessed,
+    fetched: totalFetched,
+    skipped: totalSkipped,
+    errors: errors.length,
+    duration_ms: processingTimeMs
+  });
+
   return new Response(JSON.stringify({
-    success: true,
+    success: status === 'success',
     message: `${agency} RSS scraping completed. Processed ${totalProcessed} alerts.`,
     agency,
     total_processed: totalProcessed,
+    total_fetched: totalFetched,
+    total_skipped: totalSkipped,
+    processing_time_ms: processingTimeMs,
     feed_results: results,
+    errors: errors.length > 0 ? errors : undefined,
     timestamp: new Date().toISOString()
   }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -230,7 +304,7 @@ async function scrapeSpecificAgency(supabase: any, agency: string) {
   });
 }
 
-async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<number> {
+async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ processed: number; fetched: number; skipped: number }> {
   logger.info(`Fetching RSS feed`, { url: feedConfig.url });
 
   let retries = 3;
@@ -272,7 +346,7 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<num
       logger.info(`Found RSS items`, { count: items.length, agency: feedConfig.agency });
 
     if (items.length === 0) {
-      return 0;
+      return { processed: 0, fetched: 0, skipped: 0 };
     }
 
     const feedItems: FeedItem[] = [];
@@ -303,11 +377,12 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<num
     });
 
     if (relevantItems.length === 0) {
-      return 0;
+      return { processed: 0, fetched: feedItems.length, skipped: feedItems.length };
     }
 
     // Save to database
     let processedCount = 0;
+    let skippedCount = 0;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     for (const item of relevantItems) {
@@ -334,10 +409,13 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<num
               title: alert.title,
               agency: feedConfig.agency
             });
+            skippedCount++;
           } else {
             processedCount++;
             logger.info(`Added ${feedConfig.agency} alert`, { title: alert.title });
           }
+        } else {
+          skippedCount++;
         }
       } catch (alertError) {
         logger.error('Error processing item', {
@@ -345,11 +423,16 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<num
           title: item.title,
           agency: feedConfig.agency
         });
+        skippedCount++;
         continue;
       }
     }
 
-      return processedCount;
+      return { 
+        processed: processedCount, 
+        fetched: feedItems.length, 
+        skipped: skippedCount 
+      };
 
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
