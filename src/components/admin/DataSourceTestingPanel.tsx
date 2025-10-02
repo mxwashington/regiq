@@ -97,6 +97,10 @@ export const DataSourceTestingPanel = () => {
           functionName = 'fetch-openfda-enforcement';
           body = { test_mode: true };
           break;
+        case 'FSIS RSS/API':
+          functionName = 'fsis-enhanced-ingestion';
+          body = { test_mode: true };
+          break;
         default:
           throw new Error(`No test available for ${source}`);
       }
@@ -330,7 +334,7 @@ export const DataSourceTestingPanel = () => {
               {[
                 { name: 'FDA Enforcement', available: true },
                 { name: 'FDA Warning Letters', available: true },
-                { name: 'FSIS RSS/API', available: false },
+                { name: 'FSIS RSS/API', available: true },
                 { name: 'EPA', available: false },
                 { name: 'CDC', available: false },
               ].map((source) => (
