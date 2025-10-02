@@ -359,6 +359,15 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ p
       }
       
       // Manual XML/RSS parsing (DOMParser doesn't support text/xml in Deno)
+      // Log XML structure for debugging
+      logger.info(`[${feedConfig.agency}] XML content sample`, {
+        fullLength: responseText.length,
+        hasItemTag: responseText.includes('<item>'),
+        hasItemSelfClosing: responseText.includes('<item/>'),
+        hasEntryTag: responseText.includes('<entry>'),
+        sample: responseText.substring(0, 2000)
+      });
+
       // Helper function to extract text from XML tags
       const extractXMLContent = (xml: string, tagName: string): string => {
         const pattern = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i');
