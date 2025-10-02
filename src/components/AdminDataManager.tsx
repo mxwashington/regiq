@@ -195,6 +195,50 @@ export const AdminDataManager: React.FC = () => {
     }
   };
 
+  const handleTestNewFDAAdapter = async () => {
+    setLoading(true);
+
+    try {
+      logger.info('[AdminDataManager] Testing new FDA adapter');
+      toast.info('Testing new FDA alerts adapter...');
+
+      const response = await fetch('https://piyikxxgoekawboitrzz.supabase.co/functions/v1/fda-alerts-adapter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeWlreHhnb2VrYXdib2l0cnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MDM2MjUsImV4cCI6MjA2ODQ3OTYyNX0.YfgCG-BorBSfyXk4MdIxko9AHT4-ef0MfO24rCpjy94`
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(`✅ FDA Adapter: ${data.processed} processed, ${data.inserted} inserted, ${data.skipped} skipped`);
+        setSyncResults([{
+          source: 'FDA (New Adapter)',
+          success: true,
+          startTime: new Date(),
+          endTime: new Date(),
+          alertsFetched: data.processed || 0,
+          alertsInserted: data.inserted || 0,
+          alertsUpdated: data.updated || 0,
+          alertsSkipped: data.skipped || 0,
+          errors: data.error ? [data.error] : []
+        }]);
+      } else {
+        toast.error(`FDA Adapter failed: ${data.error || data.message}`);
+      }
+
+      await loadSyncStatus();
+
+    } catch (error) {
+      logger.error('[AdminDataManager] New FDA adapter test failed:', error);
+      toast.error(`FDA adapter test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSyncFSIS = async () => {
     setLoading(true);
 
@@ -352,9 +396,10 @@ export const AdminDataManager: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="manual" className="space-y-4">
-            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-4 md:h-10">
+            <TabsList className="flex flex-col w-full h-auto md:grid md:grid-cols-5 md:h-10">
               <TabsTrigger value="manual" className="w-full justify-start md:justify-center">Manual Sync</TabsTrigger>
               <TabsTrigger value="all" className="w-full justify-start md:justify-center">All Sources</TabsTrigger>
+              <TabsTrigger value="fda-new" className="w-full justify-start md:justify-center">🆕 FDA Adapter</TabsTrigger>
               <TabsTrigger value="fda" className="w-full justify-start md:justify-center">FDA Food</TabsTrigger>
               <TabsTrigger value="fsis" className="w-full justify-start md:justify-center">USDA FSIS</TabsTrigger>
             </TabsList>
@@ -397,10 +442,34 @@ export const AdminDataManager: React.FC = () => {
               </div>
             </TabsContent>
 
+            <TabsContent value="fda-new" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">🆕 New FDA Alerts Adapter (Recommended)</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Clean FDA enforcement data from openFDA API - last 30 days
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      ✓ Uses your FDA API key for higher rate limits (240/min)
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleTestNewFDAAdapter}
+                    disabled={loading}
+                    className="gap-2"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
+                    Test FDA Adapter
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="fda" className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">FDA Food Enforcement</h3>
+                  <h3 className="font-medium">FDA Food Enforcement (Legacy)</h3>
                   <p className="text-sm text-muted-foreground">
                     Import food safety alerts and recalls from FDA OpenAPI
                   </p>

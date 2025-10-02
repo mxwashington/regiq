@@ -107,6 +107,9 @@ verify_jwt = false
 [functions.perplexity-search]
 verify_jwt = false
 
+[functions.fda-alerts-adapter]
+verify_jwt = false
+
 [auth.external.apple]
 enabled = false
 client_id = ""
