@@ -116,7 +116,17 @@ export function getDatabaseSources(filterCategory: AgencySource): string[] {
 
 // Check if a database source matches a filter category
 export function sourceMatchesFilter(databaseSource: string, filterCategory: AgencySource, alertAgency?: string): boolean {
-  return getFilterCategory(databaseSource, alertAgency) === filterCategory;
+  // Check if the source field matches directly
+  const sourceMatch = getFilterCategory(databaseSource, alertAgency) === filterCategory;
+  if (sourceMatch) return true;
+  
+  // Also check if the agency field matches the filter category
+  // This handles cases like Regulations.gov alerts with agency: "FDA"
+  if (alertAgency && SOURCE_TO_FILTER_MAP[alertAgency] === filterCategory) {
+    return true;
+  }
+  
+  return false;
 }
 
 // Validate source mappings - check for unmapped sources
