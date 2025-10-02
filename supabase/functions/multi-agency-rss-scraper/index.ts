@@ -589,9 +589,6 @@ function filterRelevantItems(items: FeedItem[], keywords: string[]): FeedItem[] 
   
   return filtered;
 }
-    return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
-  });
-}
 
 function convertToAlert(item: FeedItem, feedConfig: RSSFeedConfig): Alert {
   // Parse publication date
