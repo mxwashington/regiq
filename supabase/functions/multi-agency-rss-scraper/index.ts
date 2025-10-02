@@ -305,7 +305,7 @@ async function scrapeSpecificAgency(supabase: any, agency: string) {
 }
 
 async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ processed: number; fetched: number; skipped: number }> {
-  logger.info(`Fetching RSS feed`, { url: feedConfig.url });
+  logger.info(`[${feedConfig.agency}] Fetching RSS feed`, { url: feedConfig.url });
 
   let retries = 3;
   let lastError: Error | null = null;
@@ -315,7 +315,7 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ p
       const response = await fetch(feedConfig.url, {
         headers: {
           'User-Agent': 'RegIQ-MultiAgencyScraper/2.0',
-          'Accept': 'application/rss+xml, application/xml, text/xml, text/html, */*',
+          'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
           'Cache-Control': 'no-cache'
         },
         signal: AbortSignal.timeout(20000)
@@ -324,7 +324,7 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ p
       if (!response.ok) {
         if (attempt < retries && (response.status === 429 || response.status >= 500)) {
           const backoff = Math.pow(2, attempt) * 1000;
-          logger.warn(`Attempt ${attempt} failed (${response.status}), retrying in ${backoff}ms`);
+          logger.warn(`[${feedConfig.agency}] Attempt ${attempt} failed (${response.status}), retrying in ${backoff}ms`);
           await new Promise(resolve => setTimeout(resolve, backoff));
           continue;
         }
@@ -334,46 +334,109 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ p
       const contentType = response.headers.get('content-type') || '';
       const responseText = await response.text();
       
-      // Parse based on content type
+      // Enhanced logging for debugging
+      logger.info(`[${feedConfig.agency}] Response received`, {
+        contentType,
+        contentLength: responseText.length,
+        preview: responseText.substring(0, 500)
+      });
+      
+      // Detect if response is JSON (CDC API might return JSON)
+      if (contentType.includes('json') || responseText.trim().startsWith('{') || responseText.trim().startsWith('[')) {
+        logger.info(`[${feedConfig.agency}] Detected JSON response, attempting JSON parse`);
+        try {
+          const jsonData = JSON.parse(responseText);
+          logger.info(`[${feedConfig.agency}] JSON parsed successfully`, { 
+            keys: Object.keys(jsonData),
+            type: Array.isArray(jsonData) ? 'array' : 'object'
+          });
+          // CDC API might have a different structure - log and return empty for now
+          logger.warn(`[${feedConfig.agency}] JSON format not yet supported for this feed`);
+          return { processed: 0, fetched: 0, skipped: 0 };
+        } catch (jsonError) {
+          logger.error(`[${feedConfig.agency}] Failed to parse as JSON`, { error: jsonError });
+        }
+      }
+      
+      // Parse as XML (RSS/Atom)
       const parser = new DOMParser();
-      const doc = parser.parseFromString(responseText, 'text/html');
+      const doc = parser.parseFromString(responseText, 'text/xml');
 
       if (!doc) {
-        throw new Error('Failed to parse response');
+        throw new Error('Failed to parse XML response');
       }
 
-      const items = doc.querySelectorAll('item');
-      logger.info(`Found RSS items`, { count: items.length, agency: feedConfig.agency });
+      // Check for XML parsing errors
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        logger.error(`[${feedConfig.agency}] XML parsing error`, { 
+          error: parseError.textContent,
+          preview: responseText.substring(0, 500)
+        });
+        throw new Error(`XML parsing error: ${parseError.textContent}`);
+      }
+
+      // Support both RSS (<item>) and Atom (<entry>) formats
+      let items = doc.querySelectorAll('item');
+      if (items.length === 0) {
+        items = doc.querySelectorAll('entry');
+        logger.info(`[${feedConfig.agency}] No <item> found, trying <entry> (Atom format)`);
+      }
+      
+      logger.info(`[${feedConfig.agency}] Found feed items`, { 
+        count: items.length,
+        format: items.length > 0 ? (doc.querySelector('item') ? 'RSS' : 'Atom') : 'unknown'
+      });
 
     if (items.length === 0) {
+      logger.warn(`[${feedConfig.agency}] No feed items found in response`);
       return { processed: 0, fetched: 0, skipped: 0 };
     }
 
     const feedItems: FeedItem[] = [];
+    const isAtom = items.length > 0 && items[0].tagName.toLowerCase() === 'entry';
 
-    // Parse RSS items
+    // Parse RSS/Atom items
     for (const item of items) {
       try {
+        // Support both RSS and Atom formats
         const title = item.querySelector('title')?.textContent?.trim() || '';
-        const description = item.querySelector('description')?.textContent?.trim() || '';
-        const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
-        const link = item.querySelector('link')?.textContent?.trim() || '';
+        const description = isAtom 
+          ? (item.querySelector('summary')?.textContent?.trim() || item.querySelector('content')?.textContent?.trim() || '')
+          : (item.querySelector('description')?.textContent?.trim() || '');
+        const pubDate = isAtom
+          ? (item.querySelector('updated')?.textContent?.trim() || item.querySelector('published')?.textContent?.trim() || '')
+          : (item.querySelector('pubDate')?.textContent?.trim() || '');
+        const link = isAtom
+          ? (item.querySelector('link')?.getAttribute('href')?.trim() || '')
+          : (item.querySelector('link')?.textContent?.trim() || '');
 
         if (title && link) {
           feedItems.push({ title, description, pubDate, link });
+          logger.debug(`[${feedConfig.agency}] Parsed item`, { title: title.substring(0, 80) });
+        } else {
+          logger.warn(`[${feedConfig.agency}] Skipped item missing title or link`, { 
+            hasTitle: !!title, 
+            hasLink: !!link 
+          });
         }
       } catch (itemError) {
-        logger.warn('Error parsing RSS item', { error: itemError });
+        logger.warn(`[${feedConfig.agency}] Error parsing feed item`, { error: itemError });
         continue;
       }
     }
 
+    logger.info(`[${feedConfig.agency}] Parsed feed items`, { 
+      total: feedItems.length,
+      format: isAtom ? 'Atom' : 'RSS'
+    });
+
     // Filter for relevant items
     const relevantItems = filterRelevantItems(feedItems, feedConfig.keywords);
-    logger.info(`Filtered relevant items`, {
-      agency: feedConfig.agency,
+    logger.info(`[${feedConfig.agency}] Filtered relevant items`, {
       total: feedItems.length,
-      relevant: relevantItems.length
+      relevant: relevantItems.length,
+      keywords: feedConfig.keywords
     });
 
     if (relevantItems.length === 0) {
@@ -496,8 +559,36 @@ async function testAllFeeds() {
 }
 
 function filterRelevantItems(items: FeedItem[], keywords: string[]): FeedItem[] {
-  return items.filter(item => {
+  const filtered = items.filter(item => {
     const searchText = `${item.title} ${item.description}`.toLowerCase();
+    const matchedKeywords: string[] = [];
+    
+    const hasMatch = keywords.some(keyword => {
+      if (searchText.includes(keyword.toLowerCase())) {
+        matchedKeywords.push(keyword);
+        return true;
+      }
+      return false;
+    });
+    
+    if (hasMatch) {
+      logger.debug('Item matched keywords', { 
+        title: item.title.substring(0, 60),
+        keywords: matchedKeywords
+      });
+    }
+    
+    return hasMatch;
+  });
+  
+  logger.info('Keyword filtering complete', {
+    total: items.length,
+    matched: filtered.length,
+    keywords: keywords.join(', ')
+  });
+  
+  return filtered;
+}
     return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
   });
 }
