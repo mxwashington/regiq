@@ -358,34 +358,26 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ p
         }
       }
       
-      // Parse as XML (RSS/Atom)
+      // Parse as HTML (Deno's DOMParser only supports text/html)
       const parser = new DOMParser();
-      const doc = parser.parseFromString(responseText, 'text/xml');
+      const doc = parser.parseFromString(responseText, 'text/html');
 
       if (!doc) {
-        throw new Error('Failed to parse XML response');
-      }
-
-      // Check for XML parsing errors
-      const parseError = doc.querySelector('parsererror');
-      if (parseError) {
-        logger.error(`[${feedConfig.agency}] XML parsing error`, { 
-          error: parseError.textContent,
-          preview: responseText.substring(0, 500)
-        });
-        throw new Error(`XML parsing error: ${parseError.textContent}`);
+        throw new Error('Failed to parse response');
       }
 
       // Support both RSS (<item>) and Atom (<entry>) formats
-      let items = doc.querySelectorAll('item');
+      // Query using lowercase since HTML parser may normalize tags
+      let items = doc.querySelectorAll('item, ITEM');
       if (items.length === 0) {
-        items = doc.querySelectorAll('entry');
+        items = doc.querySelectorAll('entry, ENTRY');
         logger.info(`[${feedConfig.agency}] No <item> found, trying <entry> (Atom format)`);
       }
       
       logger.info(`[${feedConfig.agency}] Found feed items`, { 
         count: items.length,
-        format: items.length > 0 ? (doc.querySelector('item') ? 'RSS' : 'Atom') : 'unknown'
+        format: items.length > 0 ? (doc.querySelector('item, ITEM') ? 'RSS' : 'Atom') : 'unknown',
+        sampleTags: items.length > 0 ? Array.from(items).slice(0, 3).map(el => el.tagName) : []
       });
 
     if (items.length === 0) {
@@ -394,22 +386,31 @@ async function scrapeFeed(supabase: any, feedConfig: RSSFeedConfig): Promise<{ p
     }
 
     const feedItems: FeedItem[] = [];
-    const isAtom = items.length > 0 && items[0].tagName.toLowerCase() === 'entry';
+    const isAtom = items.length > 0 && (items[0].tagName.toLowerCase() === 'entry');
 
-    // Parse RSS/Atom items
+    // Parse RSS/Atom items with case-insensitive selectors
     for (const item of items) {
       try {
-        // Support both RSS and Atom formats
-        const title = item.querySelector('title')?.textContent?.trim() || '';
-        const description = isAtom 
-          ? (item.querySelector('summary')?.textContent?.trim() || item.querySelector('content')?.textContent?.trim() || '')
-          : (item.querySelector('description')?.textContent?.trim() || '');
-        const pubDate = isAtom
-          ? (item.querySelector('updated')?.textContent?.trim() || item.querySelector('published')?.textContent?.trim() || '')
-          : (item.querySelector('pubDate')?.textContent?.trim() || '');
+        // Support both RSS and Atom formats (case insensitive for HTML parsing)
+        const titleEl = item.querySelector('title, TITLE');
+        const title = titleEl?.textContent?.trim() || '';
+        
+        const descEl = isAtom 
+          ? (item.querySelector('summary, SUMMARY') || item.querySelector('content, CONTENT'))
+          : item.querySelector('description, DESCRIPTION');
+        const description = descEl?.textContent?.trim() || '';
+        
+        const pubDateEl = isAtom
+          ? (item.querySelector('updated, UPDATED') || item.querySelector('published, PUBLISHED'))
+          : item.querySelector('pubDate, PUBDATE');
+        const pubDate = pubDateEl?.textContent?.trim() || '';
+        
+        const linkEl = isAtom
+          ? item.querySelector('link, LINK')
+          : item.querySelector('link, LINK');
         const link = isAtom
-          ? (item.querySelector('link')?.getAttribute('href')?.trim() || '')
-          : (item.querySelector('link')?.textContent?.trim() || '');
+          ? (linkEl?.getAttribute('href')?.trim() || '')
+          : (linkEl?.textContent?.trim() || '');
 
         if (title && link) {
           feedItems.push({ title, description, pubDate, link });
