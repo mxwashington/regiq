@@ -1597,6 +1597,57 @@ export type Database = {
         }
         Relationships: []
       }
+      epa_test: {
+        Row: {
+          agency: string
+          created_at: string
+          external_id: string
+          external_url: string | null
+          full_content: string | null
+          id: string
+          published_date: string
+          region: string | null
+          relevance_score: number | null
+          source: string
+          summary: string
+          test_run_id: string | null
+          title: string
+          urgency: string
+        }
+        Insert: {
+          agency: string
+          created_at?: string
+          external_id: string
+          external_url?: string | null
+          full_content?: string | null
+          id?: string
+          published_date: string
+          region?: string | null
+          relevance_score?: number | null
+          source: string
+          summary: string
+          test_run_id?: string | null
+          title: string
+          urgency: string
+        }
+        Update: {
+          agency?: string
+          created_at?: string
+          external_id?: string
+          external_url?: string | null
+          full_content?: string | null
+          id?: string
+          published_date?: string
+          region?: string | null
+          relevance_score?: number | null
+          source?: string
+          summary?: string
+          test_run_id?: string | null
+          title?: string
+          urgency?: string
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           context: Json | null
