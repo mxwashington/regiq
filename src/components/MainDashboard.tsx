@@ -36,7 +36,7 @@ export function MainDashboard() {
   const { filters } = useAlertFilters();
 
   // Fetch all alerts with current filters
-  const { alerts, loading, error, totalCount } = useSimpleAlerts(50, filters);
+  const { alerts, loading, error, totalCount } = useSimpleAlerts(200, filters);
   const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
 
   // Simple freshness indicator logic

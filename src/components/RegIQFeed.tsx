@@ -32,7 +32,7 @@ export function RegIQFeed({ onSaveAlert, savedAlerts = [] }: RegIQFeedProps) {
   const { filters: alertFilters } = useAlertFilters();
 
   // Fetch alerts data with filters (filtering is done at the hook level)
-  const { alerts: fetchedAlerts, loading, loadMore, hasMore } = useSimpleAlerts(50, alertFilters);
+  const { alerts: fetchedAlerts, loading, loadMore, hasMore } = useSimpleAlerts(200, alertFilters);
 
   // Convert to Alert format - filtering is already handled by useAlertFilters
   const alerts = useMemo(() => {
