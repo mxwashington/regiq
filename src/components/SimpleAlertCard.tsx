@@ -173,10 +173,10 @@ const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({ alert, onDismissAlert
             <h3 className={`font-semibold leading-tight line-clamp-2 mb-2 mobile-text-content alert-title break-words-mobile ${isMobile ? 'text-xs' : 'text-sm'}`}>
               {alert.title}
             </h3>
-            <div className={`flex items-center gap-2 text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>
+            <div className={`flex flex-col gap-0.5 text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>
               <span className="flex items-center gap-1">
                 <Clock className={isMobile ? "h-2.5 w-2.5" : "h-3 w-3"} />
-                {isMobile ? 
+                Published: {isMobile ? 
                   formatDate(alert.published_date).split(',')[0] : // Just date on mobile
                   formatDate(alert.published_date)
                 }

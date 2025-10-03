@@ -25,13 +25,15 @@ Deno.serve(async (req) => {
       fda: { success: false, count: 0, error: null },
       usda: { success: false, count: 0, error: null },
       cdcOutbreaks: { success: false, count: 0, error: null },
+      cdcEmergency: { success: false, count: 0, error: null },
     };
 
     // Run all syncs in parallel
-    const [fdaResult, usdaResult, cdcOutbreaksResult] = await Promise.allSettled([
+    const [fdaResult, usdaResult, cdcOutbreaksResult, cdcEmergencyResult] = await Promise.allSettled([
       syncFDARecalls(supabase),
       syncUSDARecalls(supabase),
       syncCDCOutbreakAlerts(supabase),
+      syncCDCEmergencyAlerts(supabase),
     ]);
 
     if (fdaResult.status === 'fulfilled') {
@@ -52,7 +54,13 @@ Deno.serve(async (req) => {
       results.cdcOutbreaks.error = cdcOutbreaksResult.reason?.message || 'Unknown error';
     }
 
-    const totalSynced = results.fda.count + results.usda.count + results.cdcOutbreaks.count;
+    if (cdcEmergencyResult.status === 'fulfilled') {
+      results.cdcEmergency = cdcEmergencyResult.value;
+    } else {
+      results.cdcEmergency.error = cdcEmergencyResult.reason?.message || 'Unknown error';
+    }
+
+    const totalSynced = results.fda.count + results.usda.count + results.cdcOutbreaks.count + results.cdcEmergency.count;
 
     await supabase
       .from('sync_logs')
@@ -89,9 +97,9 @@ async function syncFDARecalls(supabase: any) {
   let newCount = 0;
   let updatedCount = 0;
 
-  // Calculate date range for last 365 days
+  // Calculate date range for last 365 days (fix: use setFullYear for accurate year subtraction)
   const oneYearAgo = new Date();
-  oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
   const startDate = oneYearAgo.toISOString().split('T')[0]; // Format: YYYY-MM-DD
   const endDate = new Date().toISOString().split('T')[0];
 
@@ -397,9 +405,9 @@ async function syncCDCOutbreakAlerts(supabase: any) {
         external_id: `CDC-OUTBREAK-${year}-${state}-${pathogen}`.replace(/\s+/g, '-'),
         source: 'CDC',
         agency: 'CDC',
-        title,
-        summary: `${pathogen} outbreak linked to ${food} in ${state}`,
-        urgency: 'High',
+        title: `[Historical] ${title}`,
+        summary: `Historical surveillance data: ${pathogen} outbreak linked to ${food} in ${state}`,
+        urgency: 'Low',
         published_date: `${year}-01-01`,
         external_url: 'https://www.cdc.gov/foodsafety/outbreaks/',
         full_content: JSON.stringify(item),
@@ -463,4 +471,92 @@ function extractKeywords(text: string): string[] {
   });
 
   return Array.from(keywords).slice(0, 10);
+}
+
+async function syncCDCEmergencyAlerts(supabase: any) {
+  let newCount = 0;
+  let updatedCount = 0;
+
+  const rssUrl = 'https://tools.cdc.gov/api/v2/resources/media/403372.rss';
+
+  try {
+    console.log('CDC Emergency: Fetching real-time alerts from RSS feed');
+    const response = await fetch(rssUrl);
+    if (!response.ok) throw new Error(`CDC Emergency RSS error: ${response.status}`);
+
+    const xmlText = await response.text();
+    
+    // Parse RSS items
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    const items = Array.from(xmlText.matchAll(itemRegex));
+
+    console.log(`CDC Emergency: Processing ${items.length} alerts`);
+
+    for (const match of items) {
+      const itemXml = match[1];
+      
+      // Extract fields
+      const titleMatch = itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
+      const descMatch = itemXml.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/);
+      const linkMatch = itemXml.match(/<link>(.*?)<\/link>/);
+      const pubDateMatch = itemXml.match(/<pubDate>(.*?)<\/pubDate>/);
+      
+      if (!titleMatch || !linkMatch) {
+        console.warn('Skipping CDC emergency alert without title or link');
+        continue;
+      }
+
+      const title = titleMatch[1].trim();
+      const description = descMatch ? descMatch[1].replace(/<[^>]+>/g, '').trim() : title;
+      const link = linkMatch[1].trim();
+      const pubDate = pubDateMatch ? new Date(pubDateMatch[1]).toISOString() : new Date().toISOString();
+
+      const externalId = `CDC-EMERGENCY-${link.split('/').pop()}`;
+
+      // Determine urgency based on content
+      const lowerTitle = title.toLowerCase();
+      const urgency = lowerTitle.includes('outbreak') || lowerTitle.includes('emergency') || lowerTitle.includes('warning') 
+        ? 'High' 
+        : lowerTitle.includes('alert') || lowerTitle.includes('advisory')
+        ? 'Medium'
+        : 'Low';
+
+      const alertData = {
+        external_id: externalId,
+        source: 'CDC',
+        agency: 'CDC',
+        title,
+        summary: description.substring(0, 500),
+        urgency,
+        urgency_score: urgency === 'High' ? 9 : urgency === 'Medium' ? 5 : 3,
+        published_date: pubDate,
+        external_url: link,
+        full_content: itemXml,
+      };
+
+      const { data: existing } = await supabase
+        .from('alerts')
+        .select('id')
+        .eq('external_id', externalId)
+        .eq('source', 'CDC')
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('alerts')
+          .update(alertData)
+          .eq('id', existing.id);
+        updatedCount++;
+      } else {
+        await supabase.from('alerts').insert(alertData);
+        newCount++;
+      }
+    }
+
+    console.log(`CDC Emergency sync complete: ${newCount} new, ${updatedCount} updated`);
+    return { success: true, count: newCount + updatedCount, error: null };
+  } catch (error) {
+    console.error('CDC Emergency sync error:', error);
+    return { success: false, count: 0, error: error.message };
+  }
 }

@@ -175,10 +175,10 @@ const TaggedAlertCard: React.FC<TaggedAlertCardProps> = ({ alert, onTagClick, on
             <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-2">
               {alert.title}
             </h3>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {formatDate(alert.published_date)}
+                Published: {formatDate(alert.published_date)}
               </span>
               <span>{alert.source}</span>
             </div>
