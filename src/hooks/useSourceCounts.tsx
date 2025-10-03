@@ -8,7 +8,7 @@ interface SourceCount {
   count: number;
 }
 
-export const useSourceCounts = (sinceDays: number = 30) => {
+export const useSourceCounts = (sinceDays: number = 30, selectedSources?: AgencySource[]) => {
   const [sourceCounts, setSourceCounts] = useState<Record<AgencySource, number>>({} as Record<AgencySource, number>);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,10 +19,19 @@ export const useSourceCounts = (sinceDays: number = 30) => {
       
       // Fetch source counts based on sinceDays parameter
       const sinceDate = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
-      const { data, error } = await supabase
+      
+      let query = supabase
         .from('alerts')
         .select('source, agency, title')
         .gte('published_date', sinceDate.toISOString());
+      
+      // Apply source filter if provided (matching dashboard logic)
+      if (selectedSources && selectedSources.length > 0) {
+        const sourceConditions = selectedSources.map(s => `source.eq.${s},agency.eq.${s}`).join(',');
+        query = query.or(sourceConditions);
+      }
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error('Source counts fetch error:', error);
@@ -138,7 +147,7 @@ export const useSourceCounts = (sinceDays: number = 30) => {
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [sinceDays]);
+  }, [sinceDays, selectedSources]);
 
   const refetch = () => {
     fetchSourceCounts();
