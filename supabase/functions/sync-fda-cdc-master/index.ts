@@ -25,15 +25,13 @@ Deno.serve(async (req) => {
       fda: { success: false, count: 0, error: null },
       usda: { success: false, count: 0, error: null },
       cdcOutbreaks: { success: false, count: 0, error: null },
-      cdcAdvisories: { success: false, count: 0, error: null },
     };
 
     // Run all syncs in parallel
-    const [fdaResult, usdaResult, cdcOutbreaksResult, cdcAdvisoriesResult] = await Promise.allSettled([
+    const [fdaResult, usdaResult, cdcOutbreaksResult] = await Promise.allSettled([
       syncFDARecalls(supabase),
       syncUSDARecalls(supabase),
       syncCDCOutbreakAlerts(supabase),
-      syncCDCEmergencyAdvisories(supabase),
     ]);
 
     if (fdaResult.status === 'fulfilled') {
@@ -54,13 +52,7 @@ Deno.serve(async (req) => {
       results.cdcOutbreaks.error = cdcOutbreaksResult.reason?.message || 'Unknown error';
     }
 
-    if (cdcAdvisoriesResult.status === 'fulfilled') {
-      results.cdcAdvisories = cdcAdvisoriesResult.value;
-    } else {
-      results.cdcAdvisories.error = cdcAdvisoriesResult.reason?.message || 'Unknown error';
-    }
-
-    const totalSynced = results.fda.count + results.usda.count + results.cdcOutbreaks.count + results.cdcAdvisories.count;
+    const totalSynced = results.fda.count + results.usda.count + results.cdcOutbreaks.count;
 
     await supabase
       .from('sync_logs')
@@ -360,89 +352,6 @@ async function syncCDCOutbreakAlerts(supabase: any) {
   }
 }
 
-async function syncCDCEmergencyAdvisories(supabase: any) {
-  let newCount = 0;
-  let updatedCount = 0;
-
-  const url = 'https://wwwnc.cdc.gov/travel/rss/notices.xml';
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`CDC RSS error: ${response.status}`);
-
-    const rssText = await response.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(rssText, 'text/xml');
-    const items = xmlDoc.querySelectorAll('item');
-
-    for (const item of items) {
-      const title = item.querySelector('title')?.textContent || 'CDC Advisory';
-      const link = item.querySelector('link')?.textContent || '';
-      const description = item.querySelector('description')?.textContent || '';
-      const pubDate = item.querySelector('pubDate')?.textContent;
-
-      if (!link) continue;
-
-      const urgency = inferUrgency(title);
-      const publishDate = pubDate ? new Date(pubDate).toISOString() : new Date().toISOString();
-
-      const advisoryData = {
-        title,
-        description,
-        urgency,
-        publish_date: publishDate,
-        source_url: link,
-        keywords: extractKeywords(title + ' ' + description),
-      };
-
-      const { data: existing } = await supabase
-        .from('cdc_emergency_advisories')
-        .select('id')
-        .eq('source_url', link)
-        .maybeSingle();
-
-      if (existing) {
-        await supabase
-          .from('cdc_emergency_advisories')
-          .update(advisoryData)
-          .eq('id', existing.id);
-        updatedCount++;
-      } else {
-        await supabase.from('cdc_emergency_advisories').insert(advisoryData);
-        newCount++;
-      }
-
-      // Also insert into alerts table for dashboard display
-      const alertData = {
-        external_id: link,
-        source: 'CDC',
-        agency: 'CDC',
-        title,
-        summary: description.substring(0, 500),
-        urgency,
-        published_date: publishDate,
-        external_url: link,
-        full_content: description,
-      };
-
-      const { data: existingAlert } = await supabase
-        .from('alerts')
-        .select('id')
-        .eq('external_id', link)
-        .eq('source', 'CDC')
-        .maybeSingle();
-
-      if (!existingAlert) {
-        await supabase.from('alerts').insert(alertData);
-      }
-    }
-
-    return { success: true, count: newCount + updatedCount, error: null };
-  } catch (error) {
-    console.error('CDC Advisories sync error:', error);
-    throw error;
-  }
-}
 
 function mapClassification(fdaClass: string): string {
   if (!fdaClass) return 'Class I';
