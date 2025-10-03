@@ -63,6 +63,52 @@ function logStep(message: string, data?: any) {
   logger.info(`[${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
+// Helper function to extract XML tag content using regex
+function extractTag(xml: string, tagName: string): string {
+  // Handle CDATA sections
+  const cdataRegex = new RegExp(`<${tagName}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tagName}>`, 'i');
+  const cdataMatch = xml.match(cdataRegex);
+  if (cdataMatch) return cdataMatch[1].trim();
+
+  // Handle regular tags
+  const regularRegex = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)</${tagName}>`, 'i');
+  const regularMatch = xml.match(regularRegex);
+  if (regularMatch) {
+    // Decode HTML entities
+    return regularMatch[1]
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .trim();
+  }
+
+  return '';
+}
+
+// Helper function to extract all items from RSS/Atom feed
+function extractItems(xmlText: string): string[] {
+  const items: string[] = [];
+  
+  // Try RSS <item> tags first
+  const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+  let match;
+  while ((match = itemRegex.exec(xmlText)) !== null) {
+    items.push(match[1]);
+  }
+  
+  // If no items found, try Atom <entry> tags
+  if (items.length === 0) {
+    const entryRegex = /<entry[^>]*>([\s\S]*?)<\/entry>/gi;
+    while ((match = entryRegex.exec(xmlText)) !== null) {
+      items.push(match[1]);
+    }
+  }
+  
+  return items;
+}
+
 async function fetchRSSFeed(feed: RSSFeed, retryCount = 0): Promise<any[]> {
   const maxRetries = 3;
   try {
@@ -133,38 +179,36 @@ async function fetchRSSFeed(feed: RSSFeed, retryCount = 0): Promise<any[]> {
       return [];
     }
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlText, 'text/xml');
+    // Extract items using regex instead of DOMParser (more reliable in Deno)
+    const itemContents = extractItems(xmlText);
     
-    if (!doc) {
-      logStep(`Failed to parse XML for ${feed.agency}`);
+    // Log parsing results
+    logStep(`Found ${itemContents.length} items in ${feed.agency} RSS feed`);
+
+    // Log first item structure for debugging
+    if (itemContents.length > 0) {
+      const sampleTitle = extractTag(itemContents[0], 'title');
+      const sampleDesc = extractTag(itemContents[0], 'description');
+      logStep(`Sample item from ${feed.agency}:`, {
+        title: sampleTitle.substring(0, 100),
+        hasDescription: !!sampleDesc,
+        descLength: sampleDesc.length || 0
+      });
+    }
+
+    if (itemContents.length === 0) {
+      logStep(`No items found in ${feed.agency} RSS feed`);
       return [];
     }
 
-    const items = doc.querySelectorAll('item');
-    
-    // Log parsing results
-    logStep(`Found ${items.length} items in ${feed.agency} RSS feed`);
-
-    // Log first item structure for debugging
-    if (items.length > 0) {
-      const firstItem = items[0];
-      const sampleTitle = (firstItem as any).querySelector('title')?.textContent?.trim();
-      const sampleDesc = (firstItem as any).querySelector('description')?.textContent?.trim();
-      logStep(`Sample item from ${feed.agency}:`, {
-        title: sampleTitle?.substring(0, 100),
-        hasDescription: !!sampleDesc,
-        descLength: sampleDesc?.length || 0
-      });
-    }
     const results: any[] = [];
 
-    for (const item of items) {
+    for (const itemXml of itemContents) {
       try {
-        const title = (item as any).querySelector('title')?.textContent?.trim() || '';
-        const description = (item as any).querySelector('description')?.textContent?.trim() || '';
-        const link = (item as any).querySelector('link')?.textContent?.trim() || '';
-        const pubDate = (item as any).querySelector('pubDate')?.textContent?.trim() || '';
+        const title = extractTag(itemXml, 'title');
+        const description = extractTag(itemXml, 'description');
+        const link = extractTag(itemXml, 'link');
+        const pubDate = extractTag(itemXml, 'pubDate') || new Date().toISOString();
         
         if (title && description) {
           results.push({
