@@ -344,6 +344,31 @@ export const UnifiedDataPipelineManager = () => {
     }
   };
 
+  const runSourceNow = async (source: PipelineSource) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(source.edge_function);
+
+      if (error) throw error;
+
+      toast({
+        title: `${source.name} Sync Complete`,
+        description: `Successfully synced data from ${source.name}`,
+      });
+
+      await fetchSourceHealth();
+    } catch (error) {
+      console.error(`Sync failed for ${source.name}:`, error);
+      toast({
+        title: 'Sync Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleSource = async (sourceId: string, enabled: boolean) => {
     setSources(prev =>
       prev.map(s => s.id === sourceId ? { ...s, is_enabled: enabled } : s)
@@ -676,40 +701,53 @@ export const UnifiedDataPipelineManager = () => {
                   </Alert>
                 )}
 
-                {/* Action Buttons - 2x2 Grid on Mobile */}
-                <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => runSourceHealthCheck(source)}
-                    disabled={loading || !source.is_enabled}
-                    className="flex items-center justify-center gap-2 min-h-[44px] md:flex-1"
-                  >
-                    <Activity className="h-4 w-4" />
-                    <span className="text-xs md:text-sm">Health Check</span>
-                  </Button>
+                {/* Action Buttons - 3 Buttons Layout */}
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                    <Button
+                      size="sm"
+                      onClick={() => runSourceNow(source)}
+                      disabled={loading || !source.is_enabled}
+                      className="flex items-center justify-center gap-2 min-h-[44px] col-span-2 md:col-span-1"
+                    >
+                      <PlayCircle className="h-4 w-4" />
+                      <span className="text-xs md:text-sm">Run Now</span>
+                    </Button>
 
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => runInlineTest(source)}
-                    disabled={loading || !source.is_enabled || !source.test_function}
-                    className="flex items-center justify-center gap-2 min-h-[44px] md:flex-1"
-                  >
-                    <TestTube className="h-4 w-4" />
-                    <span className="text-xs md:text-sm">Test</span>
-                  </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => runSourceHealthCheck(source)}
+                      disabled={loading || !source.is_enabled}
+                      className="flex items-center justify-center gap-2 min-h-[44px]"
+                    >
+                      <Activity className="h-4 w-4" />
+                      <span className="text-xs md:text-sm">Health</span>
+                    </Button>
 
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => runInlineTest(source)}
+                      disabled={loading || !source.is_enabled || !source.test_function}
+                      className="flex items-center justify-center gap-2 min-h-[44px]"
+                    >
+                      <TestTube className="h-4 w-4" />
+                      <span className="text-xs md:text-sm">Test</span>
+                    </Button>
+                  </div>
+
+                  {/* Configuration Dialog */}
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setSelectedSource(source)}
-                        className="flex items-center justify-center gap-2 min-h-[44px] md:flex-1 col-span-2 md:col-span-1"
+                        className="flex items-center justify-center gap-2 min-h-[44px] w-full"
                       >
                         <SettingsIcon className="h-4 w-4" />
-                        <span className="text-xs md:text-sm">Config</span>
+                        <span className="text-xs md:text-sm">Configure</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
