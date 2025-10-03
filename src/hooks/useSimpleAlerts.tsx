@@ -26,6 +26,9 @@ interface UseSimpleAlertsReturn {
   loading: boolean;
   error: string | null;
   totalCount: number;
+  newUpdatesCount: number;
+  highPriorityCount: number;
+  uniqueAgenciesCount: number;
   retryCount: number;
   retryLoad: () => void;
   hasMore: boolean;
@@ -37,6 +40,9 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [newUpdatesCount, setNewUpdatesCount] = useState<number>(0);
+  const [highPriorityCount, setHighPriorityCount] = useState<number>(0);
+  const [uniqueAgenciesCount, setUniqueAgenciesCount] = useState<number>(0);
   const [retryCount, setRetryCount] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
@@ -148,6 +154,122 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
           filters,
           sampleTitles: data.slice(0, 3).map(a => a.title) 
         });
+
+        // Run parallel count queries for accurate metrics
+        logger.info('[useSimpleAlerts] Running metric count queries...');
+        
+        // Build base query with same filters for counts
+        const buildCountQuery = () => {
+          let countQuery = supabase
+            .from('alerts')
+            .select('*', { count: 'exact', head: true });
+
+          if (filters) {
+            if (filters.sources.length > 0) {
+              const allSourceNames: string[] = [];
+              const allAgencyNames: string[] = [];
+              
+              filters.sources.forEach(filterCategory => {
+                const sources = getDatabaseSources(filterCategory);
+                allSourceNames.push(...sources);
+                allAgencyNames.push(filterCategory);
+              });
+              
+              countQuery = countQuery.or(`source.in.(${allSourceNames.join(',')}),agency.in.(${allAgencyNames.join(',')})`);
+            }
+
+            if (filters.sinceDays && filters.sinceDays > 0) {
+              const sinceDate = new Date();
+              sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
+              countQuery = countQuery.gte('published_date', sinceDate.toISOString());
+            }
+
+            if (filters.minSeverity !== null && filters.minSeverity > 0) {
+              countQuery = countQuery.gte('urgency_score', filters.minSeverity);
+            }
+
+            if (filters.searchQuery && filters.searchQuery.trim()) {
+              const searchTerm = filters.searchQuery.trim();
+              countQuery = countQuery.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
+            }
+          }
+
+          return countQuery;
+        };
+
+        // Query 1: New updates (last 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const newUpdatesQuery = buildCountQuery()
+          .gte('published_date', sevenDaysAgo.toISOString());
+
+        // Query 2: High priority (urgency_score >= 7 or urgency High/Critical)
+        const highPriorityQuery = buildCountQuery()
+          .or('urgency_score.gte.7,urgency.in.(High,Critical)');
+
+        // Query 3: Unique agencies count
+        const uniqueAgenciesQuery = supabase
+          .from('alerts')
+          .select('source, agency');
+
+        // Apply same filters to agencies query
+        let agenciesQuery = uniqueAgenciesQuery;
+        if (filters) {
+          if (filters.sources.length > 0) {
+            const allSourceNames: string[] = [];
+            const allAgencyNames: string[] = [];
+            
+            filters.sources.forEach(filterCategory => {
+              const sources = getDatabaseSources(filterCategory);
+              allSourceNames.push(...sources);
+              allAgencyNames.push(filterCategory);
+            });
+            
+            agenciesQuery = agenciesQuery.or(`source.in.(${allSourceNames.join(',')}),agency.in.(${allAgencyNames.join(',')})`);
+          }
+
+          if (filters.sinceDays && filters.sinceDays > 0) {
+            const sinceDate = new Date();
+            sinceDate.setDate(sinceDate.getDate() - filters.sinceDays);
+            agenciesQuery = agenciesQuery.gte('published_date', sinceDate.toISOString());
+          }
+
+          if (filters.minSeverity !== null && filters.minSeverity > 0) {
+            agenciesQuery = agenciesQuery.gte('urgency_score', filters.minSeverity);
+          }
+
+          if (filters.searchQuery && filters.searchQuery.trim()) {
+            const searchTerm = filters.searchQuery.trim();
+            agenciesQuery = agenciesQuery.or(`title.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`);
+          }
+        }
+
+        // Execute all count queries in parallel
+        const [newUpdatesResult, highPriorityResult, agenciesResult] = await Promise.all([
+          newUpdatesQuery,
+          highPriorityQuery,
+          agenciesQuery
+        ]);
+
+        // Process results
+        const newUpdates = newUpdatesResult.count ?? 0;
+        const highPriority = highPriorityResult.count ?? 0;
+        
+        // Calculate unique agencies from returned data
+        const uniqueAgencies = new Set<string>();
+        if (agenciesResult.data) {
+          agenciesResult.data.forEach((alert: any) => {
+            if (alert.agency) uniqueAgencies.add(alert.agency);
+            if (alert.source) uniqueAgencies.add(alert.source);
+          });
+        }
+
+        logger.info('[useSimpleAlerts] Metric counts:', {
+          totalCount: count,
+          newUpdates,
+          highPriority,
+          uniqueAgencies: uniqueAgencies.size
+        });
         
         // Server-side filtering already applied, just log results
         console.log('[useSimpleAlerts] Loaded filtered data:', { 
@@ -158,8 +280,10 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
         });
         
         setAlerts(data);
-        // Use the actual count from the database query, not just data.length
         setTotalCount(count ?? data.length);
+        setNewUpdatesCount(newUpdates);
+        setHighPriorityCount(highPriority);
+        setUniqueAgenciesCount(uniqueAgencies.size);
         setHasMore(limit ? data.length >= limit : false);
         setRetryCount(0);
         setLoading(false);
@@ -299,7 +423,10 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
     alerts, 
     loading, 
     error, 
-    totalCount, 
+    totalCount,
+    newUpdatesCount,
+    highPriorityCount,
+    uniqueAgenciesCount,
     retryCount,
     retryLoad,
     hasMore,

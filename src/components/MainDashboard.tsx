@@ -37,7 +37,15 @@ export function MainDashboard() {
   const { filters } = useAlertFilters();
 
   // Fetch all alerts with current filters
-  const { alerts, loading, error, totalCount } = useSimpleAlerts(200, filters);
+  const { 
+    alerts, 
+    loading, 
+    error, 
+    totalCount,
+    newUpdatesCount,
+    highPriorityCount,
+    uniqueAgenciesCount
+  } = useSimpleAlerts(200, filters);
   const { savedAlerts, toggleSaveAlert } = useSavedAlerts();
 
   // Simple freshness indicator logic
@@ -61,51 +69,16 @@ export function MainDashboard() {
 
   const freshness = getDataFreshness();
   
-  // Calculate metrics based on filtered alerts
-  const metrics = useMemo(() => {
-    if (!alerts.length) return { 
-      newUpdatesCount: 0, 
-      highPriorityCount: 0,
-      uniqueAgencies: 0,
-      dateRangeLabel: 'Last 30 days'
-    };
-    
-    const now = new Date();
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
-    const newUpdatesCount = alerts.filter(alert => 
-      new Date(alert.published_date) >= yesterday
-    ).length;
-    
-    const highPriorityCount = alerts.filter(alert => 
-      alert.urgency?.toLowerCase() === 'high'
-    ).length;
-    
-    // Calculate unique agencies from filtered alerts
-    const agencies = new Set<string>();
-    alerts.forEach(alert => {
-      const category = getFilterCategory(alert.source, alert.agency);
-      if (category) {
-        agencies.add(category);
-      }
-    });
-    
-    // Generate dynamic date range label
-    const dateRangeLabel = filters.sinceDays === 7 ? 'Last 7 days' :
-                          filters.sinceDays === 30 ? 'Last 30 days' :
-                          filters.sinceDays === 60 ? 'Last 2 months' :
-                          filters.sinceDays === 90 ? 'Last 3 months' :
-                          filters.sinceDays === 180 ? 'Last 6 months' :
-                          filters.sinceDays === 365 ? 'Last year' :
-                          `Last ${filters.sinceDays} days`;
-    
-    return { 
-      newUpdatesCount, 
-      highPriorityCount,
-      uniqueAgencies: agencies.size,
-      dateRangeLabel
-    };
-  }, [alerts, filters.sinceDays]);
+  // Generate dynamic date range label based on filters
+  const dateRangeLabel = useMemo(() => {
+    return filters.sinceDays === 7 ? 'Last 7 days' :
+           filters.sinceDays === 30 ? 'Last 30 days' :
+           filters.sinceDays === 60 ? 'Last 2 months' :
+           filters.sinceDays === 90 ? 'Last 3 months' :
+           filters.sinceDays === 180 ? 'Last 6 months' :
+           filters.sinceDays === 365 ? 'Last year' :
+           `Last ${filters.sinceDays} days`;
+  }, [filters.sinceDays]);
 
   const handleMetricClick = useCallback((filter: string) => {
     setActiveTab('alerts');
@@ -233,11 +206,11 @@ export function MainDashboard() {
           </div>
           
           <DashboardMetrics 
-            totalAlerts={alerts.length}
-            highPriorityCount={metrics.highPriorityCount}
-            newUpdatesCount={metrics.newUpdatesCount}
-            agenciesCount={metrics.uniqueAgencies}
-            dateRangeLabel={metrics.dateRangeLabel}
+            totalAlerts={totalCount}
+            highPriorityCount={highPriorityCount}
+            newUpdatesCount={newUpdatesCount}
+            agenciesCount={uniqueAgenciesCount}
+            dateRangeLabel={dateRangeLabel}
             onMetricClick={handleMetricClick}
           />
         </div>
