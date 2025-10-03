@@ -101,7 +101,7 @@ async function syncFDARecalls(supabase: any) {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const searchDate = thirtyDaysAgo.toISOString().split('T')[0].replace(/-/g, '');
 
-  for (let page = 0; page < 3; page++) {
+  for (let page = 0; page < 10; page++) {
     const skip = page * 1000;
     const url = `https://api.fda.gov/food/enforcement.json?search=recall_initiation_date:[${searchDate}+TO+20991231]&sort=recall_initiation_date:desc&limit=1000&skip=${skip}`;
 
@@ -228,7 +228,7 @@ async function syncCDCOutbreakAlerts(supabase: any) {
   let newCount = 0;
   let updatedCount = 0;
 
-  const url = 'https://data.cdc.gov/resource/5xkq-dg7x.json?$limit=5000&$order=year DESC';
+  const url = 'https://data.cdc.gov/resource/5xkq-dg7x.json?$limit=10000&$order=year DESC';
 
   try {
     const response = await fetch(url);
