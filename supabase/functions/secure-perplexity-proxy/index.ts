@@ -133,8 +133,22 @@ serve(async (req) => {
 
     if (!perplexityResponse.ok) {
       const errorText = await perplexityResponse.text();
-      logger.error('Perplexity API error:', `${perplexityResponse.status} - ${errorText}`);
-      throw new Error(`Perplexity API error: ${perplexityResponse.status}`);
+      logger.error('Perplexity API error:', {
+        status: perplexityResponse.status,
+        statusText: perplexityResponse.statusText,
+        error: errorText
+      });
+      
+      // Pass through the actual Perplexity status code instead of generic 500
+      return new Response(JSON.stringify({
+        error: `Perplexity API error: ${perplexityResponse.statusText}`,
+        status: perplexityResponse.status,
+        details: errorText,
+        timestamp: new Date().toISOString()
+      }), {
+        status: perplexityResponse.status, // Use actual Perplexity status (429, 400, etc.)
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     const result = await perplexityResponse.json();
