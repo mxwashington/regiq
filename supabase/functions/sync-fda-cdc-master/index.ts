@@ -89,137 +89,74 @@ async function syncFDARecalls(supabase: any) {
   let newCount = 0;
   let updatedCount = 0;
 
+  // Calculate date range for last 365 days
   const oneYearAgo = new Date();
   oneYearAgo.setDate(oneYearAgo.getDate() - 365);
-  const searchDate = oneYearAgo.toISOString().split('T')[0].replace(/-/g, '');
+  const startDate = oneYearAgo.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  const endDate = new Date().toISOString().split('T')[0];
 
-  console.log(`FDA sync starting with date range: ${searchDate} to 20991231`);
+  console.log(`FDA sync: Fetching recalls from ${startDate} to ${endDate}`);
 
-  for (let page = 0; page < 30; page++) {
+  // FDA API limit is 1000 per request, so we fetch 3 pages (3000 records max)
+  for (let page = 0; page < 3; page++) {
     const skip = page * 1000;
-    const url = `https://api.fda.gov/food/enforcement.json?search=recall_initiation_date:[${searchDate}+TO+20991231]&sort=recall_initiation_date:desc&limit=1000&skip=${skip}`;
+    // Use proper date format: YYYY-MM-DD (no transformation needed)
+    const url = `https://api.fda.gov/food/enforcement.json?search=recall_initiation_date:[${startDate}+TO+${endDate}]&sort=recall_initiation_date:desc&limit=1000&skip=${skip}`;
 
     try {
-      console.log(`FDA sync page ${page}: ${url}`);
+      console.log(`FDA page ${page + 1}/3: Fetching from skip=${skip}`);
       const response = await fetch(url);
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`FDA API error ${response.status}:`, errorText);
+        console.error(`FDA API error on page ${page + 1}:`, {
+          status: response.status,
+          statusText: response.statusText,
+          url: url,
+          error: errorText
+        });
         
-        // If 404 or bad request, try alternative date format
-        if (response.status === 404 || response.status === 400) {
-          console.log('Trying alternative date format...');
-          const altUrl = `https://api.fda.gov/food/enforcement.json?limit=1000&skip=${skip}`;
-          const altResponse = await fetch(altUrl);
-          if (!altResponse.ok) throw new Error(`FDA API error: ${response.status}`);
-          const altData = await altResponse.json();
-          
-          if (!altData.results || altData.results.length === 0) break;
-          
-          // Filter results by date client-side
-          const filteredResults = altData.results.filter((item: any) => {
-            if (!item.recall_initiation_date) return false;
-            const recallDate = new Date(item.recall_initiation_date);
-            return recallDate >= oneYearAgo;
-          });
-          
-          console.log(`FDA page ${page}: fetched ${altData.results.length}, filtered to ${filteredResults.length} from last year`);
-          
-          if (filteredResults.length === 0) break;
-          
-          // Process filtered results
-          for (const item of filteredResults) {
-
-            const recallNumber = item.recall_number;
-            const description = item.product_description || item.reason_for_recall || '';
-            const classification = mapClassification(item.classification);
-
-            const recallData = {
-              recall_number: recallNumber,
-              product_name: description.substring(0, 200),
-              product_description: description,
-              recall_date: item.recall_initiation_date,
-              publish_date: item.recall_initiation_date,
-              classification,
-              reason: item.reason_for_recall,
-              company_name: item.recalling_firm,
-              distribution_pattern: item.distribution_pattern,
-              product_type: inferProductType(description),
-              source: 'FDA',
-              agency_source: 'FDA',
-              severity: classification,
-            };
-
-            const { data: existing } = await supabase
-              .from('recalls')
-              .select('id')
-              .eq('recall_number', recallNumber)
-              .maybeSingle();
-
-            if (existing) {
-              await supabase
-                .from('recalls')
-                .update(recallData)
-                .eq('recall_number', recallNumber);
-              updatedCount++;
-            } else {
-              await supabase.from('recalls').insert(recallData);
-              newCount++;
-            }
-
-            // Also insert into alerts table for dashboard display
-            const alertData = {
-              external_id: recallNumber,
-              source: 'FDA',
-              agency: 'FDA',
-              title: description.substring(0, 200),
-              summary: item.reason_for_recall || description.substring(0, 500),
-              urgency: classification === 'Class I' ? 'High' : classification === 'Class II' ? 'Medium' : 'Low',
-              published_date: item.recall_initiation_date,
-              external_url: `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts`,
-              full_content: JSON.stringify(item),
-            };
-
-            const { data: existingAlert } = await supabase
-              .from('alerts')
-              .select('id')
-              .eq('external_id', recallNumber)
-              .eq('source', 'FDA')
-              .maybeSingle();
-
-            if (!existingAlert) {
-              await supabase.from('alerts').insert(alertData);
-            }
-          }
-          continue; // Continue to next page
+        // If first page fails, abort completely
+        if (page === 0) {
+          throw new Error(`FDA API failed on first page: ${response.status}`);
         }
-        throw new Error(`FDA API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      if (!data.results || data.results.length === 0) {
-        console.log(`FDA sync: No more results at page ${page}`);
+        
+        // If subsequent pages fail, log and continue with what we have
+        console.warn(`Skipping page ${page + 1} due to error, continuing with ${newCount + updatedCount} records so far`);
         break;
       }
       
-      console.log(`FDA page ${page}: processing ${data.results.length} recalls`);
+      const data = await response.json();
+      
+      if (!data.results || data.results.length === 0) {
+        console.log(`FDA page ${page + 1}: No results, stopping pagination`);
+        break;
+      }
+      
+      console.log(`FDA page ${page + 1}: Processing ${data.results.length} recalls`);
 
       for (const item of data.results) {
         const recallNumber = item.recall_number;
-        const description = item.product_description || item.reason_for_recall || '';
+        
+        if (!recallNumber) {
+          console.warn('Skipping recall without recall_number');
+          continue;
+        }
+        
+        const description = item.product_description || item.reason_for_recall || 'FDA Food Recall';
         const classification = mapClassification(item.classification);
 
+        // Insert/update in recalls table
         const recallData = {
           recall_number: recallNumber,
           product_name: description.substring(0, 200),
           product_description: description,
           recall_date: item.recall_initiation_date,
-          publish_date: item.recall_initiation_date,
+          publish_date: item.report_date || item.recall_initiation_date,
           classification,
-          reason: item.reason_for_recall,
-          company_name: item.recalling_firm,
-          distribution_pattern: item.distribution_pattern,
+          reason: item.reason_for_recall || '',
+          company_name: item.recalling_firm || 'Unknown',
+          distribution_pattern: item.distribution_pattern || '',
           product_type: inferProductType(description),
           source: 'FDA',
           agency_source: 'FDA',
@@ -251,6 +188,7 @@ async function syncFDARecalls(supabase: any) {
           title: description.substring(0, 200),
           summary: item.reason_for_recall || description.substring(0, 500),
           urgency: classification === 'Class I' ? 'High' : classification === 'Class II' ? 'Medium' : 'Low',
+          urgency_score: classification === 'Class I' ? 9 : classification === 'Class II' ? 5 : 3,
           published_date: item.recall_initiation_date,
           external_url: `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts`,
           full_content: JSON.stringify(item),
@@ -268,8 +206,103 @@ async function syncFDARecalls(supabase: any) {
         }
       }
     } catch (error) {
-      console.error(`FDA sync page ${page} error:`, error);
-      // Don't throw, just log and continue to next page
+      console.error(`FDA sync error on page ${page + 1}:`, error);
+      
+      // If first page fails completely, throw error
+      if (page === 0) {
+        throw error;
+      }
+      
+      // Otherwise continue with partial results
+      console.warn(`Continuing with ${newCount + updatedCount} records despite page ${page + 1} error`);
+      break;
+    }
+  }
+
+  console.log(`FDA sync complete: ${newCount} new, ${updatedCount} updated (total: ${newCount + updatedCount})`);
+  return { success: true, count: newCount + updatedCount, error: null };
+}
+
+      for (const item of data.results) {
+        const recallNumber = item.recall_number;
+        
+        if (!recallNumber) {
+          console.warn('Skipping recall without recall_number');
+          continue;
+        }
+        
+        const description = item.product_description || item.reason_for_recall || 'FDA Food Recall';
+        const classification = mapClassification(item.classification);
+
+        // Insert/update in recalls table
+        const recallData = {
+          recall_number: recallNumber,
+          product_name: description.substring(0, 200),
+          product_description: description,
+          recall_date: item.recall_initiation_date,
+          publish_date: item.report_date || item.recall_initiation_date,
+          classification,
+          reason: item.reason_for_recall || '',
+          company_name: item.recalling_firm || 'Unknown',
+          distribution_pattern: item.distribution_pattern || '',
+          product_type: inferProductType(description),
+          source: 'FDA',
+          agency_source: 'FDA',
+          severity: classification,
+        };
+
+        const { data: existing } = await supabase
+          .from('recalls')
+          .select('id')
+          .eq('recall_number', recallNumber)
+          .maybeSingle();
+
+        if (existing) {
+          await supabase
+            .from('recalls')
+            .update(recallData)
+            .eq('recall_number', recallNumber);
+          updatedCount++;
+        } else {
+          await supabase.from('recalls').insert(recallData);
+          newCount++;
+        }
+
+        // Also insert into alerts table for dashboard display
+        const alertData = {
+          external_id: recallNumber,
+          source: 'FDA',
+          agency: 'FDA',
+          title: description.substring(0, 200),
+          summary: item.reason_for_recall || description.substring(0, 500),
+          urgency: classification === 'Class I' ? 'High' : classification === 'Class II' ? 'Medium' : 'Low',
+          urgency_score: classification === 'Class I' ? 9 : classification === 'Class II' ? 5 : 3,
+          published_date: item.recall_initiation_date,
+          external_url: `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts`,
+          full_content: JSON.stringify(item),
+        };
+
+        const { data: existingAlert } = await supabase
+          .from('alerts')
+          .select('id')
+          .eq('external_id', recallNumber)
+          .eq('source', 'FDA')
+          .maybeSingle();
+
+        if (!existingAlert) {
+          await supabase.from('alerts').insert(alertData);
+        }
+      }
+    } catch (error) {
+      console.error(`FDA sync error on page ${page + 1}:`, error);
+      
+      // If first page fails completely, throw error
+      if (page === 0) {
+        throw error;
+      }
+      
+      // Otherwise continue with partial results
+      console.warn(`Continuing with ${newCount + updatedCount} records despite page ${page + 1} error`);
       break;
     }
   }
