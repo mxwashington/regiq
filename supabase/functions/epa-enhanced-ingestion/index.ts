@@ -189,12 +189,17 @@ async function ingestFromECHO(supabase: any, days: number, testMode: boolean) {
 
           const relevanceScore = calculateFoodRelevance(facility.FacName || '', '');
           
+          // Use actual violation date instead of "now"
+          const violationDate = facility.QuarterlyViolationDate || 
+                                facility.LastInspectionDate || 
+                                new Date().toISOString();
+          
           const alert: EPAAlert = {
             title: `EPA Compliance Violation: ${facility.FacName || 'Unknown Facility'}`,
             source: 'EPA',
             urgency: determineUrgency(facility),
             summary: buildFacilitySummary(facility),
-            published_date: new Date().toISOString(),
+            published_date: violationDate,
             external_url: `https://echo.epa.gov/detailed-facility-report?fid=${facility.RegistryID}`,
             full_content: JSON.stringify(facility),
             agency: 'EPA',

@@ -19,6 +19,7 @@ export interface SharedFacets {
   keyword?: string;
   jurisdiction?: string[];
   urgency?: string[];
+  days_since_published?: string;
 }
 
 export interface SourceFilter {

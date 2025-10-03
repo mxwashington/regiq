@@ -223,6 +223,25 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
             
             <div>
+              <label className="text-sm font-medium">Alert Age</label>
+              <Select
+                value={activeFilters.shared.days_since_published || '30'}
+                onValueChange={(value) => updateSharedFilter('days_since_published', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select time range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Last 7 days</SelectItem>
+                  <SelectItem value="30">Last 30 days</SelectItem>
+                  <SelectItem value="90">Last 90 days</SelectItem>
+                  <SelectItem value="365">Last year</SelectItem>
+                  <SelectItem value="all">All time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
               <label className="text-sm font-medium">Urgency</label>
               <div className="flex gap-2 mt-1">
                 {['Critical', 'High', 'Medium', 'Low'].map(urgency => (

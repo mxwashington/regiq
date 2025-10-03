@@ -116,6 +116,10 @@ async function fetchFromRSS(): Promise<FSISRecall[]> {
 
     const items = doc.querySelectorAll('item');
     const records: FSISRecall[] = [];
+    
+    // Only get alerts from last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     for (const item of items) {
       try {
@@ -132,13 +136,16 @@ async function fetchFromRSS(): Promise<FSISRecall[]> {
         const recallMatch = (title + ' ' + description).match(/recall\s*#?\s*(\d{3}-\d{4}|\d+)/i);
         const recall_number = recallMatch ? recallMatch[1] : guid || `rss_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        if (title && description) {
+        const publishedDate = pubDate ? new Date(pubDate) : new Date();
+        
+        // Only include alerts from last 30 days
+        if (title && description && publishedDate >= thirtyDaysAgo) {
           records.push({
             recall_number,
             case_id: guid,
             title,
             description,
-            published_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+            published_date: publishedDate.toISOString(),
             product_type: extractProductType(title + ' ' + description),
             company_name: extractCompanyName(description),
             url: link || 'https://www.fsis.usda.gov/recalls'
