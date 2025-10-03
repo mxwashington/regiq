@@ -36,7 +36,7 @@ export function AgencyFilter({ className }: AgencyFilterProps) {
     resetFilters,
   } = useAlertFilters();
 
-  const { sourceCounts, loading: countsLoading } = useSourceCounts();
+  const { sourceCounts, loading: countsLoading } = useSourceCounts(filters.sinceDays);
 
   const totalSelectedSources = filters.sources.length;
     const hasActiveFilters =

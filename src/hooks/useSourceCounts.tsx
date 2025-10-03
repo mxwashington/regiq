@@ -8,7 +8,7 @@ interface SourceCount {
   count: number;
 }
 
-export const useSourceCounts = () => {
+export const useSourceCounts = (sinceDays: number = 30) => {
   const [sourceCounts, setSourceCounts] = useState<Record<AgencySource, number>>({} as Record<AgencySource, number>);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,11 +17,12 @@ export const useSourceCounts = () => {
     try {
       setLoading(true);
       
-      // Fetch source counts from recent alerts (last 90 days)
+      // Fetch source counts based on sinceDays parameter
+      const sinceDate = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
       const { data, error } = await supabase
         .from('alerts')
         .select('source, agency, title')
-        .gte('published_date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('published_date', sinceDate.toISOString());
 
       if (error) {
         console.error('Source counts fetch error:', error);
@@ -137,7 +138,7 @@ export const useSourceCounts = () => {
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [sinceDays]);
 
   const refetch = () => {
     fetchSourceCounts();

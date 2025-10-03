@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Filter, X, User, Settings, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { getFilterCategory } from '@/lib/source-mapping';
 
 interface DashboardFilters {
   timePeriod?: string;
@@ -60,9 +61,14 @@ export function MainDashboard() {
 
   const freshness = getDataFreshness();
   
-  // Calculate metrics
+  // Calculate metrics based on filtered alerts
   const metrics = useMemo(() => {
-    if (!alerts.length) return { newUpdatesCount: 0, highPriorityCount: 0 };
+    if (!alerts.length) return { 
+      newUpdatesCount: 0, 
+      highPriorityCount: 0,
+      uniqueAgencies: 0,
+      dateRangeLabel: 'Last 30 days'
+    };
     
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -75,8 +81,31 @@ export function MainDashboard() {
       alert.urgency?.toLowerCase() === 'high'
     ).length;
     
-    return { newUpdatesCount, highPriorityCount };
-  }, [alerts]);
+    // Calculate unique agencies from filtered alerts
+    const agencies = new Set<string>();
+    alerts.forEach(alert => {
+      const category = getFilterCategory(alert.source, alert.agency);
+      if (category) {
+        agencies.add(category);
+      }
+    });
+    
+    // Generate dynamic date range label
+    const dateRangeLabel = filters.sinceDays === 7 ? 'Last 7 days' :
+                          filters.sinceDays === 30 ? 'Last 30 days' :
+                          filters.sinceDays === 60 ? 'Last 2 months' :
+                          filters.sinceDays === 90 ? 'Last 3 months' :
+                          filters.sinceDays === 180 ? 'Last 6 months' :
+                          filters.sinceDays === 365 ? 'Last year' :
+                          `Last ${filters.sinceDays} days`;
+    
+    return { 
+      newUpdatesCount, 
+      highPriorityCount,
+      uniqueAgencies: agencies.size,
+      dateRangeLabel
+    };
+  }, [alerts, filters.sinceDays]);
 
   const handleMetricClick = useCallback((filter: string) => {
     setActiveTab('alerts');
@@ -204,9 +233,11 @@ export function MainDashboard() {
           </div>
           
           <DashboardMetrics 
-            totalAlerts={totalCount}
+            totalAlerts={alerts.length}
             highPriorityCount={metrics.highPriorityCount}
             newUpdatesCount={metrics.newUpdatesCount}
+            agenciesCount={metrics.uniqueAgencies}
+            dateRangeLabel={metrics.dateRangeLabel}
             onMetricClick={handleMetricClick}
           />
         </div>

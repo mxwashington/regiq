@@ -12,6 +12,8 @@ interface DashboardMetricsProps {
   totalAlerts: number;
   highPriorityCount: number;
   newUpdatesCount: number;
+  agenciesCount: number;
+  dateRangeLabel: string;
   onMetricClick: (filter: string) => void;
 }
 
@@ -19,6 +21,8 @@ export function DashboardMetrics({
   totalAlerts, 
   highPriorityCount, 
   newUpdatesCount,
+  agenciesCount,
+  dateRangeLabel,
   onMetricClick 
 }: DashboardMetricsProps) {
   const metrics = [
@@ -48,7 +52,7 @@ export function DashboardMetrics({
       id: 'active-alerts',
       title: 'Active Alerts',
       value: totalAlerts,
-      description: 'This month • Click to filter',
+      description: `${dateRangeLabel} • Click to filter`,
       icon: Activity,
       color: 'text-green-600',
       bgColor: 'bg-green-50 hover:bg-green-100',
@@ -58,7 +62,7 @@ export function DashboardMetrics({
     {
       id: 'coverage',
       title: 'Coverage',
-      value: 5,
+      value: agenciesCount,
       description: 'Agencies monitored • Click for details',
       icon: Shield,
       color: 'text-purple-600',
