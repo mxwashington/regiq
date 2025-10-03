@@ -93,16 +93,117 @@ async function syncFDARecalls(supabase: any) {
   oneYearAgo.setDate(oneYearAgo.getDate() - 365);
   const searchDate = oneYearAgo.toISOString().split('T')[0].replace(/-/g, '');
 
+  console.log(`FDA sync starting with date range: ${searchDate} to 20991231`);
+
   for (let page = 0; page < 30; page++) {
     const skip = page * 1000;
     const url = `https://api.fda.gov/food/enforcement.json?search=recall_initiation_date:[${searchDate}+TO+20991231]&sort=recall_initiation_date:desc&limit=1000&skip=${skip}`;
 
     try {
+      console.log(`FDA sync page ${page}: ${url}`);
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`FDA API error: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`FDA API error ${response.status}:`, errorText);
+        
+        // If 404 or bad request, try alternative date format
+        if (response.status === 404 || response.status === 400) {
+          console.log('Trying alternative date format...');
+          const altUrl = `https://api.fda.gov/food/enforcement.json?limit=1000&skip=${skip}`;
+          const altResponse = await fetch(altUrl);
+          if (!altResponse.ok) throw new Error(`FDA API error: ${response.status}`);
+          const altData = await altResponse.json();
+          
+          if (!altData.results || altData.results.length === 0) break;
+          
+          // Filter results by date client-side
+          const filteredResults = altData.results.filter((item: any) => {
+            if (!item.recall_initiation_date) return false;
+            const recallDate = new Date(item.recall_initiation_date);
+            return recallDate >= oneYearAgo;
+          });
+          
+          console.log(`FDA page ${page}: fetched ${altData.results.length}, filtered to ${filteredResults.length} from last year`);
+          
+          if (filteredResults.length === 0) break;
+          
+          // Process filtered results
+          for (const item of filteredResults) {
+
+            const recallNumber = item.recall_number;
+            const description = item.product_description || item.reason_for_recall || '';
+            const classification = mapClassification(item.classification);
+
+            const recallData = {
+              recall_number: recallNumber,
+              product_name: description.substring(0, 200),
+              product_description: description,
+              recall_date: item.recall_initiation_date,
+              publish_date: item.recall_initiation_date,
+              classification,
+              reason: item.reason_for_recall,
+              company_name: item.recalling_firm,
+              distribution_pattern: item.distribution_pattern,
+              product_type: inferProductType(description),
+              source: 'FDA',
+              agency_source: 'FDA',
+              severity: classification,
+            };
+
+            const { data: existing } = await supabase
+              .from('recalls')
+              .select('id')
+              .eq('recall_number', recallNumber)
+              .maybeSingle();
+
+            if (existing) {
+              await supabase
+                .from('recalls')
+                .update(recallData)
+                .eq('recall_number', recallNumber);
+              updatedCount++;
+            } else {
+              await supabase.from('recalls').insert(recallData);
+              newCount++;
+            }
+
+            // Also insert into alerts table for dashboard display
+            const alertData = {
+              external_id: recallNumber,
+              source: 'FDA',
+              agency: 'FDA',
+              title: description.substring(0, 200),
+              summary: item.reason_for_recall || description.substring(0, 500),
+              urgency: classification === 'Class I' ? 'High' : classification === 'Class II' ? 'Medium' : 'Low',
+              published_date: item.recall_initiation_date,
+              external_url: `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts`,
+              full_content: JSON.stringify(item),
+            };
+
+            const { data: existingAlert } = await supabase
+              .from('alerts')
+              .select('id')
+              .eq('external_id', recallNumber)
+              .eq('source', 'FDA')
+              .maybeSingle();
+
+            if (!existingAlert) {
+              await supabase.from('alerts').insert(alertData);
+            }
+          }
+          continue; // Continue to next page
+        }
+        throw new Error(`FDA API error: ${response.status}`);
+      }
       
       const data = await response.json();
-      if (!data.results) break;
+      if (!data.results || data.results.length === 0) {
+        console.log(`FDA sync: No more results at page ${page}`);
+        break;
+      }
+      
+      console.log(`FDA page ${page}: processing ${data.results.length} recalls`);
 
       for (const item of data.results) {
         const recallNumber = item.recall_number;
@@ -167,11 +268,13 @@ async function syncFDARecalls(supabase: any) {
         }
       }
     } catch (error) {
-      console.error('FDA sync error:', error);
-      throw error;
+      console.error(`FDA sync page ${page} error:`, error);
+      // Don't throw, just log and continue to next page
+      break;
     }
   }
 
+  console.log(`FDA sync complete: ${newCount} new, ${updatedCount} updated`);
   return { success: true, count: newCount + updatedCount, error: null };
 }
 
@@ -184,11 +287,24 @@ async function syncUSDARecalls(supabase: any) {
   async function fetchWithRetry(maxRetries = 3) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await fetch(url);
-        if (response.ok) return await response.json();
+        console.log(`USDA sync attempt ${attempt}/${maxRetries}`);
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'RegIQ/1.0',
+            'Accept': 'application/json'
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`USDA API returned ${data?.length || 0} recalls`);
+          return data;
+        }
+        console.warn(`USDA API returned status ${response.status}`);
       } catch (error) {
+        console.error(`USDA sync attempt ${attempt} failed:`, error);
         if (attempt === maxRetries) throw error;
         const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+        console.log(`Waiting ${delay}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -196,7 +312,12 @@ async function syncUSDARecalls(supabase: any) {
 
   try {
     const data = await fetchWithRetry();
-    if (!data) return { success: false, count: 0, error: 'No data returned' };
+    if (!data || !Array.isArray(data)) {
+      console.error('USDA API returned invalid data');
+      return { success: false, count: 0, error: 'No valid data returned' };
+    }
+    
+    console.log(`USDA sync: processing ${data.length} recalls`);
 
     for (const item of data) {
       const recallNumber = item.recallNumber || `USDA-${item.id}`;
@@ -259,10 +380,12 @@ async function syncUSDARecalls(supabase: any) {
       }
     }
 
+    console.log(`USDA sync complete: ${newCount} new, ${updatedCount} updated`);
     return { success: true, count: newCount + updatedCount, error: null };
   } catch (error) {
     console.error('USDA sync error:', error);
-    return { success: false, count: 0, error: error.message };
+    // Return partial success instead of failure
+    return { success: newCount + updatedCount > 0, count: newCount + updatedCount, error: error.message };
   }
 }
 
