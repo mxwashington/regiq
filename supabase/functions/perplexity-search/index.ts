@@ -143,7 +143,17 @@ serve(async (req) => {
           statusText: response.statusText, 
           errorData: errorData 
         });
-        throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorData}`);
+        
+        // Pass through actual Perplexity status code instead of generic 500
+        return new Response(JSON.stringify({
+          error: `Perplexity API error: ${response.statusText}`,
+          status: response.status,
+          details: errorData,
+          timestamp: new Date().toISOString()
+        }), {
+          status: response.status, // Use actual status (429, 400, etc.)
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
       }
 
       const data = await response.json();
