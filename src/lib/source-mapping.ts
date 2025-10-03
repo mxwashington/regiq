@@ -108,6 +108,11 @@ export function getFilterCategory(databaseSource: string, alertAgency?: string):
     return directSourceMapping;
   }
   
+  // Also check agency field mapping if source didn't provide a match
+  if (alertAgency && SOURCE_TO_FILTER_MAP[alertAgency]) {
+    return SOURCE_TO_FILTER_MAP[alertAgency];
+  }
+  
   return null;
 }
 

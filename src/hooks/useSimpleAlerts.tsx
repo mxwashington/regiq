@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { fallbackAlerts } from '@/lib/debug-utils';
-import { AgencySource, getDatabaseSources } from '@/lib/source-mapping';
+import { AgencySource, getDatabaseSources, getFilterCategory } from '@/lib/source-mapping';
 import { AlertFilters } from '@/hooks/useAlertFilters';
 import { logger } from '@/lib/logger';
 interface SimpleAlert {
@@ -255,12 +255,14 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
         const newUpdates = newUpdatesResult.count ?? 0;
         const highPriority = highPriorityResult.count ?? 0;
         
-        // Calculate unique agencies from returned data
+        // Calculate unique filter categories from returned data
         const uniqueAgencies = new Set<string>();
         if (agenciesResult.data) {
           agenciesResult.data.forEach((alert: any) => {
-            if (alert.agency) uniqueAgencies.add(alert.agency);
-            if (alert.source) uniqueAgencies.add(alert.source);
+            const filterCategory = getFilterCategory(alert.source, alert.agency);
+            if (filterCategory) {
+              uniqueAgencies.add(filterCategory);
+            }
           });
         }
 
