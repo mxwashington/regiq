@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { UnifiedDataPipelineManager } from "@/components/admin/UnifiedDataPipelineManager";
+import { DataSourcesManager } from "@/components/admin/DataSourcesManager";
 
 import { logger } from '@/lib/logger';
 const LoadingScreen = () => (
@@ -41,9 +42,10 @@ const AdminDashboard: React.FC = () => {
           </header>
 
           <div className="flex flex-col md:flex-row gap-6">
-            <Tabs defaultValue="data-sync" className="w-full" orientation="vertical">
+            <Tabs defaultValue="fda-cdc" className="w-full" orientation="vertical">
               <TabsList className="flex flex-col w-full md:w-48 h-auto gap-1 p-2 sticky top-6">
-              <TabsTrigger value="data-sync" className="w-full justify-start md:justify-center">Data Sync & Sources</TabsTrigger>
+              <TabsTrigger value="fda-cdc" className="w-full justify-start md:justify-center">FDA & CDC Pipeline</TabsTrigger>
+              <TabsTrigger value="data-sync" className="w-full justify-start md:justify-center">All Data Sources</TabsTrigger>
               <TabsTrigger value="analytics" className="w-full justify-start md:justify-center">Analytics</TabsTrigger>
               <TabsTrigger value="alerts" className="w-full justify-start md:justify-center">Alerts</TabsTrigger>
               <TabsTrigger value="security" className="w-full justify-start md:justify-center">Security</TabsTrigger>
@@ -52,6 +54,10 @@ const AdminDashboard: React.FC = () => {
             </TabsList>
 
             <div className="flex-1 min-w-0">
+              <TabsContent value="fda-cdc" className="mt-0">
+                <DataSourcesManager />
+              </TabsContent>
+
               <TabsContent value="data-sync" className="mt-0">
                 <UnifiedDataPipelineManager />
               </TabsContent>
