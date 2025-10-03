@@ -28,10 +28,12 @@ import {
   TrendingUp,
   Lightbulb
 } from 'lucide-react';
-import { fdaApi, FDAResponse, FDAEnforcementResult, FDAEventResult, FDAShortageResult } from '@/lib/fda-api';
+import { FDAResponse, FDAEnforcementResult, FDAEventResult, FDAShortageResult } from '@/lib/fda-api';
 import { fdaQueryHelper, QuerySuggestion, QueryValidation } from '@/lib/fda-query-helper';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { FeaturePaywall } from '@/components/paywall/FeaturePaywall';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FDASearchFilters {
   endpoint: string;
@@ -73,6 +75,7 @@ export function FDASearch() {
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
+  const { session } = useAuth();
   const { getFeatureValue } = useEntitlements();
   const [showPaywall, setShowPaywall] = useState(false);
 
@@ -110,38 +113,69 @@ export function FDASearch() {
       let searchResults: FDASearchResults[] = [];
 
       switch (quickType) {
-        case 'recent':
-          const recentData = await fdaApi.getRecentRecalls(7);
-          searchResults = [
-            { endpoint: 'foodEnforcement', data: recentData[0] },
-            { endpoint: 'drugEnforcement', data: recentData[1] },
-            { endpoint: 'deviceEnforcement', data: recentData[2] }
-          ];
+        case 'recent': {
+          const days = 7;
+          const date = new Date();
+          date.setDate(date.getDate() - days);
+          const dateString = date.toISOString().split('T')[0];
+          const searchQuery = `recall_initiation_date:[${dateString}+TO+*]`;
+
+          const endpoints = ['food/enforcement.json', 'drug/enforcement.json', 'device/enforcement.json'];
+          const promises = endpoints.map(async (endpoint) => {
+            const { data, error } = await supabase.functions.invoke('secure-regulatory-proxy', {
+              body: { source: 'FDA', endpoint: `/${endpoint}`, params: { search: searchQuery, limit: 10 } },
+              headers: { Authorization: `Bearer ${session?.access_token}` }
+            });
+            if (error) throw error;
+            return { endpoint: endpoint.split('/')[0] + 'Enforcement', data };
+          });
+          
+          const responses = await Promise.all(promises);
+          searchResults = responses;
           setQuery('Recent recalls (last 7 days)');
           break;
+        }
 
-        case 'classI':
-          const classIData = await fdaApi.getClassIRecalls();
-          searchResults = [
-            { endpoint: 'foodEnforcement', data: classIData[0] },
-            { endpoint: 'drugEnforcement', data: classIData[1] },
-            { endpoint: 'deviceEnforcement', data: classIData[2] }
-          ];
+        case 'classI': {
+          const searchQuery = 'classification:"Class+I"';
+          const endpoints = ['food/enforcement.json', 'drug/enforcement.json', 'device/enforcement.json'];
+          const promises = endpoints.map(async (endpoint) => {
+            const { data, error } = await supabase.functions.invoke('secure-regulatory-proxy', {
+              body: { source: 'FDA', endpoint: `/${endpoint}`, params: { search: searchQuery, limit: 10 } },
+              headers: { Authorization: `Bearer ${session?.access_token}` }
+            });
+            if (error) throw error;
+            return { endpoint: endpoint.split('/')[0] + 'Enforcement', data };
+          });
+          
+          const responses = await Promise.all(promises);
+          searchResults = responses;
           setQuery('Class I recalls');
           break;
+        }
 
-        case 'listeria':
-          const listeriaQuery = 'product_description:listeria OR reason_for_recall:listeria';
-          const listeriaData = await fdaApi.searchMultipleEndpoints(listeriaQuery, ['foodEnforcement'], 20);
-          searchResults = listeriaData;
+        case 'listeria': {
+          const listeriaQuery = 'product_description:listeria+OR+reason_for_recall:listeria';
+          const { data, error } = await supabase.functions.invoke('secure-regulatory-proxy', {
+            body: { source: 'FDA', endpoint: '/food/enforcement.json', params: { search: listeriaQuery, limit: 20 } },
+            headers: { Authorization: `Bearer ${session?.access_token}` }
+          });
+          if (error) throw error;
+          searchResults = [{ endpoint: 'foodEnforcement', data }];
           setQuery('Listeria contamination');
           break;
+        }
 
-        case 'shortages':
-          const shortageData = await fdaApi.searchDrugShortages({ limit: 20 });
-          searchResults = [{ endpoint: 'drugShortages', data: shortageData }];
+        case 'shortages': {
+          const { data, error } = await supabase.functions.invoke('secure-regulatory-proxy', {
+            body: { source: 'FDA', endpoint: '/drug/drugsfda.json', params: { search: 'openfda.product_type:shortage', limit: 20 } },
+            headers: { Authorization: `Bearer ${session?.access_token}` }
+          });
+          if (error) throw error;
+          searchResults = [{ endpoint: 'drugShortages', data }];
           setQuery('Current drug shortages');
           break;
+        }
       }
 
       setResults(searchResults);
@@ -188,33 +222,68 @@ export function FDASearch() {
       let searchResults: FDASearchResults[] = [];
 
       if (searchMode === 'single' && filters.endpoint !== 'all_enforcement') {
-        // Single endpoint search
+        // Single endpoint search using secure proxy
         const params = buildSearchParams();
-        const endpointMap: Record<string, any> = {
-          foodEnforcement: () => fdaApi.searchFoodEnforcement(params),
-          drugEnforcement: () => fdaApi.searchDrugEnforcement(params),
-          deviceEnforcement: () => fdaApi.searchDeviceEnforcement(params),
-          foodEvents: () => fdaApi.searchFoodEvents(params),
-          drugEvents: () => fdaApi.searchDrugEvents(params),
-          drugShortages: () => fdaApi.searchDrugShortages(params),
-          animalEvents: () => fdaApi.searchAnimalEvents(params),
-          drugLabels: () => fdaApi.searchDrugLabels(params),
-          devicePma: () => fdaApi.searchDevicePma(params),
-          tobaccoProblems: () => fdaApi.searchTobaccoProblems(params)
+        const endpointMap: Record<string, string> = {
+          foodEnforcement: '/food/enforcement.json',
+          drugEnforcement: '/drug/enforcement.json',
+          deviceEnforcement: '/device/enforcement.json',
+          foodEvents: '/food/event.json',
+          drugEvents: '/drug/event.json',
+          drugShortages: '/drug/drugsfda.json',
+          animalEvents: '/animalandveterinary/event.json',
+          drugLabels: '/drug/label.json',
+          devicePma: '/device/pma.json',
+          tobaccoProblems: '/tobacco/problem.json'
         };
 
-        const method = endpointMap[filters.endpoint];
-        if (method) {
-          const data = await method();
+        const endpoint = endpointMap[filters.endpoint];
+        if (endpoint) {
+          const { data, error } = await supabase.functions.invoke('secure-regulatory-proxy', {
+            body: { source: 'FDA', endpoint, params },
+            headers: { Authorization: `Bearer ${session?.access_token}` }
+          });
+          
+          if (error) {
+            if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+              throw new Error('Rate limit exceeded. Please try again in a moment.');
+            }
+            throw error;
+          }
+          
           searchResults = [{ endpoint: filters.endpoint, data }];
         }
       } else {
-        // Multiple endpoint search
+        // Multiple endpoint search using secure proxy
         const endpointsToSearch = filters.endpoint === 'all_enforcement' 
-          ? ['foodEnforcement', 'drugEnforcement', 'deviceEnforcement'] as const
-          : selectedEndpoints as any;
+          ? ['food/enforcement.json', 'drug/enforcement.json', 'device/enforcement.json']
+          : selectedEndpoints.map(e => {
+              if (e === 'foodEnforcement') return 'food/enforcement.json';
+              if (e === 'drugEnforcement') return 'drug/enforcement.json';
+              if (e === 'deviceEnforcement') return 'device/enforcement.json';
+              if (e === 'foodEvents') return 'food/event.json';
+              if (e === 'drugEvents') return 'drug/event.json';
+              return 'drug/drugsfda.json';
+            });
         
-        searchResults = await fdaApi.searchMultipleEndpoints(query, endpointsToSearch, 10);
+        const promises = endpointsToSearch.map(async (endpoint) => {
+          const { data, error } = await supabase.functions.invoke('secure-regulatory-proxy', {
+            body: { source: 'FDA', endpoint: `/${endpoint}`, params: { search: query, limit: 10 } },
+            headers: { Authorization: `Bearer ${session?.access_token}` }
+          });
+          
+          const emptyResponse: FDAResponse<any> = { 
+            results: [], 
+            meta: { disclaimer: '', terms: '', license: '', last_updated: new Date().toISOString(), results: { skip: 0, limit: 10, total: 0 } } 
+          };
+          
+          if (error && !error.message?.includes('No results')) {
+            return { endpoint: endpoint.split('/')[0] + 'Enforcement', data: emptyResponse, error: error.message };
+          }
+          return { endpoint: endpoint.split('/')[0] + 'Enforcement', data: data || emptyResponse };
+        });
+
+        searchResults = await Promise.all(promises);
       }
 
       setResults(searchResults);

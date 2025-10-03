@@ -28,7 +28,7 @@ import {
   Database,
   TrendingUp
 } from 'lucide-react';
-import { fdaApi, FDAResponse } from '@/lib/fda-api';
+import { FDAResponse } from '@/lib/fda-api';
 
 interface PerplexityResult {
   content: string;
@@ -99,12 +99,39 @@ export function CombinedSearch() {
           },
         }),
 
-        // FDA search based on scope
-        searchScope === 'combined' 
-          ? fdaApi.searchMultipleEndpoints(query, ['foodEnforcement', 'drugEnforcement', 'deviceEnforcement', 'drugsFda'], 15)
-          : searchScope === 'enforcement'
-          ? fdaApi.searchMultipleEndpoints(query, ['foodEnforcement', 'drugEnforcement', 'deviceEnforcement'], 20)
-          : fdaApi.searchMultipleEndpoints(query, ['foodEvent', 'drugEvent', 'animalEvent'], 20)
+        // FDA search using secure proxy based on scope
+        (async () => {
+          const endpoints = searchScope === 'combined' 
+            ? ['food/enforcement.json', 'drug/enforcement.json', 'device/enforcement.json', 'drug/drugsfda.json']
+            : searchScope === 'enforcement'
+            ? ['food/enforcement.json', 'drug/enforcement.json', 'device/enforcement.json']
+            : ['food/event.json', 'drug/event.json', 'animalandveterinary/event.json'];
+          
+          const limit = searchScope === 'combined' ? 15 : 20;
+          
+          const promises = endpoints.map(async (endpoint) => {
+            const { data, error } = await supabase.functions.invoke('secure-regulatory-proxy', {
+              body: { 
+                source: 'FDA', 
+                endpoint: `/${endpoint}`, 
+                params: { search: query, limit } 
+              },
+              headers: { Authorization: `Bearer ${session.access_token}` }
+            });
+            
+            const emptyResponse: FDAResponse<any> = { 
+              results: [], 
+              meta: { disclaimer: '', terms: '', license: '', last_updated: new Date().toISOString(), results: { skip: 0, limit, total: 0 } } 
+            };
+            
+            if (error && !error.message?.includes('No results')) {
+              return { endpoint: endpoint.split('/')[0] + 'Enforcement', data: emptyResponse, error: error.message };
+            }
+            return { endpoint: endpoint.split('/')[0] + 'Enforcement', data: data || emptyResponse };
+          });
+
+          return await Promise.all(promises);
+        })()
       ]);
 
       let perplexityResult: PerplexityResult | undefined;
