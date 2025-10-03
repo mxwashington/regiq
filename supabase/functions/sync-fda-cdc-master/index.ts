@@ -115,6 +115,7 @@ async function syncFDARecalls(supabase: any) {
       for (const item of data.results) {
         const recallNumber = item.recall_number;
         const description = item.product_description || item.reason_for_recall || '';
+        const classification = mapClassification(item.classification);
 
         const recallData = {
           recall_number: recallNumber,
@@ -122,14 +123,14 @@ async function syncFDARecalls(supabase: any) {
           product_description: description,
           recall_date: item.recall_initiation_date,
           publish_date: item.recall_initiation_date,
-          classification: mapClassification(item.classification),
+          classification,
           reason: item.reason_for_recall,
           company_name: item.recalling_firm,
           distribution_pattern: item.distribution_pattern,
           product_type: inferProductType(description),
           source: 'FDA',
           agency_source: 'FDA',
-          severity: mapClassification(item.classification),
+          severity: classification,
         };
 
         const { data: existing } = await supabase
@@ -147,6 +148,30 @@ async function syncFDARecalls(supabase: any) {
         } else {
           await supabase.from('recalls').insert(recallData);
           newCount++;
+        }
+
+        // Also insert into alerts table for dashboard display
+        const alertData = {
+          external_id: recallNumber,
+          source: 'FDA',
+          agency: 'FDA',
+          title: description.substring(0, 200),
+          summary: item.reason_for_recall || description.substring(0, 500),
+          urgency: classification === 'Class I' ? 'High' : classification === 'Class II' ? 'Medium' : 'Low',
+          published_date: item.recall_initiation_date,
+          external_url: `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts`,
+          full_content: JSON.stringify(item),
+        };
+
+        const { data: existingAlert } = await supabase
+          .from('alerts')
+          .select('id')
+          .eq('external_id', recallNumber)
+          .eq('source', 'FDA')
+          .maybeSingle();
+
+        if (!existingAlert) {
+          await supabase.from('alerts').insert(alertData);
         }
       }
     } catch (error) {
@@ -183,6 +208,7 @@ async function syncUSDARecalls(supabase: any) {
 
     for (const item of data) {
       const recallNumber = item.recallNumber || `USDA-${item.id}`;
+      const classification = item.recallClass || 'Class I';
 
       const recallData = {
         recall_number: recallNumber,
@@ -190,7 +216,7 @@ async function syncUSDARecalls(supabase: any) {
         product_description: item.productDescription || '',
         recall_date: item.recallDate,
         publish_date: item.publishDate || item.recallDate,
-        classification: item.recallClass || 'Class I',
+        classification,
         reason: item.reason || '',
         company_name: item.companyName || 'Unknown',
         distribution_pattern: item.distribution || '',
@@ -214,6 +240,30 @@ async function syncUSDARecalls(supabase: any) {
       } else {
         await supabase.from('recalls').insert(recallData);
         newCount++;
+      }
+
+      // Also insert into alerts table for dashboard display
+      const alertData = {
+        external_id: recallNumber,
+        source: 'USDA',
+        agency: 'USDA',
+        title: item.productName || 'USDA Recall',
+        summary: item.productDescription || item.reason || 'USDA meat recall',
+        urgency: classification === 'Class I' ? 'High' : 'Medium',
+        published_date: item.publishDate || item.recallDate,
+        external_url: `https://www.fsis.usda.gov/recalls`,
+        full_content: JSON.stringify(item),
+      };
+
+      const { data: existingAlert } = await supabase
+        .from('alerts')
+        .select('id')
+        .eq('external_id', recallNumber)
+        .eq('source', 'USDA')
+        .maybeSingle();
+
+      if (!existingAlert) {
+        await supabase.from('alerts').insert(alertData);
       }
     }
 
@@ -249,9 +299,10 @@ async function syncCDCOutbreakAlerts(supabase: any) {
       const state = item.state || 'Unknown';
       const year = item.year || new Date().getFullYear();
       const food = item.food || 'Unknown';
+      const title = `${pathogen} Outbreak in ${state} (${year})`;
 
       const outbreakData = {
-        outbreak_title: `${pathogen} Outbreak in ${state} (${year})`,
+        outbreak_title: title,
         pathogen_type: pathogen,
         investigation_status: 'Historical',
         implicated_foods: [food].filter(Boolean),
@@ -275,6 +326,30 @@ async function syncCDCOutbreakAlerts(supabase: any) {
       } else {
         await supabase.from('cdc_outbreak_alerts').insert(outbreakData);
         newCount++;
+      }
+
+      // Also insert into alerts table for dashboard display
+      const alertData = {
+        external_id: `CDC-OUTBREAK-${year}-${state}-${pathogen}`.replace(/\s+/g, '-'),
+        source: 'CDC',
+        agency: 'CDC',
+        title,
+        summary: `${pathogen} outbreak linked to ${food} in ${state}`,
+        urgency: 'High',
+        published_date: `${year}-01-01`,
+        external_url: 'https://www.cdc.gov/foodsafety/outbreaks/',
+        full_content: JSON.stringify(item),
+      };
+
+      const { data: existingAlert } = await supabase
+        .from('alerts')
+        .select('id')
+        .eq('external_id', alertData.external_id)
+        .eq('source', 'CDC')
+        .maybeSingle();
+
+      if (!existingAlert) {
+        await supabase.from('alerts').insert(alertData);
       }
     }
 
@@ -308,11 +383,14 @@ async function syncCDCEmergencyAdvisories(supabase: any) {
 
       if (!link) continue;
 
+      const urgency = inferUrgency(title);
+      const publishDate = pubDate ? new Date(pubDate).toISOString() : new Date().toISOString();
+
       const advisoryData = {
         title,
         description,
-        urgency: inferUrgency(title),
-        publish_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+        urgency,
+        publish_date: publishDate,
         source_url: link,
         keywords: extractKeywords(title + ' ' + description),
       };
@@ -332,6 +410,30 @@ async function syncCDCEmergencyAdvisories(supabase: any) {
       } else {
         await supabase.from('cdc_emergency_advisories').insert(advisoryData);
         newCount++;
+      }
+
+      // Also insert into alerts table for dashboard display
+      const alertData = {
+        external_id: link,
+        source: 'CDC',
+        agency: 'CDC',
+        title,
+        summary: description.substring(0, 500),
+        urgency,
+        published_date: publishDate,
+        external_url: link,
+        full_content: description,
+      };
+
+      const { data: existingAlert } = await supabase
+        .from('alerts')
+        .select('id')
+        .eq('external_id', link)
+        .eq('source', 'CDC')
+        .maybeSingle();
+
+      if (!existingAlert) {
+        await supabase.from('alerts').insert(alertData);
       }
     }
 
