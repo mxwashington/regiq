@@ -28,7 +28,7 @@ interface RSSFeed {
 const RSS_FEEDS: RSSFeed[] = [
   // Primary unified food safety feed covering FDA & USDA recalls
   {
-    agency: 'FDA_FOOD_SAFETY',
+    agency: 'FDA',
     url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/food-safety-recalls/rss.xml',
     backupUrl: 'https://www.recalls.gov/rrfda.aspx', // More reliable consolidated feed
     priority: 10,

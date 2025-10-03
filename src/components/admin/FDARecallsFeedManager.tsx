@@ -18,7 +18,7 @@ export function FDARecallsFeedManager() {
       const { data, error } = await supabase
         .from('data_freshness')
         .select('*')
-        .eq('source_name', 'FDA_FOOD_SAFETY')
+        .eq('source_name', 'FDA')
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
@@ -32,7 +32,7 @@ export function FDARecallsFeedManager() {
       const { data, error } = await supabase
         .from('alerts')
         .select('*')
-        .eq('source', 'FDA_FOOD_SAFETY')
+        .eq('source', 'FDA')
         .order('published_date', { ascending: false })
         .limit(20);
 
@@ -54,17 +54,17 @@ export function FDARecallsFeedManager() {
         supabase
           .from('alerts')
           .select('id', { count: 'exact', head: true })
-          .eq('source', 'FDA_FOOD_SAFETY')
+          .eq('source', 'FDA')
           .gte('published_date', today.toISOString()),
         supabase
           .from('alerts')
           .select('id', { count: 'exact', head: true })
-          .eq('source', 'FDA_FOOD_SAFETY')
+          .eq('source', 'FDA')
           .gte('published_date', weekAgo.toISOString()),
         supabase
           .from('alerts')
           .select('id', { count: 'exact', head: true })
-          .eq('source', 'FDA_FOOD_SAFETY'),
+          .eq('source', 'FDA'),
       ]);
 
       return {
@@ -81,12 +81,12 @@ export function FDARecallsFeedManager() {
 
     try {
       const { data, error } = await supabase.functions.invoke('rss-alert-scraper', {
-        body: { source: 'FDA_FOOD_SAFETY' }
+        body: { source: 'FDA' }
       });
 
       if (error) throw error;
 
-      const processed = data?.agencyResults?.FDA_FOOD_SAFETY || 0;
+      const processed = data?.agencyResults?.FDA || 0;
       const total = data?.totalAlertsProcessed || 0;
       
       if (processed === 0 && total === 0) {
