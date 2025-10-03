@@ -9,6 +9,7 @@ import { AdminAlertManager } from "@/components/AdminAlertManager";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { UnifiedDataPipelineManager } from "@/components/admin/UnifiedDataPipelineManager";
 import { DataSourcesManager } from "@/components/admin/DataSourcesManager";
+import { ErrorLogsViewer } from "@/components/admin/ErrorLogsViewer";
 
 import { logger } from '@/lib/logger';
 const LoadingScreen = () => (
@@ -46,6 +47,7 @@ const AdminDashboard: React.FC = () => {
               <TabsList className="flex flex-col w-full md:w-48 h-auto gap-1 p-2 sticky top-6">
               <TabsTrigger value="fda-cdc" className="w-full justify-start md:justify-center">FDA & CDC Pipeline</TabsTrigger>
               <TabsTrigger value="data-sync" className="w-full justify-start md:justify-center">All Data Sources</TabsTrigger>
+              <TabsTrigger value="error-logs" className="w-full justify-start md:justify-center">Error Logs</TabsTrigger>
               <TabsTrigger value="analytics" className="w-full justify-start md:justify-center">Analytics</TabsTrigger>
               <TabsTrigger value="alerts" className="w-full justify-start md:justify-center">Alerts</TabsTrigger>
               <TabsTrigger value="security" className="w-full justify-start md:justify-center">Security</TabsTrigger>
@@ -60,6 +62,10 @@ const AdminDashboard: React.FC = () => {
 
               <TabsContent value="data-sync" className="mt-0">
                 <UnifiedDataPipelineManager />
+              </TabsContent>
+
+              <TabsContent value="error-logs" className="mt-0">
+                <ErrorLogsViewer />
               </TabsContent>
 
               <TabsContent value="analytics" className="mt-0">
