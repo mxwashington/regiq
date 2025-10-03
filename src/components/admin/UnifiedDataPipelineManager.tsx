@@ -31,7 +31,8 @@ import {
   FileText,
   Eye,
   Zap,
-  Shield
+  Shield,
+  Rss
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -354,6 +355,32 @@ export const UnifiedDataPipelineManager = () => {
     });
   };
 
+  const runRSSScraper = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('rss-alert-scraper');
+
+      if (error) throw error;
+
+      toast({
+        title: 'RSS Scraper Complete',
+        description: `Processed ${data.totalAlertsProcessed} alerts from ${Object.keys(data.agencyResults || {}).length} sources`,
+      });
+
+      // Refresh source health after successful scrape
+      await fetchSourceHealth();
+    } catch (error) {
+      console.error('RSS scraper failed:', error);
+      toast({
+        title: 'RSS Scraper Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const exportLogs = async (format: 'csv' | 'json') => {
     try {
       const { data, error } = await supabase
@@ -463,7 +490,7 @@ export const UnifiedDataPipelineManager = () => {
 
       {/* Sticky Toolbar - Mobile Optimized */}
       <div className="fixed bottom-0 left-0 right-0 md:relative bg-background border-t md:border-t-0 md:border md:rounded-lg p-4 z-40 shadow-lg md:shadow-none">
-        <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:items-center md:justify-end max-w-7xl mx-auto">
+        <div className="grid grid-cols-4 gap-2 md:flex md:flex-wrap md:items-center md:justify-end max-w-7xl mx-auto">
           <Button
             onClick={runAllHealthChecks}
             disabled={loading}
@@ -475,6 +502,20 @@ export const UnifiedDataPipelineManager = () => {
               <PlayCircle className="h-5 w-5 md:h-4 md:w-4" />
             )}
             <span className="md:inline">Health Check</span>
+          </Button>
+
+          <Button
+            onClick={runRSSScraper}
+            disabled={loading}
+            variant="outline"
+            className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 h-auto min-h-[44px] py-2 md:py-2 text-xs md:text-sm"
+          >
+            {loading ? (
+              <RefreshCw className="h-5 w-5 md:h-4 md:w-4 animate-spin" />
+            ) : (
+              <Rss className="h-5 w-5 md:h-4 md:w-4" />
+            )}
+            <span className="md:inline">RSS Feeds</span>
           </Button>
 
           <Dialog>
