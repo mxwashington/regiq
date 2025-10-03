@@ -868,6 +868,81 @@ export type Database = {
         }
         Relationships: []
       }
+      cdc_emergency_advisories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          keywords: string[] | null
+          publish_date: string
+          source_url: string
+          title: string
+          updated_at: string | null
+          urgency: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          keywords?: string[] | null
+          publish_date: string
+          source_url: string
+          title: string
+          updated_at?: string | null
+          urgency?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          keywords?: string[] | null
+          publish_date?: string
+          source_url?: string
+          title?: string
+          updated_at?: string | null
+          urgency?: string | null
+        }
+        Relationships: []
+      }
+      cdc_outbreak_alerts: {
+        Row: {
+          created_at: string | null
+          id: string
+          implicated_foods: string[] | null
+          investigation_status: string | null
+          keywords: string[] | null
+          outbreak_title: string
+          pathogen_type: string | null
+          publish_date: string
+          source_url: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          implicated_foods?: string[] | null
+          investigation_status?: string | null
+          keywords?: string[] | null
+          outbreak_title: string
+          pathogen_type?: string | null
+          publish_date: string
+          source_url: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          implicated_foods?: string[] | null
+          investigation_status?: string | null
+          keywords?: string[] | null
+          outbreak_title?: string
+          pathogen_type?: string | null
+          publish_date?: string
+          source_url?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cdc_test: {
         Row: {
           agency: string
@@ -2860,6 +2935,90 @@ export type Database = {
         }
         Relationships: []
       }
+      recalls: {
+        Row: {
+          affected_brands: string[] | null
+          affected_states: string[] | null
+          agency_source: string | null
+          alert_priority: string | null
+          classification: string
+          company_name: string
+          contamination_type: string | null
+          created_at: string
+          distribution_pattern: string | null
+          id: string
+          keywords: string[] | null
+          pathogen_type: string | null
+          product_description: string | null
+          product_name: string
+          product_type: string
+          publish_date: string | null
+          reason: string | null
+          recall_date: string
+          recall_number: string
+          recall_type: string | null
+          severity: string | null
+          source: string
+          source_url: string | null
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          affected_brands?: string[] | null
+          affected_states?: string[] | null
+          agency_source?: string | null
+          alert_priority?: string | null
+          classification: string
+          company_name: string
+          contamination_type?: string | null
+          created_at?: string
+          distribution_pattern?: string | null
+          id?: string
+          keywords?: string[] | null
+          pathogen_type?: string | null
+          product_description?: string | null
+          product_name: string
+          product_type: string
+          publish_date?: string | null
+          reason?: string | null
+          recall_date: string
+          recall_number: string
+          recall_type?: string | null
+          severity?: string | null
+          source: string
+          source_url?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          affected_brands?: string[] | null
+          affected_states?: string[] | null
+          agency_source?: string | null
+          alert_priority?: string | null
+          classification?: string
+          company_name?: string
+          contamination_type?: string | null
+          created_at?: string
+          distribution_pattern?: string | null
+          id?: string
+          keywords?: string[] | null
+          pathogen_type?: string | null
+          product_description?: string | null
+          product_name?: string
+          product_type?: string
+          publish_date?: string | null
+          reason?: string | null
+          recall_date?: string
+          recall_number?: string
+          recall_type?: string | null
+          severity?: string | null
+          source?: string
+          source_url?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: []
+      }
       regulatory_gap_indicators: {
         Row: {
           affected_areas: Json
@@ -3403,6 +3562,33 @@ export type Database = {
           name?: string
           risk_score?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          job_name: string
+          records_synced: number | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          job_name: string
+          records_synced?: number | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          job_name?: string
+          records_synced?: number | null
+          status?: string
         }
         Relationships: []
       }
