@@ -14,12 +14,14 @@
 
 import { RSSParseError } from './fda-error-handler.ts';
 
-// FDA RSS feed URLs by category
+// DEPRECATED: Old FDA category feeds (replaced by unified FDA_FOOD_SAFETY feed)
+// These feeds are no longer maintained and have stale data
+// New primary source: https://www.fda.gov/AboutFDA/ContactFDA/StayInformed/RSSFeeds/FoodSafety/rss.xml
 const FDA_RSS_FEEDS = {
-  food: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/food/rss.xml',
-  drug: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/drugs/rss.xml',
-  device: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml',
-  recalls: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls/rss.xml'
+  // food: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/food/rss.xml', // DEPRECATED
+  // drug: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/drugs/rss.xml', // DEPRECATED
+  // device: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml', // DEPRECATED
+  // recalls: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/recalls/rss.xml' // DEPRECATED
 };
 
 export interface RSSFallbackAlert {

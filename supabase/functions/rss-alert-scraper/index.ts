@@ -25,8 +25,13 @@ interface RSSFeed {
 // US-only RSS feeds (non-US sources removed for focused compliance)
 // RegIQ focuses exclusively on US federal agencies for regulatory compliance
 const RSS_FEEDS: RSSFeed[] = [
-  // CDC removed - no direct food safety RSS feed available
-  // CDC data aggregated through FDA and USDA sources instead
+  // Primary unified food safety feed covering FDA & USDA recalls
+  {
+    agency: 'FDA_FOOD_SAFETY',
+    url: 'https://www.fda.gov/AboutFDA/ContactFDA/StayInformed/RSSFeeds/FoodSafety/rss.xml',
+    priority: 10,
+    urgencyKeywords: ['recall', 'contamination', 'outbreak', 'salmonella', 'listeria', 'e.coli', 'alert', 'class i', 'class ii', 'voluntary', 'market withdrawal', 'public health']
+  },
   {
     agency: 'FTC',
     url: 'https://www.ftc.gov/feeds/press-release-consumer-protection.xml',
@@ -169,9 +174,29 @@ async function processRSSItem(item: any): Promise<any> {
   const urgency = calculateUrgency(item);
   const publishedDate = parseDate(item.pubDate);
   
+  // Smart agency detection for FDA_FOOD_SAFETY feed
+  let detectedAgency = item.agency;
+  let source = item.agency;
+  
+  if (item.agency === 'FDA_FOOD_SAFETY') {
+    const text = (item.title + ' ' + item.description).toLowerCase();
+    
+    // Detect FSIS/USDA content
+    if (text.includes('usda') || text.includes('fsis') || 
+        text.includes('meat') || text.includes('poultry') || 
+        text.includes('egg products')) {
+      detectedAgency = 'FSIS';
+    } else {
+      detectedAgency = 'FDA';
+    }
+    
+    source = 'FDA_FOOD_SAFETY'; // Keep original source for tracking
+  }
+  
   return {
     title: item.title,
-    source: item.agency,
+    source: source,
+    agency: detectedAgency,
     urgency,
     summary: item.description.length > 500 
       ? item.description.substring(0, 500) + '...' 
