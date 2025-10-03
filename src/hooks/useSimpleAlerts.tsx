@@ -95,7 +95,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
             });
             
             // Apply OR condition: match either source OR agency field
-            query = query.or(`source.in.("${allSourceNames.join('","')}"),agency.in.("${allAgencyNames.join('","')}")`);
+            query = query.or(`source.in.(${allSourceNames.join(',')}),agency.in.(${allAgencyNames.join(',')})`);
           }
 
           // Filter by date range (0 means all time)
@@ -243,7 +243,7 @@ export const useSimpleAlerts = (limit?: number, filters?: AlertFilters): UseSimp
               allAgencyNames.push(filterCategory);
             });
             
-            query = query.or(`source.in.("${allSourceNames.join('","')}"),agency.in.("${allAgencyNames.join('","')}")`);
+            query = query.or(`source.in.(${allSourceNames.join(',')}),agency.in.(${allAgencyNames.join(',')})`);
           }
           
           // Filter by date range (0 means all time)
