@@ -18,6 +18,7 @@ const corsHeaders = {
 interface RSSFeed {
   agency: string;
   url: string;
+  backupUrl?: string; // Fallback URL if primary fails
   priority: number;
   urgencyKeywords: string[];
 }
@@ -29,6 +30,7 @@ const RSS_FEEDS: RSSFeed[] = [
   {
     agency: 'FDA_FOOD_SAFETY',
     url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/food-safety-recalls/rss.xml',
+    backupUrl: 'https://www.recalls.gov/rrfda.aspx', // More reliable consolidated feed
     priority: 10,
     urgencyKeywords: ['recall', 'contamination', 'outbreak', 'salmonella', 'listeria', 'e.coli', 'alert', 'class i', 'class ii', 'voluntary', 'market withdrawal', 'public health']
   },
@@ -72,11 +74,28 @@ async function fetchRSSFeed(feed: RSSFeed, retryCount = 0): Promise<any[]> {
         'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml',
         'Cache-Control': 'no-cache'
       },
-      signal: AbortSignal.timeout(30000) // 30 second timeout
+      signal: AbortSignal.timeout(60000) // 60 second timeout for slow government sites
     });
 
     if (!response.ok) {
-      logStep(`Failed to fetch ${feed.agency} RSS: ${response.status}`);
+      // Capture response body for debugging
+      const errorText = await response.text().catch(() => 'Unable to read response');
+      const errorDetails = {
+        status: response.status,
+        statusText: response.statusText,
+        contentType: response.headers.get('content-type'),
+        errorPreview: errorText.substring(0, 500), // First 500 chars for debugging
+        url: feed.url
+      };
+      
+      logStep(`Failed to fetch ${feed.agency} RSS: ${response.status} - ${response.statusText}`, errorDetails);
+
+      // Try backup URL if available and this is first attempt
+      if (feed.backupUrl && retryCount === 0) {
+        logStep(`Attempting backup URL for ${feed.agency}: ${feed.backupUrl}`);
+        const backupFeed = { ...feed, url: feed.backupUrl };
+        return fetchRSSFeed(backupFeed, retryCount + 1);
+      }
 
       // Retry with exponential backoff for rate limiting (429) or server errors (5xx)
       if ((response.status === 429 || response.status >= 500) && retryCount < maxRetries) {
@@ -90,6 +109,30 @@ async function fetchRSSFeed(feed: RSSFeed, retryCount = 0): Promise<any[]> {
     }
 
     const xmlText = await response.text();
+
+    // Validate response content
+    if (!xmlText || xmlText.length === 0) {
+      logStep(`Empty response received from ${feed.agency}`);
+      return [];
+    }
+
+    // Log feed diagnostics for debugging
+    const feedDiagnostics = {
+      length: xmlText.length,
+      firstChars: xmlText.substring(0, 200),
+      containsRSS: xmlText.includes('<rss') || xmlText.includes('<feed'),
+      containsHTML: xmlText.includes('<!DOCTYPE html') || xmlText.includes('<html')
+    };
+    logStep(`Received content from ${feed.agency}:`, feedDiagnostics);
+
+    // Detect if HTML error page was returned instead of XML
+    if (feedDiagnostics.containsHTML && !feedDiagnostics.containsRSS) {
+      logStep(`⚠️  WARNING: ${feed.agency} returned HTML page (likely 404/error), not XML feed!`, {
+        preview: xmlText.substring(0, 500)
+      });
+      return [];
+    }
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(xmlText, 'text/xml');
     
@@ -99,6 +142,21 @@ async function fetchRSSFeed(feed: RSSFeed, retryCount = 0): Promise<any[]> {
     }
 
     const items = doc.querySelectorAll('item');
+    
+    // Log parsing results
+    logStep(`Found ${items.length} items in ${feed.agency} RSS feed`);
+
+    // Log first item structure for debugging
+    if (items.length > 0) {
+      const firstItem = items[0];
+      const sampleTitle = (firstItem as any).querySelector('title')?.textContent?.trim();
+      const sampleDesc = (firstItem as any).querySelector('description')?.textContent?.trim();
+      logStep(`Sample item from ${feed.agency}:`, {
+        title: sampleTitle?.substring(0, 100),
+        hasDescription: !!sampleDesc,
+        descLength: sampleDesc?.length || 0
+      });
+    }
     const results: any[] = [];
 
     for (const item of items) {
@@ -128,7 +186,15 @@ async function fetchRSSFeed(feed: RSSFeed, retryCount = 0): Promise<any[]> {
     return results;
 
   } catch (error) {
-    logStep(`Error fetching RSS feed for ${feed.agency}:`, error);
+    const errorDetails = {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : 'Unknown',
+      agency: feed.agency,
+      url: feed.url
+    };
+    
+    logStep(`Error fetching RSS feed for ${feed.agency}:`, errorDetails);
     return [];
   }
 }

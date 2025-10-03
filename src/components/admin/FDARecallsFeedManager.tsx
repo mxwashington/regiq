@@ -87,17 +87,39 @@ export function FDARecallsFeedManager() {
       if (error) throw error;
 
       const processed = data?.agencyResults?.FDA_FOOD_SAFETY || 0;
-      toast({
-        title: 'Sync Complete',
-        description: `Processed ${processed} FDA/USDA recall alerts`,
-      });
+      const total = data?.totalAlertsProcessed || 0;
+      
+      if (processed === 0 && total === 0) {
+        toast({
+          title: 'No New Recalls Found',
+          description: 'Feed sync completed but no new alerts were processed. Check Edge Function logs for details.',
+          variant: 'default',
+        });
+      } else {
+        toast({
+          title: 'Sync Complete',
+          description: `Processed ${processed} FDA/USDA recall alerts (${total} total across all sources)`,
+        });
+      }
 
       await Promise.all([refetchHealth(), refetchRecalls()]);
     } catch (error: any) {
       console.error('FDA recalls sync failed:', error);
+      
+      let errorMessage = 'Unknown error occurred';
+      if (error.message?.includes('404')) {
+        errorMessage = 'Feed URL returned 404 - RSS feed may have moved';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = 'Request timeout - FDA server too slow';
+      } else if (error.message?.includes('HTML')) {
+        errorMessage = 'Received HTML instead of XML - feed URL may be incorrect';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: 'Sync Failed',
-        description: error.message || 'Unknown error occurred',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -106,17 +128,24 @@ export function FDARecallsFeedManager() {
   };
 
   const getHealthStatus = () => {
-    if (!feedHealth?.last_successful_fetch) return 'unknown';
+    if (!feedHealth?.last_successful_fetch) return { status: 'unknown', reason: 'No sync history' };
     
     const lastFetch = new Date(feedHealth.last_successful_fetch);
     const hoursAgo = (Date.now() - lastFetch.getTime()) / (1000 * 60 * 60);
     
-    if (hoursAgo < 6) return 'healthy';
-    if (hoursAgo < 24) return 'degraded';
-    return 'critical';
+    if (hoursAgo < 6) return { status: 'healthy', reason: 'Recently updated' };
+    if (hoursAgo < 24) return { 
+      status: 'degraded', 
+      reason: `Last update ${Math.round(hoursAgo)} hours ago` 
+    };
+    return { 
+      status: 'critical', 
+      reason: `No update in ${Math.round(hoursAgo / 24)} days` 
+    };
   };
 
-  const status = getHealthStatus();
+  const healthInfo = getHealthStatus();
+  const status = healthInfo.status;
 
   return (
     <div className="space-y-6">
@@ -148,7 +177,15 @@ export function FDARecallsFeedManager() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Feed hasn't updated in over 24 hours. Run a manual sync to check for new recalls.
+            <strong>Critical:</strong> {healthInfo.reason}. Run a manual sync to check for new recalls.
+          </AlertDescription>
+        </Alert>
+      )}
+      {status === 'degraded' && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Warning:</strong> {healthInfo.reason}. Consider running a manual sync.
           </AlertDescription>
         </Alert>
       )}
@@ -187,9 +224,14 @@ export function FDARecallsFeedManager() {
               )}
             </div>
             {feedHealth?.last_successful_fetch && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Last updated: {new Date(feedHealth.last_successful_fetch).toLocaleString()}
-              </p>
+              <div className="mt-1">
+                <p className="text-xs text-muted-foreground">
+                  Last updated: {new Date(feedHealth.last_successful_fetch).toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {healthInfo.reason}
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
