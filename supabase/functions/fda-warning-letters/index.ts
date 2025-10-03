@@ -415,29 +415,6 @@ function transformToAlert(letter: WarningLetter): any {
   return convertToAlert(letter);
 }
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: `Processed ${processedCount} FDA warning letters`,
-      processed: processedCount,
-      total_letters: warningLetters.length,
-      timestamp: new Date().toISOString()
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-
-  } catch (error) {
-    throw new Error(`Failed to scrape FDA warning letters: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-/**
- * Transform warning letter to alert format
- */
-function transformToAlert(letter: WarningLetter): any {
-  return convertToAlert(letter);
-}
-
 async function testScraper() {
   const warningLettersUrl = 'https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-actions-and-activities/warning-letters';
 
