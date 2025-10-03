@@ -28,7 +28,7 @@ const RSS_FEEDS: RSSFeed[] = [
   // Primary unified food safety feed covering FDA & USDA recalls
   {
     agency: 'FDA_FOOD_SAFETY',
-    url: 'https://www.fda.gov/AboutFDA/ContactFDA/StayInformed/RSSFeeds/FoodSafety/rss.xml',
+    url: 'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/food-safety-recalls/rss.xml',
     priority: 10,
     urgencyKeywords: ['recall', 'contamination', 'outbreak', 'salmonella', 'listeria', 'e.coli', 'alert', 'class i', 'class ii', 'voluntary', 'market withdrawal', 'public health']
   },
